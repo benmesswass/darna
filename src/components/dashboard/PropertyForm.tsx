@@ -3,6 +3,7 @@
 import { useActionState, useRef, useState } from "react";
 import {
   createPropertyAction,
+  updatePropertyAction,
   type PropertyFormState,
 } from "@/actions/properties";
 import { fr } from "@/lib/i18n/fr";
@@ -12,21 +13,39 @@ import { CITIES } from "@/lib/geo";
 import { SparklesIcon } from "@/components/icons";
 
 const inputClass =
-  "w-full rounded-xl border border-darna/15 bg-cream px-3.5 py-2.5 text-sm outline-none focus:border-darna";
+  "w-full rounded-xl border border-darna/15 bg-cream px-3.5 py-2.5 text-sm outline-none focus:border-darna disabled:opacity-60";
 const labelClass = "text-sm font-semibold text-ink/70";
 
-export function PropertyForm() {
+export type PropertyFormInitial = {
+  id: string;
+  title: string;
+  type: string;
+  price: number;
+  city: string;
+  address: string;
+  surface: number | null;
+  rooms: number | null;
+  maxGuests: number | null;
+  latitude: number;
+  longitude: number;
+  description: string;
+  amenities: string[];
+};
+
+/** Formulaire d'annonce — création (sans `initial`) ou modification (avec). */
+export function PropertyForm({ initial }: { initial?: PropertyFormInitial }) {
+  const isEdit = Boolean(initial);
   const [state, action, pending] = useActionState<PropertyFormState, FormData>(
-    createPropertyAction,
+    isEdit ? updatePropertyAction : createPropertyAction,
     undefined
   );
   const formRef = useRef<HTMLFormElement>(null);
-  const [type, setType] = useState("SEJOUR");
+  const [type, setType] = useState(initial?.type ?? "SEJOUR");
   const [coords, setCoords] = useState<{ lat: string; lng: string }>({
-    lat: "36.8065",
-    lng: "10.1815",
+    lat: String(initial?.latitude ?? 36.8065),
+    lng: String(initial?.longitude ?? 10.1815),
   });
-  const [description, setDescription] = useState("");
+  const [description, setDescription] = useState(initial?.description ?? "");
 
   const priceLabel =
     type === "SEJOUR"
@@ -49,7 +68,7 @@ export function PropertyForm() {
     const data = new FormData(form);
     const generated = generateDescription({
       title: String(data.get("title") ?? "").trim() || "Ce bien",
-      type: String(data.get("type") ?? "SEJOUR"),
+      type,
       city: String(data.get("city") ?? ""),
       address: String(data.get("address") ?? "").trim() || undefined,
       surface: Number(data.get("surface")) || undefined,
@@ -69,6 +88,8 @@ export function PropertyForm() {
         </p>
       ) : null}
 
+      {initial ? <input type="hidden" name="propertyId" value={initial.id} /> : null}
+
       <label className="block space-y-1.5">
         <span className={labelClass}>{fr.annonceForm.titre}</span>
         <input
@@ -77,6 +98,7 @@ export function PropertyForm() {
           required
           minLength={8}
           maxLength={120}
+          defaultValue={initial?.title ?? ""}
           placeholder={fr.annonceForm.titrePlaceholder}
           className={inputClass}
         />
@@ -88,6 +110,7 @@ export function PropertyForm() {
           <select
             name="type"
             value={type}
+            disabled={isEdit}
             onChange={(e) => setType(e.target.value)}
             className={inputClass}
           >
@@ -95,10 +118,22 @@ export function PropertyForm() {
             <option value="LOCATION">{fr.annonceForm.typeLocation}</option>
             <option value="VENTE">{fr.annonceForm.typeVente}</option>
           </select>
+          {isEdit ? (
+            <span className="block text-xs text-ink/40">
+              {fr.annonceForm.typeNonModifiable}
+            </span>
+          ) : null}
         </label>
         <label className="block space-y-1.5">
           <span className={labelClass}>{priceLabel}</span>
-          <input name="price" type="number" required min={10} className={inputClass} />
+          <input
+            name="price"
+            type="number"
+            required
+            min={10}
+            defaultValue={initial?.price ?? ""}
+            className={inputClass}
+          />
         </label>
       </div>
 
@@ -108,7 +143,7 @@ export function PropertyForm() {
           <select
             name="city"
             required
-            defaultValue="Tunis"
+            defaultValue={initial?.city ?? "Tunis"}
             onChange={(e) => onCityChange(e.target.value)}
             className={inputClass}
           >
@@ -121,18 +156,37 @@ export function PropertyForm() {
         </label>
         <label className="block space-y-1.5">
           <span className={labelClass}>{fr.annonceForm.adresse}</span>
-          <input name="address" type="text" maxLength={160} className={inputClass} />
+          <input
+            name="address"
+            type="text"
+            maxLength={160}
+            defaultValue={initial?.address ?? ""}
+            className={inputClass}
+          />
         </label>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
         <label className="block space-y-1.5">
           <span className={labelClass}>{fr.annonceForm.surface}</span>
-          <input name="surface" type="number" min={10} className={inputClass} />
+          <input
+            name="surface"
+            type="number"
+            min={10}
+            defaultValue={initial?.surface ?? ""}
+            className={inputClass}
+          />
         </label>
         <label className="block space-y-1.5">
           <span className={labelClass}>{fr.annonceForm.pieces}</span>
-          <input name="rooms" type="number" min={1} max={30} className={inputClass} />
+          <input
+            name="rooms"
+            type="number"
+            min={1}
+            max={30}
+            defaultValue={initial?.rooms ?? ""}
+            className={inputClass}
+          />
         </label>
         {type === "SEJOUR" ? (
           <label className="block space-y-1.5">
@@ -143,6 +197,7 @@ export function PropertyForm() {
               required
               min={1}
               max={30}
+              defaultValue={initial?.maxGuests ?? ""}
               className={inputClass}
             />
           </label>
@@ -188,7 +243,13 @@ export function PropertyForm() {
               key={a}
               className="flex cursor-pointer items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-sm ring-1 ring-darna/15 has-[:checked]:bg-darna has-[:checked]:text-white"
             >
-              <input type="checkbox" name="amenities" value={a} className="sr-only" />
+              <input
+                type="checkbox"
+                name="amenities"
+                value={a}
+                defaultChecked={initial?.amenities.includes(a) ?? false}
+                className="sr-only"
+              />
               {a}
             </label>
           ))}
@@ -226,7 +287,11 @@ export function PropertyForm() {
         disabled={pending}
         className="w-full rounded-xl bg-darna px-5 py-3 text-sm font-bold text-white transition hover:bg-darna-light disabled:opacity-60 sm:w-auto sm:px-10"
       >
-        {pending ? fr.common.chargement : fr.annonceForm.publier}
+        {pending
+          ? fr.common.chargement
+          : isEdit
+            ? fr.annonceForm.enregistrerModifs
+            : fr.annonceForm.publier}
       </button>
     </form>
   );

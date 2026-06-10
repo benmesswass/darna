@@ -54,3 +54,7 @@ CREDENTIALS.md
 !CLAUDE.md
 !.claude/
 !.agents/
+
+# uploads locaux (V0) — fichiers utilisateurs jamais commités
+public/uploads/*
+!public/uploads/.gitkeep

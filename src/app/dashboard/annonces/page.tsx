@@ -14,7 +14,7 @@ import { Price } from "@/components/currency/Price";
 export default async function MesAnnoncesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ creee?: string }>;
+  searchParams: Promise<{ creee?: string; modifiee?: string }>;
 }) {
   const user = await getSessionUser();
   if (!user) redirect("/connexion");
@@ -22,7 +22,7 @@ export default async function MesAnnoncesPage({
     redirect("/dashboard/reservations");
   }
 
-  const { creee } = await searchParams;
+  const { creee, modifiee } = await searchParams;
 
   const properties = await prisma.property.findMany({
     where: { ownerId: user.id },
@@ -39,6 +39,11 @@ export default async function MesAnnoncesPage({
       {creee ? (
         <p className="mt-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
           {fr.annonceForm.annonceCreee}
+        </p>
+      ) : null}
+      {modifiee ? (
+        <p className="mt-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+          {fr.annonceForm.annonceModifiee}
         </p>
       ) : null}
 
@@ -109,6 +114,12 @@ export default async function MesAnnoncesPage({
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 sm:flex-col sm:items-stretch">
+                  <Link
+                    href={`/dashboard/annonces/${p.id}/modifier`}
+                    className="rounded-xl bg-darna px-3.5 py-2 text-center text-xs font-semibold text-white hover:bg-darna-light"
+                  >
+                    {fr.annonceForm.modifierTitre}
+                  </Link>
                   <Link
                     href={`/annonce/${p.slug}`}
                     className="rounded-xl border border-darna/15 px-3.5 py-2 text-center text-xs font-semibold text-darna hover:bg-darna/5"

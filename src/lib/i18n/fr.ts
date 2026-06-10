@@ -260,6 +260,23 @@ export const fr = {
       "Compose un texte à partir des champs saisis — modifiable ensuite.",
     publier: "Publier l'annonce",
     annonceCreee: "Annonce publiée ! Elle est en ligne pour 30 jours.",
+    modifierTitre: "Modifier l'annonce",
+    enregistrerModifs: "Enregistrer les modifications",
+    annonceModifiee: "Annonce mise à jour.",
+    typeNonModifiable:
+      "Le type d'annonce n'est pas modifiable après publication (réservations et historique liés).",
+    photosTitre: "Photos de l'annonce",
+    photosAide:
+      "JPEG, PNG ou WebP — 5 Mo max par photo, 8 photos par annonce. La couverture est la première photo affichée.",
+    ajouterPhotos: "Ajouter les photos",
+    choisirFichiers: "Choisir des fichiers…",
+    photosAjoutees: "Photos ajoutées !",
+    supprimerPhoto: "Supprimer",
+    definirCouverture: "Mettre en couverture",
+    couverture: "Couverture",
+    erreurUpload:
+      "Fichier refusé : format accepté JPEG/PNG/WebP, taille maximale 5 Mo.",
+    maxPhotos: (n: number) => `Maximum ${n} photos par annonce.`,
     coordonnees: "Coordonnées GPS",
     latitude: "Latitude",
     longitude: "Longitude",

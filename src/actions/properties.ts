@@ -12,6 +12,11 @@ import { buildPropertySlug } from "@/lib/slug";
 import { AMENITIES, PROPERTY_TYPES } from "@/lib/constants";
 import { LISTING_LIFETIME_DAYS } from "@/lib/config";
 import { logAudit } from "@/lib/audit";
+import {
+  MAX_PHOTOS_PER_PROPERTY,
+  deleteUploadedImage,
+  saveUploadedImage,
+} from "@/lib/uploads";
 
 export type PropertyFormState = { error?: string } | undefined;
 
@@ -125,12 +130,92 @@ async function requireOwnProperty(propertyId: string) {
   const user = await requireUser();
   const property = await prisma.property.findUnique({
     where: { id: propertyId },
-    select: { id: true, ownerId: true, type: true },
+    select: { id: true, ownerId: true, type: true, slug: true, title: true },
   });
   if (!property || property.ownerId !== user.id) {
     throw new Error("ACCES_REFUSE");
   }
   return property;
+}
+
+// Schéma de modification : identique à la création, SANS le type —
+// le type d'annonce est figé après publication (réservations liées).
+const updateSchema = z.object({
+  propertyId: z.string().cuid(),
+  title: z.string().trim().min(8).max(120),
+  price: z.coerce.number().int().min(10).max(10_000_000),
+  city: z.string().trim().min(2).max(60),
+  address: z.string().trim().max(160).optional().or(z.literal("")),
+  surface: z.coerce.number().int().min(10).max(10_000).optional().or(z.literal("")),
+  rooms: z.coerce.number().int().min(1).max(30).optional().or(z.literal("")),
+  maxGuests: z.coerce.number().int().min(1).max(30).optional().or(z.literal("")),
+  latitude: z.coerce.number().min(30).max(38),
+  longitude: z.coerce.number().min(7).max(12),
+  description: z.string().trim().min(40).max(4000),
+  amenities: z.array(z.enum(AMENITIES)).max(AMENITIES.length),
+});
+
+export async function updatePropertyAction(
+  _prev: PropertyFormState,
+  formData: FormData
+): Promise<PropertyFormState> {
+  const user = await requireLister();
+
+  const parsed = updateSchema.safeParse({
+    propertyId: formData.get("propertyId"),
+    title: formData.get("title"),
+    price: formData.get("price"),
+    city: formData.get("city"),
+    address: formData.get("address"),
+    surface: formData.get("surface") || "",
+    rooms: formData.get("rooms") || "",
+    maxGuests: formData.get("maxGuests") || "",
+    latitude: formData.get("latitude"),
+    longitude: formData.get("longitude"),
+    description: formData.get("description"),
+    amenities: formData.getAll("amenities"),
+  });
+  if (!parsed.success) return { error: fr.common.champsRequis };
+
+  const data = parsed.data;
+  // Autorisation : l'annonce doit appartenir à l'utilisateur connecté.
+  const property = await requireOwnProperty(data.propertyId);
+
+  const cityName = resolveCity(data.city);
+  const cityRef = cityName ? getCity(cityName) : undefined;
+  if (!cityRef) return { error: fr.common.champsRequis };
+
+  await prisma.property.update({
+    where: { id: property.id },
+    data: {
+      title: data.title,
+      description: data.description,
+      price: data.price,
+      surface: data.surface ? Number(data.surface) : null,
+      rooms: data.rooms ? Number(data.rooms) : null,
+      maxGuests:
+        property.type === "SEJOUR" && data.maxGuests ? Number(data.maxGuests) : null,
+      city: cityRef.name,
+      gouvernorat: cityRef.gouvernorat,
+      address: data.address || null,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      amenities: data.amenities.join("|"),
+      // Le slug est conservé (stabilité SEO) ; statut et expiration inchangés
+      // — la republication reste l'acte explicite de fraîcheur.
+    },
+  });
+
+  await logAudit({
+    action: "PROPERTY_UPDATED",
+    userId: user.id,
+    success: true,
+    metadata: { propertyId: property.id },
+  });
+
+  revalidatePath("/dashboard/annonces");
+  revalidatePath(`/annonce/${property.slug}`);
+  redirect("/dashboard/annonces?modifiee=1");
 }
 
 const idSchema = z.string().cuid();
@@ -166,6 +251,119 @@ export async function republishPropertyAction(formData: FormData): Promise<void>
     },
   });
   revalidatePath("/dashboard/annonces");
+}
+
+export type PhotoFormState = { error?: string; success?: string } | undefined;
+
+/** Ajout de photos uploadées (validées : MIME + magic bytes + taille). */
+export async function addPhotosAction(
+  _prev: PhotoFormState,
+  formData: FormData
+): Promise<PhotoFormState> {
+  const user = await requireLister();
+
+  const parsedId = idSchema.safeParse(formData.get("propertyId"));
+  if (!parsedId.success) return { error: fr.common.erreurInconnue };
+  const property = await requireOwnProperty(parsedId.data);
+
+  const files = formData
+    .getAll("photos")
+    .filter((f): f is File => f instanceof File && f.size > 0);
+  if (files.length === 0) return { error: fr.annonceForm.erreurUpload };
+
+  const existingCount = await prisma.photo.count({
+    where: { propertyId: property.id },
+  });
+  if (existingCount + files.length > MAX_PHOTOS_PER_PROPERTY) {
+    return { error: fr.annonceForm.maxPhotos(MAX_PHOTOS_PER_PROPERTY) };
+  }
+
+  const urls: string[] = [];
+  for (const file of files) {
+    const url = await saveUploadedImage(file);
+    if (!url) return { error: fr.annonceForm.erreurUpload };
+    urls.push(url);
+  }
+
+  await prisma.photo.createMany({
+    data: urls.map((url, i) => ({
+      propertyId: property.id,
+      url,
+      alt: `${property.title} — photo ${existingCount + i + 1}`,
+      position: existingCount + i,
+    })),
+  });
+
+  await logAudit({
+    action: "PHOTO_ADDED",
+    userId: user.id,
+    success: true,
+    metadata: { propertyId: property.id, count: urls.length },
+  });
+
+  revalidatePath(`/dashboard/annonces/${property.id}/modifier`);
+  revalidatePath(`/annonce/${property.slug}`);
+  return { success: fr.annonceForm.photosAjoutees };
+}
+
+/** Suppression d'une photo (fichier uploadé effacé du disque, best-effort). */
+export async function deletePhotoAction(formData: FormData): Promise<void> {
+  const user = await requireUser();
+  const parsed = idSchema.safeParse(formData.get("photoId"));
+  if (!parsed.success) return;
+
+  const photo = await prisma.photo.findUnique({
+    where: { id: parsed.data },
+    select: {
+      id: true,
+      url: true,
+      property: { select: { id: true, slug: true, ownerId: true } },
+    },
+  });
+  // Autorisation : seul le propriétaire de l'annonce supprime ses photos.
+  if (!photo || photo.property.ownerId !== user.id) return;
+
+  await prisma.photo.delete({ where: { id: photo.id } });
+  await deleteUploadedImage(photo.url);
+
+  await logAudit({
+    action: "PHOTO_DELETED",
+    userId: user.id,
+    success: true,
+    metadata: { propertyId: photo.property.id, photoId: photo.id },
+  });
+
+  revalidatePath(`/dashboard/annonces/${photo.property.id}/modifier`);
+  revalidatePath(`/annonce/${photo.property.slug}`);
+}
+
+/** Place une photo en couverture (position 0, les autres décalées). */
+export async function setCoverPhotoAction(formData: FormData): Promise<void> {
+  const user = await requireUser();
+  const parsed = idSchema.safeParse(formData.get("photoId"));
+  if (!parsed.success) return;
+
+  const photo = await prisma.photo.findUnique({
+    where: { id: parsed.data },
+    select: { id: true, property: { select: { id: true, slug: true, ownerId: true } } },
+  });
+  if (!photo || photo.property.ownerId !== user.id) return;
+
+  const photos = await prisma.photo.findMany({
+    where: { propertyId: photo.property.id },
+    orderBy: { position: "asc" },
+    select: { id: true },
+  });
+  const reordered = [photo.id, ...photos.map((p) => p.id).filter((id) => id !== photo.id)];
+
+  await prisma.$transaction(
+    reordered.map((id, position) =>
+      prisma.photo.update({ where: { id }, data: { position } })
+    )
+  );
+
+  revalidatePath(`/dashboard/annonces/${photo.property.id}/modifier`);
+  revalidatePath(`/annonce/${photo.property.slug}`);
 }
 
 /** Favori (cœur) sur une annonce — bascule ajout/retrait. */
