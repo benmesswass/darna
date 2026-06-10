@@ -1,0 +1,84 @@
+import Image from "next/image";
+import Link from "next/link";
+import { fr } from "@/lib/i18n/fr";
+import type { ListingWithPhoto } from "@/lib/listings";
+import { Price } from "@/components/currency/Price";
+import { FreshnessBadge, TypeBadge, VerifiedBadge } from "./Badges";
+import { DoorIcon, MapPinIcon, RulerIcon, UsersIcon } from "@/components/icons";
+
+function priceSuffix(type: string): string | undefined {
+  if (type === "SEJOUR") return fr.common.parNuit;
+  if (type === "LOCATION") return fr.common.parMois;
+  return undefined;
+}
+
+export function PropertyCard({
+  property,
+  showType = false,
+}: {
+  property: ListingWithPhoto;
+  showType?: boolean;
+}) {
+  const photo = property.photos[0];
+
+  return (
+    <Link
+      href={`/annonce/${property.slug}`}
+      className="group flex flex-col overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-darna/5 transition hover:-translate-y-0.5 hover:shadow-lg"
+    >
+      <div className="relative aspect-[4/3] overflow-hidden bg-darna/10">
+        {photo ? (
+          <Image
+            src={photo.url}
+            alt={photo.alt}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover transition duration-300 group-hover:scale-105"
+          />
+        ) : null}
+        <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
+          {showType ? <TypeBadge type={property.type} /> : null}
+          {property.verified ? <VerifiedBadge small /> : null}
+        </div>
+        <div className="absolute bottom-3 left-3">
+          <FreshnessBadge publishedAt={property.publishedAt} />
+        </div>
+      </div>
+
+      <div className="flex flex-1 flex-col gap-2 p-4">
+        <h3 className="line-clamp-1 font-semibold text-ink">{property.title}</h3>
+        <p className="flex items-center gap-1 text-sm text-ink/60">
+          <MapPinIcon width={15} height={15} />
+          {property.city}, {property.gouvernorat}
+        </p>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink/60">
+          {property.surface ? (
+            <span className="flex items-center gap-1">
+              <RulerIcon width={14} height={14} />
+              {fr.property.surface(property.surface)}
+            </span>
+          ) : null}
+          {property.rooms ? (
+            <span className="flex items-center gap-1">
+              <DoorIcon width={14} height={14} />
+              {fr.property.pieces(property.rooms)}
+            </span>
+          ) : null}
+          {property.type === "SEJOUR" && property.maxGuests ? (
+            <span className="flex items-center gap-1">
+              <UsersIcon width={14} height={14} />
+              {fr.property.capacite(property.maxGuests)}
+            </span>
+          ) : null}
+        </div>
+        <div className="mt-auto pt-1">
+          <Price
+            amount={property.price}
+            suffix={priceSuffix(property.type)}
+            className="text-lg font-bold text-darna"
+          />
+        </div>
+      </div>
+    </Link>
+  );
+}

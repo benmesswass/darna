@@ -1,15 +1,20 @@
 import Link from "next/link";
 import { fr } from "@/lib/i18n/fr";
+import { getFeaturedListings } from "@/lib/listings";
+import { PropertyCard } from "@/components/property/PropertyCard";
 import {
   ArrowRightIcon,
   BuildingIcon,
   CheckIcon,
   CoinsIcon,
+  GlobeIcon,
   PalmIcon,
   ShieldIcon,
+  SparklesIcon,
 } from "@/components/icons";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const featured = await getFeaturedListings(6);
   return (
     <div>
       {/* Hero — le message de marque est l'identité de Darna */}
@@ -86,6 +91,27 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Annonces vérifiées récentes */}
+      {featured.length > 0 ? (
+        <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6">
+          <div className="flex items-end justify-between gap-4">
+            <h2 className="text-3xl font-bold text-darna">{fr.home.featuredTitle}</h2>
+            <Link
+              href="/sejours"
+              className="hidden items-center gap-1.5 text-sm font-semibold text-darna hover:text-darna-light sm:flex"
+            >
+              {fr.home.featuredAll}
+              <ArrowRightIcon width={16} height={16} />
+            </Link>
+          </div>
+          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {featured.map((p) => (
+              <PropertyCard key={p.id} property={p} showType />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       {/* La confiance est le produit */}
       <section className="bg-white py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
@@ -107,6 +133,53 @@ export default function HomePage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Indice des prix, diaspora, wakil */}
+      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+        <div className="grid gap-6 md:grid-cols-3">
+          {[
+            {
+              icon: SparklesIcon,
+              title: fr.home.statsTitle,
+              desc: fr.home.statsDesc,
+              cta: fr.home.statsCta,
+              href: "/prix-du-marche",
+            },
+            {
+              icon: GlobeIcon,
+              title: fr.home.diasporaTitle,
+              desc: fr.home.diasporaDesc,
+              cta: fr.home.diasporaCta,
+              href: "/diaspora",
+            },
+            {
+              icon: ShieldIcon,
+              title: fr.home.wakilTitle,
+              desc: fr.home.wakilDesc,
+              cta: fr.home.wakilCta,
+              href: "/devenir-wakil",
+            },
+          ].map(({ icon: Icon, title, desc, cta, href }) => (
+            <Link
+              key={href}
+              href={href}
+              className="group rounded-3xl bg-white p-7 shadow-sm ring-1 ring-darna/10 transition hover:shadow-lg"
+            >
+              <Icon width={30} height={30} className="text-sand" />
+              <h3 className="mt-3 text-lg font-bold text-darna">{title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-ink/70">{desc}</p>
+              <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-darna">
+                {cta}
+                <ArrowRightIcon
+                  width={15}
+                  height={15}
+                  className="transition group-hover:translate-x-1"
+                />
+              </span>
+            </Link>
+          ))}
         </div>
       </section>
     </div>

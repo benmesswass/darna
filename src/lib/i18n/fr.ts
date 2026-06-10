@@ -141,6 +141,9 @@ export const fr = {
     localisation: "Localisation",
     disponibilites: "Disponibilités",
     avis: "Avis des voyageurs",
+    nbAvis: (n: number) => (n === 1 ? "1 avis" : `${n} avis`),
+    avisGarantie:
+      "Chaque avis provient d'une réservation confirmée sur Darna — impossible d'en publier un sans avoir séjourné.",
     aucunAvis: "Aucun avis pour le moment — soyez le premier après votre séjour.",
     avisVerifie: "Séjour vérifié",
     noteGlobale: "Note globale",
