@@ -1,5 +1,3 @@
-import { headers } from "next/headers";
-
 /**
  * Données structurées schema.org (JSON-LD).
  *
@@ -11,17 +9,15 @@ import { headers } from "next/headers";
  * Sécurité :
  * - Contenu issu exclusivement de la base, sérialisé par JSON.stringify.
  * - « < » échappé en < pour interdire toute fermeture de tag.
- * - Le nonce CSP est lu depuis les headers de requête (posés par middleware.ts)
- *   afin que le script soit autorisé par la Content-Security-Policy.
+ * - PAS de nonce CSP, et c'est voulu : `type="application/ld+json"` est un
+ *   bloc de données inerte — l'algorithme « prepare a script » du standard
+ *   HTML s'arrête avant toute exécution, donc script-src ne s'y applique pas.
+ *   Un nonce y serait inutile ET provoquerait un mismatch d'hydratation
+ *   (les navigateurs masquent l'attribut nonce dans le DOM par sécurité).
  */
-export async function JsonLd({ data }: { data: Record<string, unknown> }) {
-  const nonce = (await headers()).get("x-nonce") ?? undefined;
+export function JsonLd({ data }: { data: Record<string, unknown> }) {
   const json = JSON.stringify(data).replace(/</g, "\\u003c");
   return (
-    <script
-      type="application/ld+json"
-      nonce={nonce}
-      dangerouslySetInnerHTML={{ __html: json }}
-    />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: json }} />
   );
 }
