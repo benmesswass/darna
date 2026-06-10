@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8c3b4a"/>
+      <stop offset="1" stop-color="#d97b66"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#g)"/>
+  <circle cx="650" cy="120" r="180" fill="#faf7f1" opacity="0.18"/>
+  <circle cx="120" cy="520" r="140" fill="#ffffff" opacity="0.08"/>
+  <g transform="translate(330,210)" stroke="#faf7f1" stroke-width="9" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
+    <path d="M10 70 L70 18 L130 70"/>
+    <path d="M24 62 V132 H116 V62"/>
+    <path d="M58 132 V94 H82 V132"/>
+  </g>
+  <text x="400" y="430" text-anchor="middle" font-family="sans-serif" font-size="26" font-weight="600" fill="#ffffff" opacity="0.45">Darna</text>
+</svg>

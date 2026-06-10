@@ -1,0 +1,174 @@
+// Schéma Darna — SQLite ne supporte pas les enums Prisma :
+// les champs « enum » sont des String contraints par zod côté serveur
+// et par les constantes de src/lib/constants.ts.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  passwordHash  String
+  name          String
+  phone         String?
+  role          String   @default("VOYAGEUR") // VOYAGEUR | HOTE | AGENCE
+  phoneVerified Boolean  @default(false)
+  kycStatus     String   @default("NON_VERIFIE") // NON_VERIFIE | EN_ATTENTE | VERIFIE
+  cin           String? // CIN saisie au KYC (mock V0)
+  createdAt     DateTime @default(now())
+
+  properties      Property[]
+  bookings        Booking[]
+  reviews         Review[]
+  contactRequests ContactRequest[]
+  favorites       Favorite[]
+}
+
+model Property {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  description String
+  type        String // SEJOUR | LOCATION | VENTE
+  status      String   @default("ACTIVE") // ACTIVE | LOUE | VENDU | EXPIREE
+  verified    Boolean  @default(false)
+  // Prix en TND : nuitée (SEJOUR), loyer mensuel (LOCATION), prix total (VENTE)
+  price       Int
+  surface     Int?
+  rooms       Int?
+  maxGuests   Int?
+  city        String
+  gouvernorat String
+  address     String?
+  latitude    Float
+  longitude   Float
+  amenities   String   @default("") // libellés séparés par « | »
+  publishedAt DateTime @default(now())
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  photos          Photo[]
+  availabilities  Availability[]
+  bookings        Booking[]
+  reviews         Review[]
+  contactRequests ContactRequest[]
+  favorites       Favorite[]
+
+  @@index([type, status, expiresAt])
+  @@index([city])
+  @@index([gouvernorat])
+}
+
+model Photo {
+  id       String @id @default(cuid())
+  url      String
+  alt      String
+  position Int    @default(0)
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+}
+
+// Période d'indisponibilité (bloquée par l'hôte) pour les séjours.
+model Availability {
+  id        String   @id @default(cuid())
+  startDate DateTime
+  endDate   DateTime
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+}
+
+model Booking {
+  id           String   @id @default(cuid())
+  checkIn      DateTime
+  checkOut     DateTime
+  guests       Int      @default(1)
+  nightlyPrice Int // TND, figé à la réservation
+  serviceFee   Int // TND, affiché au récapitulatif — zéro frais caché
+  totalPrice   Int // TND
+  status       String   @default("EN_ATTENTE") // EN_ATTENTE | CONFIRMEE | ANNULEE | TERMINEE
+  escrow       String   @default("AUCUN") // AUCUN | EN_SEQUESTRE | LIBERE
+  createdAt    DateTime @default(now())
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  guestId    String
+  guest      User     @relation(fields: [guestId], references: [id], onDelete: Cascade)
+
+  // Un avis ne peut exister que rattaché à une réservation (FK obligatoire).
+  review Review?
+
+  @@index([propertyId, status])
+  @@index([guestId])
+}
+
+// Un avis sans réservation est impossible au niveau du schéma :
+// bookingId est obligatoire et unique (un seul avis par séjour).
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int // 1 à 5
+  comment   String
+  createdAt DateTime @default(now())
+
+  bookingId String  @unique
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  authorId   String
+  author     User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+}
+
+model ContactRequest {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String
+  message   String
+  createdAt DateTime @default(now())
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  senderId   String?
+  sender     User?    @relation(fields: [senderId], references: [id], onDelete: SetNull)
+
+  @@index([propertyId])
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, propertyId])
+}
+
+model WakilApplication {
+  id         String   @id @default(cuid())
+  name       String
+  email      String
+  phone      String
+  city       String
+  motivation String
+  status     String   @default("RECUE") // RECUE | ENTRETIEN | ACCEPTEE | REFUSEE
+  createdAt  DateTime @default(now())
+}
