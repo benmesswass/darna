@@ -1,4 +1,5 @@
 import Image from "next/image";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { fr } from "@/lib/i18n/fr";
 import { buildUnavailableDates, getPropertyBySlug } from "@/lib/listings";
@@ -28,6 +29,51 @@ import {
 import { PropertyCtas, toWhatsAppNumber } from "@/components/property/PropertyCtas";
 import { ReviewsSection } from "@/components/property/ReviewsSection";
 import { ContactForm } from "@/components/property/ContactForm";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { buildPropertyJsonLd } from "@/lib/structured-data";
+import { formatTndServer } from "@/lib/format";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const property = await prisma.property.findUnique({
+    where: { slug },
+    select: {
+      title: true,
+      description: true,
+      city: true,
+      price: true,
+      type: true,
+      photos: { orderBy: { position: "asc" }, take: 1, select: { url: true } },
+    },
+  });
+  if (!property) return { title: fr.notFound.titre };
+
+  const suffix =
+    property.type === "SEJOUR"
+      ? ` ${fr.common.parNuit}`
+      : property.type === "LOCATION"
+        ? ` ${fr.common.parMois}`
+        : "";
+  const title = `${property.title} — ${property.city}, ${formatTndServer(property.price)}${suffix}`;
+  const description = property.description.slice(0, 160);
+
+  return {
+    title,
+    description,
+    alternates: { canonical: `/annonce/${slug}` },
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      locale: "fr_TN",
+      images: property.photos[0] ? [{ url: property.photos[0].url }] : undefined,
+    },
+  };
+}
 
 export default async function AnnoncePage({
   params,
@@ -84,6 +130,7 @@ export default async function AnnoncePage({
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <JsonLd data={buildPropertyJsonLd(property)} />
       {!isActive ? (
         <div className="mb-6 rounded-2xl bg-ink px-5 py-4 text-sm font-medium text-white">
           {fr.property.annonceIndisponible}
