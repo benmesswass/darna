@@ -44,6 +44,11 @@ next-env.d.ts
 !.env.example
 prisma/dev.db
 prisma/dev.db-journal
+prisma/*.db
+prisma/*.db-journal
+
+# SECURITY: fichiers avec credentials — ne jamais commiter
+CREDENTIALS.md
 
 # darna : versionner les conventions projet et les skills (annule le gitignore global)
 !CLAUDE.md

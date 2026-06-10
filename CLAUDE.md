@@ -6,10 +6,12 @@ Projet **personnel** de Wassim. Tout commit, push et opération GitHub se fait a
 
 ## Stack et contraintes
 
-- Next.js 15 App Router + TypeScript strict + Tailwind 4 + Prisma/SQLite + NextAuth credentials + zod.
+- Next.js 15 App Router + TypeScript strict + Tailwind 4 + Prisma/**PostgreSQL** + NextAuth credentials + zod.
+- Base dev locale : conteneur Docker `darna-db` (postgres:16-alpine, user/db/mdp `darna`) — commande dans `.env.example` ; migrations via `npx prisma migrate dev`.
 - **Zéro service payant, zéro clé API, zéro SQL brut, aucune librairie UI lourde.** OTP/séquestre/EUR sont des mocks assumés.
 - Server Actions plutôt qu'API routes. Leaflet uniquement en import dynamique `ssr: false`.
-- SQLite ne supporte pas les enums Prisma → « enums » String contraints par `src/lib/constants.ts` + zod.
+- « Enums » String contraints par `src/lib/constants.ts` + zod (héritage SQLite, conservé pour la souplesse).
+- Sécurité ajoutée : CSP par nonce (`src/middleware.ts`), audit trail (`src/lib/audit.ts` + modèle `AuditLog`), réservations EN_ATTENTE expirant à 15 min, transaction anti double-réservation.
 
 ## i18n
 

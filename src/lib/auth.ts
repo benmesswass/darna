@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { assertRateLimit } from "@/lib/rate-limit";
+import { logStructured } from "@/lib/audit";
 
 const credentialsSchema = z.object({
   email: z.string().email().max(200),
@@ -17,8 +18,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Credentials({
       credentials: { email: {}, password: {} },
       async authorize(credentials) {
-        // Couvre aussi l'endpoint NextAuth direct, pas seulement l'action.
-        if (!(await assertRateLimit("connexion"))) return null;
+        // Rate limiting : couvre l'action ET l'endpoint NextAuth direct.
+        if (!(await assertRateLimit("connexion"))) {
+          logStructured("warn", "auth.rate_limit_exceeded", {
+            email: typeof credentials?.email === "string" ? credentials.email : "unknown",
+          });
+          return null;
+        }
 
         const parsed = credentialsSchema.safeParse(credentials);
         if (!parsed.success) return null;
@@ -26,13 +32,30 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const user = await prisma.user.findUnique({
           where: { email: parsed.data.email.toLowerCase() },
         });
+
         // Message générique côté UI : on ne distingue jamais
         // « e-mail inconnu » de « mot de passe incorrect ».
-        if (!user) return null;
+        if (!user) {
+          // Délai constant pour résister aux attaques de timing même quand
+          // l'utilisateur n'existe pas (évite l'énumération par timing).
+          await bcrypt.compare(parsed.data.password, "$2b$12$invalidhashpadding000000000000000000000000000000000000000");
+          logStructured("warn", "auth.login_failure", {
+            reason: "user_not_found",
+            email: parsed.data.email,
+          });
+          return null;
+        }
 
         const valid = await bcrypt.compare(parsed.data.password, user.passwordHash);
-        if (!valid) return null;
+        if (!valid) {
+          logStructured("warn", "auth.login_failure", {
+            reason: "invalid_password",
+            userId: user.id,
+          });
+          return null;
+        }
 
+        logStructured("info", "auth.login_success", { userId: user.id });
         return { id: user.id, name: user.name, email: user.email };
       },
     }),

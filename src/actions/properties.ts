@@ -1,5 +1,6 @@
 "use server";
 
+import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -10,6 +11,7 @@ import { resolveCity, getCity } from "@/lib/geo";
 import { buildPropertySlug } from "@/lib/slug";
 import { AMENITIES, PROPERTY_TYPES } from "@/lib/constants";
 import { LISTING_LIFETIME_DAYS } from "@/lib/config";
+import { logAudit } from "@/lib/audit";
 
 export type PropertyFormState = { error?: string } | undefined;
 
@@ -72,12 +74,14 @@ export async function createPropertyAction(
   const cityRef = cityName ? getCity(cityName) : undefined;
   if (!cityRef) return { error: fr.common.champsRequis };
 
-  const count = await prisma.property.count();
-  const slug = buildPropertySlug(data.title, cityRef.name, String(100 + count));
+  // Suffixe aléatoire 6 hex chars (~16M combinaisons) pour éviter les
+  // collisions de slug en cas de créations simultanées (race condition).
+  const uniqueSuffix = randomBytes(3).toString("hex");
+  const slug = buildPropertySlug(data.title, cityRef.name, uniqueSuffix);
 
   const seedChar = data.title.length + cityRef.name.length;
 
-  await prisma.property.create({
+  const property = await prisma.property.create({
     data: {
       slug,
       title: data.title,
@@ -103,6 +107,13 @@ export async function createPropertyAction(
         })),
       },
     },
+  });
+
+  await logAudit({
+    action: "PROPERTY_CREATED",
+    userId: user.id,
+    success: true,
+    metadata: { propertyId: property.id, type: data.type, city: cityRef.name },
   });
 
   revalidatePath("/dashboard/annonces");

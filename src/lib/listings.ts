@@ -2,6 +2,9 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { resolveCity } from "@/lib/geo";
 
+/** Taille de page pour les listings (protection DoS + UX). */
+const PAGE_SIZE = 24;
+
 /**
  * Fraîcheur des données : seules les annonces ACTIVE et non expirées
  * apparaissent dans les recherches — réponse structurelle aux annonces
@@ -24,6 +27,7 @@ export type SejoursSearchParams = {
   arrivee?: string;
   depart?: string;
   voyageurs?: string;
+  page?: string;
 };
 
 export type ImmobilierSearchParams = {
@@ -33,6 +37,7 @@ export type ImmobilierSearchParams = {
   prixMax?: string;
   surfaceMin?: string;
   pieces?: string;
+  page?: string;
 };
 
 function parseDate(value?: string): Date | null {
@@ -45,6 +50,11 @@ function parsePositiveInt(value?: string): number | null {
   if (!value) return null;
   const n = Number.parseInt(value, 10);
   return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+function parsePage(value?: string): number {
+  const n = parseInt(value ?? "1", 10);
+  return Number.isFinite(n) && n >= 1 ? n : 1;
 }
 
 export async function searchSejours(params: SejoursSearchParams) {
@@ -71,8 +81,6 @@ export async function searchSejours(params: SejoursSearchParams) {
   const arrivee = parseDate(params.arrivee);
   const depart = parseDate(params.depart);
   if (arrivee && depart && depart > arrivee) {
-    // Exclut les biens dont les dates chevauchent une réservation confirmée
-    // ou une période bloquée par l'hôte.
     where.NOT = {
       OR: [
         {
@@ -93,15 +101,25 @@ export async function searchSejours(params: SejoursSearchParams) {
     };
   }
 
-  const results = unknownCity
-    ? []
-    : await prisma.property.findMany({
-        where,
-        include: listingCardInclude,
-        orderBy: [{ verified: "desc" }, { publishedAt: "desc" }],
-      });
+  const page = parsePage(params.page);
+  const skip = (page - 1) * PAGE_SIZE;
 
-  return { results, resolvedCity, unknownCity };
+  if (unknownCity) {
+    return { results: [], resolvedCity, unknownCity, total: 0, page, pageSize: PAGE_SIZE };
+  }
+
+  const [results, total] = await Promise.all([
+    prisma.property.findMany({
+      where,
+      include: listingCardInclude,
+      orderBy: [{ verified: "desc" }, { publishedAt: "desc" }],
+      take: PAGE_SIZE,
+      skip,
+    }),
+    prisma.property.count({ where }),
+  ]);
+
+  return { results, resolvedCity, unknownCity, total, page, pageSize: PAGE_SIZE };
 }
 
 export async function searchImmobilier(params: ImmobilierSearchParams) {
@@ -129,13 +147,21 @@ export async function searchImmobilier(params: ImmobilierSearchParams) {
   const pieces = parsePositiveInt(params.pieces);
   if (pieces) where.rooms = { gte: pieces };
 
-  const results = await prisma.property.findMany({
-    where,
-    include: listingCardInclude,
-    orderBy: [{ verified: "desc" }, { publishedAt: "desc" }],
-  });
+  const page = parsePage(params.page);
+  const skip = (page - 1) * PAGE_SIZE;
 
-  return { results, transaction };
+  const [results, total] = await Promise.all([
+    prisma.property.findMany({
+      where,
+      include: listingCardInclude,
+      orderBy: [{ verified: "desc" }, { publishedAt: "desc" }],
+      take: PAGE_SIZE,
+      skip,
+    }),
+    prisma.property.count({ where }),
+  ]);
+
+  return { results, transaction, total, page, pageSize: PAGE_SIZE };
 }
 
 export async function getPropertyBySlug(slug: string) {

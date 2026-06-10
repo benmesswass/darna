@@ -51,3 +51,12 @@ export async function requireLister(): Promise<SessionUser> {
   }
   return user;
 }
+
+/** Garde serveur : réservé aux administrateurs Darna. */
+export async function requireAdmin(): Promise<SessionUser> {
+  const user = await requireUser();
+  if (user.role !== "ADMIN") {
+    throw new Error("ROLE_INSUFFISANT");
+  }
+  return user;
+}

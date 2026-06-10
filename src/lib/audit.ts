@@ -1,0 +1,72 @@
+import { prisma } from "@/lib/prisma";
+import { clientIp } from "@/lib/rate-limit";
+
+export type AuditAction =
+  | "LOGIN_SUCCESS"
+  | "LOGIN_FAILURE"
+  | "REGISTER"
+  | "LOGOUT"
+  | "BOOKING_CREATED"
+  | "BOOKING_EXPIRED"
+  | "PAYMENT_CONFIRMED"
+  | "REVIEW_SUBMITTED"
+  | "PROPERTY_CREATED"
+  | "PROPERTY_CLOSED"
+  | "PROPERTY_REPUBLISHED"
+  | "KYC_OTP_REQUESTED"
+  | "KYC_VERIFIED"
+  | "CONTACT_REQUEST"
+  | "WAKIL_APPLY"
+  | "FAVORITE_TOGGLE";
+
+/**
+ * Audit trail — chaque événement sensible est enregistré avec userId, IP et
+ * métadonnées. Silencieux en cas d'échec d'écriture (ne doit jamais bloquer
+ * le flux principal).
+ */
+export async function logAudit(params: {
+  action: AuditAction;
+  userId?: string;
+  success?: boolean;
+  metadata?: Record<string, unknown>;
+}): Promise<void> {
+  try {
+    const ip = await clientIp();
+    await prisma.auditLog.create({
+      data: {
+        action: params.action,
+        userId: params.userId ?? null,
+        ip,
+        metadata: JSON.stringify(params.metadata ?? {}),
+        success: params.success ?? true,
+      },
+    });
+  } catch (err) {
+    // L'audit log ne doit jamais crasher le flux métier
+    console.error("[AUDIT] write failed:", params.action, err);
+  }
+}
+
+/**
+ * Log console structuré JSON pour les systèmes de log externes (Logtail, Axiom…).
+ * Toujours actif, même si la DB est indisponible.
+ */
+export function logStructured(
+  level: "info" | "warn" | "error",
+  event: string,
+  ctx: Record<string, unknown> = {}
+): void {
+  const entry = {
+    ts: new Date().toISOString(),
+    level,
+    event,
+    ...ctx,
+  };
+  if (level === "error") {
+    console.error(JSON.stringify(entry));
+  } else if (level === "warn") {
+    console.warn(JSON.stringify(entry));
+  } else {
+    console.log(JSON.stringify(entry));
+  }
+}

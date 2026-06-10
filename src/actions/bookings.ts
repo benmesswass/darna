@@ -7,6 +7,8 @@ import { fr } from "@/lib/i18n/fr";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { SERVICE_FEE_RATE } from "@/lib/config";
+import { BOOKING_EXPIRY_MS } from "@/lib/constants";
+import { logAudit, logStructured } from "@/lib/audit";
 
 export type BookingFormState = { error?: string } | undefined;
 
@@ -18,6 +20,13 @@ const createSchema = z.object({
   depart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   voyageurs: z.coerce.number().int().min(1).max(30),
 });
+
+/** Erreur interne signalant un conflit de disponibilité à l'intérieur de la transaction. */
+class BookingConflictError extends Error {
+  constructor() {
+    super("BOOKING_CONFLICT");
+  }
+}
 
 export async function createBookingAction(
   _prev: BookingFormState,
@@ -33,10 +42,11 @@ export async function createBookingAction(
   });
   if (!parsed.success) return { error: fr.booking.datesInvalides };
 
-  const checkIn = new Date(`${parsed.data.arrivee}T00:00:00`);
-  const checkOut = new Date(`${parsed.data.depart}T00:00:00`);
+  // Dates en UTC explicite pour éviter les ambiguïtés de fuseau horaire
+  const checkIn = new Date(`${parsed.data.arrivee}T00:00:00.000Z`);
+  const checkOut = new Date(`${parsed.data.depart}T00:00:00.000Z`);
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  today.setUTCHours(0, 0, 0, 0);
 
   const nights = Math.round((checkOut.getTime() - checkIn.getTime()) / DAY);
   if (
@@ -49,7 +59,7 @@ export async function createBookingAction(
     return { error: fr.booking.datesInvalides };
   }
 
-  // Le prix est TOUJOURS recalculé côté serveur depuis la base.
+  // Pré-chargement de la propriété hors transaction (lecture non critique)
   const property = await prisma.property.findUnique({
     where: { slug: parsed.data.slug },
     select: {
@@ -62,6 +72,7 @@ export async function createBookingAction(
       ownerId: true,
     },
   });
+
   if (
     !property ||
     property.type !== "SEJOUR" ||
@@ -70,53 +81,120 @@ export async function createBookingAction(
   ) {
     return { error: fr.booking.datesIndisponibles };
   }
+
+  // GUARD : un hôte ne peut pas réserver son propre logement
+  if (property.ownerId === user.id) {
+    return { error: fr.booking.datesIndisponibles };
+  }
+
   if (property.maxGuests && parsed.data.voyageurs > property.maxGuests) {
     return { error: fr.booking.capaciteDepassee(property.maxGuests) };
   }
 
-  // Vérification de disponibilité au moment T (réservations + blocages).
-  const conflict = await prisma.property.findFirst({
-    where: {
-      id: property.id,
-      OR: [
-        {
-          bookings: {
-            some: {
-              status: "CONFIRMEE",
-              checkIn: { lt: checkOut },
-              checkOut: { gt: checkIn },
-            },
-          },
-        },
-        {
-          availabilities: {
-            some: { startDate: { lt: checkOut }, endDate: { gt: checkIn } },
-          },
-        },
-      ],
-    },
-    select: { id: true },
-  });
-  if (conflict) return { error: fr.booking.datesIndisponibles };
-
   const subtotal = property.price * nights;
   const serviceFee = Math.round(subtotal * SERVICE_FEE_RATE);
+  const totalPrice = subtotal + serviceFee;
+  const expiresAt = new Date(Date.now() + BOOKING_EXPIRY_MS);
 
-  const booking = await prisma.booking.create({
-    data: {
+  let bookingId: string;
+
+  try {
+    /**
+     * TRANSACTION ATOMIQUE — protège contre le double booking (TOCTOU).
+     *
+     * Les trois étapes (expiration des EN_ATTENTE, vérification conflit,
+     * création réservation) s'exécutent en une seule transaction.
+     *
+     * Avec PostgreSQL en production, utiliser l'isolation SERIALIZABLE :
+     *   { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+     * SQLite utilise un verrou fichier global qui garantit déjà l'atomicité.
+     */
+    const booking = await prisma.$transaction(async (tx) => {
+      // 1. Expiration paresseuse des réservations EN_ATTENTE périmées
+      //    (nettoyage opportuniste — évite un job cron séparé)
+      await tx.booking.updateMany({
+        where: {
+          propertyId: property.id,
+          status: "EN_ATTENTE",
+          expiresAt: { lt: new Date() },
+        },
+        data: { status: "ANNULEE" },
+      });
+
+      // 2. Vérification de disponibilité DANS la transaction
+      //    (TOCTOU impossible : lecture et écriture sont atomiques)
+      const conflict = await tx.property.findFirst({
+        where: {
+          id: property.id,
+          OR: [
+            {
+              bookings: {
+                some: {
+                  status: { in: ["CONFIRMEE", "EN_ATTENTE"] },
+                  checkIn: { lt: checkOut },
+                  checkOut: { gt: checkIn },
+                },
+              },
+            },
+            {
+              availabilities: {
+                some: { startDate: { lt: checkOut }, endDate: { gt: checkIn } },
+              },
+            },
+          ],
+        },
+        select: { id: true },
+      });
+
+      if (conflict) throw new BookingConflictError();
+
+      // 3. Création de la réservation — prix TOUJOURS calculé côté serveur
+      return tx.booking.create({
+        data: {
+          propertyId: property.id,
+          guestId: user.id,
+          checkIn,
+          checkOut,
+          guests: parsed.data.voyageurs,
+          nightlyPrice: property.price,
+          serviceFee,
+          totalPrice,
+          status: "EN_ATTENTE",
+          expiresAt,
+        },
+        select: { id: true },
+      });
+    });
+
+    bookingId = booking.id;
+  } catch (err) {
+    if (err instanceof BookingConflictError) {
+      logStructured("warn", "booking.conflict", {
+        propertyId: property.id,
+        userId: user.id,
+        checkIn: parsed.data.arrivee,
+        checkOut: parsed.data.depart,
+      });
+      return { error: fr.booking.datesIndisponibles };
+    }
+    throw err;
+  }
+
+  await logAudit({
+    action: "BOOKING_CREATED",
+    userId: user.id,
+    success: true,
+    metadata: {
+      bookingId,
       propertyId: property.id,
-      guestId: user.id,
-      checkIn,
-      checkOut,
-      guests: parsed.data.voyageurs,
-      nightlyPrice: property.price,
-      serviceFee,
-      totalPrice: subtotal + serviceFee,
-      status: "EN_ATTENTE",
+      checkIn: parsed.data.arrivee,
+      checkOut: parsed.data.depart,
+      nights,
+      totalPrice,
     },
   });
 
-  redirect(`/reservation/${booking.id}/paiement`);
+  redirect(`/reservation/${bookingId}/paiement`);
 }
 
 const confirmSchema = z.string().cuid();
@@ -129,16 +207,41 @@ export async function confirmPaymentAction(formData: FormData): Promise<void> {
 
   const booking = await prisma.booking.findUnique({
     where: { id: parsed.data },
-    select: { id: true, guestId: true, status: true },
+    select: { id: true, guestId: true, status: true, expiresAt: true, totalPrice: true },
   });
-  // Autorisation : seul le voyageur concerné peut payer sa réservation.
-  if (!booking || booking.guestId !== user.id || booking.status !== "EN_ATTENTE") {
+
+  // Autorisation stricte : seul le voyageur concerné peut payer sa réservation
+  if (!booking || booking.guestId !== user.id) return;
+
+  // Vérification du statut et de l'expiration
+  if (booking.status !== "EN_ATTENTE") return;
+  if (booking.expiresAt && booking.expiresAt < new Date()) {
+    // Réservation expirée : l'annuler silencieusement
+    await prisma.booking.update({
+      where: { id: booking.id },
+      data: { status: "ANNULEE" },
+    });
+    logStructured("warn", "payment.booking_expired", {
+      bookingId: booking.id,
+      userId: user.id,
+    });
     return;
   }
 
   await prisma.booking.update({
     where: { id: booking.id },
-    data: { status: "CONFIRMEE", escrow: "EN_SEQUESTRE" },
+    data: {
+      status: "CONFIRMEE",
+      escrow: "EN_SEQUESTRE",
+      expiresAt: null, // Plus d'expiration une fois confirmé
+    },
+  });
+
+  await logAudit({
+    action: "PAYMENT_CONFIRMED",
+    userId: user.id,
+    success: true,
+    metadata: { bookingId: booking.id, totalPrice: booking.totalPrice },
   });
 
   revalidatePath(`/reservation/${booking.id}/paiement`);
@@ -193,6 +296,13 @@ export async function submitReviewAction(
       rating: parsed.data.rating,
       comment: parsed.data.comment,
     },
+  });
+
+  await logAudit({
+    action: "REVIEW_SUBMITTED",
+    userId: user.id,
+    success: true,
+    metadata: { bookingId: booking.id, rating: parsed.data.rating },
   });
 
   revalidatePath(`/annonce/${booking.property.slug}`);

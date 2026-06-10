@@ -1,13 +1,22 @@
-// Schéma Darna — SQLite ne supporte pas les enums Prisma :
-// les champs « enum » sont des String contraints par zod côté serveur
-// et par les constantes de src/lib/constants.ts.
+// Schéma Darna — PostgreSQL (production-ready)
+// Migration depuis SQLite : npx prisma migrate dev --name init
+//
+// Dev local rapide avec Docker :
+//   docker run -d -p 5432:5432 \
+//     -e POSTGRES_DB=darna \
+//     -e POSTGRES_USER=darna \
+//     -e POSTGRES_PASSWORD=darna \
+//     --name darna-db postgres:16-alpine
+//
+// Puis dans .env :
+//   DATABASE_URL="postgresql://darna:darna@localhost:5432/darna"
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -17,10 +26,10 @@ model User {
   passwordHash  String
   name          String
   phone         String?
-  role          String   @default("VOYAGEUR") // VOYAGEUR | HOTE | AGENCE
+  role          String   @default("VOYAGEUR") // VOYAGEUR | HOTE | AGENCE | ADMIN
   phoneVerified Boolean  @default(false)
   kycStatus     String   @default("NON_VERIFIE") // NON_VERIFIE | EN_ATTENTE | VERIFIE
-  cin           String? // CIN saisie au KYC (mock V0)
+  cin           String?  // CIN saisie au KYC — TODO : chiffrer au repos (AES-256)
   createdAt     DateTime @default(now())
 
   properties      Property[]
@@ -28,6 +37,7 @@ model User {
   reviews         Review[]
   contactRequests ContactRequest[]
   favorites       Favorite[]
+  auditLogs       AuditLog[]
 }
 
 model Property {
@@ -67,6 +77,7 @@ model Property {
   @@index([type, status, expiresAt])
   @@index([city])
   @@index([gouvernorat])
+  @@index([ownerId])
 }
 
 model Photo {
@@ -92,27 +103,30 @@ model Availability {
 }
 
 model Booking {
-  id           String   @id @default(cuid())
+  id           String    @id @default(cuid())
   checkIn      DateTime
   checkOut     DateTime
-  guests       Int      @default(1)
-  nightlyPrice Int // TND, figé à la réservation
-  serviceFee   Int // TND, affiché au récapitulatif — zéro frais caché
-  totalPrice   Int // TND
-  status       String   @default("EN_ATTENTE") // EN_ATTENTE | CONFIRMEE | ANNULEE | TERMINEE
-  escrow       String   @default("AUCUN") // AUCUN | EN_SEQUESTRE | LIBERE
-  createdAt    DateTime @default(now())
+  guests       Int       @default(1)
+  nightlyPrice Int  // TND, figé à la réservation
+  serviceFee   Int  // TND, affiché au récapitulatif — zéro frais caché
+  totalPrice   Int  // TND
+  status       String    @default("EN_ATTENTE") // EN_ATTENTE | CONFIRMEE | ANNULEE | TERMINEE
+  escrow       String    @default("AUCUN")      // AUCUN | EN_SEQUESTRE | LIBERE
+  // Expiration des réservations EN_ATTENTE (15 min après création)
+  // Null une fois la réservation CONFIRMEE.
+  expiresAt    DateTime?
+  createdAt    DateTime  @default(now())
 
   propertyId String
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   guestId    String
   guest      User     @relation(fields: [guestId], references: [id], onDelete: Cascade)
 
-  // Un avis ne peut exister que rattaché à une réservation (FK obligatoire).
   review Review?
 
   @@index([propertyId, status])
   @@index([guestId])
+  @@index([status, expiresAt]) // Pour le cleanup des EN_ATTENTE expirées
 }
 
 // Un avis sans réservation est impossible au niveau du schéma :
@@ -171,4 +185,24 @@ model WakilApplication {
   motivation String
   status     String   @default("RECUE") // RECUE | ENTRETIEN | ACCEPTEE | REFUSEE
   createdAt  DateTime @default(now())
+}
+
+/**
+ * Audit trail — chaque événement sensible (login, booking, paiement…)
+ * est enregistré avec userId, IP et métadonnées JSON.
+ * Rétention recommandée en production : 90 jours minimum (RGPD).
+ */
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String   // voir AuditAction dans src/lib/audit.ts
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  ip        String?
+  metadata  String   @default("{}") // JSON stringifié
+  success   Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action, createdAt])
+  @@index([createdAt]) // Pour les purges de rétention
 }

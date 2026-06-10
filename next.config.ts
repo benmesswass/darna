@@ -1,41 +1,33 @@
 import type { NextConfig } from "next";
 
-/**
- * CSP raisonnable pour la V0 :
- * - 'unsafe-inline' / 'unsafe-eval' requis par Next.js en dev et par l'hydratation ;
- * - tuiles OpenStreetMap autorisées pour la carte Leaflet ;
- * - tout le reste limité à l'origine.
- */
-const csp = [
-  "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://*.tile.openstreetmap.org",
-  "font-src 'self' data:",
-  "connect-src 'self' https://*.tile.openstreetmap.org",
-  "object-src 'none'",
-  "base-uri 'self'",
-  "form-action 'self'",
-  "frame-ancestors 'none'",
-].join("; ");
-
+// Nonces CSP sont gérés par src/middleware.ts (générés par requête).
+// Ce fichier positionne les headers statiques qui ne nécessitent pas de nonce.
 const securityHeaders = [
-  { key: "Content-Security-Policy", value: csp },
+  // HSTS : force HTTPS pour 2 ans, inclut sous-domaines, eligible preload
+  {
+    key: "Strict-Transport-Security",
+    value: "max-age=63072000; includeSubDomains; preload",
+  },
+  // Clickjacking
   { key: "X-Frame-Options", value: "DENY" },
+  // MIME sniffing
   { key: "X-Content-Type-Options", value: "nosniff" },
+  // Referrer
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  // Permissions Browser API
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
 ];
 
 const nextConfig: NextConfig = {
   images: {
-    // Placeholders SVG locaux uniquement (aucun hotlinking externe).
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },
+  // Désactive le header X-Powered-By (ne pas exposer la stack)
+  poweredByHeader: false,
 };
 
 export default nextConfig;

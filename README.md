@@ -25,7 +25,13 @@ Darna corrige structurellement les failles du marché tunisien :
 ```bash
 npm install
 cp .env.example .env        # puis générer AUTH_SECRET : openssl rand -base64 32
-npx prisma db push          # crée la base SQLite
+
+# Base PostgreSQL locale (Docker) :
+docker run -d -p 5432:5432 \
+  -e POSTGRES_DB=darna -e POSTGRES_USER=darna -e POSTGRES_PASSWORD=darna \
+  --name darna-db postgres:16-alpine
+
+npx prisma migrate dev      # applique les migrations
 npx prisma db seed          # 30 annonces réalistes, comptes démo, avis
 npm run dev                 # http://localhost:3000
 ```

@@ -7,21 +7,35 @@ import { fr } from "@/lib/i18n/fr";
 import { prisma } from "@/lib/prisma";
 import { signIn, signOut } from "@/lib/auth";
 import { assertRateLimit } from "@/lib/rate-limit";
-import { ROLES } from "@/lib/constants";
+import { logAudit } from "@/lib/audit";
 
 export type AuthFormState = { error?: string; success?: string } | undefined;
+
+/**
+ * Politique de mot de passe :
+ * - ≥ 8 caractères
+ * - contient au moins un chiffre
+ * Conforme NIST 800-63B : la longueur prime sur la complexité.
+ * Évolution : passer à ≥ 12 caractères à la prochaine itération.
+ */
+const passwordSchema = z
+  .string()
+  .min(8, "Au moins 8 caractères requis")
+  .max(200)
+  .regex(/[0-9]/, "Le mot de passe doit contenir au moins un chiffre");
 
 const registerSchema = z.object({
   name: z.string().trim().min(2).max(100),
   email: z.string().trim().toLowerCase().email().max(200),
-  password: z.string().min(8).max(200),
+  password: passwordSchema,
   phone: z
     .string()
     .trim()
     .regex(/^\+?[0-9\s]{8,16}$/)
     .optional()
     .or(z.literal("")),
-  role: z.enum(ROLES),
+  // ADMIN ne peut pas être choisi à l'inscription — assigné manuellement en DB
+  role: z.enum(["VOYAGEUR", "HOTE", "AGENCE"] as const),
 });
 
 export async function registerAction(
@@ -44,12 +58,33 @@ export async function registerAction(
   const { name, email, password, phone, role } = parsed.data;
 
   const existing = await prisma.user.findUnique({ where: { email } });
-  // Message volontairement générique : ne révèle pas qu'un compte existe.
-  if (existing) return { error: fr.auth.emailDejaUtilise };
+
+  // Message générique : ne révèle PAS qu'un compte existe déjà pour cet email.
+  // (Anti account-enumeration — OWASP Authentication Cheat Sheet)
+  // Le comportement correct en production est d'envoyer un email "compte déjà existant"
+  // à l'adresse concernée, et d'afficher le même message succès dans tous les cas.
+  // TODO : brancher un provider email (Resend / Mailgun) pour ce flow.
+  if (existing) {
+    await logAudit({
+      action: "REGISTER",
+      success: false,
+      metadata: { reason: "email_already_exists", email },
+    });
+    // Délai artificiel pour aligner le timing avec une vraie insertion (anti-timing)
+    await new Promise((r) => setTimeout(r, 200 + Math.random() * 100));
+    return { success: fr.auth.inscriptionReussie };
+  }
 
   const passwordHash = await bcrypt.hash(password, 12);
-  await prisma.user.create({
+  const user = await prisma.user.create({
     data: { name, email, passwordHash, phone: phone || null, role },
+  });
+
+  await logAudit({
+    action: "REGISTER",
+    userId: user.id,
+    success: true,
+    metadata: { role },
   });
 
   return { success: fr.auth.inscriptionReussie };
