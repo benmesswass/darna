@@ -32,6 +32,10 @@ export const fr = {
     ctaImmobilier: "Explorer l'immobilier",
   },
   home: {
+    villesPopulaires: "Destinations populaires :",
+    statsAnnoncesVerifiees: "annonces vérifiées actives",
+    statsVilles: "villes couvertes",
+    statsAvis: "avis de séjours réels",
     verticalSejoursTitle: "Séjours",
     verticalSejoursDesc:
       "Villas, maisons d'hôtes et appartements pour vos vacances — calendrier réel, avis de vrais voyageurs, paiement protégé.",

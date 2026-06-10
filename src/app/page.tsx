@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { fr } from "@/lib/i18n/fr";
-import { getFeaturedListings } from "@/lib/listings";
+import { prisma } from "@/lib/prisma";
+import { activeListingWhere, getFeaturedListings } from "@/lib/listings";
 import { PropertyCard } from "@/components/property/PropertyCard";
 import {
   ArrowRightIcon,
@@ -9,25 +10,29 @@ import {
   CoinsIcon,
   GlobeIcon,
   PalmIcon,
+  SearchIcon,
   ShieldIcon,
   SparklesIcon,
 } from "@/components/icons";
 
+const POPULAR_CITIES = ["Hammamet", "Djerba", "Sousse", "La Marsa", "Tozeur"];
+
 export default async function HomePage() {
-  const featured = await getFeaturedListings(6);
+  const [featured, verifiedCount, activeCities, reviewCount] = await Promise.all([
+    getFeaturedListings(6),
+    prisma.property.count({ where: { ...activeListingWhere(), verified: true } }),
+    prisma.property.groupBy({ by: ["city"], where: activeListingWhere() }),
+    prisma.review.count(),
+  ]);
   return (
     <div>
-      {/* Hero — le message de marque est l'identité de Darna */}
+      {/* Hero — recherche directe + message de marque + preuves chiffrées */}
       <section className="relative overflow-hidden bg-darna text-white">
         <div
           aria-hidden
-          className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-darna-light/40 blur-3xl"
+          className="pointer-events-none absolute -right-32 -top-32 h-[28rem] w-[28rem] rounded-full bg-darna-light/30 blur-3xl"
         />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -bottom-32 -left-16 h-80 w-80 rounded-full bg-sand/20 blur-3xl"
-        />
-        <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28">
+        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24">
           <h1 className="max-w-3xl text-4xl font-bold leading-tight tracking-tight sm:text-5xl md:text-6xl">
             {fr.brand.heroTitle}
             <br />
@@ -35,23 +40,59 @@ export default async function HomePage() {
             <br />
             {fr.brand.heroLine3}
           </h1>
-          <p className="mt-6 max-w-2xl text-lg text-white/80">{fr.brand.heroSub}</p>
-          <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <Link
-              href="/sejours"
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-sand px-7 py-3.5 text-base font-semibold text-darna-dark transition hover:bg-sand-light"
+          <p className="mt-5 max-w-2xl text-lg text-white/75">{fr.brand.heroSub}</p>
+
+          {/* Recherche immédiate */}
+          <form
+            method="GET"
+            action="/sejours"
+            className="mt-9 flex max-w-2xl items-center gap-2 rounded-full bg-white p-2 pl-5 shadow-2xl shadow-black/20"
+          >
+            <SearchIcon width={20} height={20} className="shrink-0 text-darna" />
+            <input
+              type="text"
+              name="ville"
+              placeholder={fr.search.villePlaceholder}
+              className="h-11 w-full min-w-0 bg-transparent text-base text-ink outline-none placeholder:text-ink/40"
+            />
+            <button
+              type="submit"
+              className="shrink-0 rounded-full bg-darna px-6 py-3 text-sm font-bold text-white transition hover:bg-darna-light sm:px-8"
             >
-              <PalmIcon />
-              {fr.brand.ctaSejours}
-            </Link>
-            <Link
-              href="/immobilier"
-              className="inline-flex items-center justify-center gap-2 rounded-full border border-white/30 bg-white/10 px-7 py-3.5 text-base font-semibold text-white transition hover:bg-white hover:text-darna"
-            >
-              <BuildingIcon />
-              {fr.brand.ctaImmobilier}
-            </Link>
+              {fr.common.rechercher}
+            </button>
+          </form>
+
+          {/* Destinations en un clic */}
+          <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
+            <span className="text-white/50">{fr.home.villesPopulaires}</span>
+            {POPULAR_CITIES.map((city) => (
+              <Link
+                key={city}
+                href={`/sejours?ville=${encodeURIComponent(city)}`}
+                className="rounded-full border border-white/20 bg-white/5 px-3.5 py-1 font-medium text-white/85 transition hover:border-sand hover:bg-sand hover:text-darna-dark"
+              >
+                {city}
+              </Link>
+            ))}
           </div>
+
+          {/* Preuves chiffrées, calculées en direct depuis la base */}
+          <dl className="mt-12 grid max-w-2xl grid-cols-3 gap-4 border-t border-white/10 pt-7">
+            {[
+              { value: verifiedCount, label: fr.home.statsAnnoncesVerifiees },
+              { value: activeCities.length, label: fr.home.statsVilles },
+              { value: reviewCount, label: fr.home.statsAvis },
+            ].map(({ value, label }) => (
+              <div key={label}>
+                <dt className="sr-only">{label}</dt>
+                <dd className="text-3xl font-bold text-sand sm:text-4xl">{value}</dd>
+                <dd className="mt-1 text-xs leading-snug text-white/60 sm:text-sm">
+                  {label}
+                </dd>
+              </div>
+            ))}
+          </dl>
         </div>
       </section>
 

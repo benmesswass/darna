@@ -42,7 +42,7 @@ export default async function ImmobilierPage({
 
       <form
         method="GET"
-        className="mt-5 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-darna/10"
+        className="mt-5 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-darna/10 lg:sticky lg:top-[4.5rem] lg:z-[1040] lg:shadow-md"
       >
         {/* Onglets Louer / Acheter */}
         <div className="flex w-fit rounded-full bg-cream p-1 ring-1 ring-darna/10">

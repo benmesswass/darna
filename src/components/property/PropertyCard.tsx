@@ -24,7 +24,7 @@ export function PropertyCard({
   return (
     <Link
       href={`/annonce/${property.slug}`}
-      className="group flex flex-col overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-darna/5 transition hover:-translate-y-0.5 hover:shadow-lg"
+      className="group flex flex-col overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-darna/5 transition hover:-translate-y-0.5 hover:shadow-lg hover:ring-darna/15"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-darna/10">
         {photo ? (

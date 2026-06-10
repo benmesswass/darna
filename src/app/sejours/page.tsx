@@ -37,10 +37,10 @@ export default async function SejoursPage({
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
       <h1 className="text-3xl font-bold text-darna">{fr.nav.sejours}</h1>
 
-      {/* Barre de recherche ville + dates + voyageurs */}
+      {/* Barre de recherche ville + dates + voyageurs — collante au scroll */}
       <form
         method="GET"
-        className="mt-5 grid gap-3 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-darna/10 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_auto]"
+        className="mt-5 grid gap-3 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-darna/10 sm:grid-cols-2 lg:sticky lg:top-[4.5rem] lg:z-[1040] lg:grid-cols-[2fr_1fr_1fr_1fr_auto] lg:shadow-md"
       >
         <label className="flex flex-col gap-1">
           <span className="text-xs font-semibold text-ink/60">
