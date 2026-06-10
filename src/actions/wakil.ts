@@ -1,0 +1,38 @@
+"use server";
+
+import { z } from "zod";
+import { fr } from "@/lib/i18n/fr";
+import { prisma } from "@/lib/prisma";
+import { assertRateLimit } from "@/lib/rate-limit";
+
+export type WakilFormState = { error?: string; success?: string } | undefined;
+
+const wakilSchema = z.object({
+  name: z.string().trim().min(2).max(100),
+  email: z.string().trim().toLowerCase().email().max(200),
+  phone: z.string().trim().regex(/^\+?[0-9\s]{8,16}$/),
+  city: z.string().trim().min(2).max(60),
+  motivation: z.string().trim().min(20).max(2000),
+});
+
+export async function applyWakilAction(
+  _prev: WakilFormState,
+  formData: FormData
+): Promise<WakilFormState> {
+  if (!(await assertRateLimit("wakil"))) {
+    return { error: fr.common.tropDeTentatives };
+  }
+
+  const parsed = wakilSchema.safeParse({
+    name: formData.get("name"),
+    email: formData.get("email"),
+    phone: formData.get("phone"),
+    city: formData.get("city"),
+    motivation: formData.get("motivation"),
+  });
+  if (!parsed.success) return { error: fr.common.champsRequis };
+
+  await prisma.wakilApplication.create({ data: parsed.data });
+
+  return { success: fr.wakil.candidatureEnvoyee };
+}
