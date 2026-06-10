@@ -8,6 +8,7 @@ import { markerPriceLabel } from "@/lib/format";
 import { PropertyCard } from "@/components/property/PropertyCard";
 import { PropertyMap } from "@/components/map/PropertyMap";
 import { SplitView } from "@/components/search/SplitView";
+import { CityAutocomplete } from "@/components/search/CityAutocomplete";
 import { CalendarIcon, SearchIcon, UsersIcon } from "@/components/icons";
 
 export const metadata: Metadata = {
@@ -46,12 +47,10 @@ export default async function SejoursPage({
           <span className="text-xs font-semibold text-ink/60">
             {fr.search.ouAllezVous}
           </span>
-          <input
-            type="text"
-            name="ville"
+          <CityAutocomplete
             defaultValue={params.ville ?? ""}
             placeholder={fr.search.villePlaceholder}
-            className="rounded-xl border border-darna/15 bg-cream px-3 py-2.5 text-sm outline-none focus:border-darna"
+            inputClassName="w-full rounded-xl border border-darna/15 bg-cream px-3 py-2.5 text-sm outline-none focus:border-darna"
           />
         </label>
         <label className="flex flex-col gap-1">

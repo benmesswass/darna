@@ -121,3 +121,37 @@ export function resolveCity(input: string): string | null {
 export function getCity(name: string): City | undefined {
   return CITIES.find((c) => c.name === name);
 }
+
+/**
+ * Suggestions de villes pour l'autocomplétion — tolérantes à la
+ * translittération (« dje » → Djerba, « 7am » → Hammamet, « soussa » → Sousse).
+ * Priorité aux préfixes du nom canonique, puis aux alias, puis aux
+ * correspondances partielles.
+ */
+export function suggestCities(input: string, limit = 6): City[] {
+  const q = normalizeSearch(input);
+  if (q.length < 2) return [];
+
+  const scored = new Map<string, { city: City; score: number }>();
+  const consider = (city: City, score: number) => {
+    const existing = scored.get(city.name);
+    if (!existing || existing.score < score) scored.set(city.name, { city, score });
+  };
+
+  for (const city of CITIES) {
+    const name = normalizeSearch(city.name);
+    if (name.startsWith(q)) consider(city, 3);
+    else if (city.aliases.some((a) => normalizeSearch(a).startsWith(q))) consider(city, 2);
+    else if (name.includes(q)) consider(city, 1);
+  }
+
+  return [...scored.values()]
+    .sort(
+      (a, b) =>
+        b.score - a.score ||
+        a.city.name.length - b.city.name.length ||
+        a.city.name.localeCompare(b.city.name, "fr")
+    )
+    .slice(0, limit)
+    .map((s) => s.city);
+}

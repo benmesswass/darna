@@ -3,6 +3,7 @@ import { fr } from "@/lib/i18n/fr";
 import { prisma } from "@/lib/prisma";
 import { activeListingWhere, getFeaturedListings } from "@/lib/listings";
 import { PropertyCard } from "@/components/property/PropertyCard";
+import { CityAutocomplete } from "@/components/search/CityAutocomplete";
 import {
   ArrowRightIcon,
   BuildingIcon,
@@ -49,11 +50,9 @@ export default async function HomePage() {
             className="mt-9 flex max-w-2xl items-center gap-2 rounded-full bg-white p-2 pl-5 shadow-2xl shadow-black/20"
           >
             <SearchIcon width={20} height={20} className="shrink-0 text-darna" />
-            <input
-              type="text"
-              name="ville"
+            <CityAutocomplete
               placeholder={fr.search.villePlaceholder}
-              className="h-11 w-full min-w-0 bg-transparent text-base text-ink outline-none placeholder:text-ink/40"
+              inputClassName="h-11 w-full min-w-0 bg-transparent text-base text-ink outline-none placeholder:text-ink/40"
             />
             <button
               type="submit"
