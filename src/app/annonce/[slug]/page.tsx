@@ -2,6 +2,10 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { fr } from "@/lib/i18n/fr";
 import { buildUnavailableDates, getPropertyBySlug } from "@/lib/listings";
+import { prisma } from "@/lib/prisma";
+import { getSessionUser } from "@/lib/session";
+import { toggleFavoriteAction } from "@/actions/properties";
+import { HeartIcon } from "@/components/icons";
 import { markerPriceLabel } from "@/lib/format";
 import { Price } from "@/components/currency/Price";
 import { PropertyMap } from "@/components/map/PropertyMap";
@@ -32,6 +36,14 @@ export default async function AnnoncePage({
   const { slug } = await params;
   const property = await getPropertyBySlug(slug);
   if (!property) notFound();
+
+  const user = await getSessionUser();
+  const favorite = user
+    ? await prisma.favorite.findUnique({
+        where: { userId_propertyId: { userId: user.id, propertyId: property.id } },
+        select: { id: true },
+      })
+    : null;
 
   const isActive =
     property.status === "ACTIVE" && property.expiresAt.getTime() > Date.now();
@@ -71,7 +83,35 @@ export default async function AnnoncePage({
             <StatusBadge status={property.status} />
             <FreshnessBadge publishedAt={property.publishedAt} />
           </div>
-          <h1 className="mt-3 text-3xl font-bold text-darna">{property.title}</h1>
+          <div className="mt-3 flex items-center gap-3">
+            <h1 className="text-3xl font-bold text-darna">{property.title}</h1>
+            {user ? (
+              <form action={toggleFavoriteAction}>
+                <input type="hidden" name="propertyId" value={property.id} />
+                <input type="hidden" name="path" value={`/annonce/${property.slug}`} />
+                <button
+                  type="submit"
+                  aria-label={
+                    favorite ? fr.property.favoriRetirer : fr.property.favoriAjouter
+                  }
+                  title={
+                    favorite ? fr.property.favoriRetirer : fr.property.favoriAjouter
+                  }
+                  className={`rounded-full p-2 ring-1 transition ${
+                    favorite
+                      ? "bg-red-50 text-red-600 ring-red-200"
+                      : "bg-white text-ink/40 ring-darna/15 hover:text-red-500"
+                  }`}
+                >
+                  <HeartIcon
+                    width={18}
+                    height={18}
+                    fill={favorite ? "currentColor" : "none"}
+                  />
+                </button>
+              </form>
+            ) : null}
+          </div>
           <p className="mt-1 flex items-center gap-1.5 text-ink/60">
             <MapPinIcon width={16} height={16} />
             {property.address ? `${property.address} — ` : ""}
