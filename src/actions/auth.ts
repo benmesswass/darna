@@ -64,10 +64,8 @@ export async function loginAction(
   _prev: AuthFormState,
   formData: FormData
 ): Promise<AuthFormState> {
-  if (!(await assertRateLimit("connexion"))) {
-    return { error: fr.common.tropDeTentatives };
-  }
-
+  // Le rate limiting de la connexion vit dans `authorize` (src/lib/auth.ts) :
+  // un seul point de contrôle couvre l'action ET l'endpoint NextAuth.
   const parsed = loginSchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),

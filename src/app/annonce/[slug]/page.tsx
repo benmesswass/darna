@@ -50,7 +50,8 @@ export async function generateMetadata({
       photos: { orderBy: { position: "asc" }, take: 1, select: { url: true } },
     },
   });
-  if (!property) return { title: fr.notFound.titre };
+  // Résolu avant le début du streaming → vrai statut HTTP 404.
+  if (!property) notFound();
 
   const suffix =
     property.type === "SEJOUR"
