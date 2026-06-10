@@ -25,8 +25,9 @@ import {
   StarIcon,
   UsersIcon,
 } from "@/components/icons";
-import { PropertyCtas } from "@/components/property/PropertyCtas";
+import { PropertyCtas, toWhatsAppNumber } from "@/components/property/PropertyCtas";
 import { ReviewsSection } from "@/components/property/ReviewsSection";
+import { ContactForm } from "@/components/property/ContactForm";
 
 export default async function AnnoncePage({
   params,
@@ -44,6 +45,21 @@ export default async function AnnoncePage({
         select: { id: true },
       })
     : null;
+
+  // Avis possible uniquement après un séjour confirmé et terminé, sans avis existant.
+  const eligibleBooking =
+    user && property.type === "SEJOUR"
+      ? await prisma.booking.findFirst({
+          where: {
+            propertyId: property.id,
+            guestId: user.id,
+            status: { in: ["CONFIRMEE", "TERMINEE"] },
+            checkOut: { lt: new Date() },
+            review: null,
+          },
+          select: { id: true },
+        })
+      : null;
 
   const isActive =
     property.status === "ACTIVE" && property.expiresAt.getTime() > Date.now();
@@ -241,10 +257,39 @@ export default async function AnnoncePage({
             </div>
           </section>
 
+          {/* Contact direct (location / vente) */}
+          {!isSejour && isActive ? (
+            <section id="contact">
+              <h2 className="text-xl font-bold text-darna">{fr.contact.titre}</h2>
+              <div className="mt-4 rounded-3xl bg-white p-6 ring-1 ring-darna/10">
+                <ContactForm
+                  propertyId={property.id}
+                  propertyTitle={property.title}
+                  whatsappHref={
+                    property.owner.phone
+                      ? `https://wa.me/${toWhatsAppNumber(property.owner.phone)}?text=${encodeURIComponent(
+                          fr.property.partagerWhatsapp(
+                            property.title,
+                            markerPriceLabel(property.price, property.type)
+                          )
+                        )}`
+                      : null
+                  }
+                  defaults={{
+                    name: user?.name ?? "",
+                    email: user?.email ?? "",
+                    phone: user?.phone ?? "",
+                  }}
+                />
+              </div>
+            </section>
+          ) : null}
+
           {/* Avis — uniquement de voyageurs ayant réservé */}
           <ReviewsSection
             propertyId={property.id}
             propertyType={property.type}
+            eligibleBookingId={eligibleBooking?.id}
             reviews={property.reviews.map((r) => ({
               id: r.id,
               rating: r.rating,

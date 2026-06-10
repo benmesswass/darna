@@ -1,5 +1,6 @@
 import { fr } from "@/lib/i18n/fr";
 import { ShieldIcon, StarIcon } from "@/components/icons";
+import { ReviewForm } from "./ReviewForm";
 
 export type ReviewItem = {
   id: string;
@@ -27,10 +28,13 @@ function Stars({ rating }: { rating: number }) {
 
 export function ReviewsSection({
   reviews,
+  eligibleBookingId,
 }: {
   propertyId: string;
   propertyType: string;
   reviews: ReviewItem[];
+  /** Réservation terminée du visiteur, sans avis — ouvre le formulaire. */
+  eligibleBookingId?: string | null;
 }) {
   return (
     <section id="avis">
@@ -39,6 +43,8 @@ export function ReviewsSection({
         <ShieldIcon width={14} height={14} className="text-darna" />
         {fr.property.avisGarantie}
       </p>
+
+      {eligibleBookingId ? <ReviewForm bookingId={eligibleBookingId} /> : null}
 
       {reviews.length === 0 ? (
         <p className="mt-4 rounded-2xl bg-white p-5 text-sm text-ink/60 ring-1 ring-darna/10">
