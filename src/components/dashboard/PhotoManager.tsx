@@ -8,7 +8,7 @@ import {
   setCoverPhotoAction,
   type PhotoFormState,
 } from "@/actions/properties";
-import { fr } from "@/lib/i18n/fr";
+import { useT } from "@/components/i18n/LocaleProvider";
 import { CloseIcon, StarIcon } from "@/components/icons";
 
 export type ManagedPhoto = {
@@ -18,6 +18,42 @@ export type ManagedPhoto = {
   position: number;
 };
 
+/**
+ * Compression côté client avant upload : redimensionne à 1920 px max et
+ * réencode en JPEG. Une photo de téléphone de 6 Mo part en ~400 Ko —
+ * essentiel sur les réseaux mobiles tunisiens, et reste sous la limite
+ * de corps des Server Actions.
+ */
+async function compressImage(file: File): Promise<File> {
+  // Déjà léger : on ne touche pas.
+  if (file.size < 600 * 1024) return file;
+
+  try {
+    const bitmap = await createImageBitmap(file);
+    const MAX_EDGE = 1920;
+    const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return file;
+    ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close();
+
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, "image/jpeg", 0.82)
+    );
+    if (!blob || blob.size >= file.size) return file;
+
+    return new File([blob], file.name.replace(/\.[^.]+$/, "") + ".jpg", {
+      type: "image/jpeg",
+    });
+  } catch {
+    // Format non décodable par le navigateur : le serveur tranchera.
+    return file;
+  }
+}
+
 /** Gestion des photos d'une annonce : ajout (upload), couverture, suppression. */
 export function PhotoManager({
   propertyId,
@@ -26,6 +62,7 @@ export function PhotoManager({
   propertyId: string;
   photos: ManagedPhoto[];
 }) {
+  const fr = useT();
   const [state, action, pending] = useActionState<PhotoFormState, FormData>(
     addPhotosAction,
     undefined
@@ -51,11 +88,11 @@ export function PhotoManager({
               className="object-cover"
             />
             {index === 0 ? (
-              <span className="absolute left-2 top-2 rounded-full bg-sand px-2 py-0.5 text-[10px] font-bold text-darna-dark">
+              <span className="absolute start-2 top-2 rounded-full bg-sand px-2 py-0.5 text-[10px] font-bold text-darna-dark">
                 {fr.annonceForm.couverture}
               </span>
             ) : (
-              <form action={setCoverPhotoAction} className="absolute left-2 top-2">
+              <form action={setCoverPhotoAction} className="absolute start-2 top-2">
                 <input type="hidden" name="photoId" value={photo.id} />
                 <button
                   type="submit"
@@ -67,7 +104,7 @@ export function PhotoManager({
                 </button>
               </form>
             )}
-            <form action={deletePhotoAction} className="absolute right-2 top-2">
+            <form action={deletePhotoAction} className="absolute end-2 top-2">
               <input type="hidden" name="photoId" value={photo.id} />
               <button
                 type="submit"
@@ -106,7 +143,17 @@ export function PhotoManager({
             accept="image/jpeg,image/png,image/webp"
             multiple
             required
-            className="text-sm text-ink/70 file:mr-3 file:rounded-full file:border-0 file:bg-darna file:px-4 file:py-2 file:text-xs file:font-bold file:text-white hover:file:bg-darna-light"
+            onChange={async (e) => {
+              // Compresse à la sélection, puis remplace les fichiers de l'input.
+              const input = e.currentTarget;
+              const files = [...(input.files ?? [])];
+              if (files.length === 0) return;
+              const compressed = await Promise.all(files.map(compressImage));
+              const dt = new DataTransfer();
+              compressed.forEach((f) => dt.items.add(f));
+              input.files = dt.files;
+            }}
+            className="text-sm text-ink/70 file:me-3 file:rounded-full file:border-0 file:bg-darna file:px-4 file:py-2 file:text-xs file:font-bold file:text-white hover:file:bg-darna-light"
           />
           <button
             type="submit"

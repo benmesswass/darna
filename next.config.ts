@@ -19,6 +19,13 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {
+      // Upload de photos d'annonces : 8 photos max, compressées côté client
+      // (~400 Ko chacune) — 10 Mo couvre largement un lot avec marge.
+      bodySizeLimit: "10mb",
+    },
+  },
   images: {
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
