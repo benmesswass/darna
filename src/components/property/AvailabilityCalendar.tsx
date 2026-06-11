@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { fr } from "@/lib/i18n/fr";
+import { useT } from "@/components/i18n/LocaleProvider";
 
 const WEEKDAYS = ["L", "M", "M", "J", "V", "S", "D"];
 
@@ -23,6 +23,7 @@ function toIso(date: Date): string {
  * ou bloquées par l'hôte apparaissent barrées.
  */
 export function AvailabilityCalendar({ unavailable }: { unavailable: string[] }) {
+  const fr = useT();
   const [offset, setOffset] = useState(0);
   const unavailableSet = useMemo(() => new Set(unavailable), [unavailable]);
 

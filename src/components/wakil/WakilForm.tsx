@@ -2,12 +2,13 @@
 
 import { useActionState } from "react";
 import { applyWakilAction, type WakilFormState } from "@/actions/wakil";
-import { fr } from "@/lib/i18n/fr";
+import { useT } from "@/components/i18n/LocaleProvider";
 
 const inputClass =
   "w-full rounded-xl border border-darna/15 bg-cream px-3.5 py-2.5 text-sm outline-none focus:border-darna";
 
 export function WakilForm() {
+  const fr = useT();
   const [state, action, pending] = useActionState<WakilFormState, FormData>(
     applyWakilAction,
     undefined

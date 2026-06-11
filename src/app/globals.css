@@ -18,6 +18,11 @@ body {
   color: var(--color-ink);
 }
 
+/* Arabe : Outfit n'a pas de glyphes arabes, Cairo prend le relais. */
+html[dir="rtl"] body {
+  font-family: var(--font-cairo), ui-sans-serif, system-ui, sans-serif;
+}
+
 ::selection {
   background: var(--color-sand);
   color: var(--color-darna-dark);

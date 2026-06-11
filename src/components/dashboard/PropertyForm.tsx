@@ -6,7 +6,7 @@ import {
   updatePropertyAction,
   type PropertyFormState,
 } from "@/actions/properties";
-import { fr } from "@/lib/i18n/fr";
+import { useT } from "@/components/i18n/LocaleProvider";
 import { generateDescription } from "@/lib/description";
 import { AMENITIES } from "@/lib/constants";
 import { CITIES } from "@/lib/geo";
@@ -34,6 +34,7 @@ export type PropertyFormInitial = {
 
 /** Formulaire d'annonce — création (sans `initial`) ou modification (avec). */
 export function PropertyForm({ initial }: { initial?: PropertyFormInitial }) {
+  const fr = useT();
   const isEdit = Boolean(initial);
   const [state, action, pending] = useActionState<PropertyFormState, FormData>(
     isEdit ? updatePropertyAction : createPropertyAction,

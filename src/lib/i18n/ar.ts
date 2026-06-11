@@ -1,0 +1,508 @@
+import type { Dictionary } from "./fr";
+
+/**
+ * Dictionnaire arabe — derja tunisienne en écriture arabe pour les chaînes
+ * conversationnelles (boutons, questions, messages), arabe littéraire pour
+ * les textes formels et juridiques (contrat de bail, CGU, méthodologie).
+ * Les fonctions de pluriel appliquent les règles arabes : duel (2),
+ * pluriel 3–10, singulier de comptage au-delà.
+ */
+export const ar: Dictionary = {
+  meta: {
+    siteName: "دارنا",
+    tagline: "دارنا، بكل ثقة",
+    description:
+      "دارنا — إقامات وعقارات في تونس. إعلانات موثّقة، أسعار شفّافة، وخلاص محمي.",
+  },
+  nav: {
+    sejours: "إقامات",
+    immobilier: "عقارات",
+    prixDuMarche: "أسعار السوق",
+    diaspora: "الجالية",
+    devenirWakil: "ولّي وكيل",
+    connexion: "تسجيل الدخول",
+    inscription: "إنشاء حساب",
+    dashboard: "حسابي",
+    deconnexion: "خروج",
+    publier: "انشر إعلان",
+    menu: "القائمة",
+  },
+  brand: {
+    heroTitle: "اللي تشوفو موجود.",
+    heroLine2: "السوم اللي تشوفو هو اللي تخلّصو.",
+    heroLine3: "فلوسك محميّة.",
+    heroSub:
+      "دارنا هي أول منصة تونسية وين كل إعلان موثّق، كل سوم شفّاف، وكل خلاص محمي بنظام الضمان.",
+    ctaSejours: "لوّج على إقامة",
+    ctaImmobilier: "اكتشف العقارات",
+  },
+  home: {
+    villesPopulaires: "أكثر الوجهات طلبًا:",
+    statsAnnoncesVerifiees: "إعلان موثّق نشيط",
+    statsVilles: "مدينة مغطّاة",
+    statsAvis: "تقييم من إقامات حقيقية",
+    verticalSejoursTitle: "إقامات",
+    verticalSejoursDesc:
+      "فيلات، دور ضيافة وشقق لعطلتك — روزنامة حقيقية، تقييمات من مسافرين حقيقيين، وخلاص محمي.",
+    verticalImmobilierTitle: "عقارات",
+    verticalImmobilierDesc:
+      "كراء طويل الأمد وبيع — إعلانات جديدة، أسعار المتر المربع من السوق، واتصال مباشر بالمالك أو الوكالة.",
+    trustTitle: "كيفاش دارنا تحميك",
+    trust1Title: "إعلانات موثّقة",
+    trust1Desc:
+      "الوكلاء متاعنا يزوروا العقارات في عين المكان. علامة « موثّق دارنا » تضمنلك أن العقار موجود ويطابق الصور.",
+    trust2Title: "حتى مليم مخبّي",
+    trust2Desc:
+      "الملخّص يفصّللك كل دينار قبل الخلاص: السوم، الليالي، ومعلوم الخدمة. حتى معلوم زيارة، أبدًا.",
+    trust3Title: "فلوسك في الضمان",
+    trust3Desc:
+      "خلاصك ما يوصلش للمضيف كان بعد 24 ساعة من وصولك. كان صار مشكل، ترجعلك فلوسك الكل.",
+    featuredTitle: "آخر الإعلانات الموثّقة",
+    featuredAll: "شوف الإعلانات الكل",
+    statsTitle: "السوق مباشرة",
+    statsDesc:
+      "مؤشر دارنا يجمع الأسعار الحقيقية للمنصة: طالع أسعار المتر المربع حسب الولاية ومعدل الليلة حسب المدينة.",
+    statsCta: "طالع مؤشر دارنا",
+    diasporaTitle: "تونسيو الخارج",
+    diasporaDesc:
+      "لوّج، قارن واحجز من أوروبا بكل ثقة — عرض الأسعار باليورو وزيارات بالفيديو قريبًا.",
+    diasporaCta: "اكتشف فضاء الجالية",
+    wakilTitle: "ولّي وكيل دارنا",
+    wakilDesc:
+      "انضم لشبكة وكلاء الثقة اللي يتثبتوا من العقارات في عين المكان واربح دخل إضافي.",
+    wakilCta: "قدّم مطلبك",
+  },
+  footer: {
+    baseline: "الثقة هي المنتوج متاعنا.",
+    explorer: "اكتشف",
+    confiance: "الثقة",
+    aPropos: "من نحن",
+    cgu: "شروط الاستعمال",
+    mentionsLegales: "إعلامات قانونية",
+    contact: "اتصل بنا",
+    copyright: "دارنا — صُنعت بكل عناية في تونس.",
+  },
+  common: {
+    tnd: "د.ت",
+    eur: "€",
+    parNuit: "/ الليلة",
+    parMois: "/ الشهر",
+    chambres: "بيوت",
+    voyageurs: "مسافرين",
+    surface: "م²",
+    rechercher: "لوّج",
+    voir: "شوف",
+    annuler: "إلغاء",
+    enregistrer: "سجّل",
+    envoyer: "ابعث",
+    fermer: "سكّر",
+    retour: "ارجع",
+    imprimer: "اطبع",
+    chargement: "يحمّل…",
+    erreurInconnue: "صار مشكل. عاود جرّب من فضلك.",
+    champsRequis: "الرجاء التثبّت من خانات الاستمارة.",
+    tropDeTentatives: "برشة محاولات. استنّى دقايق وعاود جرّب.",
+    optionnel: "اختياري",
+  },
+  badges: {
+    verifie: "موثّق دارنا",
+    nonVerifie: "موش موثّق",
+    publieAujourdhui: "تنشر اليوم",
+    publieHier: "تنشر البارح",
+    publieIlYa: (jours: number) =>
+      jours === 2 ? "تنشر عندو يومين" : `تنشر عندو ${jours} أيام`,
+    expiree: "إعلان منتهي",
+    loue: "تكرى",
+    vendu: "تباع",
+    sejour: "إقامة",
+    location: "كراء",
+    vente: "بيع",
+  },
+  search: {
+    villePlaceholder: "مدينة — الحمامات، جربة، المرسى…",
+    suggestionsVilles: "اقتراحات مدن",
+    ouAllezVous: "وين باش تمشي؟",
+    arrivee: "الوصول",
+    depart: "المغادرة",
+    voyageurs: "المسافرين",
+    transaction: "نوع المعاملة",
+    louer: "كراء",
+    acheter: "شراء",
+    gouvernorat: "الولاية",
+    tousGouvernorats: "الولايات الكل",
+    prixMin: "أدنى سوم",
+    prixMax: "أقصى سوم",
+    surfaceMin: "أدنى مساحة (م²)",
+    piecesMin: "أدنى عدد بيوت",
+    indifferent: "الكل",
+    resultats: (n: number) =>
+      n === 0
+        ? "حتى نتيجة"
+        : n === 1
+          ? "إعلان واحد"
+          : n === 2
+            ? "إعلانين"
+            : n <= 10
+              ? `${n} إعلانات`
+              : `${n} إعلان`,
+    aucunResultatTitre: "حتى إعلان ما يطابق",
+    aucunResultatDesc:
+      "جرّب وسّع المعايير متاعك ولا نحّي فلاتر. الإعلانات المنتهية تتنحّى وحدها من النتائج.",
+    voirListe: "قائمة",
+    voirCarte: "خريطة",
+    chargementCarte: "الخريطة تحمّل…",
+  },
+  property: {
+    description: "الوصف",
+    caracteristiques: "الخصائص",
+    equipements: "التجهيزات",
+    localisation: "الموقع",
+    disponibilites: "التوفّر",
+    avis: "تقييمات المسافرين",
+    nbAvis: (n: number) =>
+      n === 1
+        ? "تقييم واحد"
+        : n === 2
+          ? "تقييمين"
+          : n <= 10
+            ? `${n} تقييمات`
+            : `${n} تقييم`,
+    avisGarantie:
+      "كل تقييم جاي من حجز مؤكّد على دارنا — مستحيل تنشر تقييم بلاش ما تكون قعدت.",
+    aucunAvis: "حتى تقييم للتوّ — كن أول واحد بعد إقامتك.",
+    avisVerifie: "إقامة موثّقة",
+    noteGlobale: "التقييم العام",
+    surface: (m: number) => `${m} م²`,
+    pieces: (n: number) =>
+      n === 1 ? "بيت واحد" : n === 2 ? "بيتين" : `${n} بيوت`,
+    capacite: (n: number) =>
+      n === 1 ? "مسافر واحد" : n === 2 ? "مسافرين اثنين" : `${n} مسافرين`,
+    reserver: "احجز",
+    contacter: "اتصل",
+    whatsapp: "واتساب",
+    fraisServiceInfo: "معلوم خدمة شفّاف محسوب في الخلاص",
+    verifieTooltip:
+      "العقار هذا زارو وتثبّت منو وكيل دارنا: موجود، والصور تطابقو.",
+    nonVerifieTooltip:
+      "العقار هذا مازال ما تثبّتناش منو في عين المكان. ما تخلّص حتى تسبقة خارج دارنا.",
+    proprietaire: "المالك",
+    agence: "وكالة",
+    annonceIndisponible:
+      "الإعلان هذا ما عادش نشيط. محفوظ كأرشيف فقط.",
+    legende: "موش متوفّر",
+    jourLibre: "متوفّر",
+    publierAvis: "خلّي تقييم",
+    votreNote: "تقييمك",
+    votreCommentaire: "تعليقك",
+    avisEnvoye: "يعطيك الصحة! تقييمك تنشر.",
+    avisRefuse:
+      "كان المسافرين اللي عندهم حجز مؤكّد ومكمّل ينجموا يخلّيوا تقييم.",
+    favoriAjouter: "زيد للمفضّلة",
+    favoriRetirer: "نحّي من المفضّلة",
+    partagerWhatsapp: (titre: string, prix: string) =>
+      `عسلامة، مهتم بالإعلان متاعك « ${titre} » (${prix}) اللي شفتو على دارنا. مازال متوفّر؟`,
+  },
+  auth: {
+    connexionTitre: "تسجيل الدخول لدارنا",
+    inscriptionTitre: "أنشئ حساب دارنا",
+    email: "البريد الإلكتروني",
+    motDePasse: "كلمة السر",
+    nom: "الاسم الكامل",
+    telephone: "الهاتف (+216…)",
+    role: "أنا…",
+    roleVoyageur: "مسافر / مستأجر",
+    roleHote: "مضيف / مالك",
+    roleAgence: "وكالة عقارية",
+    seConnecter: "ادخل",
+    sInscrire: "سجّل",
+    dejaCompte: "عندك حساب؟",
+    pasDeCompte: "مازال ما عندكش حساب؟",
+    identifiantsInvalides: "معطيات الدخول غالطة.",
+    emailDejaUtilise: "ما نجمناش ننشئو الحساب بالمعطيات هاذي.",
+    inscriptionReussie: "الحساب تعمل! تنجم تدخل توا.",
+    motDePasseRegle: "8 أحرف كحد أدنى",
+  },
+  dashboard: {
+    titre: "حسابي",
+    bonjour: (nom: string) => `عسلامة، ${nom}`,
+    mesAnnonces: "إعلاناتي",
+    mesReservations: "حجوزاتي",
+    demandesRecues: "الطلبات الواردة",
+    yieldAdvisor: "مستشار المردودية",
+    kyc: "توثيق الهوية",
+    favoris: "المفضّلة",
+    nouvelleAnnonce: "إعلان جديد",
+    aucuneAnnonce: "مازال ما عندكش حتى إعلان.",
+    aucuneAnnonceCta: "انشر أول إعلان متاعك في دقايق.",
+    creerAnnonce: "أنشئ إعلان",
+    statut: "الحالة",
+    expireLe: (date: string) => `ينتهي في ${date}`,
+    expireDans: (jours: number) =>
+      jours <= 0 ? "منتهي" : jours === 1 ? "ينتهي غدوة" : `ينتهي في ${jours} أيام`,
+    marquerLoue: "علّم اللي تكرى",
+    marquerVendu: "علّم اللي تباع",
+    republier: "عاود انشر (+30 يوم)",
+    annonceMarquee: "الإعلان تحدّث.",
+    voirAnnonce: "شوف الإعلان",
+    aucuneReservation: "حتى حجز للتوّ.",
+    aucuneReservationCta: "لوّج على إقامتك الجاية في إعلاناتنا الموثّقة.",
+    aucuneDemande: "حتى طلب للتوّ.",
+    aucunFavori: "حتى مفضّلة للتوّ.",
+    reservationDe: (nom: string) => `حجز من ${nom}`,
+    demandeDe: (nom: string) => `طلب من ${nom}`,
+    contratBail: "عقد الكراء",
+    statutReservation: {
+      EN_ATTENTE: "في انتظار الخلاص",
+      CONFIRMEE: "مؤكّد — الفلوس في الضمان",
+      ANNULEE: "ملغى",
+      TERMINEE: "مكمّل",
+    } as Record<string, string>,
+  },
+  annonceForm: {
+    titre: "عنوان الإعلان",
+    titrePlaceholder: "فيلا بمسبح في الحمامات",
+    type: "نوع الإعلان",
+    typeSejour: "إقامة (كراء سياحي)",
+    typeLocation: "كراء طويل الأمد",
+    typeVente: "بيع",
+    prix: "السوم",
+    prixNuit: "سوم الليلة (د.ت)",
+    prixMois: "الكراء الشهري (د.ت)",
+    prixVente: "سوم البيع (د.ت)",
+    ville: "المدينة",
+    gouvernorat: "الولاية",
+    adresse: "العنوان (الحومة، الشارع)",
+    surface: "المساحة (م²)",
+    pieces: "عدد البيوت",
+    capacite: "السعة (مسافرين)",
+    equipements: "التجهيزات",
+    description: "الوصف",
+    genererDescription: "ولّد الوصف",
+    genererDescriptionAide:
+      "يركّب نص من المعطيات اللي دخلتها — تنجم تبدّلو من بعد.",
+    publier: "انشر الإعلان",
+    annonceCreee: "الإعلان تنشر! باش يقعد أونلاين 30 يوم.",
+    modifierTitre: "بدّل الإعلان",
+    enregistrerModifs: "سجّل التبديلات",
+    annonceModifiee: "الإعلان تحدّث.",
+    typeNonModifiable:
+      "نوع الإعلان ما يتبدّلش بعد النشر (مرتبط بالحجوزات والتاريخ).",
+    photosTitre: "صور الإعلان",
+    photosAide:
+      "JPEG، PNG ولا WebP — 5 ميغا كحد أقصى للصورة، 8 صور للإعلان. الغلاف هو أول صورة تظهر.",
+    ajouterPhotos: "زيد الصور",
+    choisirFichiers: "اختار ملفات…",
+    photosAjoutees: "الصور تزادت!",
+    supprimerPhoto: "فسخ",
+    definirCouverture: "حطّها غلاف",
+    couverture: "الغلاف",
+    erreurUpload:
+      "الملف مرفوض: الصيغ المقبولة JPEG/PNG/WebP، الحجم الأقصى 5 ميغا.",
+    maxPhotos: (n: number) => `${n} صور كحد أقصى للإعلان.`,
+    coordonnees: "إحداثيات GPS",
+    latitude: "خط العرض",
+    longitude: "خط الطول",
+    coordonneesAide: "معبّية وحدها من المدينة — دقّقها كان يلزم.",
+  },
+  kyc: {
+    titre: "توثيق الهوية (KYC)",
+    sousTitre:
+      "التوثيق يقوّي الثقة: العلامة متاعك تظهر على إعلاناتك وتطمّن المسافرين.",
+    statutNonVerifie: "الهوية موش موثّقة",
+    statutEnAttente: "التوثيق جاري",
+    statutVerifie: "الهوية موثّقة",
+    cin: "رقم بطاقة التعريف (8 أرقام)",
+    telephone: "الهاتف الجوّال (+216…)",
+    envoyerOtp: "ابعثلي رمز التثبّت",
+    otpMockInfo:
+      "وضع تجريبي: حتى SMS حقيقي ما يتبعث. الرمز متاعك يظهر لوطا.",
+    votreCode: "رمز التثبّت متاعك",
+    saisirOtp: "اكتب الرمز اللي وصلك",
+    valider: "ثبّت الرمز",
+    otpInvalide: "الرمز غالط. عاود جرّب.",
+    verifieBravo:
+      "مبروك، هويتك توثّقت! العلامة تظهر توا على حسابك.",
+    dejaVerifie: "هويتك موثّقة من قبل.",
+  },
+  yieldAdvisor: {
+    titre: "مستشار المردودية",
+    sousTitre:
+      "لكل عقار، دارنا تقارن الإمكانيات الموسمية بمدخول الكراء طويل الأمد، انطلاقًا من الأسعار الحقيقية للمنصة.",
+    saisonnier: "موسمي (تقدير شهري)",
+    saisonnierDetail: (nuit: number) =>
+      `معدل الليلة في المدينة: ${nuit} د.ت × 30 ليلة × 60٪ نسبة حجز صيفية`,
+    longueDuree: "طويل الأمد (كراء شهري)",
+    longueDureeDetail: (loyer: number) =>
+      `معدل الكراء في الولاية: ${loyer} د.ت / الشهر`,
+    recoSaisonnier:
+      "التوصية: الكراء الموسمي يظهر أربح بياسر للعقار هذا. فكّر في روزنامة التوفّر.",
+    recoLongueDuree:
+      "التوصية: الكراء طويل الأمد يعطي مدخول أثبت وغالبًا أعلى للعقار هذا.",
+    recoEquivalent:
+      "التوصية: الزوز خيارات كيف كيف. الطويل الأمد يعطيك الاستقرار، والموسمي يعطيك المرونة.",
+    donneesInsuffisantes:
+      "معطيات السوق مازالت ناقصة للمنطقة هاذي — تقدير استرشادي.",
+    aucunBien: "زيد إعلان باش تتحصّل على تحليل مردودية.",
+  },
+  booking: {
+    titre: "طلب حجز",
+    recapitulatif: "الملخّص — شفّاف 100٪",
+    prixNuit: "سوم الليلة",
+    nuits: (n: number) =>
+      n === 1
+        ? "ليلة واحدة"
+        : n === 2
+          ? "ليلتين"
+          : n <= 10
+            ? `${n} ليالي`
+            : `${n} ليلة`,
+    sousTotal: "المجموع الجزئي",
+    fraisService: "معلوم خدمة دارنا",
+    fraisServiceAide: "يموّل توثيق الإعلانات وحماية الخلاصات.",
+    total: "المبلغ الجملي",
+    aucunFraisCache: "حتى معلوم آخر ما يتطلب منك. أبدًا.",
+    continuerPaiement: "كمّل للخلاص",
+    datesInvalides: "التواريخ غالطة — تاريخ المغادرة لازم يجي بعد الوصول.",
+    datesIndisponibles:
+      "التواريخ هاذي ما عادتش متوفّرة. اختار غيرها من فضلك.",
+    capaciteDepassee: (max: number) =>
+      `الدار هاذي تسع ${max} مسافرين كحد أقصى.`,
+    connexionRequise: "ادخل لحسابك باش تحجز.",
+    paiementTitre: "خلاص مؤمّن — ضمان دارنا",
+    sequestreExplication:
+      "فلوسك محميّة: تقعد في الضمان عند دارنا وما توصل للمضيف كان بعد 24 ساعة من الوصول. كان صار مشكل عند الوصول، ترجعلك فلوسك الكل.",
+    paiementMockInfo:
+      "الخلاص عبر Konnect / Flouci قريبًا. وضع تجريبي: حتى خصم حقيقي ما يصير.",
+    payerSimulation: "اخلص (تجربة)",
+    paiementConfirme: "الحجز تأكّد!",
+    paiementConfirmeDetail:
+      "فلوسك في الضمان. المضيف تعلّم — تلقى التفاصيل في « حجوزاتي ».",
+    voirMesReservations: "شوف حجوزاتي",
+    sejourDates: (arrivee: string, depart: string) =>
+      `من ${arrivee} إلى ${depart}`,
+  },
+  contact: {
+    titre: "اتصل بصاحب الإعلان",
+    nom: "اسمك",
+    email: "بريدك الإلكتروني",
+    telephone: "هاتفك",
+    message: "رسالتك",
+    messageDefaut: (titre: string) =>
+      `عسلامة، مهتم بـ« ${titre} ». نجموا نتفاهموا على زيارة؟`,
+    envoye: "طلبك توصّل لصاحب الإعلان.",
+    envoyer: "ابعث الطلب",
+    ouWhatsapp: "ولا مباشرة على",
+  },
+  bail: {
+    titre: "عقد كراء معدّ للسكنى",
+    sousTitre:
+      "وثيقة معبّأة مسبقًا من دارنا — تُستكمل وتُمضى من الطرفين.",
+    entre: "بين الممضين أسفله:",
+    bailleur: "المُكري",
+    locataire: "المُكتري",
+    bienDesigne: "تعيين العقار",
+    adresse: "العنوان",
+    surface: "المساحة",
+    pieces: "البيوت",
+    article1: "الفصل 1 — الموضوع",
+    article1Texte:
+      "يُكري المُكري للمُكتري، الذي يقبل، العقار المعيّن أعلاه للسكنى دون سواها.",
+    article2: "الفصل 2 — المدة",
+    article2Texte:
+      "أُبرم هذا العقد لمدة سنة قابلة للتجديد ضمنيًا، بداية من تاريخ الإمضاء.",
+    article3: "الفصل 3 — معين الكراء",
+    article3Texte: (loyer: string) =>
+      `حُدّد معين الكراء الشهري بـ${loyer}، يُدفع مسبقًا في غرة كل شهر.`,
+    article4: "الفصل 4 — الضمان",
+    article4Texte: (caution: string) =>
+      `يدفع المُكتري عند الإمضاء ضمانًا قدره ${caution}، يُرجع في نهاية الكراء بعد طرح المبالغ المستوجبة.`,
+    article5: "الفصل 5 — الالتزامات",
+    article5Texte:
+      "يلتزم المُكتري باستعمال العقار استعمالًا هادئًا وصيانته والاكتتاب في تأمين سكني. ويضمن المُكري التمتع الهادئ بالعقار.",
+    faitA: "حُرّر بـ",
+    le: "في",
+    signatureBailleur: "إمضاء المُكري",
+    signatureLocataire: "إمضاء المُكتري",
+    mentionLegale:
+      "نموذج استرشادي من دارنا — لا يُعدّ استشارة قانونية. تثبّت من مطابقته للتشريع التونسي الجاري به العمل.",
+    loyerMensuel: "الكراء الشهري",
+  },
+  prixMarche: {
+    titre: "مؤشر دارنا لأسعار العقارات",
+    sousTitre:
+      "إحصائيات محسوبة مباشرة على الإعلانات النشيطة في المنصة. معطيات استرشادية، تتحدّث باستمرار.",
+    venteTitre: "بيع — معدل سعر المتر المربع حسب الولاية",
+    locationTitre: "كراء — معدل الكراء للمتر المربع حسب الولاية",
+    sejourTitre: "إقامات — معدل الليلة حسب المدينة",
+    gouvernorat: "الولاية",
+    ville: "المدينة",
+    prixM2: "السوم / م²",
+    loyerM2: "الكراء / م²",
+    nuitee: "معدل الليلة",
+    annonces: (n: number) =>
+      n === 1
+        ? "إعلان واحد"
+        : n === 2
+          ? "إعلانين"
+          : n <= 10
+            ? `${n} إعلانات`
+            : `${n} إعلان`,
+    aucuneDonnee: "مازال ما فماش معطيات كافية للصنف هذا.",
+    methodologie: "المنهجية",
+    methodologieTexte:
+      "معدلات بسيطة محسوبة على الإعلانات النشيطة وغير المنتهية في دارنا. الإعلانات بلا مساحة مذكورة مستثناة من حسابات المتر المربع. المؤشر يثرى كل ما تكبر المنصة.",
+  },
+  diaspora: {
+    titre: "دارنا الجالية",
+    sousTitre:
+      "للتوانسة اللي في الخارج: لوّج، قارن وأمّن بلاصتك في البلاد، بلا مفاجآت خايبة.",
+    arg1Titre: "احجز من الخارج",
+    arg1Desc:
+      "إعلانات موثّقة في عين المكان من وكلائنا: اللي تشوفو من باريس ولا مونريال موجود فعلًا في الحمامات.",
+    arg2Titre: "اخلص بكل أمان",
+    arg2Desc:
+      "ضمان دارنا: فلوسك ما تتخلّصش كان بعد وصولك. الخلاص بالبطاقة البنكية العالمية قريبًا.",
+    arg3Titre: "زيارات بالفيديو (قريبًا)",
+    arg3Desc: "وكيل يزور العقار معاك بالفيديو، قبل أي التزام.",
+    toggleTitre: "اعرض الأسعار بعملتك",
+    toggleDesc: (taux: string) =>
+      `بدّل الموقع الكل لليورو بكليكة وحدة — سعر استرشادي: 1 € = ${taux} د.ت.`,
+    afficherEnEuros: "اعرض الأسعار بـ€",
+    afficherEnTnd: "اعرض الأسعار بالدينار",
+    ctaTitre: "صيفك الجاي يبدا من هنا",
+    ctaDesc: "تصفّح الإقامات الموثّقة في أجمل مدن البلاد.",
+  },
+  wakil: {
+    titre: "ولّي وكيل دارنا",
+    sousTitre:
+      "الوكيل هو عين الثقة متاعنا في الميدان: يزور العقارات، يتثبّت أنها موجودة وأن الصور مطابقة. هو اللي يخلّي دارنا موثوقة.",
+    missionTitre: "مهمتك",
+    mission1: "تزور العقارات قريب منك، بموعد.",
+    mission2: "تتثبّت من مطابقة الصور للواقع وتحدّد موقع العقار.",
+    mission3: "تسند علامة « موثّق دارنا » اللي تحمي المجموعة الكل.",
+    avantagesTitre: "اللي تربحو",
+    avantage1: "أجرة على كل زيارة موثّقة",
+    avantage2: "أوقات حرّة، في مدينتك",
+    avantage3: "تكوين وتطبيقة مخصوصة (قريبًا)",
+    formTitre: "الترشّح",
+    nom: "الاسم الكامل",
+    email: "البريد الإلكتروني",
+    telephone: "الهاتف",
+    ville: "مدينة تدخّلك",
+    motivation: "علاش تحب تولّي وكيل (سطور قليلة)",
+    postuler: "ابعث ترشّحي",
+    candidatureEnvoyee:
+      "يعطيك الصحة! ترشّحك توصّل — فريقنا باش يكلمك قريب.",
+  },
+  pagesLegales: {
+    cguTitre: "شروط الاستعمال العامة",
+    mentionsTitre: "إعلامات قانونية",
+    aRediger:
+      "الوثيقة قيد التحرير — باش تتنشر قبل الإطلاق الرسمي للمنصة.",
+  },
+  notFound: {
+    titre: "الصفحة موش موجودة",
+    desc: "الصفحة هاذي ما عادتش موجودة ولا الإعلان تنحّى. شفت؟ حتى في دارنا، موش كل شيء يدوم.",
+    cta: "ارجع للصفحة الرئيسية",
+  },
+};

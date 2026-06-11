@@ -1,12 +1,13 @@
 import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { fr } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
+import { fr as frMeta } from "@/lib/i18n/fr";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { formatDateFr, formatTndServer } from "@/lib/format";
 import { PrintButton } from "@/components/contract/PrintButton";
 
-export const metadata: Metadata = { title: fr.bail.titre };
+export const metadata: Metadata = { title: frMeta.bail.titre };
 
 /**
  * Contrat de bail pré-rempli, imprimable (@media print), généré depuis
@@ -17,6 +18,7 @@ export default async function ContratPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const fr = await getT();
   const { id } = await params;
   const user = await getSessionUser();
   if (!user) redirect("/connexion");

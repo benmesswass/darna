@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { fr } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { assertRateLimit } from "@/lib/rate-limit";
 
@@ -19,6 +19,7 @@ export async function applyWakilAction(
   _prev: WakilFormState,
   formData: FormData
 ): Promise<WakilFormState> {
+  const fr = await getT();
   if (!(await assertRateLimit("wakil"))) {
     return { error: fr.common.tropDeTentatives };
   }

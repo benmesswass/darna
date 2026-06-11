@@ -4,7 +4,7 @@ import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { fr } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { requireLister, requireUser } from "@/lib/session";
 import { resolveCity, getCity } from "@/lib/geo";
@@ -54,6 +54,7 @@ export async function createPropertyAction(
   _prev: PropertyFormState,
   formData: FormData
 ): Promise<PropertyFormState> {
+  const fr = await getT();
   const user = await requireLister();
 
   const parsed = createSchema.safeParse({
@@ -159,6 +160,7 @@ export async function updatePropertyAction(
   _prev: PropertyFormState,
   formData: FormData
 ): Promise<PropertyFormState> {
+  const fr = await getT();
   const user = await requireLister();
 
   const parsed = updateSchema.safeParse({
@@ -260,6 +262,7 @@ export async function addPhotosAction(
   _prev: PhotoFormState,
   formData: FormData
 ): Promise<PhotoFormState> {
+  const fr = await getT();
   const user = await requireLister();
 
   const parsedId = idSchema.safeParse(formData.get("propertyId"));

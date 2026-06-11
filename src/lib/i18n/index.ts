@@ -1,23 +1,34 @@
 import { fr, type Dictionary } from "./fr";
+import { en } from "./en";
+import { ar } from "./ar";
 
-/**
- * Locales supportées. L'arabe (`ar`) sera ajouté avec son dictionnaire
- * `ar.ts` (même structure que `fr.ts`) et `dir="rtl"` appliqué dans le layout.
- */
-export const locales = ["fr"] as const;
+export const locales = ["fr", "en", "ar"] as const;
 export type Locale = (typeof locales)[number];
 
 export const defaultLocale: Locale = "fr";
 
-const dictionaries: Record<Locale, Dictionary> = { fr };
+/** Cookie lu côté serveur (layout, pages, actions) et écrit par le sélecteur de langue. */
+export const LOCALE_COOKIE = "darna-locale";
+
+/** Libellés natifs du sélecteur de langue. */
+export const localeLabels: Record<Locale, string> = {
+  fr: "FR",
+  en: "EN",
+  ar: "عربي",
+};
+
+export function isLocale(value: string): value is Locale {
+  return (locales as readonly string[]).includes(value);
+}
+
+const dictionaries: Record<Locale, Dictionary> = { fr, en, ar };
 
 export function getDictionary(locale: Locale = defaultLocale): Dictionary {
   return dictionaries[locale];
 }
 
 export function getDirection(locale: Locale = defaultLocale): "ltr" | "rtl" {
-  // L'arabe basculera en "rtl".
-  return locale === ("ar" as string) ? "rtl" : "ltr";
+  return locale === "ar" ? "rtl" : "ltr";
 }
 
 export { fr };

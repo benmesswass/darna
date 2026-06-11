@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { fr } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { activeListingWhere, getFeaturedListings } from "@/lib/listings";
 import { PropertyCard } from "@/components/property/PropertyCard";
@@ -19,6 +19,7 @@ import {
 const POPULAR_CITIES = ["Hammamet", "Djerba", "Sousse", "La Marsa", "Tozeur"];
 
 export default async function HomePage() {
+  const fr = await getT();
   const [featured, verifiedCount, activeCities, reviewCount] = await Promise.all([
     getFeaturedListings(6),
     prisma.property.count({ where: { ...activeListingWhere(), verified: true } }),
@@ -47,7 +48,7 @@ export default async function HomePage() {
           <form
             method="GET"
             action="/sejours"
-            className="mt-9 flex max-w-2xl items-center gap-2 rounded-full bg-white p-2 pl-5 shadow-2xl shadow-black/20"
+            className="mt-9 flex max-w-2xl items-center gap-2 rounded-full bg-white p-2 ps-5 shadow-2xl shadow-black/20"
           >
             <SearchIcon width={20} height={20} className="shrink-0 text-darna" />
             <CityAutocomplete

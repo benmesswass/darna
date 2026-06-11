@@ -1,7 +1,8 @@
 import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { fr } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
+import { fr as frMeta } from "@/lib/i18n/fr";
 import { buildUnavailableDates, getPropertyBySlug } from "@/lib/listings";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
@@ -55,9 +56,9 @@ export async function generateMetadata({
 
   const suffix =
     property.type === "SEJOUR"
-      ? ` ${fr.common.parNuit}`
+      ? ` ${frMeta.common.parNuit}`
       : property.type === "LOCATION"
-        ? ` ${fr.common.parMois}`
+        ? ` ${frMeta.common.parMois}`
         : "";
   const title = `${property.title} — ${property.city}, ${formatTndServer(property.price)}${suffix}`;
   const description = property.description.slice(0, 160);
@@ -81,6 +82,7 @@ export default async function AnnoncePage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
+  const fr = await getT();
   const { slug } = await params;
   const property = await getPropertyBySlug(slug);
   if (!property) notFound();
@@ -182,7 +184,7 @@ export default async function AnnoncePage({
             {property.city}, {property.gouvernorat}
           </p>
         </div>
-        <div className="text-right">
+        <div className="text-end">
           <Price
             amount={property.price}
             suffix={priceSuffix}

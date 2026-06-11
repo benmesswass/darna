@@ -3,7 +3,7 @@
 import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { fr } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { assertRateLimit } from "@/lib/rate-limit";
@@ -32,6 +32,7 @@ export async function requestKycOtpAction(
   _prev: KycFormState,
   formData: FormData
 ): Promise<KycFormState> {
+  const fr = await getT();
   const user = await requireUser();
   if (user.kycStatus === "VERIFIE") return { verified: true };
 
@@ -66,6 +67,7 @@ export async function verifyKycOtpAction(
   _prev: KycFormState,
   formData: FormData
 ): Promise<KycFormState> {
+  const fr = await getT();
   const user = await requireUser();
   if (user.kycStatus === "VERIFIE") return { verified: true };
 

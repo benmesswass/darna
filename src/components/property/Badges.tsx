@@ -1,8 +1,9 @@
-import { fr } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 import { CheckIcon } from "@/components/icons";
 import { daysSincePublication } from "@/lib/listings";
 
-export function VerifiedBadge({ small = false }: { small?: boolean }) {
+export async function VerifiedBadge({ small = false }: { small?: boolean }) {
+  const fr = await getT();
   return (
     <span
       title={fr.property.verifieTooltip}
@@ -16,7 +17,8 @@ export function VerifiedBadge({ small = false }: { small?: boolean }) {
   );
 }
 
-export function FreshnessBadge({ publishedAt }: { publishedAt: Date }) {
+export async function FreshnessBadge({ publishedAt }: { publishedAt: Date }) {
+  const fr = await getT();
   const days = daysSincePublication(publishedAt);
   const label =
     days <= 0
@@ -31,13 +33,13 @@ export function FreshnessBadge({ publishedAt }: { publishedAt: Date }) {
   );
 }
 
-const TYPE_LABELS: Record<string, string> = {
-  SEJOUR: fr.badges.sejour,
-  LOCATION: fr.badges.location,
-  VENTE: fr.badges.vente,
-};
-
-export function TypeBadge({ type }: { type: string }) {
+export async function TypeBadge({ type }: { type: string }) {
+  const fr = await getT();
+  const TYPE_LABELS: Record<string, string> = {
+    SEJOUR: fr.badges.sejour,
+    LOCATION: fr.badges.location,
+    VENTE: fr.badges.vente,
+  };
   return (
     <span className="inline-flex items-center rounded-full bg-darna px-2.5 py-1 text-[11px] font-semibold text-white">
       {TYPE_LABELS[type] ?? type}
@@ -45,13 +47,13 @@ export function TypeBadge({ type }: { type: string }) {
   );
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  LOUE: fr.badges.loue,
-  VENDU: fr.badges.vendu,
-  EXPIREE: fr.badges.expiree,
-};
-
-export function StatusBadge({ status }: { status: string }) {
+export async function StatusBadge({ status }: { status: string }) {
+  const fr = await getT();
+  const STATUS_LABELS: Record<string, string> = {
+    LOUE: fr.badges.loue,
+    VENDU: fr.badges.vendu,
+    EXPIREE: fr.badges.expiree,
+  };
   if (status === "ACTIVE") return null;
   return (
     <span className="inline-flex items-center rounded-full bg-ink px-2.5 py-1 text-[11px] font-semibold text-white">

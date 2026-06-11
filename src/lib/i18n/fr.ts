@@ -1,6 +1,6 @@
 /**
- * Dictionnaire français — source unique de toutes les chaînes de l'interface.
- * La structure est prête pour `ar.ts` (même forme + dir="rtl" dans le layout).
+ * Dictionnaire français — locale de référence : sa forme définit le type
+ * `Dictionary` que `en.ts` et `ar.ts` doivent satisfaire à l'identique.
  */
 export const fr = {
   meta: {
@@ -470,6 +470,6 @@ export const fr = {
     desc: "Cette page n'existe pas ou l'annonce a été retirée. Comme quoi, même chez Darna, tout ne dure pas toujours.",
     cta: "Retour à l'accueil",
   },
-} as const;
+};
 
 export type Dictionary = typeof fr;

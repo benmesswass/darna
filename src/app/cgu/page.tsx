@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
-import { fr } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
+import { fr as frMeta } from "@/lib/i18n/fr";
 
-export const metadata: Metadata = { title: fr.pagesLegales.cguTitre };
+export const metadata: Metadata = { title: frMeta.pagesLegales.cguTitre };
 
-export default function CguPage() {
+export default async function CguPage() {
+  const fr = await getT();
   return (
     <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
       <h1 className="text-3xl font-bold text-darna">{fr.pagesLegales.cguTitre}</h1>

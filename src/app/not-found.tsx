@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { fr } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 import { HouseIcon } from "@/components/icons";
 
-export default function NotFound() {
+export default async function NotFound() {
+  const fr = await getT();
   return (
     <div className="mx-auto flex max-w-xl flex-col items-center px-4 py-24 text-center sm:px-6">
       <span className="flex h-16 w-16 items-center justify-center rounded-3xl bg-darna text-sand">

@@ -1,10 +1,11 @@
 import { redirect } from "next/navigation";
-import { fr } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { PropertyCard } from "@/components/property/PropertyCard";
 
 export default async function FavorisPage() {
+  const fr = await getT();
   const user = await getSessionUser();
   if (!user) redirect("/connexion");
 

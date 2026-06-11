@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { fr } from "@/lib/i18n/fr";
+import { useT } from "@/components/i18n/LocaleProvider";
 import { suggestCities, type City } from "@/lib/geo";
 import { MapPinIcon } from "@/components/icons";
 
@@ -24,6 +24,7 @@ export function CityAutocomplete({
   inputClassName: string;
   dropdownClassName?: string;
 }) {
+  const fr = useT();
   const [value, setValue] = useState(defaultValue);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -95,7 +96,7 @@ export function CityAutocomplete({
           id={listboxId}
           role="listbox"
           aria-label={fr.search.suggestionsVilles}
-          className={`absolute left-0 right-0 top-full z-[1060] mt-2 overflow-hidden rounded-2xl bg-white py-1.5 shadow-xl ring-1 ring-darna/10 ${dropdownClassName}`}
+          className={`absolute inset-x-0 top-full z-[1060] mt-2 overflow-hidden rounded-2xl bg-white py-1.5 shadow-xl ring-1 ring-darna/10 ${dropdownClassName}`}
         >
           {suggestions.map((city, index) => (
             <li key={city.name} role="option" aria-selected={index === activeIndex}>
@@ -107,7 +108,7 @@ export function CityAutocomplete({
                   select(city);
                 }}
                 onMouseEnter={() => setActiveIndex(index)}
-                className={`flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm transition ${
+                className={`flex w-full items-center gap-2.5 px-4 py-2.5 text-start text-sm transition ${
                   index === activeIndex ? "bg-cream text-darna" : "text-ink"
                 }`}
               >

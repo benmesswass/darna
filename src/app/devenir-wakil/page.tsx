@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { fr } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
+import { fr as frMeta } from "@/lib/i18n/fr";
 import { WakilForm } from "@/components/wakil/WakilForm";
 import {
   CheckIcon,
@@ -10,11 +11,12 @@ import {
 } from "@/components/icons";
 
 export const metadata: Metadata = {
-  title: fr.wakil.titre,
-  description: fr.wakil.sousTitre,
+  title: frMeta.wakil.titre,
+  description: frMeta.wakil.sousTitre,
 };
 
-export default function DevenirWakilPage() {
+export default async function DevenirWakilPage() {
+  const fr = await getT();
   return (
     <div>
       {/* Hero */}

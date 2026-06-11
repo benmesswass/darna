@@ -2,10 +2,11 @@
 
 import { useActionState, useState } from "react";
 import { submitReviewAction, type ReviewFormState } from "@/actions/bookings";
-import { fr } from "@/lib/i18n/fr";
+import { useT } from "@/components/i18n/LocaleProvider";
 import { StarIcon } from "@/components/icons";
 
 export function ReviewForm({ bookingId }: { bookingId: string }) {
+  const fr = useT();
   const [state, action, pending] = useActionState<ReviewFormState, FormData>(
     submitReviewAction,
     undefined

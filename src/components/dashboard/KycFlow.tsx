@@ -6,13 +6,14 @@ import {
   verifyKycOtpAction,
   type KycFormState,
 } from "@/actions/kyc";
-import { fr } from "@/lib/i18n/fr";
+import { useT } from "@/components/i18n/LocaleProvider";
 import { CheckIcon, ShieldIcon } from "@/components/icons";
 
 const inputClass =
   "w-full rounded-xl border border-darna/15 bg-cream px-3.5 py-2.5 text-sm outline-none focus:border-darna";
 
 export function KycFlow({ initialStatus }: { initialStatus: string }) {
+  const fr = useT();
   const [requestState, requestAction, requestPending] = useActionState<
     KycFormState,
     FormData

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { fr } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import {
@@ -16,6 +16,7 @@ export default async function MesAnnoncesPage({
 }: {
   searchParams: Promise<{ creee?: string; modifiee?: string }>;
 }) {
+  const fr = await getT();
   const user = await getSessionUser();
   if (!user) redirect("/connexion");
   if (user.role !== "HOTE" && user.role !== "AGENCE") {

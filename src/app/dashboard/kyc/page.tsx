@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
-import { fr } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 import { getSessionUser } from "@/lib/session";
 import { KycFlow } from "@/components/dashboard/KycFlow";
 
 export default async function KycPage() {
+  const fr = await getT();
   const user = await getSessionUser();
   if (!user) redirect("/connexion");
 

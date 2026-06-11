@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { fr } from "@/lib/i18n/fr";
+import { fr as frMeta } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 import { EUR_TO_TND } from "@/lib/config";
 import { getFeaturedListings } from "@/lib/listings";
 import { PropertyCard } from "@/components/property/PropertyCard";
@@ -14,11 +15,12 @@ import {
 } from "@/components/icons";
 
 export const metadata: Metadata = {
-  title: fr.diaspora.titre,
-  description: fr.diaspora.sousTitre,
+  title: frMeta.diaspora.titre,
+  description: frMeta.diaspora.sousTitre,
 };
 
 export default async function DiasporaPage() {
+  const fr = await getT();
   const featured = await getFeaturedListings(3);
   const taux = EUR_TO_TND.toLocaleString("fr-FR");
 

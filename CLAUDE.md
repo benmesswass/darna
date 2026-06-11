@@ -15,7 +15,7 @@ Projet **personnel** de Wassim. Tout commit, push et opération GitHub se fait a
 
 ## i18n
 
-Jamais de chaîne en dur dans les composants : tout passe par `src/lib/i18n/fr.ts` (structure prête pour `ar.ts` + RTL). Les libellés métier (équipements…) sont stockés en français tels quels en base.
+Site trilingue **fr / en / ar** (arabe = derja tunisienne en écriture arabe, littéraire pour le juridique ; `dir="rtl"` + police Cairo automatiques). Locale dans le cookie `darna-locale`, sélecteur dans le Header. Jamais de chaîne en dur ; convention : `const fr = await getT()` (`src/lib/i18n/server.ts`) dans les composants serveur et server actions, `const fr = useT()` (`src/components/i18n/LocaleProvider.tsx`) dans les composants client — on garde le nom `fr` et les clés françaises. Toute nouvelle clé s'ajoute dans **les trois** dictionnaires (`fr.ts` définit le type `Dictionary`). Exception : les blocs `metadata`/SEO restent en français canonique via `import { fr as frMeta } from "@/lib/i18n/fr"`. CSS : classes logiques uniquement (`ps-`/`pe-`/`ms-`/`me-`/`start-`/`end-`/`text-start`), jamais `pl-`/`left-`… Les libellés métier (équipements…) sont stockés en français tels quels en base.
 
 ## Sécurité (invariants à préserver)
 

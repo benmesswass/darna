@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { fr } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { computeYield } from "@/lib/yield";
@@ -7,6 +7,7 @@ import { formatTndServer } from "@/lib/format";
 import { SparklesIcon } from "@/components/icons";
 
 export default async function YieldAdvisorPage() {
+  const fr = await getT();
   const user = await getSessionUser();
   if (!user) redirect("/connexion");
   if (user.role !== "HOTE" && user.role !== "AGENCE") {

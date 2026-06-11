@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { fr } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { formatDateFr, formatDateShortFr } from "@/lib/format";
@@ -10,6 +10,7 @@ import { toWhatsAppNumber } from "@/components/property/PropertyCtas";
 import { PrinterIcon, WhatsAppIcon } from "@/components/icons";
 
 export default async function DemandesPage() {
+  const fr = await getT();
   const user = await getSessionUser();
   if (!user) redirect("/connexion");
   if (user.role !== "HOTE" && user.role !== "AGENCE") {
@@ -72,7 +73,7 @@ export default async function DemandesPage() {
               <p className="mt-1.5 text-sm">
                 <Price amount={b.totalPrice} className="font-bold text-darna" />
                 {b.escrow === "EN_SEQUESTRE" ? (
-                  <span className="ml-2 text-xs font-medium text-emerald-700">
+                  <span className="ms-2 text-xs font-medium text-emerald-700">
                     {fr.dashboard.statutReservation.CONFIRMEE}
                   </span>
                 ) : null}

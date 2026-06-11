@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { fr } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 import { WhatsAppIcon } from "@/components/icons";
 
 /** Numéro tunisien → format wa.me (chiffres uniquement, indicatif inclus). */
@@ -8,7 +8,7 @@ export function toWhatsAppNumber(phone: string): string {
   return digits.startsWith("216") ? digits : `216${digits}`;
 }
 
-export function PropertyCtas({
+export async function PropertyCtas({
   slug,
   type,
   title,
@@ -23,6 +23,8 @@ export function PropertyCtas({
   ownerPhone: string | null;
   active: boolean;
 }) {
+  const fr = await getT();
+
   if (!active) return null;
 
   if (type === "SEJOUR") {

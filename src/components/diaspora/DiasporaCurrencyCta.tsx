@@ -1,11 +1,12 @@
 "use client";
 
-import { fr } from "@/lib/i18n/fr";
+import { useT } from "@/components/i18n/LocaleProvider";
 import { useCurrency } from "@/components/currency/CurrencyProvider";
 import { GlobeIcon } from "@/components/icons";
 
 /** Bascule globale TND/EUR mise en scène sur la landing diaspora. */
 export function DiasporaCurrencyCta() {
+  const fr = useT();
   const { currency, setCurrency } = useCurrency();
   const isEur = currency === "EUR";
 

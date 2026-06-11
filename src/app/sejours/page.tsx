@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { fr } from "@/lib/i18n/fr";
+import { fr as frMeta } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 import {
   searchSejours,
   type SejoursSearchParams,
@@ -12,8 +13,8 @@ import { CityAutocomplete } from "@/components/search/CityAutocomplete";
 import { CalendarIcon, SearchIcon, UsersIcon } from "@/components/icons";
 
 export const metadata: Metadata = {
-  title: fr.nav.sejours,
-  description: fr.home.verticalSejoursDesc,
+  title: frMeta.nav.sejours,
+  description: frMeta.home.verticalSejoursDesc,
 };
 
 export default async function SejoursPage({
@@ -21,6 +22,7 @@ export default async function SejoursPage({
 }: {
   searchParams: Promise<SejoursSearchParams>;
 }) {
+  const fr = await getT();
   const params = await searchParams;
   const { results, resolvedCity, unknownCity } = await searchSejours(params);
 
@@ -131,7 +133,8 @@ export default async function SejoursPage({
   );
 }
 
-function EmptyState({ unknownCity, query }: { unknownCity: boolean; query?: string }) {
+async function EmptyState({ unknownCity, query }: { unknownCity: boolean; query?: string }) {
+  const fr = await getT();
   return (
     <div className="rounded-3xl bg-white p-10 text-center ring-1 ring-darna/10">
       <p className="text-lg font-semibold text-darna">

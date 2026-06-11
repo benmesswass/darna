@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { fr } from "@/lib/i18n/fr";
+import { fr as frMeta } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 import { GOUVERNORATS } from "@/lib/geo";
 import {
   searchImmobilier,
@@ -12,8 +13,8 @@ import { SplitView } from "@/components/search/SplitView";
 import { SearchIcon } from "@/components/icons";
 
 export const metadata: Metadata = {
-  title: fr.nav.immobilier,
-  description: fr.home.verticalImmobilierDesc,
+  title: frMeta.nav.immobilier,
+  description: frMeta.home.verticalImmobilierDesc,
 };
 
 export default async function ImmobilierPage({
@@ -21,6 +22,7 @@ export default async function ImmobilierPage({
 }: {
   searchParams: Promise<ImmobilierSearchParams>;
 }) {
+  const fr = await getT();
   const params = await searchParams;
   const { results, transaction } = await searchImmobilier(params);
 

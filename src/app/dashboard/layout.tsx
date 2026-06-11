@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { fr } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 import { getSessionUser } from "@/lib/session";
 import { logoutAction } from "@/actions/auth";
 import {
@@ -18,6 +18,7 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const fr = await getT();
   const user = await getSessionUser();
   if (!user) redirect("/connexion");
 

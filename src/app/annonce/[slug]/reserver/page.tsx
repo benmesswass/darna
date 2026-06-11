@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { fr } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
+import { fr as frMeta } from "@/lib/i18n/fr";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { SERVICE_FEE_RATE } from "@/lib/config";
@@ -10,7 +11,7 @@ import { Price } from "@/components/currency/Price";
 import { BookingSubmit } from "@/components/booking/BookingSubmit";
 import { CalendarIcon, ShieldIcon, UsersIcon } from "@/components/icons";
 
-export const metadata: Metadata = { title: fr.booking.titre };
+export const metadata: Metadata = { title: frMeta.booking.titre };
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -27,6 +28,7 @@ export default async function ReserverPage({
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ arrivee?: string; depart?: string; voyageurs?: string }>;
 }) {
+  const fr = await getT();
   const { slug } = await params;
   const sp = await searchParams;
 

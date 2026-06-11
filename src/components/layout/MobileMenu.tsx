@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { fr } from "@/lib/i18n/fr";
+import { useT } from "@/components/i18n/LocaleProvider";
 import { CloseIcon, MenuIcon } from "@/components/icons";
 
 type Item = { href: string; label: string };
 
 export function MobileMenu({ items }: { items: Item[] }) {
+  const fr = useT();
   const [open, setOpen] = useState(false);
 
   return (

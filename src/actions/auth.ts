@@ -3,7 +3,7 @@
 import { AuthError } from "next-auth";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
-import { fr } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { signIn, signOut } from "@/lib/auth";
 import { assertRateLimit } from "@/lib/rate-limit";
@@ -42,6 +42,7 @@ export async function registerAction(
   _prev: AuthFormState,
   formData: FormData
 ): Promise<AuthFormState> {
+  const fr = await getT();
   if (!(await assertRateLimit("inscription"))) {
     return { error: fr.common.tropDeTentatives };
   }
@@ -99,6 +100,7 @@ export async function loginAction(
   _prev: AuthFormState,
   formData: FormData
 ): Promise<AuthFormState> {
+  const fr = await getT();
   // Le rate limiting de la connexion vit dans `authorize` (src/lib/auth.ts) :
   // un seul point de contrôle couvre l'action ET l'endpoint NextAuth.
   const parsed = loginSchema.safeParse({

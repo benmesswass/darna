@@ -1,4 +1,4 @@
-import { fr } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 import { ShieldIcon, StarIcon } from "@/components/icons";
 import { ReviewForm } from "./ReviewForm";
 
@@ -26,7 +26,7 @@ function Stars({ rating }: { rating: number }) {
   );
 }
 
-export function ReviewsSection({
+export async function ReviewsSection({
   reviews,
   eligibleBookingId,
 }: {
@@ -36,6 +36,7 @@ export function ReviewsSection({
   /** Réservation terminée du visiteur, sans avis — ouvre le formulaire. */
   eligibleBookingId?: string | null;
 }) {
+  const fr = await getT();
   return (
     <section id="avis">
       <h2 className="text-xl font-bold text-darna">{fr.property.avis}</h2>

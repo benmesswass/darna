@@ -1,9 +1,10 @@
 "use client";
 
-import { fr } from "@/lib/i18n/fr";
+import { useT } from "@/components/i18n/LocaleProvider";
 import { PrinterIcon } from "@/components/icons";
 
 export function PrintButton() {
+  const fr = useT();
   return (
     <button
       type="button"

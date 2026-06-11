@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { fr } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { PropertyForm } from "@/components/dashboard/PropertyForm";
@@ -10,6 +10,7 @@ export default async function ModifierAnnoncePage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const fr = await getT();
   const user = await getSessionUser();
   if (!user) redirect("/connexion");
 

@@ -1,12 +1,13 @@
 import Link from "next/link";
-import { fr } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 import { getSessionUser } from "@/lib/session";
 import { HouseIcon } from "@/components/icons";
 import { MobileMenu } from "./MobileMenu";
 import { CurrencyToggle } from "@/components/currency/CurrencyToggle";
+import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 
 export async function Header() {
-  const user = await getSessionUser();
+  const [user, fr] = await Promise.all([getSessionUser(), getT()]);
 
   const mobileItems = [
     { href: "/sejours", label: fr.nav.sejours },
@@ -68,6 +69,10 @@ export async function Header() {
               {fr.nav.devenirWakil}
             </Link>
           </nav>
+
+          {/* Toujours visible, même sur mobile : besoin de premier niveau
+              pour un site trilingue (et cible diaspora mobile-first). */}
+          <LanguageSwitcher />
 
           <CurrencyToggle />
 

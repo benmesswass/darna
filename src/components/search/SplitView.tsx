@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { fr } from "@/lib/i18n/fr";
+import { useT } from "@/components/i18n/LocaleProvider";
 import { MapPinIcon } from "@/components/icons";
 
 /**
@@ -9,6 +9,7 @@ import { MapPinIcon } from "@/components/icons";
  * Les deux panneaux restent rendus côté serveur (passés en children).
  */
 export function SplitView({ list, map }: { list: ReactNode; map: ReactNode }) {
+  const fr = useT();
   const [mobileView, setMobileView] = useState<"liste" | "carte">("liste");
 
   return (

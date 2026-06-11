@@ -1,24 +1,25 @@
 import Image from "next/image";
 import Link from "next/link";
-import { fr } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 import type { ListingWithPhoto } from "@/lib/listings";
 import { Price } from "@/components/currency/Price";
 import { FreshnessBadge, TypeBadge, VerifiedBadge } from "./Badges";
 import { DoorIcon, MapPinIcon, RulerIcon, UsersIcon } from "@/components/icons";
 
-function priceSuffix(type: string): string | undefined {
-  if (type === "SEJOUR") return fr.common.parNuit;
-  if (type === "LOCATION") return fr.common.parMois;
-  return undefined;
-}
-
-export function PropertyCard({
+export async function PropertyCard({
   property,
   showType = false,
 }: {
   property: ListingWithPhoto;
   showType?: boolean;
 }) {
+  const fr = await getT();
+  // Helper interne : dépend du dictionnaire de la requête.
+  function priceSuffix(type: string): string | undefined {
+    if (type === "SEJOUR") return fr.common.parNuit;
+    if (type === "LOCATION") return fr.common.parMois;
+    return undefined;
+  }
   const photo = property.photos[0];
 
   return (
@@ -36,11 +37,11 @@ export function PropertyCard({
             className="object-cover transition duration-300 group-hover:scale-105"
           />
         ) : null}
-        <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
+        <div className="absolute start-3 top-3 flex flex-wrap gap-1.5">
           {showType ? <TypeBadge type={property.type} /> : null}
           {property.verified ? <VerifiedBadge small /> : null}
         </div>
-        <div className="absolute bottom-3 left-3">
+        <div className="absolute bottom-3 start-3">
           <FreshnessBadge publishedAt={property.publishedAt} />
         </div>
       </div>

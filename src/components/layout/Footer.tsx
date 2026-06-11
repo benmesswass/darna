@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { fr } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 import { HouseIcon } from "@/components/icons";
 
-export function Footer() {
+export async function Footer() {
+  const fr = await getT();
   return (
     <footer className="no-print mt-16 bg-darna-dark text-white">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-4">

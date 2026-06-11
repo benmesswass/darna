@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { fr } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { SERVICE_FEE_RATE } from "@/lib/config";
@@ -32,6 +32,7 @@ export async function createBookingAction(
   _prev: BookingFormState,
   formData: FormData
 ): Promise<BookingFormState> {
+  const fr = await getT();
   const user = await requireUser();
 
   const parsed = createSchema.safeParse({
@@ -265,6 +266,7 @@ export async function submitReviewAction(
   _prev: ReviewFormState,
   formData: FormData
 ): Promise<ReviewFormState> {
+  const fr = await getT();
   const user = await requireUser();
 
   const parsed = reviewSchema.safeParse({

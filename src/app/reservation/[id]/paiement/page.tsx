@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { fr } from "@/lib/i18n/fr";
+import { fr as frMeta } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { confirmPaymentAction } from "@/actions/bookings";
@@ -9,13 +10,14 @@ import { formatDateFr } from "@/lib/format";
 import { Price } from "@/components/currency/Price";
 import { CheckIcon, CoinsIcon, ShieldIcon } from "@/components/icons";
 
-export const metadata: Metadata = { title: fr.booking.paiementTitre };
+export const metadata: Metadata = { title: frMeta.booking.paiementTitre };
 
 export default async function PaiementPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const fr = await getT();
   const { id } = await params;
   const user = await getSessionUser();
   if (!user) redirect("/connexion");

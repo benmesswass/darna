@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { fr } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { formatDateShortFr } from "@/lib/format";
@@ -15,6 +15,7 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 export default async function MesReservationsPage() {
+  const fr = await getT();
   const user = await getSessionUser();
   if (!user) redirect("/connexion");
 

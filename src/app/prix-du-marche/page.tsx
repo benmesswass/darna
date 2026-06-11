@@ -1,17 +1,20 @@
 import type { Metadata } from "next";
-import { fr } from "@/lib/i18n/fr";
+import { fr as frMeta } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
+import type { Dictionary } from "@/lib/i18n";
 import { computeMarketIndex, type M2Row, type NightRow } from "@/lib/market";
 import { formatTndServer } from "@/lib/format";
 
 export const metadata: Metadata = {
-  title: fr.prixMarche.titre,
-  description: fr.prixMarche.sousTitre,
+  title: frMeta.prixMarche.titre,
+  description: frMeta.prixMarche.sousTitre,
 };
 
 // Agrégats recalculés à chaque requête : l'indice vit avec la base.
 export const dynamic = "force-dynamic";
 
 export default async function PrixDuMarchePage() {
+  const fr = await getT();
   const { vente, location, nights } = await computeMarketIndex();
 
   return (
@@ -21,6 +24,7 @@ export default async function PrixDuMarchePage() {
 
       <div className="mt-8 space-y-10">
         <IndexTable
+          fr={fr}
           title={fr.prixMarche.venteTitre}
           headerLabel={fr.prixMarche.gouvernorat}
           headerValue={fr.prixMarche.prixM2}
@@ -28,6 +32,7 @@ export default async function PrixDuMarchePage() {
           barColor="bg-darna"
         />
         <IndexTable
+          fr={fr}
           title={fr.prixMarche.locationTitre}
           headerLabel={fr.prixMarche.gouvernorat}
           headerValue={fr.prixMarche.loyerM2}
@@ -35,6 +40,7 @@ export default async function PrixDuMarchePage() {
           barColor="bg-darna-light"
         />
         <IndexTable
+          fr={fr}
           title={fr.prixMarche.sejourTitre}
           headerLabel={fr.prixMarche.ville}
           headerValue={fr.prixMarche.nuitee}
@@ -57,12 +63,14 @@ type Row = (M2Row | NightRow) & { value: number };
 
 /** Tableau + barres horizontales en CSS pur — aucune librairie graphique. */
 function IndexTable({
+  fr,
   title,
   headerLabel,
   headerValue,
   rows,
   barColor,
 }: {
+  fr: Dictionary;
   title: string;
   headerLabel: string;
   headerValue: string;
@@ -79,10 +87,10 @@ function IndexTable({
       ) : (
         <table className="mt-4 w-full text-sm">
           <thead>
-            <tr className="text-left text-xs font-semibold uppercase tracking-wide text-ink/40">
+            <tr className="text-start text-xs font-semibold uppercase tracking-wide text-ink/40">
               <th className="pb-2">{headerLabel}</th>
-              <th className="pb-2 text-right">{headerValue}</th>
-              <th className="hidden pb-2 pl-6 sm:table-cell" aria-hidden />
+              <th className="pb-2 text-end">{headerValue}</th>
+              <th className="hidden pb-2 ps-6 sm:table-cell" aria-hidden />
             </tr>
           </thead>
           <tbody>
@@ -90,14 +98,14 @@ function IndexTable({
               <tr key={row.label} className="border-t border-darna/5">
                 <td className="py-2.5 font-medium text-ink">
                   {row.label}
-                  <span className="ml-2 text-xs font-normal text-ink/40">
+                  <span className="ms-2 text-xs font-normal text-ink/40">
                     {fr.prixMarche.annonces(row.count)}
                   </span>
                 </td>
-                <td className="py-2.5 text-right font-bold text-darna">
+                <td className="py-2.5 text-end font-bold text-darna">
                   {formatTndServer(row.value)}
                 </td>
-                <td className="hidden py-2.5 pl-6 sm:table-cell" style={{ width: "40%" }}>
+                <td className="hidden py-2.5 ps-6 sm:table-cell" style={{ width: "40%" }}>
                   <div className="h-2.5 overflow-hidden rounded-full bg-cream">
                     <div
                       className={`h-full rounded-full ${barColor}`}

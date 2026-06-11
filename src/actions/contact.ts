@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { fr } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { assertRateLimit } from "@/lib/rate-limit";
@@ -20,6 +20,7 @@ export async function createContactRequestAction(
   _prev: ContactFormState,
   formData: FormData
 ): Promise<ContactFormState> {
+  const fr = await getT();
   if (!(await assertRateLimit("contact"))) {
     return { error: fr.common.tropDeTentatives };
   }

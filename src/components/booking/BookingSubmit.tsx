@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { createBookingAction, type BookingFormState } from "@/actions/bookings";
-import { fr } from "@/lib/i18n/fr";
+import { useT } from "@/components/i18n/LocaleProvider";
 
 /** Soumission de la demande de réservation (les montants restent serveur). */
 export function BookingSubmit({
@@ -16,6 +16,7 @@ export function BookingSubmit({
   depart: string;
   voyageurs: number;
 }) {
+  const fr = useT();
   const [state, action, pending] = useActionState<BookingFormState, FormData>(
     createBookingAction,
     undefined

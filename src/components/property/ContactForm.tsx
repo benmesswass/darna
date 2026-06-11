@@ -5,7 +5,7 @@ import {
   createContactRequestAction,
   type ContactFormState,
 } from "@/actions/contact";
-import { fr } from "@/lib/i18n/fr";
+import { useT } from "@/components/i18n/LocaleProvider";
 import { WhatsAppIcon } from "@/components/icons";
 
 const inputClass =
@@ -22,6 +22,7 @@ export function ContactForm({
   whatsappHref: string | null;
   defaults: { name: string; email: string; phone: string };
 }) {
+  const fr = useT();
   const [state, action, pending] = useActionState<ContactFormState, FormData>(
     createContactRequestAction,
     undefined

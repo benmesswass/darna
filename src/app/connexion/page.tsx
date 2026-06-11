@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { fr } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
+import { fr as frMeta } from "@/lib/i18n/fr";
 import { getSessionUser } from "@/lib/session";
 import { LoginForm } from "@/components/auth/AuthForms";
 
-export const metadata: Metadata = { title: fr.auth.connexionTitre };
+export const metadata: Metadata = { title: frMeta.auth.connexionTitre };
 
 export default async function ConnexionPage() {
+  const fr = await getT();
   const user = await getSessionUser();
   if (user) redirect("/dashboard");
 

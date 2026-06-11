@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { fr } from "@/lib/i18n/fr";
+import { fr as frMeta } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 import { getSessionUser } from "@/lib/session";
 import { RegisterForm } from "@/components/auth/AuthForms";
 
-export const metadata: Metadata = { title: fr.auth.inscriptionTitre };
+export const metadata: Metadata = { title: frMeta.auth.inscriptionTitre };
 
 export default async function InscriptionPage() {
+  const fr = await getT();
   const user = await getSessionUser();
   if (user) redirect("/dashboard");
 
