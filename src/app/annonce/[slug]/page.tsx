@@ -1,4 +1,3 @@
-import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getT } from "@/lib/i18n/server";
@@ -11,6 +10,7 @@ import { HeartIcon } from "@/components/icons";
 import { markerPriceLabel } from "@/lib/format";
 import { Price } from "@/components/currency/Price";
 import { PropertyMap } from "@/components/map/PropertyMap";
+import { PropertyGallery } from "@/components/property/PropertyGallery";
 import { AvailabilityCalendar } from "@/components/property/AvailabilityCalendar";
 import {
   FreshnessBadge,
@@ -199,24 +199,15 @@ export default async function AnnoncePage({
         </div>
       </div>
 
-      {/* Galerie */}
-      <div className="mt-6 grid h-[420px] grid-cols-1 gap-2 overflow-hidden rounded-3xl sm:grid-cols-3">
-        {property.photos.slice(0, 3).map((photo, i) => (
-          <div
-            key={photo.id}
-            className={`relative ${i === 0 ? "sm:col-span-2 sm:row-span-2" : "hidden sm:block"}`}
-          >
-            <Image
-              src={photo.url}
-              alt={photo.alt}
-              fill
-              sizes={i === 0 ? "(max-width: 640px) 100vw, 66vw" : "33vw"}
-              className="object-cover"
-              priority={i === 0}
-            />
-          </div>
-        ))}
-      </div>
+      {/* Galerie immersive (clic → lightbox plein écran) */}
+      <PropertyGallery
+        title={property.title}
+        images={property.photos.map((photo) => ({
+          url: photo.url,
+          alt: photo.alt,
+          caption: photo.caption,
+        }))}
+      />
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
         <div className="space-y-10">

@@ -1,15 +1,25 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useT } from "@/components/i18n/LocaleProvider";
-import { suggestCities, type City } from "@/lib/geo";
+import { CITIES, suggestCities, type City } from "@/lib/geo";
 import { MapPinIcon } from "@/components/icons";
 
+/** Toutes les villes, triées alphabétiquement — affichées au clic / champ vide. */
+const ALL_CITIES: City[] = [...CITIES].sort((a, b) =>
+  a.name.localeCompare(b.name, "fr")
+);
+
 /**
- * Champ ville avec autocomplétion tolérante à la translittération :
- * « dje » → Djerba, « 7am » → Hammamet, « soussa » → Sousse.
+ * Champ ville avec liste déroulante :
+ * - au focus / clic, la liste s'ouvre sur **toutes** les villes tunisiennes ;
+ * - dès que l'utilisateur tape, la liste se filtre (tolérante à la
+ *   translittération : « dje » → Djerba, « 7am »/« hammam » → Hammamet,
+ *   « soussa » → Sousse) ;
+ * - sélection à la souris ou au clavier (↑ ↓ Entrée Échap).
+ *
  * Composant non contrôlé vis-à-vis du formulaire (input name classique,
- * compatible GET) ; navigation clavier ↑ ↓ Entrée Échap.
+ * compatible GET).
  */
 export function CityAutocomplete({
   name = "ville",
@@ -28,9 +38,15 @@ export function CityAutocomplete({
   const [value, setValue] = useState(defaultValue);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
-  const [suggestions, setSuggestions] = useState<City[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
+  const activeRef = useRef<HTMLButtonElement>(null);
   const listboxId = useId();
+
+  // Liste affichée : toutes les villes si le champ est vide, sinon le filtre.
+  const suggestions = useMemo<City[]>(
+    () => (value.trim() ? suggestCities(value, CITIES.length) : ALL_CITIES),
+    [value]
+  );
 
   useEffect(() => {
     function onClickOutside(event: MouseEvent) {
@@ -40,13 +56,12 @@ export function CityAutocomplete({
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
 
-  function update(next: string) {
-    setValue(next);
-    const results = suggestCities(next);
-    setSuggestions(results);
-    setOpen(results.length > 0);
-    setActiveIndex(-1);
-  }
+  // Garde l'option active visible lors de la navigation clavier.
+  useEffect(() => {
+    if (open && activeIndex >= 0) {
+      activeRef.current?.scrollIntoView({ block: "nearest" });
+    }
+  }, [open, activeIndex]);
 
   function select(city: City) {
     setValue(city.name);
@@ -55,15 +70,21 @@ export function CityAutocomplete({
   }
 
   function onKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
-    if (!open || suggestions.length === 0) return;
     if (event.key === "ArrowDown") {
       event.preventDefault();
-      setActiveIndex((i) => (i + 1) % suggestions.length);
+      if (!open) {
+        setOpen(true);
+        return;
+      }
+      if (suggestions.length > 0) {
+        setActiveIndex((i) => (i + 1) % suggestions.length);
+      }
     } else if (event.key === "ArrowUp") {
+      if (!open || suggestions.length === 0) return;
       event.preventDefault();
       setActiveIndex((i) => (i <= 0 ? suggestions.length - 1 : i - 1));
     } else if (event.key === "Enter") {
-      if (activeIndex >= 0) {
+      if (open && activeIndex >= 0) {
         event.preventDefault();
         select(suggestions[activeIndex]);
       } else {
@@ -71,6 +92,7 @@ export function CityAutocomplete({
       }
     } else if (event.key === "Escape") {
       setOpen(false);
+      setActiveIndex(-1);
     }
   }
 
@@ -86,21 +108,27 @@ export function CityAutocomplete({
         aria-expanded={open}
         aria-controls={listboxId}
         aria-autocomplete="list"
-        onChange={(e) => update(e.target.value)}
-        onFocus={() => value && update(value)}
+        onChange={(e) => {
+          setValue(e.target.value);
+          setOpen(true);
+          setActiveIndex(-1);
+        }}
+        onFocus={() => setOpen(true)}
+        onClick={() => setOpen(true)}
         onKeyDown={onKeyDown}
         className={inputClassName}
       />
-      {open ? (
+      {open && suggestions.length > 0 ? (
         <ul
           id={listboxId}
           role="listbox"
           aria-label={fr.search.suggestionsVilles}
-          className={`absolute inset-x-0 top-full z-[1060] mt-2 overflow-hidden rounded-2xl bg-white py-1.5 shadow-xl ring-1 ring-darna/10 ${dropdownClassName}`}
+          className={`absolute inset-x-0 top-full z-[1060] mt-2 max-h-72 overflow-y-auto overflow-x-hidden rounded-2xl bg-white py-1.5 shadow-xl ring-1 ring-darna/10 ${dropdownClassName}`}
         >
           {suggestions.map((city, index) => (
             <li key={city.name} role="option" aria-selected={index === activeIndex}>
               <button
+                ref={index === activeIndex ? activeRef : null}
                 type="button"
                 onMouseDown={(e) => {
                   // mousedown : sélectionne avant le blur de l'input.

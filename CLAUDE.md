@@ -13,6 +13,13 @@ Projet **personnel** de Wassim. Tout commit, push et opération GitHub se fait a
 - « Enums » String contraints par `src/lib/constants.ts` + zod (héritage SQLite, conservé pour la souplesse).
 - Sécurité ajoutée : CSP par nonce (`src/middleware.ts`), audit trail (`src/lib/audit.ts` + modèle `AuditLog`), réservations EN_ATTENTE expirant à 15 min, transaction anti double-réservation.
 
+## Fichiers clés (carte des composants)
+
+- **Carte / map (Leaflet)** : `src/components/map/PropertyMap.tsx` (wrapper, import dynamique `ssr: false`) → `src/components/map/MapInner.tsx` (rendu réel). C'est *la carte*.
+- **Carte annonce / vignette** : `src/components/property/PropertyCard.tsx`.
+- Géo & translittération villes : `src/lib/geo.ts` (`resolveCity()`). Constantes/« enums » : `src/lib/constants.ts`. CSP nonce : `src/middleware.ts`. Audit : `src/lib/audit.ts`.
+- i18n : `src/lib/i18n/server.ts` (`getT`), `src/components/i18n/LocaleProvider.tsx` (`useT`), dictionnaires `src/lib/i18n/{fr,en,ar}.ts`.
+
 ## i18n
 
 Site trilingue **fr / en / ar** (arabe = derja tunisienne en écriture arabe, littéraire pour le juridique ; `dir="rtl"` + police Cairo automatiques). Locale dans le cookie `darna-locale`, sélecteur dans le Header. Jamais de chaîne en dur ; convention : `const fr = await getT()` (`src/lib/i18n/server.ts`) dans les composants serveur et server actions, `const fr = useT()` (`src/components/i18n/LocaleProvider.tsx`) dans les composants client — on garde le nom `fr` et les clés françaises. Toute nouvelle clé s'ajoute dans **les trois** dictionnaires (`fr.ts` définit le type `Dictionary`). Exception : les blocs `metadata`/SEO restent en français canonique via `import { fr as frMeta } from "@/lib/i18n/fr"`. CSS : classes logiques uniquement (`ps-`/`pe-`/`ms-`/`me-`/`start-`/`end-`/`text-start`), jamais `pl-`/`left-`… Les libellés métier (équipements…) sont stockés en français tels quels en base.

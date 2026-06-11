@@ -10,7 +10,7 @@ import { requireLister, requireUser } from "@/lib/session";
 import { resolveCity, getCity } from "@/lib/geo";
 import { buildPropertySlug } from "@/lib/slug";
 import { AMENITIES, PROPERTY_TYPES } from "@/lib/constants";
-import { LISTING_LIFETIME_DAYS } from "@/lib/config";
+import { FEATURED_DURATION_DAYS, LISTING_LIFETIME_DAYS } from "@/lib/config";
 import { logAudit } from "@/lib/audit";
 import {
   MAX_PHOTOS_PER_PROPERTY,
@@ -37,7 +37,7 @@ const createSchema = z
     type: z.enum(PROPERTY_TYPES),
     price: z.coerce.number().int().min(10).max(10_000_000),
     city: z.string().trim().min(2).max(60),
-    address: z.string().trim().max(160).optional().or(z.literal("")),
+    address: z.string().trim().max(200).optional().or(z.literal("")),
     surface: z.coerce.number().int().min(10).max(10_000).optional().or(z.literal("")),
     rooms: z.coerce.number().int().min(1).max(30).optional().or(z.literal("")),
     maxGuests: z.coerce.number().int().min(1).max(30).optional().or(z.literal("")),
@@ -255,6 +255,60 @@ export async function republishPropertyAction(formData: FormData): Promise<void>
   revalidatePath("/dashboard/annonces");
 }
 
+/**
+ * Mise à la une (paiement simulé) : le boost « à la une » est activé pour
+ * FEATURED_DURATION_DAYS jours. Un nouvel achat alors qu'un boost est encore
+ * actif le PROLONGE (cumul à partir de la date de fin restante).
+ *
+ * Le paiement est un mock assumé (même esprit que le séquestre des séjours) :
+ * aucune intégration de paiement réel, mais l'autorisation et l'effet métier
+ * sont, eux, bien réels et vérifiés côté serveur.
+ */
+export async function featureListingAction(formData: FormData): Promise<void> {
+  const user = await requireLister();
+
+  const parsed = idSchema.safeParse(formData.get("propertyId"));
+  if (!parsed.success) return;
+
+  // Autorisation : l'annonce doit appartenir à l'hôte connecté.
+  await requireOwnProperty(parsed.data);
+
+  // On relit le statut/expiration en base (jamais confiance au client) :
+  // seule une annonce ACTIVE et non expirée peut être mise à la une.
+  const property = await prisma.property.findUnique({
+    where: { id: parsed.data },
+    select: { id: true, slug: true, status: true, expiresAt: true, featuredUntil: true },
+  });
+  if (!property || property.status !== "ACTIVE" || property.expiresAt.getTime() < Date.now()) {
+    return;
+  }
+
+  const boostMs = FEATURED_DURATION_DAYS * 24 * 60 * 60 * 1000;
+  // Prolongation : on part de la fin de boost restante si elle est future.
+  const base =
+    property.featuredUntil && property.featuredUntil.getTime() > Date.now()
+      ? property.featuredUntil.getTime()
+      : Date.now();
+  const featuredUntil = new Date(base + boostMs);
+
+  await prisma.property.update({
+    where: { id: property.id },
+    data: { featuredUntil },
+  });
+
+  await logAudit({
+    action: "PROPERTY_FEATURED",
+    userId: user.id,
+    success: true,
+    metadata: { propertyId: property.id, featuredUntil: featuredUntil.toISOString() },
+  });
+
+  revalidatePath("/dashboard/annonces");
+  revalidatePath(`/annonce/${property.slug}`);
+  revalidatePath("/");
+  redirect("/dashboard/annonces?alaune=1");
+}
+
 export type PhotoFormState = { error?: string; success?: string } | undefined;
 
 /** Ajout de photos uploadées (validées : MIME + magic bytes + taille). */
@@ -338,6 +392,45 @@ export async function deletePhotoAction(formData: FormData): Promise<void> {
 
   revalidatePath(`/dashboard/annonces/${photo.property.id}/modifier`);
   revalidatePath(`/annonce/${photo.property.slug}`);
+}
+
+const captionSchema = z.object({
+  photoId: z.string().min(1),
+  // Légende courte et contextuelle ; vide = on efface la légende.
+  caption: z.string().trim().max(140),
+});
+
+/** Met à jour la légende contextuelle d'une photo (overlay galerie). */
+export async function updatePhotoCaptionAction(
+  _prev: PhotoFormState,
+  formData: FormData
+): Promise<PhotoFormState> {
+  const fr = await getT();
+  const user = await requireUser();
+
+  const parsed = captionSchema.safeParse({
+    photoId: formData.get("photoId"),
+    caption: formData.get("caption") ?? "",
+  });
+  if (!parsed.success) return { error: fr.common.erreurInconnue };
+
+  const photo = await prisma.photo.findUnique({
+    where: { id: parsed.data.photoId },
+    select: { id: true, property: { select: { id: true, slug: true, ownerId: true } } },
+  });
+  // Autorisation : seul le propriétaire de l'annonce édite ses légendes.
+  if (!photo || photo.property.ownerId !== user.id) {
+    return { error: fr.common.erreurInconnue };
+  }
+
+  await prisma.photo.update({
+    where: { id: photo.id },
+    data: { caption: parsed.data.caption || null },
+  });
+
+  revalidatePath(`/dashboard/annonces/${photo.property.id}/modifier`);
+  revalidatePath(`/annonce/${photo.property.slug}`);
+  return { success: fr.annonceForm.legendeEnregistree };
 }
 
 /** Place une photo en couverture (position 0, les autres décalées). */

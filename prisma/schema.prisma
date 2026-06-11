@@ -61,6 +61,10 @@ model Property {
   amenities   String   @default("") // libellés séparés par « | »
   publishedAt DateTime @default(now())
   expiresAt   DateTime
+  // Mise en avant payante (« à la une ») : date de fin du boost, ou null.
+  // L'annonce est à la une tant que featuredUntil > now ; le champ est remis
+  // à null paresseusement une fois expiré (cf. clearExpiredFeatured()).
+  featuredUntil DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -78,13 +82,17 @@ model Property {
   @@index([city])
   @@index([gouvernorat])
   @@index([ownerId])
+  @@index([featuredUntil]) // tri « à la une » + purge paresseuse des boosts expirés
 }
 
 model Photo {
-  id       String @id @default(cuid())
+  id       String  @id @default(cuid())
   url      String
   alt      String
-  position Int    @default(0)
+  // Légende contextuelle facultative fournie par l'annonceur, affichée en
+  // overlay dans la galerie immersive (« Séjour lumineux avec balcon »…).
+  caption  String?
+  position Int     @default(0)
 
   propertyId String
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)

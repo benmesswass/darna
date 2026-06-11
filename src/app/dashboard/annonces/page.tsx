@@ -8,13 +8,21 @@ import {
   markPropertyClosedAction,
   republishPropertyAction,
 } from "@/actions/properties";
-import { StatusBadge, TypeBadge, VerifiedBadge } from "@/components/property/Badges";
+import {
+  FeaturedBadge,
+  StatusBadge,
+  TypeBadge,
+  VerifiedBadge,
+} from "@/components/property/Badges";
+import { isListingFeatured } from "@/lib/listings";
+import { formatDateFr } from "@/lib/format";
 import { Price } from "@/components/currency/Price";
+import { StarIcon } from "@/components/icons";
 
 export default async function MesAnnoncesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ creee?: string; modifiee?: string }>;
+  searchParams: Promise<{ creee?: string; modifiee?: string; alaune?: string }>;
 }) {
   const fr = await getT();
   const user = await getSessionUser();
@@ -23,7 +31,7 @@ export default async function MesAnnoncesPage({
     redirect("/dashboard/reservations");
   }
 
-  const { creee, modifiee } = await searchParams;
+  const { creee, modifiee, alaune } = await searchParams;
 
   const properties = await prisma.property.findMany({
     where: { ownerId: user.id },
@@ -46,6 +54,26 @@ export default async function MesAnnoncesPage({
         <p className="mt-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
           {fr.annonceForm.annonceModifiee}
         </p>
+      ) : null}
+      {alaune ? (
+        <p className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-700">
+          {fr.dashboard.alaUneSucces}
+        </p>
+      ) : null}
+
+      {/* Publicité : pousser l'hôte à mettre ses annonces à la une */}
+      {properties.length > 0 ? (
+        <div className="mt-5 flex items-start gap-4 rounded-3xl bg-gradient-to-r from-amber-400 to-sand p-5 text-darna-dark shadow-sm">
+          <span className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/40 sm:inline-flex">
+            <StarIcon width={22} height={22} className="fill-darna-dark" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-base font-bold">{fr.dashboard.promoAlaUneTitre}</p>
+            <p className="mt-0.5 text-sm text-darna-dark/80">
+              {fr.dashboard.promoAlaUneDesc}
+            </p>
+          </div>
+        </div>
       ) : null}
 
       {properties.length === 0 ? (
@@ -72,6 +100,8 @@ export default async function MesAnnoncesPage({
             const canClose =
               p.status === "ACTIVE" && (p.type === "LOCATION" || p.type === "VENTE");
             const canRepublish = p.status !== "ACTIVE" || isExpired;
+            const featured = isListingFeatured(p.featuredUntil);
+            const canFeature = p.status === "ACTIVE" && !isExpired;
 
             return (
               <li
@@ -92,6 +122,7 @@ export default async function MesAnnoncesPage({
 
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-1.5">
+                    {featured ? <FeaturedBadge small /> : null}
                     <TypeBadge type={p.type} />
                     {p.verified ? <VerifiedBadge small /> : null}
                     <StatusBadge status={effectiveExpired ? "EXPIREE" : p.status} />
@@ -112,6 +143,12 @@ export default async function MesAnnoncesPage({
                   >
                     {fr.dashboard.expireDans(daysLeft)}
                   </p>
+                  {featured && p.featuredUntil ? (
+                    <p className="mt-0.5 flex items-center gap-1 text-xs font-semibold text-amber-600">
+                      <StarIcon width={12} height={12} className="fill-current" />
+                      {fr.dashboard.alaUneActif(formatDateFr(p.featuredUntil))}
+                    </p>
+                  ) : null}
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 sm:flex-col sm:items-stretch">
@@ -127,6 +164,15 @@ export default async function MesAnnoncesPage({
                   >
                     {fr.dashboard.voirAnnonce}
                   </Link>
+                  {canFeature ? (
+                    <Link
+                      href={`/dashboard/annonces/${p.id}/a-la-une`}
+                      className="flex items-center justify-center gap-1.5 rounded-xl bg-amber-400 px-3.5 py-2 text-center text-xs font-bold text-darna-dark hover:bg-amber-300"
+                    >
+                      <StarIcon width={13} height={13} className="fill-current" />
+                      {featured ? fr.dashboard.prolongerALaUne : fr.dashboard.mettreALaUne}
+                    </Link>
+                  ) : null}
                   {canClose ? (
                     <form action={markPropertyClosedAction}>
                       <input type="hidden" name="propertyId" value={p.id} />

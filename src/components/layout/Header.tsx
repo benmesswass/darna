@@ -3,15 +3,21 @@ import { getT } from "@/lib/i18n/server";
 import { getSessionUser } from "@/lib/session";
 import { HouseIcon } from "@/components/icons";
 import { MobileMenu } from "./MobileMenu";
+import { NavLink } from "./NavLink";
+import { PrimaryNav } from "./PrimaryNav";
 import { CurrencyToggle } from "@/components/currency/CurrencyToggle";
 import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 
 export async function Header() {
   const [user, fr] = await Promise.all([getSessionUser(), getT()]);
 
-  const mobileItems = [
+  const primaryItems = [
     { href: "/sejours", label: fr.nav.sejours },
     { href: "/immobilier", label: fr.nav.immobilier },
+  ];
+
+  const mobileItems = [
+    ...primaryItems,
     { href: "/prix-du-marche", label: fr.nav.prixDuMarche },
     { href: "/diaspora", label: fr.nav.diaspora },
     { href: "/devenir-wakil", label: fr.nav.devenirWakil },
@@ -21,7 +27,7 @@ export async function Header() {
   ];
 
   return (
-    <header className="no-print sticky top-0 z-[1100] bg-darna text-white shadow-md">
+    <header className="accent-transition no-print sticky top-0 z-[1100] border-b-2 border-[var(--color-accent)] bg-darna text-white shadow-md">
       <div className="relative mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2" aria-label={fr.meta.siteName}>
@@ -31,43 +37,37 @@ export async function Header() {
             <span className="text-xl font-bold tracking-tight">{fr.meta.siteName}</span>
           </Link>
 
-          {/* Double navigation : les deux verticales du produit */}
-          <nav className="hidden items-center rounded-full bg-white/10 p-1 md:flex">
-            <Link
-              href="/sejours"
-              className="rounded-full px-4 py-1.5 text-sm font-semibold text-white/90 transition hover:bg-white hover:text-darna"
-            >
-              {fr.nav.sejours}
-            </Link>
-            <Link
-              href="/immobilier"
-              className="rounded-full px-4 py-1.5 text-sm font-semibold text-white/90 transition hover:bg-white hover:text-darna"
-            >
-              {fr.nav.immobilier}
-            </Link>
-          </nav>
+          {/* Double navigation : les deux verticales du produit.
+              Pastille glissante + accent par section (voir PrimaryNav). */}
+          <PrimaryNav items={primaryItems} />
         </div>
 
         <div className="flex items-center gap-2">
           <nav className="hidden items-center gap-1 lg:flex">
-            <Link
+            <NavLink
               href="/prix-du-marche"
-              className="rounded-lg px-3 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white"
+              className="rounded-lg px-3 py-2 text-sm"
+              activeClassName="bg-white/10 font-semibold text-white"
+              inactiveClassName="text-white/80 hover:bg-white/10 hover:text-white"
             >
               {fr.nav.prixDuMarche}
-            </Link>
-            <Link
+            </NavLink>
+            <NavLink
               href="/diaspora"
-              className="rounded-lg px-3 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white"
+              className="rounded-lg px-3 py-2 text-sm"
+              activeClassName="bg-white/10 font-semibold text-white"
+              inactiveClassName="text-white/80 hover:bg-white/10 hover:text-white"
             >
               {fr.nav.diaspora}
-            </Link>
-            <Link
+            </NavLink>
+            <NavLink
               href="/devenir-wakil"
-              className="rounded-lg px-3 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white"
+              className="rounded-lg px-3 py-2 text-sm"
+              activeClassName="bg-white/10 font-semibold text-white"
+              inactiveClassName="text-white/80 hover:bg-white/10 hover:text-white"
             >
               {fr.nav.devenirWakil}
-            </Link>
+            </NavLink>
           </nav>
 
           {/* Toujours visible, même sur mobile : besoin de premier niveau
@@ -79,14 +79,14 @@ export async function Header() {
           {user ? (
             <Link
               href="/dashboard"
-              className="hidden rounded-full bg-sand px-4 py-2 text-sm font-semibold text-darna-dark transition hover:bg-sand-light md:block"
+              className="accent-transition hidden rounded-full bg-[var(--color-accent)] px-4 py-2 text-sm font-semibold text-[var(--color-accent-contrast)] hover:bg-[var(--color-accent-strong)] md:block"
             >
               {fr.nav.dashboard}
             </Link>
           ) : (
             <Link
               href="/connexion"
-              className="hidden rounded-full bg-sand px-4 py-2 text-sm font-semibold text-darna-dark transition hover:bg-sand-light md:block"
+              className="accent-transition hidden rounded-full bg-[var(--color-accent)] px-4 py-2 text-sm font-semibold text-[var(--color-accent-contrast)] hover:bg-[var(--color-accent-strong)] md:block"
             >
               {fr.nav.connexion}
             </Link>

@@ -6,17 +6,64 @@ import {
   addPhotosAction,
   deletePhotoAction,
   setCoverPhotoAction,
+  updatePhotoCaptionAction,
   type PhotoFormState,
 } from "@/actions/properties";
 import { useT } from "@/components/i18n/LocaleProvider";
-import { CloseIcon, StarIcon } from "@/components/icons";
+import { CheckIcon, CloseIcon, StarIcon } from "@/components/icons";
 
 export type ManagedPhoto = {
   id: string;
   url: string;
   alt: string;
+  caption: string | null;
   position: number;
 };
+
+/**
+ * Champ de légende d'une photo : enregistrement autonome via Server Action
+ * (un état par photo), avec accusé de réception discret.
+ */
+function PhotoCaptionField({ photo }: { photo: ManagedPhoto }) {
+  const fr = useT();
+  const [state, action, pending] = useActionState<PhotoFormState, FormData>(
+    updatePhotoCaptionAction,
+    undefined
+  );
+
+  return (
+    <form action={action} className="mt-2 space-y-1.5">
+      <input type="hidden" name="photoId" value={photo.id} />
+      <label className="sr-only" htmlFor={`caption-${photo.id}`}>
+        {fr.annonceForm.legendePhoto}
+      </label>
+      <div className="flex items-center gap-1.5">
+        <input
+          id={`caption-${photo.id}`}
+          name="caption"
+          type="text"
+          maxLength={140}
+          defaultValue={photo.caption ?? ""}
+          placeholder={fr.annonceForm.legendePlaceholder}
+          className="min-w-0 flex-1 rounded-lg bg-cream px-2.5 py-1.5 text-xs text-ink ring-1 ring-darna/10 placeholder:text-ink/35 focus:outline-none focus:ring-2 focus:ring-darna/40"
+        />
+        <button
+          type="submit"
+          disabled={pending}
+          title={fr.annonceForm.legendeEnregistrer}
+          aria-label={fr.annonceForm.legendeEnregistrer}
+          className="shrink-0 rounded-lg bg-darna px-2.5 py-1.5 text-xs font-semibold text-white transition hover:bg-darna-light disabled:opacity-60"
+        >
+          {state?.success ? (
+            <CheckIcon width={14} height={14} strokeWidth={3} />
+          ) : (
+            fr.annonceForm.legendeEnregistrer
+          )}
+        </button>
+      </div>
+    </form>
+  );
+}
 
 /**
  * Compression côté client avant upload : redimensionne à 1920 px max et
@@ -72,49 +119,50 @@ export function PhotoManager({
   return (
     <div className="space-y-4">
       <p className="text-xs text-ink/50">{fr.annonceForm.photosAide}</p>
+      <p className="text-xs text-ink/50">{fr.annonceForm.legendeAide}</p>
 
       {/* Grille des photos existantes */}
       <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {photos.map((photo, index) => (
-          <li
-            key={photo.id}
-            className="group relative aspect-[4/3] overflow-hidden rounded-2xl ring-1 ring-darna/10"
-          >
-            <Image
-              src={photo.url}
-              alt={photo.alt}
-              fill
-              sizes="(max-width: 640px) 50vw, 200px"
-              className="object-cover"
-            />
-            {index === 0 ? (
-              <span className="absolute start-2 top-2 rounded-full bg-sand px-2 py-0.5 text-[10px] font-bold text-darna-dark">
-                {fr.annonceForm.couverture}
-              </span>
-            ) : (
-              <form action={setCoverPhotoAction} className="absolute start-2 top-2">
+          <li key={photo.id}>
+            <div className="group relative aspect-[4/3] overflow-hidden rounded-2xl ring-1 ring-darna/10">
+              <Image
+                src={photo.url}
+                alt={photo.alt}
+                fill
+                sizes="(max-width: 640px) 50vw, 200px"
+                className="object-cover"
+              />
+              {index === 0 ? (
+                <span className="absolute start-2 top-2 rounded-full bg-sand px-2 py-0.5 text-[10px] font-bold text-darna-dark">
+                  {fr.annonceForm.couverture}
+                </span>
+              ) : (
+                <form action={setCoverPhotoAction} className="absolute start-2 top-2">
+                  <input type="hidden" name="photoId" value={photo.id} />
+                  <button
+                    type="submit"
+                    title={fr.annonceForm.definirCouverture}
+                    className="flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold text-darna opacity-0 transition group-hover:opacity-100"
+                  >
+                    <StarIcon width={10} height={10} />
+                    {fr.annonceForm.definirCouverture}
+                  </button>
+                </form>
+              )}
+              <form action={deletePhotoAction} className="absolute end-2 top-2">
                 <input type="hidden" name="photoId" value={photo.id} />
                 <button
                   type="submit"
-                  title={fr.annonceForm.definirCouverture}
-                  className="flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold text-darna opacity-0 transition group-hover:opacity-100"
+                  title={fr.annonceForm.supprimerPhoto}
+                  aria-label={fr.annonceForm.supprimerPhoto}
+                  className="flex h-6 w-6 items-center justify-center rounded-full bg-ink/70 text-white opacity-0 transition hover:bg-red-600 group-hover:opacity-100"
                 >
-                  <StarIcon width={10} height={10} />
-                  {fr.annonceForm.definirCouverture}
+                  <CloseIcon width={12} height={12} />
                 </button>
               </form>
-            )}
-            <form action={deletePhotoAction} className="absolute end-2 top-2">
-              <input type="hidden" name="photoId" value={photo.id} />
-              <button
-                type="submit"
-                title={fr.annonceForm.supprimerPhoto}
-                aria-label={fr.annonceForm.supprimerPhoto}
-                className="flex h-6 w-6 items-center justify-center rounded-full bg-ink/70 text-white opacity-0 transition hover:bg-red-600 group-hover:opacity-100"
-              >
-                <CloseIcon width={12} height={12} />
-              </button>
-            </form>
+            </div>
+            <PhotoCaptionField photo={photo} />
           </li>
         ))}
       </ul>

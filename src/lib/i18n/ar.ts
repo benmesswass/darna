@@ -59,6 +59,8 @@ export const ar: Dictionary = {
       "خلاصك ما يوصلش للمضيف كان بعد 24 ساعة من وصولك. كان صار مشكل، ترجعلك فلوسك الكل.",
     featuredTitle: "آخر الإعلانات الموثّقة",
     featuredAll: "شوف الإعلانات الكل",
+    alaUneTitle: "في الواجهة",
+    alaUneSub: "الإعلانات اللي حطّوهم أصحابهم في الواجهة.",
     statsTitle: "السوق مباشرة",
     statsDesc:
       "مؤشر دارنا يجمع الأسعار الحقيقية للمنصة: طالع أسعار المتر المربع حسب الولاية ومعدل الليلة حسب المدينة.",
@@ -117,6 +119,9 @@ export const ar: Dictionary = {
     sejour: "إقامة",
     location: "كراء",
     vente: "بيع",
+    alaUne: "في الواجهة",
+    alaUneTooltip:
+      "إعلان مميّز: يظهر في قمة النتائج وفي صفحة استقبال دارنا.",
   },
   search: {
     villePlaceholder: "مدينة — الحمامات، جربة، المرسى…",
@@ -201,6 +206,21 @@ export const ar: Dictionary = {
     favoriRetirer: "نحّي من المفضّلة",
     partagerWhatsapp: (titre: string, prix: string) =>
       `عسلامة، مهتم بالإعلان متاعك « ${titre} » (${prix}) اللي شفتو على دارنا. مازال متوفّر؟`,
+    gallery: {
+      ouvrir: "حلّ المعرض",
+      voirToutes: (n: number) => `شوف ${n} تصاور`,
+      fermer: "سكّر",
+      precedente: "التصويرة اللي قبل",
+      suivante: "التصويرة اللي بعد",
+      compteur: (i: number, n: number) => `${i} / ${n}`,
+      allerA: (i: number) => `أمشي للتصويرة ${i}`,
+      pleinEcran: "ملء الشاشة",
+      quitterPleinEcran: "اخرج من ملء الشاشة",
+      chargement: "قاعد يحمّل التصويرة…",
+      aucunePhoto: "ما فماش تصاور في هذا الإعلان.",
+      boucleDebut: "رجعنا للبداية",
+      boucleFin: "آخر تصويرة",
+    },
   },
   auth: {
     connexionTitre: "تسجيل الدخول لدارنا",
@@ -244,6 +264,13 @@ export const ar: Dictionary = {
     republier: "عاود انشر (+30 يوم)",
     annonceMarquee: "الإعلان تحدّث.",
     voirAnnonce: "شوف الإعلان",
+    mettreALaUne: "حطّه في الواجهة",
+    prolongerALaUne: "طوّل في الواجهة",
+    alaUneActif: (date: string) => `في الواجهة حتى ${date}`,
+    alaUneSucces: "إعلانك ولّى في الواجهة! 🎉",
+    promoAlaUneTitre: "حطّ إعلاناتك في الواجهة",
+    promoAlaUneDesc:
+      "في قمة النتائج وفي صفحة الاستقبال مدّة 7 أيام، مع شارة ذهبية تجبد العين. الإعلانات اللي في الواجهة تتشاف أكثر برشة.",
     aucuneReservation: "حتى حجز للتوّ.",
     aucuneReservationCta: "لوّج على إقامتك الجاية في إعلاناتنا الموثّقة.",
     aucuneDemande: "حتى طلب للتوّ.",
@@ -296,13 +323,19 @@ export const ar: Dictionary = {
     supprimerPhoto: "فسخ",
     definirCouverture: "حطّها غلاف",
     couverture: "الغلاف",
+    legendePhoto: "وصف (اختياري)",
+    legendePlaceholder: "مثال: صالة مضوية ببالكون",
+    legendeAide: "وصف قصير لكل تصويرة، يبان في المعرض فوق التصويرة.",
+    legendeEnregistree: "الوصف تسجّل.",
+    legendeEnregistrer: "سجّل",
     erreurUpload:
       "الملف مرفوض: الصيغ المقبولة JPEG/PNG/WebP، الحجم الأقصى 5 ميغا.",
     maxPhotos: (n: number) => `${n} صور كحد أقصى للإعلان.`,
-    coordonnees: "إحداثيات GPS",
-    latitude: "خط العرض",
-    longitude: "خط الطول",
-    coordonneesAide: "معبّية وحدها من المدينة — دقّقها كان يلزم.",
+    localisation: "الموقع على الخريطة",
+    adresseRecherchePlaceholder: "اكتب العنوان متاعك: الشارع، الحومة، المدينة…",
+    rechercheAdresse: "نلوّج…",
+    aucuneAdresse: "ما لقيناش العنوان — اختار المدينة وحرّك العلامة.",
+    repereAide: "حرّك العلامة (ولا أنقر على الخريطة) باش تأشّر على البلاصة بالضبط.",
   },
   kyc: {
     titre: "توثيق الهوية (KYC)",
@@ -380,6 +413,36 @@ export const ar: Dictionary = {
     voirMesReservations: "شوف حجوزاتي",
     sejourDates: (arrivee: string, depart: string) =>
       `من ${arrivee} إلى ${depart}`,
+  },
+  alaUne: {
+    titre: "حطّ إعلانك في الواجهة",
+    sousTitre:
+      "كبّر ظهورك مدّة جمعة: إعلانك يطلع في قمة النتائج ويظهر في صفحة استقبال دارنا.",
+    avantage1Titre: "في قمة النتائج",
+    avantage1Desc:
+      "إعلانك يظهر قبل الكل في تلويج الإقامات والعقارات.",
+    avantage2Titre: "شارة ذهبية «في الواجهة»",
+    avantage2Desc:
+      "شارة مميّزة وإطار ذهبي يجبدو عين المسافرين دغري.",
+    avantage3Titre: "فيترينة الاستقبال",
+    avantage3Desc:
+      "تظهر في كاروسال «في الواجهة» في صفحة الاستقبال، اللي يشوفها الكل.",
+    recapTitre: "ملخّص — شفّاف 100%",
+    annonce: "الإعلان",
+    duree: "مدّة الإبراز",
+    dureeValeur: (j: number) => (j === 1 ? "نهار" : `${j} أيام`),
+    prix: "إبراز في الواجهة (جمعة)",
+    total: "المجموع اللي تخلصو",
+    mockInfo:
+      "الخلاص عبر Konnect / Flouci قريبًا. وضع تجريبي: حتى خصم حقيقي ما يصير.",
+    payer: "اخلص وحطّ في الواجهة (تجربة)",
+    prolongerInfo: (date: string) =>
+      `الإعلان هذا موجود في الواجهة حتى ${date}. شراء جديد يطوّل الإبراز جمعة أخرى.`,
+    retour: "ارجع لإعلاناتي",
+    indisponible:
+      "الإعلان هذا ما ينجمش يتحطّ في الواجهة: لازمو يكون نشيط وعلى الخطّ.",
+    garantie:
+      "إنت اللي تحكم: كي تكمّل الجمعة، إعلانك يرجع للعرض العادي. ما فمّاش تجديد تلقائي.",
   },
   contact: {
     titre: "اتصل بصاحب الإعلان",

@@ -58,6 +58,7 @@ export default async function ModifierAnnoncePage({
               id: p.id,
               url: p.url,
               alt: p.alt,
+              caption: p.caption,
               position: p.position,
             }))}
           />

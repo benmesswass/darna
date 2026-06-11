@@ -55,6 +55,8 @@ export const en: Dictionary = {
       "Your payment is only released to the host 24 hours after your arrival. If anything goes wrong, you are refunded.",
     featuredTitle: "Recent verified listings",
     featuredAll: "See all listings",
+    alaUneTitle: "Featured",
+    alaUneSub: "Highlighted picks promoted by our hosts.",
     statsTitle: "The market, live",
     statsDesc:
       "The Darna Index aggregates the platform's real prices: check prices per m² by governorate and average nightly rates by city.",
@@ -112,6 +114,9 @@ export const en: Dictionary = {
     sejour: "Stay",
     location: "Rental",
     vente: "For sale",
+    alaUne: "Featured",
+    alaUneTooltip:
+      "Promoted listing: it appears at the top of results and on the Darna homepage.",
   },
   search: {
     villePlaceholder: "City — Hammamet, Djerba, La Marsa…",
@@ -179,6 +184,21 @@ export const en: Dictionary = {
     favoriRetirer: "Remove from favourites",
     partagerWhatsapp: (titre: string, prix: string) =>
       `Hello, I'm interested in your listing “${titre}” (${prix}) seen on Darna. Is it still available?`,
+    gallery: {
+      ouvrir: "Open gallery",
+      voirToutes: (n: number) => `View all ${n} photos`,
+      fermer: "Close",
+      precedente: "Previous photo",
+      suivante: "Next photo",
+      compteur: (i: number, n: number) => `${i} / ${n}`,
+      allerA: (i: number) => `Go to photo ${i}`,
+      pleinEcran: "Fullscreen",
+      quitterPleinEcran: "Exit fullscreen",
+      chargement: "Loading photo…",
+      aucunePhoto: "No photos for this listing.",
+      boucleDebut: "Back to start",
+      boucleFin: "Last photo",
+    },
   },
   auth: {
     connexionTitre: "Sign in to Darna",
@@ -222,6 +242,13 @@ export const en: Dictionary = {
     republier: "Republish (+30 d)",
     annonceMarquee: "Listing updated.",
     voirAnnonce: "View listing",
+    mettreALaUne: "Feature this listing",
+    prolongerALaUne: "Extend featuring",
+    alaUneActif: (date: string) => `Featured until ${date}`,
+    alaUneSucces: "Your listing is now featured! 🎉",
+    promoAlaUneTitre: "Feature your listings",
+    promoAlaUneDesc:
+      "Top of results and on the homepage for 7 days, with an eye-catching gold badge. Featured listings get seen far more often.",
     aucuneReservation: "No bookings yet.",
     aucuneReservationCta: "Find your next stay among our verified listings.",
     aucuneDemande: "No requests received yet.",
@@ -274,13 +301,20 @@ export const en: Dictionary = {
     supprimerPhoto: "Delete",
     definirCouverture: "Set as cover",
     couverture: "Cover",
+    legendePhoto: "Description (optional)",
+    legendePlaceholder: "e.g. Bright living room with balcony",
+    legendeAide:
+      "A short description per photo, shown as an overlay in the gallery.",
+    legendeEnregistree: "Description saved.",
+    legendeEnregistrer: "Save",
     erreurUpload:
       "File rejected: accepted formats JPEG/PNG/WebP, maximum size 5 MB.",
     maxPhotos: (n: number) => `Maximum ${n} photos per listing.`,
-    coordonnees: "GPS coordinates",
-    latitude: "Latitude",
-    longitude: "Longitude",
-    coordonneesAide: "Pre-filled from the city — adjust if needed.",
+    localisation: "Location on the map",
+    adresseRecherchePlaceholder: "Type your address: street, neighbourhood, city…",
+    rechercheAdresse: "Searching…",
+    aucuneAdresse: "No address found — pick the city and drag the marker.",
+    repereAide: "Drag the marker (or click the map) to pinpoint the exact spot.",
   },
   kyc: {
     titre: "Identity verification (KYC)",
@@ -352,6 +386,36 @@ export const en: Dictionary = {
     voirMesReservations: "View my bookings",
     sejourDates: (arrivee: string, depart: string) =>
       `From ${arrivee} to ${depart}`,
+  },
+  alaUne: {
+    titre: "Feature your listing",
+    sousTitre:
+      "Boost your visibility for a week: your listing moves to the top of results and appears on the Darna homepage.",
+    avantage1Titre: "Top of results",
+    avantage1Desc:
+      "Your listing shows above all others in stays and real-estate searches.",
+    avantage2Titre: "Gold “Featured” badge",
+    avantage2Desc:
+      "A premium badge and a gold outline that instantly catch travellers' eyes.",
+    avantage3Titre: "Homepage showcase",
+    avantage3Desc:
+      "Appear in the “Featured” carousel on the homepage, seen by every visitor.",
+    recapTitre: "Summary — 100% transparent",
+    annonce: "Listing",
+    duree: "Featuring duration",
+    dureeValeur: (j: number) => (j === 1 ? "1 day" : `${j} days`),
+    prix: "Featuring (1 week)",
+    total: "Total to pay",
+    mockInfo:
+      "Konnect / Flouci payment coming soon. Demo mode: no real charge.",
+    payer: "Pay and feature (simulation)",
+    prolongerInfo: (date: string) =>
+      `This listing is already featured until ${date}. A new purchase extends the boost by one week.`,
+    retour: "Back to my listings",
+    indisponible:
+      "This listing can't be featured: it must be active and online.",
+    garantie:
+      "You stay in control: at the end of the week your listing simply returns to its normal display. No auto-renewal.",
   },
   contact: {
     titre: "Contact the advertiser",

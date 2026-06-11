@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useT } from "@/components/i18n/LocaleProvider";
 import { CloseIcon, MenuIcon } from "@/components/icons";
+import { NavLink } from "./NavLink";
 
 type Item = { href: string; label: string };
 
@@ -28,13 +28,15 @@ export function MobileMenu({ items }: { items: Item[] }) {
           <ul className="flex flex-col gap-1">
             {items.map((item) => (
               <li key={item.href}>
-                <Link
+                <NavLink
                   href={item.href}
                   onClick={() => setOpen(false)}
-                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-white/90 hover:bg-white/10"
+                  className="block rounded-lg px-3 py-2.5 text-sm font-medium"
+                  activeClassName="bg-white/10 text-white"
+                  inactiveClassName="text-white/90 hover:bg-white/10"
                 >
                   {item.label}
-                </Link>
+                </NavLink>
               </li>
             ))}
           </ul>

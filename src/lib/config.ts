@@ -9,6 +9,11 @@ export const SERVICE_FEE_RATE = 0.08;
 /** Durée de vie d'une annonce avant expiration (fraîcheur des données). */
 export const LISTING_LIFETIME_DAYS = 30;
 
+/** Mise en avant payante (« à la une ») : durée du boost et prix unique. */
+export const FEATURED_DURATION_DAYS = 7;
+/** Prix en TND du boost « à la une » pour une semaine (paiement mock). */
+export const FEATURED_PRICE_TND = 49;
+
 /** Occupation estivale estimée pour le Yield Advisor. */
 export const SUMMER_OCCUPANCY_RATE = 0.6;
 

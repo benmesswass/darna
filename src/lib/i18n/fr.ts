@@ -54,6 +54,8 @@ export const fr = {
       "Votre paiement n'est versé à l'hôte que 24 h après votre arrivée. En cas de problème, vous êtes remboursé.",
     featuredTitle: "Annonces vérifiées récentes",
     featuredAll: "Voir toutes les annonces",
+    alaUneTitle: "À la une",
+    alaUneSub: "Les coups de cœur mis en avant par nos hôtes.",
     statsTitle: "Le marché en direct",
     statsDesc:
       "L'Indice Darna agrège les prix réels de la plateforme : consultez les prix au m² par gouvernorat et les nuitées moyennes par ville.",
@@ -112,6 +114,9 @@ export const fr = {
     sejour: "Séjour",
     location: "Location",
     vente: "Vente",
+    alaUne: "À la une",
+    alaUneTooltip:
+      "Annonce mise en avant : elle apparaît en tête des résultats et sur l'accueil de Darna.",
   },
   search: {
     villePlaceholder: "Ville — Hammamet, Djerba, La Marsa…",
@@ -179,6 +184,21 @@ export const fr = {
     favoriRetirer: "Retirer des favoris",
     partagerWhatsapp: (titre: string, prix: string) =>
       `Bonjour, je suis intéressé(e) par votre annonce « ${titre} » (${prix}) vue sur Darna. Est-elle toujours disponible ?`,
+    gallery: {
+      ouvrir: "Ouvrir la galerie",
+      voirToutes: (n: number) => `Voir les ${n} photos`,
+      fermer: "Fermer",
+      precedente: "Photo précédente",
+      suivante: "Photo suivante",
+      compteur: (i: number, n: number) => `${i} / ${n}`,
+      allerA: (i: number) => `Aller à la photo ${i}`,
+      pleinEcran: "Plein écran",
+      quitterPleinEcran: "Quitter le plein écran",
+      chargement: "Chargement de la photo…",
+      aucunePhoto: "Aucune photo pour cette annonce.",
+      boucleDebut: "Retour au début",
+      boucleFin: "Dernière photo",
+    },
   },
   auth: {
     connexionTitre: "Connexion à Darna",
@@ -222,6 +242,13 @@ export const fr = {
     republier: "Republier (+30 j)",
     annonceMarquee: "Annonce mise à jour.",
     voirAnnonce: "Voir l'annonce",
+    mettreALaUne: "Mettre à la une",
+    prolongerALaUne: "Prolonger à la une",
+    alaUneActif: (date: string) => `À la une jusqu'au ${date}`,
+    alaUneSucces: "Votre annonce est désormais à la une ! 🎉",
+    promoAlaUneTitre: "Passez vos annonces à la une",
+    promoAlaUneDesc:
+      "En tête des résultats et sur l'accueil pendant 7 jours, avec un badge doré qui attire l'œil. Les annonces mises en avant sont vues bien plus souvent.",
     aucuneReservation: "Aucune réservation pour le moment.",
     aucuneReservationCta: "Trouvez votre prochain séjour parmi nos annonces vérifiées.",
     aucuneDemande: "Aucune demande reçue pour le moment.",
@@ -274,13 +301,20 @@ export const fr = {
     supprimerPhoto: "Supprimer",
     definirCouverture: "Mettre en couverture",
     couverture: "Couverture",
+    legendePhoto: "Description (facultatif)",
+    legendePlaceholder: "Ex. : Séjour lumineux avec balcon",
+    legendeAide:
+      "Une courte description par photo, affichée en overlay dans la galerie.",
+    legendeEnregistree: "Description enregistrée.",
+    legendeEnregistrer: "Enregistrer",
     erreurUpload:
       "Fichier refusé : format accepté JPEG/PNG/WebP, taille maximale 5 Mo.",
     maxPhotos: (n: number) => `Maximum ${n} photos par annonce.`,
-    coordonnees: "Coordonnées GPS",
-    latitude: "Latitude",
-    longitude: "Longitude",
-    coordonneesAide: "Pré-remplies depuis la ville — affinez si besoin.",
+    localisation: "Emplacement sur la carte",
+    adresseRecherchePlaceholder: "Tapez votre adresse : rue, quartier, ville…",
+    rechercheAdresse: "Recherche…",
+    aucuneAdresse: "Aucune adresse trouvée — choisissez la ville et déplacez le repère.",
+    repereAide: "Déplacez le repère (ou cliquez sur la carte) pour pointer l'endroit exact.",
   },
   kyc: {
     titre: "Vérification d'identité (KYC)",
@@ -352,6 +386,36 @@ export const fr = {
     voirMesReservations: "Voir mes réservations",
     sejourDates: (arrivee: string, depart: string) =>
       `Du ${arrivee} au ${depart}`,
+  },
+  alaUne: {
+    titre: "Mettez votre annonce à la une",
+    sousTitre:
+      "Boostez votre visibilité pendant une semaine : votre annonce passe en tête des résultats et s'affiche sur l'accueil de Darna.",
+    avantage1Titre: "En tête des résultats",
+    avantage1Desc:
+      "Votre annonce s'affiche avant toutes les autres dans les recherches séjours et immobilier.",
+    avantage2Titre: "Badge doré « À la une »",
+    avantage2Desc:
+      "Un badge premium et un contour doré qui captent immédiatement le regard des voyageurs.",
+    avantage3Titre: "Vitrine de l'accueil",
+    avantage3Desc:
+      "Apparaissez dans le carrousel « À la une » de la page d'accueil, vue par tous les visiteurs.",
+    recapTitre: "Récapitulatif — 100 % transparent",
+    annonce: "Annonce",
+    duree: "Durée de la mise en avant",
+    dureeValeur: (j: number) => (j === 1 ? "1 jour" : `${j} jours`),
+    prix: "Mise à la une (1 semaine)",
+    total: "Total à payer",
+    mockInfo:
+      "Paiement Konnect / Flouci bientôt disponible. Mode démonstration : aucun débit réel.",
+    payer: "Payer et passer à la une (simulation)",
+    prolongerInfo: (date: string) =>
+      `Cette annonce est déjà à la une jusqu'au ${date}. Un nouvel achat prolonge le boost d'une semaine.`,
+    retour: "Retour à mes annonces",
+    indisponible:
+      "Cette annonce ne peut pas être mise à la une : elle doit être active et en ligne.",
+    garantie:
+      "Vous gardez le contrôle : à la fin de la semaine, votre annonce revient simplement à son affichage normal. Aucun renouvellement automatique.",
   },
   contact: {
     titre: "Contacter l'annonceur",

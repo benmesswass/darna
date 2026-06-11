@@ -13,6 +13,47 @@
   --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
 }
 
+/* ── Accent dynamique par section ──────────────────────────────────────────
+   Le data-section sur <html> (posé par <SectionTheme/>) bascule l'accent de
+   toute la plateforme. Séjours = sable chaud (hospitalité), Immobilier =
+   vert d'eau profond (confiance / investissement). Le morphing se fait via
+   les transitions de .accent-transition / .nav-pill sur les éléments concernés. */
+:root {
+  --color-accent: #e3a93c; /* défaut : sable */
+  --color-accent-strong: #c8852a;
+  --color-accent-contrast: #152a46;
+}
+:root[data-section="sejours"] {
+  --color-accent: #e3a93c; /* sable chaleureux */
+  --color-accent-strong: #c8852a;
+  --color-accent-contrast: #152a46;
+}
+:root[data-section="immobilier"] {
+  --color-accent: #0f766e; /* vert d'eau profond */
+  --color-accent-strong: #0b5d56;
+  --color-accent-contrast: #ffffff;
+}
+
+/* Animation douce du changement d'accent (couleur de fond / texte / bordure). */
+.accent-transition {
+  transition: background-color 400ms ease, color 400ms ease,
+    border-color 400ms ease, box-shadow 400ms ease;
+}
+
+/* Pastille glissante de la navigation principale (Séjours ↔ Immobilier). */
+.nav-pill {
+  transition: transform 320ms cubic-bezier(0.4, 0, 0.2, 1),
+    width 320ms cubic-bezier(0.4, 0, 0.2, 1), opacity 200ms ease,
+    background-color 400ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-pill,
+  .accent-transition {
+    transition-duration: 0.01ms !important;
+  }
+}
+
 body {
   background: var(--color-cream);
   color: var(--color-ink);
@@ -47,6 +88,17 @@ html[dir="rtl"] body {
   color: var(--color-darna-dark);
 }
 
+/* Repère déplaçable du sélecteur d'emplacement (formulaire annonce) */
+.darna-pin {
+  width: 22px;
+  height: 22px;
+  background: var(--color-darna);
+  border: 3px solid #fff;
+  border-radius: 9999px;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.45);
+  cursor: grab;
+}
+
 /* Impression : réservé aux pages documents (contrat de bail) */
 @media print {
   .no-print {
@@ -55,4 +107,22 @@ html[dir="rtl"] body {
   body {
     background: #fff;
   }
+}
+
+/* Galerie immersive — flourish de bouclage (dernière → première photo) */
+@keyframes darna-loop-veil {
+  0% { opacity: 0; }
+  15% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes darna-loop-pop {
+  0% { transform: scale(0.82); }
+  20% { transform: scale(1.05); }
+  34% { transform: scale(1); }
+  100% { transform: scale(1); }
+}
+@keyframes darna-loop-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }

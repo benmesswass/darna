@@ -1,6 +1,26 @@
 import { getT } from "@/lib/i18n/server";
-import { CheckIcon } from "@/components/icons";
+import { CheckIcon, StarIcon } from "@/components/icons";
 import { daysSincePublication } from "@/lib/listings";
+
+/** Badge « À la une » — mise en avant payante, distincte du badge Vérifié. */
+export async function FeaturedBadge({ small = false }: { small?: boolean }) {
+  const fr = await getT();
+  return (
+    <span
+      title={fr.badges.alaUneTooltip}
+      className={`inline-flex items-center gap-1 rounded-full bg-amber-400 font-bold text-darna-dark shadow-sm ${
+        small ? "px-2 py-0.5 text-[11px]" : "px-2.5 py-1 text-xs"
+      }`}
+    >
+      <StarIcon
+        width={small ? 11 : 13}
+        height={small ? 11 : 13}
+        className="fill-current"
+      />
+      {fr.badges.alaUne}
+    </span>
+  );
+}
 
 export async function VerifiedBadge({ small = false }: { small?: boolean }) {
   const fr = await getT();

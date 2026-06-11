@@ -123,6 +123,28 @@ export function getCity(name: string): City | undefined {
 }
 
 /**
+ * Ville connue la plus proche de coordonnées arbitraires (distance euclidienne
+ * sur lat/lng — suffisant à l'échelle nationale). Sert à rattacher une adresse
+ * géocodée (Photon) ou un repère déplacé à l'une des 24 villes du référentiel,
+ * pour que `city`/`gouvernorat` (indexés, requis par la recherche) restent
+ * toujours cohérents.
+ */
+export function nearestCity(latitude: number, longitude: number): City {
+  let best = CITIES[0];
+  let bestDist = Infinity;
+  for (const city of CITIES) {
+    const dLat = city.latitude - latitude;
+    const dLng = city.longitude - longitude;
+    const dist = dLat * dLat + dLng * dLng;
+    if (dist < bestDist) {
+      bestDist = dist;
+      best = city;
+    }
+  }
+  return best;
+}
+
+/**
  * Suggestions de villes pour l'autocomplétion — tolérantes à la
  * translittération (« dje » → Djerba, « 7am » → Hammamet, « soussa » → Sousse).
  * Priorité aux préfixes du nom canonique, puis aux alias, puis aux
@@ -130,7 +152,8 @@ export function getCity(name: string): City | undefined {
  */
 export function suggestCities(input: string, limit = 6): City[] {
   const q = normalizeSearch(input);
-  if (q.length < 2) return [];
+  // Filtre dès le 1er caractère (le champ vide affiche déjà toutes les villes).
+  if (q.length < 1) return [];
 
   const scored = new Map<string, { city: City; score: number }>();
   const consider = (city: City, score: number) => {

@@ -14,6 +14,35 @@ export function activeListingWhere(): Prisma.PropertyWhereInput {
   return { status: "ACTIVE", expiresAt: { gt: new Date() } };
 }
 
+/** Une annonce est « à la une » tant que son boost payé n'a pas expiré. */
+export function isListingFeatured(featuredUntil: Date | null): boolean {
+  return featuredUntil !== null && featuredUntil.getTime() > Date.now();
+}
+
+/**
+ * Remet à null les boosts « à la une » expirés (même idiome d'expiration
+ * paresseuse que les réservations EN_ATTENTE). Garantit que seules les
+ * annonces réellement boostées portent un featuredUntil non-null, ce qui
+ * rend le tri « à la une d'abord » exact sans SQL brut ni job cron.
+ */
+export async function clearExpiredFeatured(): Promise<void> {
+  await prisma.property.updateMany({
+    where: { featuredUntil: { lte: new Date() } },
+    data: { featuredUntil: null },
+  });
+}
+
+/**
+ * Tri commun des listings : les annonces à la une d'abord (boost le plus
+ * lointain en tête), puis vérifiées, puis les plus récentes. À utiliser
+ * APRÈS clearExpiredFeatured() pour que featuredUntil non-null = boost actif.
+ */
+const listingOrderBy: Prisma.PropertyOrderByWithRelationInput[] = [
+  { featuredUntil: { sort: "desc", nulls: "last" } },
+  { verified: "desc" },
+  { publishedAt: "desc" },
+];
+
 export const listingCardInclude = {
   photos: { orderBy: { position: "asc" as const }, take: 1 },
 } satisfies Prisma.PropertyInclude;
@@ -58,6 +87,8 @@ function parsePage(value?: string): number {
 }
 
 export async function searchSejours(params: SejoursSearchParams) {
+  await clearExpiredFeatured();
+
   const where: Prisma.PropertyWhereInput = {
     ...activeListingWhere(),
     type: "SEJOUR",
@@ -112,7 +143,7 @@ export async function searchSejours(params: SejoursSearchParams) {
     prisma.property.findMany({
       where,
       include: listingCardInclude,
-      orderBy: [{ verified: "desc" }, { publishedAt: "desc" }],
+      orderBy: listingOrderBy,
       take: PAGE_SIZE,
       skip,
     }),
@@ -123,6 +154,8 @@ export async function searchSejours(params: SejoursSearchParams) {
 }
 
 export async function searchImmobilier(params: ImmobilierSearchParams) {
+  await clearExpiredFeatured();
+
   const transaction = params.transaction === "vente" ? "VENTE" : "LOCATION";
 
   const where: Prisma.PropertyWhereInput = {
@@ -154,7 +187,7 @@ export async function searchImmobilier(params: ImmobilierSearchParams) {
     prisma.property.findMany({
       where,
       include: listingCardInclude,
-      orderBy: [{ verified: "desc" }, { publishedAt: "desc" }],
+      orderBy: listingOrderBy,
       take: PAGE_SIZE,
       skip,
     }),
@@ -197,6 +230,20 @@ export async function getFeaturedListings(take = 6) {
     where: { ...activeListingWhere(), verified: true },
     include: listingCardInclude,
     orderBy: { publishedAt: "desc" },
+    take,
+  });
+}
+
+/**
+ * Annonces « à la une » (boost payé encore actif), pour le rail mis en avant
+ * sur l'accueil. C'est la vitrine qui rend la mise en avant attractive pour
+ * les hôtes. Le filtre featuredUntil > now suffit à exclure les boosts périmés.
+ */
+export async function getAlaUneListings(take = 4) {
+  return prisma.property.findMany({
+    where: { ...activeListingWhere(), featuredUntil: { gt: new Date() } },
+    include: listingCardInclude,
+    orderBy: { featuredUntil: "desc" },
     take,
   });
 }

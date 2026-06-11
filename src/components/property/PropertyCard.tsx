@@ -2,8 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { getT } from "@/lib/i18n/server";
 import type { ListingWithPhoto } from "@/lib/listings";
+import { isListingFeatured } from "@/lib/listings";
 import { Price } from "@/components/currency/Price";
-import { FreshnessBadge, TypeBadge, VerifiedBadge } from "./Badges";
+import { FeaturedBadge, FreshnessBadge, TypeBadge, VerifiedBadge } from "./Badges";
 import { DoorIcon, MapPinIcon, RulerIcon, UsersIcon } from "@/components/icons";
 
 export async function PropertyCard({
@@ -21,11 +22,16 @@ export async function PropertyCard({
     return undefined;
   }
   const photo = property.photos[0];
+  const featured = isListingFeatured(property.featuredUntil);
 
   return (
     <Link
       href={`/annonce/${property.slug}`}
-      className="group flex flex-col overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-darna/5 transition hover:-translate-y-0.5 hover:shadow-lg hover:ring-darna/15"
+      className={`group flex flex-col overflow-hidden rounded-3xl bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg ${
+        featured
+          ? "ring-2 ring-amber-400 hover:ring-amber-400"
+          : "ring-1 ring-darna/5 hover:ring-darna/15"
+      }`}
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-darna/10">
         {photo ? (
@@ -38,6 +44,7 @@ export async function PropertyCard({
           />
         ) : null}
         <div className="absolute start-3 top-3 flex flex-wrap gap-1.5">
+          {featured ? <FeaturedBadge small /> : null}
           {showType ? <TypeBadge type={property.type} /> : null}
           {property.verified ? <VerifiedBadge small /> : null}
         </div>

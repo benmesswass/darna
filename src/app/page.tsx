@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
-import { activeListingWhere, getFeaturedListings } from "@/lib/listings";
+import { activeListingWhere, getAlaUneListings, getFeaturedListings } from "@/lib/listings";
 import { PropertyCard } from "@/components/property/PropertyCard";
 import { CityAutocomplete } from "@/components/search/CityAutocomplete";
 import {
@@ -20,12 +20,14 @@ const POPULAR_CITIES = ["Hammamet", "Djerba", "Sousse", "La Marsa", "Tozeur"];
 
 export default async function HomePage() {
   const fr = await getT();
-  const [featured, verifiedCount, activeCities, reviewCount] = await Promise.all([
-    getFeaturedListings(6),
-    prisma.property.count({ where: { ...activeListingWhere(), verified: true } }),
-    prisma.property.groupBy({ by: ["city"], where: activeListingWhere() }),
-    prisma.review.count(),
-  ]);
+  const [alaUne, featured, verifiedCount, activeCities, reviewCount] =
+    await Promise.all([
+      getAlaUneListings(4),
+      getFeaturedListings(6),
+      prisma.property.count({ where: { ...activeListingWhere(), verified: true } }),
+      prisma.property.groupBy({ by: ["city"], where: activeListingWhere() }),
+      prisma.review.count(),
+    ]);
   return (
     <div>
       {/* Hero — recherche directe + message de marque + preuves chiffrées */}
@@ -131,6 +133,26 @@ export default async function HomePage() {
           </Link>
         </div>
       </section>
+
+      {/* À la une — annonces mises en avant par les hôtes (placement payant) */}
+      {alaUne.length > 0 ? (
+        <section className="mx-auto max-w-7xl px-4 pb-10 pt-16 sm:px-6">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-amber-400 text-darna-dark">
+              <SparklesIcon width={18} height={18} />
+            </span>
+            <div>
+              <h2 className="text-3xl font-bold text-darna">{fr.home.alaUneTitle}</h2>
+              <p className="text-sm text-ink/60">{fr.home.alaUneSub}</p>
+            </div>
+          </div>
+          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {alaUne.map((p) => (
+              <PropertyCard key={p.id} property={p} showType />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       {/* Annonces vérifiées récentes */}
       {featured.length > 0 ? (

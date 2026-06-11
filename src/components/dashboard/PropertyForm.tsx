@@ -9,7 +9,10 @@ import {
 import { useT } from "@/components/i18n/LocaleProvider";
 import { generateDescription } from "@/lib/description";
 import { AMENITIES } from "@/lib/constants";
-import { CITIES } from "@/lib/geo";
+import { CITIES, getCity, nearestCity, resolveCity } from "@/lib/geo";
+import { AddressAutocomplete } from "./AddressAutocomplete";
+import { LocationPicker } from "@/components/map/LocationPicker";
+import type { AddressSuggestion } from "@/actions/geocode";
 import { SparklesIcon } from "@/components/icons";
 
 const inputClass =
@@ -42,9 +45,11 @@ export function PropertyForm({ initial }: { initial?: PropertyFormInitial }) {
   );
   const formRef = useRef<HTMLFormElement>(null);
   const [type, setType] = useState(initial?.type ?? "SEJOUR");
-  const [coords, setCoords] = useState<{ lat: string; lng: string }>({
-    lat: String(initial?.latitude ?? 36.8065),
-    lng: String(initial?.longitude ?? 10.1815),
+  const [cityName, setCityName] = useState(initial?.city ?? "Tunis");
+  const [address, setAddress] = useState(initial?.address ?? "");
+  const [coords, setCoords] = useState<{ lat: number; lng: number }>({
+    lat: initial?.latitude ?? 36.8065,
+    lng: initial?.longitude ?? 10.1815,
   });
   const [description, setDescription] = useState(initial?.description ?? "");
 
@@ -55,11 +60,26 @@ export function PropertyForm({ initial }: { initial?: PropertyFormInitial }) {
         ? fr.annonceForm.prixMois
         : fr.annonceForm.prixVente;
 
-  function onCityChange(cityName: string) {
-    const city = CITIES.find((c) => c.name === cityName);
-    if (city) {
-      setCoords({ lat: String(city.latitude), lng: String(city.longitude) });
-    }
+  // Choix d'une ville → recentre le repère sur son centre (filet de sécurité
+  // si l'autocomplétion d'adresse est indisponible).
+  function onCityChange(name: string) {
+    setCityName(name);
+    const city = getCity(name);
+    if (city) setCoords({ lat: city.latitude, lng: city.longitude });
+  }
+
+  // Sélection d'une suggestion d'adresse → coordonnées + ville rattachée.
+  function onAddressSelect(s: AddressSuggestion) {
+    setAddress(s.label);
+    setCoords({ lat: s.latitude, lng: s.longitude });
+    setCityName(resolveCity(s.city) ?? nearestCity(s.latitude, s.longitude).name);
+  }
+
+  // Repère déplacé / carte cliquée → la ville suit l'emplacement (cohérence
+  // city/gouvernorat, dont dépendent la recherche et les index).
+  function onPinMove(lat: number, lng: number) {
+    setCoords({ lat, lng });
+    setCityName(nearestCity(lat, lng).name);
   }
 
   /** Compose la description depuis les champs saisis — templates, zéro API. */
@@ -144,7 +164,7 @@ export function PropertyForm({ initial }: { initial?: PropertyFormInitial }) {
           <select
             name="city"
             required
-            defaultValue={initial?.city ?? "Tunis"}
+            value={cityName}
             onChange={(e) => onCityChange(e.target.value)}
             className={inputClass}
           >
@@ -155,16 +175,14 @@ export function PropertyForm({ initial }: { initial?: PropertyFormInitial }) {
             ))}
           </select>
         </label>
-        <label className="block space-y-1.5">
+        <div className="space-y-1.5">
           <span className={labelClass}>{fr.annonceForm.adresse}</span>
-          <input
-            name="address"
-            type="text"
-            maxLength={160}
-            defaultValue={initial?.address ?? ""}
-            className={inputClass}
+          <AddressAutocomplete
+            value={address}
+            onValueChange={setAddress}
+            onSelect={onAddressSelect}
           />
-        </label>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
@@ -207,33 +225,16 @@ export function PropertyForm({ initial }: { initial?: PropertyFormInitial }) {
 
       <fieldset className="space-y-1.5">
         <legend className={labelClass}>
-          {fr.annonceForm.coordonnees}{" "}
+          {fr.annonceForm.localisation}{" "}
           <span className="font-normal text-ink/40">
-            — {fr.annonceForm.coordonneesAide}
+            — {fr.annonceForm.repereAide}
           </span>
         </legend>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <input
-            name="latitude"
-            type="number"
-            step="0.0001"
-            required
-            value={coords.lat}
-            onChange={(e) => setCoords((c) => ({ ...c, lat: e.target.value }))}
-            aria-label={fr.annonceForm.latitude}
-            className={inputClass}
-          />
-          <input
-            name="longitude"
-            type="number"
-            step="0.0001"
-            required
-            value={coords.lng}
-            onChange={(e) => setCoords((c) => ({ ...c, lng: e.target.value }))}
-            aria-label={fr.annonceForm.longitude}
-            className={inputClass}
-          />
+        <div className="h-64 w-full overflow-hidden rounded-xl border border-darna/15">
+          <LocationPicker lat={coords.lat} lng={coords.lng} onChange={onPinMove} />
         </div>
+        <input type="hidden" name="latitude" value={coords.lat} />
+        <input type="hidden" name="longitude" value={coords.lng} />
       </fieldset>
 
       <fieldset className="space-y-2">

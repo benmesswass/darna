@@ -25,6 +25,19 @@ const PLACEHOLDERS = [
   "p-corail",
 ];
 
+// Nombre de photos générées par annonce (showcase de la galerie immersive).
+const PHOTOS_PER_PROPERTY = 8;
+
+// Légendes de démonstration par position de photo (galerie immersive).
+// Les positions sans entrée restent sans légende (cas mixte volontaire).
+const PHOTO_CAPTIONS = [
+  "Séjour lumineux ouvert sur la terrasse",
+  "Vue dégagée depuis le bien",
+  "Cuisine équipée moderne",
+  "Chambre parentale spacieuse",
+  "Salle de bain rénovée",
+];
+
 type SeedProperty = {
   title: string;
   type: "SEJOUR" | "LOCATION" | "VENTE";
@@ -36,6 +49,8 @@ type SeedProperty = {
   verified: boolean;
   status?: string;
   publishedDaysAgo: number;
+  /** Jours de mise en avant « à la une » restants (démo du placement payant). */
+  featuredDaysLeft?: number;
   address?: string;
   amenities: string[];
   description: string;
@@ -56,6 +71,7 @@ const PROPERTIES: SeedProperty[] = [
     maxGuests: 8,
     verified: true,
     publishedDaysAgo: 3,
+    featuredDaysLeft: 4,
     address: "Hammamet Nord, zone touristique",
     amenities: ["Piscine", "Climatisation", "Wifi", "Vue mer", "Parking", "Jardin"],
     description:
@@ -90,6 +106,7 @@ const PROPERTIES: SeedProperty[] = [
     maxGuests: 6,
     verified: true,
     publishedDaysAgo: 1,
+    featuredDaysLeft: 6,
     address: "Rue Habib Thameur",
     amenities: ["Wifi", "Terrasse", "Vue mer", "Climatisation"],
     description:
@@ -293,6 +310,7 @@ const PROPERTIES: SeedProperty[] = [
     rooms: 4,
     verified: true,
     publishedDaysAgo: 2,
+    featuredDaysLeft: 5,
     address: "Les Berges du Lac 2",
     amenities: ["Jardin", "Parking", "Climatisation", "Cuisine équipée", "Chauffage"],
     description:
@@ -391,6 +409,7 @@ const PROPERTIES: SeedProperty[] = [
     rooms: 6,
     verified: true,
     publishedDaysAgo: 6,
+    featuredDaysLeft: 3,
     address: "Hauteurs de Sidi Bou Saïd",
     amenities: ["Piscine", "Jardin", "Vue mer", "Parking", "Climatisation", "Chauffage"],
     description:
@@ -660,11 +679,16 @@ async function main() {
         amenities: p.amenities.join("|"),
         publishedAt,
         expiresAt,
+        featuredUntil: p.featuredDaysLeft
+          ? new Date(Date.now() + p.featuredDaysLeft * DAY)
+          : null,
         ownerId: owners[p.owner].id,
         photos: {
-          create: [0, 1, 2].map((n) => ({
-            url: `/placeholders/${PLACEHOLDERS[(i + n * 3) % PLACEHOLDERS.length]}.svg`,
+          create: Array.from({ length: PHOTOS_PER_PROPERTY }, (_, n) => ({
+            url: `/placeholders/${PLACEHOLDERS[(i + n) % PLACEHOLDERS.length]}.svg`,
             alt: `${p.title} — photo ${n + 1}`,
+            // Légendes de démonstration : la galerie immersive les affiche en overlay.
+            caption: PHOTO_CAPTIONS[n] ?? null,
             position: n,
           })),
         },
