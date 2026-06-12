@@ -26,6 +26,8 @@ export const ar: Dictionary = {
     deconnexion: "خروج",
     publier: "انشر إعلان",
     menu: "القائمة",
+    precedent: "السابق",
+    suivant: "التالي",
   },
   brand: {
     heroTitle: "اللي تشوفو موجود.",

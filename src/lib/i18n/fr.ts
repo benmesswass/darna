@@ -21,6 +21,8 @@ export const fr = {
     deconnexion: "Déconnexion",
     publier: "Publier une annonce",
     menu: "Menu",
+    precedent: "Précédent",
+    suivant: "Suivant",
   },
   brand: {
     heroTitle: "Ce que vous voyez existe.",

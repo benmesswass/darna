@@ -22,6 +22,8 @@ export const en: Dictionary = {
     deconnexion: "Sign out",
     publier: "Post a listing",
     menu: "Menu",
+    precedent: "Previous",
+    suivant: "Next",
   },
   brand: {
     heroTitle: "What you see exists.",
