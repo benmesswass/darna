@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSectionOverride } from "./ActiveSection";
 
 type Props = {
   href: string;
@@ -29,7 +30,14 @@ export function NavLink({
   onClick,
 }: Props) {
   const pathname = usePathname();
-  const active = pathname === href || pathname.startsWith(`${href}/`);
+  const override = useSectionOverride();
+  // La route gagne ; en repli, le lien d'une verticale (`/sejours`,
+  // `/immobilier`) reste actif si la page a déclaré cette section
+  // (`<ActiveSection>`) — ex. `/annonce/[slug]`. Sans effet sur les autres liens.
+  const active =
+    pathname === href ||
+    pathname.startsWith(`${href}/`) ||
+    (override !== null && href === `/${override}`);
 
   return (
     <Link

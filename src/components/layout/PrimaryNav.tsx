@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useSectionOverride } from "./ActiveSection";
 
 type Item = { href: string; label: string };
 
@@ -23,9 +24,19 @@ const useIsoLayoutEffect =
  */
 export function PrimaryNav({ items }: { items: Item[] }) {
   const pathname = usePathname();
-  const activeIndex = items.findIndex(
+  const override = useSectionOverride();
+  // La route gagne ; sinon on suit la verticale déclarée par la page
+  // (`<ActiveSection>`) afin que la pastille reste sur les pages hors-route
+  // (`/annonce/[slug]`, réservation, paiement). Override = href sans slash.
+  const byPath = items.findIndex(
     (it) => pathname === it.href || pathname.startsWith(`${it.href}/`),
   );
+  const activeIndex =
+    byPath >= 0
+      ? byPath
+      : override
+        ? items.findIndex((it) => it.href === `/${override}`)
+        : -1;
 
   const navRef = useRef<HTMLElement>(null);
   const itemRefs = useRef<Array<HTMLAnchorElement | null>>([]);

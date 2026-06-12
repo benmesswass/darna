@@ -30,6 +30,7 @@ import {
 import { PropertyCtas, toWhatsAppNumber } from "@/components/property/PropertyCtas";
 import { ReviewsSection } from "@/components/property/ReviewsSection";
 import { ContactForm } from "@/components/property/ContactForm";
+import { ActiveSection } from "@/components/layout/ActiveSection";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { buildPropertyJsonLd } from "@/lib/structured-data";
 import { formatTndServer } from "@/lib/format";
@@ -134,6 +135,8 @@ export default async function AnnoncePage({
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
       <JsonLd data={buildPropertyJsonLd(property)} />
+      {/* Garde la nav + l'accent sur la bonne verticale (route hors-section). */}
+      <ActiveSection name={isSejour ? "sejours" : "immobilier"} />
       {!isActive ? (
         <div className="mb-6 rounded-2xl bg-ink px-5 py-4 text-sm font-medium text-white">
           {fr.property.annonceIndisponible}

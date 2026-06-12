@@ -8,6 +8,7 @@ import { SITE_URL } from "@/lib/config";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { SectionTheme } from "@/components/layout/SectionTheme";
+import { SectionOverrideProvider } from "@/components/layout/ActiveSection";
 import { CurrencyProvider } from "@/components/currency/CurrencyProvider";
 import { LocaleProvider } from "@/components/i18n/LocaleProvider";
 
@@ -47,10 +48,12 @@ export default async function RootLayout({
       >
         <LocaleProvider locale={locale}>
           <CurrencyProvider>
-            <SectionTheme />
-            <Header />
-            <main className="min-h-[70vh]">{children}</main>
-            <Footer />
+            <SectionOverrideProvider>
+              <SectionTheme />
+              <Header />
+              <main className="min-h-[70vh]">{children}</main>
+              <Footer />
+            </SectionOverrideProvider>
           </CurrencyProvider>
         </LocaleProvider>
       </body>
