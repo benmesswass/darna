@@ -380,12 +380,32 @@ export const fr = {
     paiementMockInfo:
       "Paiement Konnect / Flouci bientôt disponible. Mode démonstration : aucun débit réel.",
     payerSimulation: "Payer (simulation)",
+    paiementKonnectInfo:
+      "Paiement sécurisé via Konnect — carte bancaire, e-DINAR ou wallet. Vos fonds restent protégés par le séquestre Darna.",
+    payerKonnect: "Payer avec Konnect",
+    redirectionKonnect: "Redirection vers le paiement sécurisé…",
+    paiementEchoue:
+      "Le paiement n'a pas abouti. Aucun montant n'a été débité — vous pouvez réessayer.",
+    paiementEnVerification:
+      "Paiement reçu, confirmation en cours de vérification.",
+    actualiser: "Actualiser",
+    paiementKonnectErreur:
+      "Le service de paiement est momentanément indisponible. Merci de réessayer dans un instant.",
+    reservationExpiree:
+      "Cette réservation a expiré. Merci de relancer une demande.",
     paiementConfirme: "Réservation confirmée !",
     paiementConfirmeDetail:
       "Vos fonds sont sous séquestre. L'hôte a été notifié — retrouvez les détails dans « Mes réservations ».",
     voirMesReservations: "Voir mes réservations",
     sejourDates: (arrivee: string, depart: string) =>
       `Du ${arrivee} au ${depart}`,
+    choisirDates: "Choisissez vos dates",
+    selectionne: "Sélectionné",
+    cliquezArrivee: "Cliquez sur votre date d'arrivée",
+    cliquezDepart: "Choisissez votre date de départ",
+    effacer: "Effacer",
+    moisPrecedent: "Mois précédents",
+    moisSuivant: "Mois suivants",
   },
   alaUne: {
     titre: "Mettez votre annonce à la une",

@@ -120,6 +120,9 @@ model Booking {
   totalPrice   Int  // TND
   status       String    @default("EN_ATTENTE") // EN_ATTENTE | CONFIRMEE | ANNULEE | TERMINEE
   escrow       String    @default("AUCUN")      // AUCUN | EN_SEQUESTRE | LIBERE
+  // Référence du paiement Konnect (null tant que le paiement n'est pas initié).
+  // Unique : sert de clé de réconciliation côté webhook. Null en mode mock.
+  paymentRef   String?   @unique
   // Expiration des réservations EN_ATTENTE (15 min après création)
   // Null une fois la réservation CONFIRMEE.
   expiresAt    DateTime?

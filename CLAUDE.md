@@ -8,7 +8,7 @@ Projet **personnel** de Wassim. Tout commit, push et opération GitHub se fait a
 
 - Next.js 15 App Router + TypeScript strict + Tailwind 4 + Prisma/**PostgreSQL** + NextAuth credentials + zod.
 - Base dev locale : conteneur Docker `darna-db` (postgres:16-alpine, user/db/mdp `darna`) — commande dans `.env.example` ; migrations via `npx prisma migrate dev`.
-- **Zéro service payant, zéro clé API, zéro SQL brut, aucune librairie UI lourde.** OTP/séquestre/EUR sont des mocks assumés.
+- **Zéro service payant obligatoire, zéro SQL brut, aucune librairie UI lourde.** OTP/EUR restent des mocks assumés. Le séquestre a **deux modes** : simulé par défaut (aucune clé) ; réel via **Konnect** dès que `KONNECT_API_KEY` + `KONNECT_RECEIVER_WALLET_ID` sont définis (sandbox gratuit). Aiguillage par `isKonnectEnabled()` — voir « Paiement Konnect » plus bas.
 - Server Actions plutôt qu'API routes. Leaflet uniquement en import dynamique `ssr: false`.
 - « Enums » String contraints par `src/lib/constants.ts` + zod (héritage SQLite, conservé pour la souplesse).
 - Sécurité ajoutée : CSP par nonce (`src/middleware.ts`), audit trail (`src/lib/audit.ts` + modèle `AuditLog`), réservations EN_ATTENTE expirant à 15 min, transaction anti double-réservation.
@@ -29,6 +29,13 @@ Site trilingue **fr / en / ar** (arabe = derja tunisienne en écriture arabe, li
 - zod sur chaque server action mutante ; autorisation serveur sur chaque mutation (propriété vérifiée en base, jamais confiance au client).
 - Prix toujours recalculés côté serveur. Messages d'erreur auth génériques. Rate limiting dans `authorize` (un seul point).
 - Pas de `dangerouslySetInnerHTML` — unique exception encadrée : `src/components/seo/JsonLd.tsx`.
+
+## Paiement Konnect (séquestre réel)
+
+- **Client** `src/lib/konnect.ts` (serveur only, lit `KONNECT_API_KEY` — jamais `NEXT_PUBLIC_`) : `isKonnectEnabled()`, `initKonnectPayment()`, `getKonnectPayment()`, `tndToMillimes()`. ⚠️ `amount` en **millimes** (`prixTND × 1000`).
+- **Règlement** `src/lib/payments.ts` → `settleKonnectBooking()` : idempotent, revérifie le montant reçu côté serveur, confirme via `updateMany({ where: { status: "EN_ATTENTE" } })` (sûr contre la course webhook↔retour). Volontairement **pas** un `"use server"` (ne pas l'exposer en RPC client).
+- **Flux** : `startKonnectPaymentAction` (dans `src/actions/bookings.ts`) initialise le paiement, stocke `Booking.paymentRef`, renvoie `payUrl` → `KonnectPayButton` redirige **côté client** (`window.location`, compat CSP `form-action 'self'`). Confirmation par le **webhook** `src/app/api/payments/konnect/webhook/route.ts` (GET `?payment_ref=…`) ET par la page de retour `?konnect=success` (filet de sécurité indispensable en dev local). Le séquestre simulé (`confirmPaymentAction`) reste le fallback quand Konnect est désactivé.
+- Montant réglé **toujours en TND** ; l'affichage EUR diaspora reste une conversion d'UI, jamais le montant débité.
 
 ## Règles métier clés
 

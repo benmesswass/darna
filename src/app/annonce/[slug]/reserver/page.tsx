@@ -9,7 +9,9 @@ import { SERVICE_FEE_RATE } from "@/lib/config";
 import { formatDateFr } from "@/lib/format";
 import { Price } from "@/components/currency/Price";
 import { BookingSubmit } from "@/components/booking/BookingSubmit";
-import { CalendarIcon, ShieldIcon, UsersIcon } from "@/components/icons";
+import { BookingDatePicker } from "@/components/booking/BookingDatePicker";
+import { ActiveSection } from "@/components/layout/ActiveSection";
+import { ShieldIcon } from "@/components/icons";
 
 export const metadata: Metadata = { title: frMeta.booking.titre };
 
@@ -19,6 +21,31 @@ function parseDate(value?: string): Date | null {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
   const d = new Date(`${value}T00:00:00`);
   return Number.isNaN(d.getTime()) ? null : d;
+}
+
+/**
+ * Étale les plages réservées/bloquées en nuits civiles (YYYY-MM-DD), bornées à
+ * [aujourd'hui, horizon]. Les dates en base sont stockées à minuit UTC : on
+ * itère en UTC pour rester exact quel que soit le fuseau du serveur.
+ */
+function expandUnavailable(
+  ranges: { start: Date; end: Date }[],
+  horizonDays = 365
+): string[] {
+  const out = new Set<string>();
+  const startOfTodayUtc = Date.parse(
+    `${new Date().toISOString().slice(0, 10)}T00:00:00.000Z`
+  );
+  const horizon = startOfTodayUtc + horizonDays * DAY;
+  for (const { start, end } of ranges) {
+    let t = Math.max(start.getTime(), startOfTodayUtc);
+    const endT = end.getTime();
+    while (t < endT && t <= horizon) {
+      out.add(new Date(t).toISOString().slice(0, 10));
+      t += DAY;
+    }
+  }
+  return [...out];
 }
 
 export default async function ReserverPage({
@@ -44,6 +71,19 @@ export default async function ReserverPage({
       expiresAt: true,
       price: true,
       maxGuests: true,
+      // Disponibilités temps réel : nuits confirmées + holds en attente non
+      // expirés + blocages hôte → affichées directement sur le calendrier.
+      bookings: {
+        where: {
+          checkOut: { gte: new Date() },
+          OR: [
+            { status: "CONFIRMEE" },
+            { status: "EN_ATTENTE", expiresAt: { gt: new Date() } },
+          ],
+        },
+        select: { checkIn: true, checkOut: true },
+      },
+      availabilities: { select: { startDate: true, endDate: true } },
     },
   });
   if (!property || property.type !== "SEJOUR") notFound();
@@ -64,65 +104,29 @@ export default async function ReserverPage({
   const serviceFee = Math.round(subtotal * SERVICE_FEE_RATE);
   const total = subtotal + serviceFee;
 
+  const unavailable = expandUnavailable([
+    ...property.bookings.map((b) => ({ start: b.checkIn, end: b.checkOut })),
+    ...property.availabilities.map((a) => ({ start: a.startDate, end: a.endDate })),
+  ]);
+  const maxGuests = property.maxGuests ?? 30;
+
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
+      {/* Réservation = parcours séjours : on garde la nav en surbrillance. */}
+      <ActiveSection name="sejours" />
       <h1 className="text-3xl font-bold text-darna">{fr.booking.titre}</h1>
       <p className="mt-1 text-ink/60">
         {property.title} — {property.city}
       </p>
 
-      {/* Choix des dates */}
-      <form
-        method="GET"
-        className="mt-6 grid gap-3 rounded-3xl bg-white p-5 ring-1 ring-darna/10 sm:grid-cols-[1fr_1fr_1fr_auto]"
-      >
-        <label className="flex flex-col gap-1">
-          <span className="flex items-center gap-1 text-xs font-semibold text-ink/60">
-            <CalendarIcon width={13} height={13} />
-            {fr.search.arrivee}
-          </span>
-          <input
-            type="date"
-            name="arrivee"
-            required
-            defaultValue={sp.arrivee ?? ""}
-            className="rounded-xl border border-darna/15 bg-cream px-3 py-2.5 text-sm outline-none focus:border-darna"
-          />
-        </label>
-        <label className="flex flex-col gap-1">
-          <span className="flex items-center gap-1 text-xs font-semibold text-ink/60">
-            <CalendarIcon width={13} height={13} />
-            {fr.search.depart}
-          </span>
-          <input
-            type="date"
-            name="depart"
-            required
-            defaultValue={sp.depart ?? ""}
-            className="rounded-xl border border-darna/15 bg-cream px-3 py-2.5 text-sm outline-none focus:border-darna"
-          />
-        </label>
-        <label className="flex flex-col gap-1">
-          <span className="flex items-center gap-1 text-xs font-semibold text-ink/60">
-            <UsersIcon width={13} height={13} />
-            {fr.search.voyageurs}
-          </span>
-          <input
-            type="number"
-            name="voyageurs"
-            min={1}
-            max={property.maxGuests ?? 30}
-            defaultValue={voyageurs}
-            className="rounded-xl border border-darna/15 bg-cream px-3 py-2.5 text-sm outline-none focus:border-darna"
-          />
-        </label>
-        <button
-          type="submit"
-          className="self-end rounded-xl bg-darna px-5 py-2.5 text-sm font-semibold text-white hover:bg-darna-light"
-        >
-          {fr.common.rechercher}
-        </button>
-      </form>
+      {/* Choix des dates — calendrier interactif avec disponibilités en direct */}
+      <BookingDatePicker
+        unavailable={unavailable}
+        maxGuests={maxGuests}
+        defaultArrivee={sp.arrivee ?? ""}
+        defaultDepart={sp.depart ?? ""}
+        defaultVoyageurs={voyageurs}
+      />
 
       {/* Récapitulatif 100 % transparent */}
       {validDates && arrivee && depart ? (

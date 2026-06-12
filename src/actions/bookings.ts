@@ -6,9 +6,10 @@ import { z } from "zod";
 import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
-import { SERVICE_FEE_RATE } from "@/lib/config";
+import { SERVICE_FEE_RATE, SITE_URL } from "@/lib/config";
 import { BOOKING_EXPIRY_MS } from "@/lib/constants";
 import { logAudit, logStructured } from "@/lib/audit";
+import { initKonnectPayment, isKonnectEnabled } from "@/lib/konnect";
 
 export type BookingFormState = { error?: string } | undefined;
 
@@ -247,6 +248,107 @@ export async function confirmPaymentAction(formData: FormData): Promise<void> {
 
   revalidatePath(`/reservation/${booking.id}/paiement`);
   revalidatePath("/dashboard/reservations");
+}
+
+export type PaymentFormState =
+  | { error?: string; payUrl?: string }
+  | undefined;
+
+/**
+ * Démarre un paiement réel Konnect : initialise la transaction, stocke le
+ * `paymentRef` sur la réservation et renvoie le `payUrl` (le client y redirige).
+ * La confirmation se fait ensuite via le webhook ou le retour `?konnect=success`
+ * (cf. settleKonnectBooking) — JAMAIS ici, car l'argent n'est pas encore réglé.
+ */
+export async function startKonnectPaymentAction(
+  _prev: PaymentFormState,
+  formData: FormData
+): Promise<PaymentFormState> {
+  const fr = await getT();
+  const user = await requireUser();
+
+  if (!isKonnectEnabled()) return { error: fr.common.erreurInconnue };
+
+  const parsed = confirmSchema.safeParse(formData.get("bookingId"));
+  if (!parsed.success) return { error: fr.common.erreurInconnue };
+
+  const booking = await prisma.booking.findUnique({
+    where: { id: parsed.data },
+    select: {
+      id: true,
+      guestId: true,
+      status: true,
+      expiresAt: true,
+      totalPrice: true,
+      property: { select: { title: true } },
+    },
+  });
+
+  // Autorisation stricte : seul le voyageur concerné paie sa réservation.
+  if (!booking || booking.guestId !== user.id) return { error: fr.common.erreurInconnue };
+  if (booking.status !== "EN_ATTENTE") return { error: fr.booking.datesIndisponibles };
+  if (booking.expiresAt && booking.expiresAt < new Date()) {
+    await prisma.booking.update({
+      where: { id: booking.id },
+      data: { status: "ANNULEE" },
+    });
+    return { error: fr.booking.reservationExpiree };
+  }
+
+  // Lien de paiement aligné sur le hold de la réservation (≥ 2 min de marge).
+  const remainingMs = booking.expiresAt
+    ? booking.expiresAt.getTime() - Date.now()
+    : BOOKING_EXPIRY_MS;
+  const lifespanMinutes = Math.max(2, Math.ceil(remainingMs / 60000));
+
+  const [firstName, ...rest] = user.name.trim().split(/\s+/);
+
+  let payUrl: string;
+  let paymentRef: string;
+  try {
+    const result = await initKonnectPayment({
+      amountTND: booking.totalPrice,
+      orderId: booking.id,
+      description: `Darna — ${booking.property.title}`,
+      webhook: `${SITE_URL}/api/payments/konnect/webhook`,
+      successUrl: `${SITE_URL}/reservation/${booking.id}/paiement?konnect=success`,
+      failUrl: `${SITE_URL}/reservation/${booking.id}/paiement?konnect=fail`,
+      lifespanMinutes,
+      firstName: firstName || user.name,
+      lastName: rest.join(" ") || undefined,
+      email: user.email,
+      phoneNumber: user.phone ?? undefined,
+    });
+    payUrl = result.payUrl;
+    paymentRef = result.paymentRef;
+  } catch (err) {
+    logStructured("error", "konnect.init_failed", {
+      bookingId: booking.id,
+      userId: user.id,
+      error: (err as Error).message,
+    });
+    await logAudit({
+      action: "PAYMENT_FAILED",
+      userId: user.id,
+      success: false,
+      metadata: { bookingId: booking.id, stage: "init" },
+    });
+    return { error: fr.booking.paiementKonnectErreur };
+  }
+
+  await prisma.booking.update({
+    where: { id: booking.id },
+    data: { paymentRef },
+  });
+
+  await logAudit({
+    action: "PAYMENT_INITIATED",
+    userId: user.id,
+    success: true,
+    metadata: { bookingId: booking.id, paymentRef, provider: "konnect" },
+  });
+
+  return { payUrl };
 }
 
 export type ReviewFormState = { error?: string; success?: string } | undefined;

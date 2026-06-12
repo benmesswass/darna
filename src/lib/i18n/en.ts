@@ -380,12 +380,30 @@ export const en: Dictionary = {
     paiementMockInfo:
       "Konnect / Flouci payment coming soon. Demo mode: no real charge.",
     payerSimulation: "Pay (simulation)",
+    paiementKonnectInfo:
+      "Secure payment via Konnect — bank card, e-DINAR or wallet. Your funds stay protected by the Darna escrow.",
+    payerKonnect: "Pay with Konnect",
+    redirectionKonnect: "Redirecting to secure payment…",
+    paiementEchoue:
+      "The payment did not go through. No amount was charged — you can try again.",
+    paiementEnVerification: "Payment received, confirmation being verified.",
+    actualiser: "Refresh",
+    paiementKonnectErreur:
+      "The payment service is momentarily unavailable. Please try again shortly.",
+    reservationExpiree: "This booking has expired. Please start a new request.",
     paiementConfirme: "Booking confirmed!",
     paiementConfirmeDetail:
       "Your funds are in escrow. The host has been notified — find the details in “My bookings”.",
     voirMesReservations: "View my bookings",
     sejourDates: (arrivee: string, depart: string) =>
       `From ${arrivee} to ${depart}`,
+    choisirDates: "Choose your dates",
+    selectionne: "Selected",
+    cliquezArrivee: "Click your check-in date",
+    cliquezDepart: "Choose your check-out date",
+    effacer: "Clear",
+    moisPrecedent: "Previous months",
+    moisSuivant: "Next months",
   },
   alaUne: {
     titre: "Feature your listing",

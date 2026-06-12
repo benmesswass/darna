@@ -407,12 +407,30 @@ export const ar: Dictionary = {
     paiementMockInfo:
       "الخلاص عبر Konnect / Flouci قريبًا. وضع تجريبي: حتى خصم حقيقي ما يصير.",
     payerSimulation: "اخلص (تجربة)",
+    paiementKonnectInfo:
+      "خلاص مؤمّن عبر Konnect — كارت بنكية، e-DINAR ولا wallet. فلوسك تبقى محميّة بضمان دارنا.",
+    payerKonnect: "اخلص بـ Konnect",
+    redirectionKonnect: "توجيه للخلاص المؤمّن…",
+    paiementEchoue:
+      "الخلاص ما تمّش. حتى مبلغ ما تخصم — تنجّم تعاود.",
+    paiementEnVerification: "الخلاص وصل، التأكيد في طور التحقّق.",
+    actualiser: "حدّث",
+    paiementKonnectErreur:
+      "خدمة الخلاص موش متوفّرة توّا. عاود من فضلك بعد لحظة.",
+    reservationExpiree: "الحجز هذا فات وقتو. عاود اطلب من فضلك.",
     paiementConfirme: "الحجز تأكّد!",
     paiementConfirmeDetail:
       "فلوسك في الضمان. المضيف تعلّم — تلقى التفاصيل في « حجوزاتي ».",
     voirMesReservations: "شوف حجوزاتي",
     sejourDates: (arrivee: string, depart: string) =>
       `من ${arrivee} إلى ${depart}`,
+    choisirDates: "اختار التواريخ متاعك",
+    selectionne: "مختار",
+    cliquezArrivee: "اضغط على تاريخ الوصول",
+    cliquezDepart: "اختار تاريخ المغادرة",
+    effacer: "امسح",
+    moisPrecedent: "الشهور اللّي فاتوا",
+    moisSuivant: "الشهور الجايين",
   },
   alaUne: {
     titre: "حطّ إعلانك في الواجهة",
