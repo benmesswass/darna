@@ -25,11 +25,26 @@ import { CheckIcon, FolderIcon, HeartIcon, PlusIcon } from "@/components/icons";
  */
 const PANEL_WIDTH = 256;
 
-function defaultFolderName(city: string, locale: string): string {
-  const now = new Date();
-  const month = new Intl.DateTimeFormat(locale, { month: "long" }).format(now);
+// Parse une date de recherche « YYYY-MM-DD » en Date locale, ou null si absente
+// ou invalide. Le `T00:00:00` force l'interprétation en heure locale (et non UTC,
+// qui pourrait décaler d'un jour et changer le mois en bord de mois).
+function parseSearchDate(value?: string): Date | null {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const d = new Date(`${value}T00:00:00`);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+// Nom de dossier par défaut : « Ville, Mois Année ». Le mois suit la date
+// RECHERCHÉE (arrivée) quand elle existe, sinon le mois courant.
+function defaultFolderName(
+  city: string,
+  locale: string,
+  searchDate?: string
+): string {
+  const base = parseSearchDate(searchDate) ?? new Date();
+  const month = new Intl.DateTimeFormat(locale, { month: "long" }).format(base);
   const monthCap = month.charAt(0).toUpperCase() + month.slice(1);
-  return `${city}, ${monthCap} ${now.getFullYear()}`;
+  return `${city}, ${monthCap} ${base.getFullYear()}`;
 }
 
 export function FavoriteButton({
@@ -37,6 +52,7 @@ export function FavoriteButton({
   city,
   isFavorited,
   folders,
+  defaultDate,
   size = "md",
   className = "",
 }: {
@@ -44,6 +60,8 @@ export function FavoriteButton({
   city: string;
   isFavorited: boolean;
   folders: FavoriteFolderLite[];
+  // Date d'arrivée recherchée (YYYY-MM-DD) → mois du nom de dossier par défaut.
+  defaultDate?: string;
   size?: "sm" | "md";
   className?: string;
 }) {
@@ -141,7 +159,7 @@ export function FavoriteButton({
   }
 
   function startCreating() {
-    setName(defaultFolderName(city, locale));
+    setName(defaultFolderName(city, locale, defaultDate));
     setCreating(true);
   }
 

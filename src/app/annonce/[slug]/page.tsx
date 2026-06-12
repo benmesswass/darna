@@ -80,11 +80,16 @@ export async function generateMetadata({
 
 export default async function AnnoncePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  // Dates de recherche transmises depuis la liste séjours (arrivee=YYYY-MM-DD) :
+  // sert à pré-remplir le nom de dossier favori avec le mois recherché.
+  searchParams: Promise<{ arrivee?: string }>;
 }) {
   const fr = await getT();
   const { slug } = await params;
+  const { arrivee } = await searchParams;
   const property = await getPropertyBySlug(slug);
   if (!property) notFound();
 
@@ -155,6 +160,7 @@ export default async function AnnoncePage({
                 city={property.city}
                 isFavorited={favCtx.favoritedIds.has(property.id)}
                 folders={favCtx.folders}
+                defaultDate={arrivee}
               />
             ) : null}
           </div>

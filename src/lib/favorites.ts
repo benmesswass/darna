@@ -42,16 +42,26 @@ export async function getFavoriteContext(
 export type FavoriteCardProp = {
   isFavorited: boolean;
   folders: FavoriteFolderLite[];
+  // Date d'arrivée de la recherche en cours (YYYY-MM-DD) : sert à pré-remplir
+  // le nom du nouveau dossier avec le mois RECHERCHÉ (« Ville, Août 2026 »),
+  // pas le mois courant. Absente → on retombe sur le mois courant.
+  defaultDate?: string;
 };
 
 /**
  * Construit la prop `favorite` d'une card à partir du contexte chargé en tête
  * de page. Renvoie undefined pour un visiteur non connecté → pas de cœur.
+ * `defaultDate` (date d'arrivée recherchée) est propagée jusqu'au sélecteur.
  */
 export function favoritePropFor(
   ctx: FavoriteContext | null,
-  propertyId: string
+  propertyId: string,
+  defaultDate?: string
 ): FavoriteCardProp | undefined {
   if (!ctx) return undefined;
-  return { isFavorited: ctx.favoritedIds.has(propertyId), folders: ctx.folders };
+  return {
+    isFavorited: ctx.favoritedIds.has(propertyId),
+    folders: ctx.folders,
+    defaultDate,
+  };
 }

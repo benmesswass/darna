@@ -13,11 +13,15 @@ export async function PropertyCard({
   property,
   showType = false,
   favorite,
+  query = "",
 }: {
   property: ListingWithPhoto;
   showType?: boolean;
   // Fourni uniquement pour un utilisateur connecté → affiche le cœur favori.
   favorite?: FavoriteCardProp;
+  // Query string optionnelle (ex. « ?arrivee=…&depart=… ») ajoutée au lien,
+  // pour transmettre les dates de recherche à la page détail.
+  query?: string;
 }) {
   const fr = await getT();
   // Helper interne : dépend du dictionnaire de la requête.
@@ -39,7 +43,7 @@ export async function PropertyCard({
           : "ring-1 ring-darna/5 hover:ring-darna/15"
       }`}
     >
-      <Link href={`/annonce/${property.slug}`} className="flex flex-1 flex-col">
+      <Link href={`/annonce/${property.slug}${query}`} className="flex flex-1 flex-col">
         <div className="relative aspect-[4/3] overflow-hidden bg-darna/10">
           {photo ? (
             <Image
@@ -109,6 +113,7 @@ export async function PropertyCard({
           city={property.city}
           isFavorited={favorite.isFavorited}
           folders={favorite.folders}
+          defaultDate={favorite.defaultDate}
           size="sm"
           className="absolute end-3 top-3 z-10"
         />

@@ -29,6 +29,16 @@ export default async function SejoursPage({
   const { results, resolvedCity, unknownCity } = await searchSejours(params);
   const favCtx = await getFavoriteContext((await getSessionUser())?.id);
 
+  // Dates recherchées propagées : nom de dossier par défaut = mois d'ARRIVÉE
+  // (pas le mois courant), et transmission des dates au lien de la fiche détail.
+  const dateQuery = (() => {
+    const qs = new URLSearchParams();
+    if (params.arrivee) qs.set("arrivee", params.arrivee);
+    if (params.depart) qs.set("depart", params.depart);
+    const s = qs.toString();
+    return s ? `?${s}` : "";
+  })();
+
   const markers = results.map((p) => ({
     id: p.id,
     slug: p.slug,
@@ -127,7 +137,8 @@ export default async function SejoursPage({
                   <PropertyCard
                     key={p.id}
                     property={p}
-                    favorite={favoritePropFor(favCtx, p.id)}
+                    favorite={favoritePropFor(favCtx, p.id, params.arrivee)}
+                    query={dateQuery}
                   />
                 ))}
               </div>
