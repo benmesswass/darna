@@ -3,8 +3,7 @@ import { redirect } from "next/navigation";
 import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
-import { formatDateFr, formatDateShortFr } from "@/lib/format";
-import { Price } from "@/components/currency/Price";
+import { formatDateFr } from "@/lib/format";
 import { TypeBadge } from "@/components/property/Badges";
 import { toWhatsAppNumber } from "@/components/property/PropertyCtas";
 import { PrinterIcon, WhatsAppIcon } from "@/components/icons";
@@ -17,70 +16,26 @@ export default async function DemandesPage() {
     redirect("/dashboard/reservations");
   }
 
-  const [contactRequests, bookings] = await Promise.all([
-    prisma.contactRequest.findMany({
-      where: { property: { ownerId: user.id } },
-      include: {
-        property: { select: { title: true, slug: true, type: true } },
-      },
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.booking.findMany({
-      where: { property: { ownerId: user.id } },
-      include: {
-        property: { select: { title: true, slug: true } },
-        guest: { select: { name: true, email: true, phone: true } },
-      },
-      orderBy: { createdAt: "desc" },
-    }),
-  ]);
-
-  const isEmpty = contactRequests.length === 0 && bookings.length === 0;
+  // Demandes de contact (prospects) uniquement. Les réservations confirmées
+  // sur ses annonces vivent dans « Mes réservations » (vue hôte).
+  const contactRequests = await prisma.contactRequest.findMany({
+    where: { property: { ownerId: user.id } },
+    include: {
+      property: { select: { title: true, slug: true, type: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
 
   return (
     <div>
       <h2 className="text-xl font-bold text-darna">{fr.dashboard.demandesRecues}</h2>
 
-      {isEmpty ? (
+      {contactRequests.length === 0 ? (
         <p className="mt-6 rounded-3xl bg-white p-8 text-center text-sm text-ink/60 ring-1 ring-darna/10">
           {fr.dashboard.aucuneDemande}
         </p>
       ) : (
         <div className="mt-5 space-y-4">
-          {bookings.map((b) => (
-            <div key={b.id} className="rounded-3xl bg-white p-5 ring-1 ring-darna/10">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="font-semibold text-ink">
-                  {fr.dashboard.reservationDe(b.guest.name)}
-                </p>
-                <span className="rounded-full bg-darna/10 px-2.5 py-0.5 text-[11px] font-bold text-darna">
-                  {fr.dashboard.statutReservation[b.status] ?? b.status}
-                </span>
-              </div>
-              <p className="mt-1 text-sm text-ink/60">
-                <Link
-                  href={`/annonce/${b.property.slug}`}
-                  className="font-medium text-darna underline"
-                >
-                  {b.property.title}
-                </Link>{" "}
-                · {fr.booking.sejourDates(
-                  formatDateShortFr(b.checkIn),
-                  formatDateShortFr(b.checkOut)
-                )}{" "}
-                · {fr.property.capacite(b.guests)}
-              </p>
-              <p className="mt-1.5 text-sm">
-                <Price amount={b.totalPrice} className="font-bold text-darna" />
-                {b.escrow === "EN_SEQUESTRE" ? (
-                  <span className="ms-2 text-xs font-medium text-emerald-700">
-                    {fr.dashboard.statutReservation.CONFIRMEE}
-                  </span>
-                ) : null}
-              </p>
-            </div>
-          ))}
-
           {contactRequests.map((c) => (
             <div key={c.id} className="rounded-3xl bg-white p-5 ring-1 ring-darna/10">
               <div className="flex flex-wrap items-center justify-between gap-2">

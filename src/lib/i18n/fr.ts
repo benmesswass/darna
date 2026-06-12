@@ -278,6 +278,10 @@ export const fr = {
       "En tête des résultats et sur l'accueil pendant 7 jours, avec un badge doré qui attire l'œil. Les annonces mises en avant sont vues bien plus souvent.",
     aucuneReservation: "Aucune réservation pour le moment.",
     aucuneReservationCta: "Trouvez votre prochain séjour parmi nos annonces vérifiées.",
+    aucuneReservationHote: "Aucune réservation sur vos annonces pour le moment.",
+    aucuneReservationHoteCta:
+      "Dès qu'un voyageur réserve l'une de vos annonces, elle apparaîtra ici.",
+    reservePar: (nom: string) => `Réservé par ${nom}`,
     aucuneDemande: "Aucune demande reçue pour le moment.",
     aucunFavori: "Aucun favori pour le moment.",
     reservationDe: (nom: string) => `Réservation de ${nom}`,

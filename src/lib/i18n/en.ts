@@ -278,6 +278,10 @@ export const en: Dictionary = {
       "Top of results and on the homepage for 7 days, with an eye-catching gold badge. Featured listings get seen far more often.",
     aucuneReservation: "No bookings yet.",
     aucuneReservationCta: "Find your next stay among our verified listings.",
+    aucuneReservationHote: "No bookings on your listings yet.",
+    aucuneReservationHoteCta:
+      "As soon as a traveler books one of your listings, it will show up here.",
+    reservePar: (nom: string) => `Booked by ${nom}`,
     aucuneDemande: "No requests received yet.",
     aucunFavori: "No favourites yet.",
     reservationDe: (nom: string) => `Booking from ${nom}`,
