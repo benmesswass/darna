@@ -6,6 +6,8 @@ import {
   type SejoursSearchParams,
 } from "@/lib/listings";
 import { markerPriceLabel } from "@/lib/format";
+import { getSessionUser } from "@/lib/session";
+import { getFavoriteContext, favoritePropFor } from "@/lib/favorites";
 import { PropertyCard } from "@/components/property/PropertyCard";
 import { PropertyMap } from "@/components/map/PropertyMap";
 import { SplitView } from "@/components/search/SplitView";
@@ -25,6 +27,7 @@ export default async function SejoursPage({
   const fr = await getT();
   const params = await searchParams;
   const { results, resolvedCity, unknownCity } = await searchSejours(params);
+  const favCtx = await getFavoriteContext((await getSessionUser())?.id);
 
   const markers = results.map((p) => ({
     id: p.id,
@@ -121,7 +124,11 @@ export default async function SejoursPage({
             list={
               <div className="grid gap-5 sm:grid-cols-2">
                 {results.map((p) => (
-                  <PropertyCard key={p.id} property={p} />
+                  <PropertyCard
+                    key={p.id}
+                    property={p}
+                    favorite={favoritePropFor(favCtx, p.id)}
+                  />
                 ))}
               </div>
             }

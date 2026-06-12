@@ -4,6 +4,8 @@ import { fr as frMeta } from "@/lib/i18n/fr";
 import { getT } from "@/lib/i18n/server";
 import { EUR_TO_TND } from "@/lib/config";
 import { getFeaturedListings } from "@/lib/listings";
+import { getSessionUser } from "@/lib/session";
+import { getFavoriteContext, favoritePropFor } from "@/lib/favorites";
 import { PropertyCard } from "@/components/property/PropertyCard";
 import { DiasporaCurrencyCta } from "@/components/diaspora/DiasporaCurrencyCta";
 import {
@@ -22,6 +24,7 @@ export const metadata: Metadata = {
 export default async function DiasporaPage() {
   const fr = await getT();
   const featured = await getFeaturedListings(3);
+  const favCtx = await getFavoriteContext((await getSessionUser())?.id);
   const taux = EUR_TO_TND.toLocaleString("fr-FR");
 
   return (
@@ -94,7 +97,12 @@ export default async function DiasporaPage() {
           </div>
           <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {featured.map((p) => (
-              <PropertyCard key={p.id} property={p} showType />
+              <PropertyCard
+                key={p.id}
+                property={p}
+                showType
+                favorite={favoritePropFor(favCtx, p.id)}
+              />
             ))}
           </div>
         </section>

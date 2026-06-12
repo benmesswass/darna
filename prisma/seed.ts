@@ -581,7 +581,22 @@ async function main() {
   console.log("Création des utilisateurs…");
   const passwordHash = await bcrypt.hash("darna2026", 12);
 
-  const [voyageur, hote, agence, hote2, voyageuse2, voyageur3] = await Promise.all([
+  const [
+    voyageur,
+    hote,
+    agence,
+    hote2,
+    voyageuse2,
+    voyageur3,
+    nour,
+    mehdi,
+    sonia,
+    walid,
+    ines,
+    hatem,
+    rania,
+    fares,
+  ] = await Promise.all([
     prisma.user.create({
       data: {
         email: "voyageur@darna.tn",
@@ -640,6 +655,78 @@ async function main() {
         passwordHash,
         name: "Karim Jlassi",
         phone: "+216 52 663 314",
+        role: "VOYAGEUR",
+      },
+    }),
+    prisma.user.create({
+      data: {
+        email: "nour@darna.tn",
+        passwordHash,
+        name: "Nour Cherif",
+        phone: "+216 23 445 667",
+        role: "VOYAGEUR",
+      },
+    }),
+    prisma.user.create({
+      data: {
+        email: "mehdi@darna.tn",
+        passwordHash,
+        name: "Mehdi Ben Romdhane",
+        phone: "+216 50 112 990",
+        role: "VOYAGEUR",
+      },
+    }),
+    prisma.user.create({
+      data: {
+        email: "sonia@darna.tn",
+        passwordHash,
+        name: "Sonia Lahmar",
+        phone: "+216 27 884 201",
+        role: "VOYAGEUR",
+      },
+    }),
+    prisma.user.create({
+      data: {
+        email: "walid@darna.tn",
+        passwordHash,
+        name: "Walid Khelifi",
+        phone: "+33 6 12 44 87 03",
+        role: "VOYAGEUR",
+      },
+    }),
+    prisma.user.create({
+      data: {
+        email: "ines@darna.tn",
+        passwordHash,
+        name: "Inès Maaloul",
+        phone: "+216 24 556 778",
+        role: "VOYAGEUR",
+      },
+    }),
+    prisma.user.create({
+      data: {
+        email: "hatem@darna.tn",
+        passwordHash,
+        name: "Hatem Zouari",
+        phone: "+216 53 667 889",
+        role: "VOYAGEUR",
+      },
+    }),
+    prisma.user.create({
+      data: {
+        email: "rania@darna.tn",
+        passwordHash,
+        name: "Rania Belhadj",
+        phone: "+33 7 88 21 09 14",
+        role: "VOYAGEUR",
+      },
+    }),
+    prisma.user.create({
+      data: {
+        email: "fares@darna.tn",
+        passwordHash,
+        name: "Farès Guesmi",
+        phone: "+216 26 330 447",
         role: "VOYAGEUR",
       },
     }),
@@ -718,6 +805,25 @@ async function main() {
     { property: 7, guest: voyageuse2, daysAgoCheckIn: 50, nights: 2, rating: 5, comment: "Maison pleine de charme et plage de Mahdia sublime. Tout était conforme à l'annonce." },
     { property: 8, guest: voyageur, daysAgoCheckIn: 100, nights: 3, rating: 4, comment: "Très bon point de chute pour explorer le Sud. Climatisation efficace, hôte arrangeant." },
     { property: 11, guest: voyageur3, daysAgoCheckIn: 35, nights: 5, rating: 5, comment: "El Mansoura à 5 minutes à pied, maison superbe. La transparence des prix fait du bien." },
+
+    // Lot d'avis variés (notes 1→5, dates étalées) pour la villa Hammamet [0] :
+    // de quoi exercer le filtre par note et le tri par date sur une annonce.
+    { property: 0, guest: nour, daysAgoCheckIn: 15, nights: 3, rating: 5, comment: "Week-end parfait. La piscine chauffée fait toute la différence hors saison, et le check-in était d'une simplicité rare. On recommande à 100 %." },
+    { property: 0, guest: mehdi, daysAgoCheckIn: 55, nights: 4, rating: 4, comment: "Très bon séjour en famille, maison spacieuse et lumineuse. Le wifi faiblit un peu à l'étage, sans gâcher quoi que ce soit." },
+    { property: 0, guest: sonia, daysAgoCheckIn: 110, nights: 2, rating: 3, comment: "Cadre superbe et vue mer bien réelle, mais le ménage était à reprendre à l'arrivée. L'hôte a réagi très vite, ce qui rattrape la chose." },
+    { property: 0, guest: walid, daysAgoCheckIn: 160, nights: 7, rating: 5, comment: "Venus de Lyon pour deux semaines, absolument rien à redire. Strictement conforme aux photos, quartier calme, paiement sous séquestre rassurant." },
+    { property: 0, guest: ines, daysAgoCheckIn: 205, nights: 4, rating: 1, comment: "Très déçue : la climatisation d'une chambre ne fonctionnait pas et l'eau chaude était capricieuse tout le séjour. Dommage, le potentiel est pourtant là." },
+    { property: 0, guest: hatem, daysAgoCheckIn: 250, nights: 5, rating: 4, comment: "Belle villa, plage à dix minutes à pied. Quelques ustensiles de cuisine manquaient, mais l'ensemble reste très agréable." },
+    { property: 0, guest: rania, daysAgoCheckIn: 300, nights: 3, rating: 5, comment: "Coup de cœur total. La terrasse au coucher du soleil est magique et la literie excellente. On a déjà hâte de revenir l'an prochain." },
+    { property: 0, guest: fares, daysAgoCheckIn: 365, nights: 6, rating: 2, comment: "L'emplacement est top mais la piscine est nettement plus petite qu'en photo, et c'est bruyant le week-end. Mitigé pour le prix demandé." },
+    { property: 0, guest: voyageur3, daysAgoCheckIn: 430, nights: 4, rating: 5, comment: "Deuxième séjour ici, toujours impeccable. Hôte réactif, prix honnêtes, et le quartier reste un vrai havre de paix." },
+    { property: 0, guest: voyageuse2, daysAgoCheckIn: 490, nights: 5, rating: 4, comment: "Maison agréable et très bien située, parking privé bien pratique. Juste un peu de poussière à l'arrivée, vite réglée." },
+    { property: 0, guest: mehdi, daysAgoCheckIn: 545, nights: 3, rating: 3, comment: "Correct sans plus pour le tarif. La déco est un peu datée mais tout fonctionne et la vue sur la mer reste superbe." },
+
+    // Quelques avis supplémentaires sur la maison d'hôtes Sidi Bou Saïd [2].
+    { property: 2, guest: hatem, daysAgoCheckIn: 70, nights: 2, rating: 3, comment: "Charme indéniable et personnel adorable, mais les chambres sont petites et les murs fins. Idéal pour une nuit, moins pour un long séjour." },
+    { property: 2, guest: nour, daysAgoCheckIn: 140, nights: 3, rating: 4, comment: "Petit-déjeuner délicieux sur la terrasse bleue et blanche. Un peu de bruit le matin côté ruelle, sinon parfait." },
+    { property: 2, guest: fares, daysAgoCheckIn: 220, nights: 2, rating: 2, comment: "Le cadre est carte postale mais le rapport qualité-prix laisse à désirer, et la climatisation peinait. En deçà de mes attentes." },
   ];
 
   for (const r of reviewSeeds) {
@@ -748,6 +854,9 @@ async function main() {
         authorId: r.guest.id,
         rating: r.rating,
         comment: r.comment,
+        // Avis rédigé peu après le départ : donne des dates réalistes et
+        // variées (sinon tous les avis porteraient la date du seed).
+        createdAt: new Date(checkOut.getTime() + 2 * DAY),
       },
     });
   }

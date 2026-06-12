@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useLocale, useT } from "@/components/i18n/LocaleProvider";
-import { CalendarIcon, UsersIcon, ArrowRightIcon } from "@/components/icons";
+import { CalendarIcon, ArrowRightIcon } from "@/components/icons";
 
 const INTL_LOCALE: Record<string, string> = {
   fr: "fr-FR",
@@ -42,24 +42,22 @@ function nightsBetween(startIso: string, endIso: string): number {
 
 /**
  * Calendrier de réservation interactif (sélection de plage arrivée → départ).
+ * Composant CONTRÔLÉ : l'état des dates vit chez le parent (BookingPanel) qui
+ * en dérive le devis en direct. Ici, on n'affiche que la grille + la dispo.
  *
- * - Affiche les disponibilités directement : nuits réservées ou bloquées barrées.
- * - Empêche de sélectionner une plage qui chevauche une nuit indisponible.
- * - Reste un formulaire GET : le serveur recalcule le récapitulatif et les prix
- *   (les montants ne transitent jamais par le client — invariant de sécurité).
+ * - Les nuits réservées ou bloquées par l'hôte apparaissent barrées et inertes.
+ * - On empêche de sélectionner une plage qui chevauche une nuit indisponible.
  */
 export function BookingDatePicker({
   unavailable,
-  maxGuests,
-  defaultArrivee,
-  defaultDepart,
-  defaultVoyageurs,
+  checkIn,
+  checkOut,
+  onChange,
 }: {
   unavailable: string[];
-  maxGuests: number;
-  defaultArrivee: string;
-  defaultDepart: string;
-  defaultVoyageurs: number;
+  checkIn: string | null;
+  checkOut: string | null;
+  onChange: (checkIn: string | null, checkOut: string | null) => void;
 }) {
   const fr = useT();
   const locale = useLocale();
@@ -68,11 +66,8 @@ export function BookingDatePicker({
   const unavailableSet = useMemo(() => new Set(unavailable), [unavailable]);
   const todayIso = useMemo(() => toIso(new Date()), []);
 
-  const [checkIn, setCheckIn] = useState<string | null>(defaultArrivee || null);
-  const [checkOut, setCheckOut] = useState<string | null>(defaultDepart || null);
   const [hovered, setHovered] = useState<string | null>(null);
   const [offset, setOffset] = useState(0);
-  const [voyageurs, setVoyageurs] = useState(defaultVoyageurs);
 
   // Libellés de jours (Lun → Dim) selon la locale active.
   const weekdays = useMemo(() => {
@@ -111,23 +106,15 @@ export function BookingDatePicker({
     if (iso < todayIso || unavailableSet.has(iso)) return;
     // Pas de sélection en cours, ou plage déjà complète → nouvelle arrivée.
     if (!checkIn || checkOut) {
-      setCheckIn(iso);
-      setCheckOut(null);
+      onChange(iso, null);
       return;
     }
-    // Date antérieure ou égale → on repart de cette arrivée.
-    if (iso <= checkIn) {
-      setCheckIn(iso);
-      setCheckOut(null);
+    // Date antérieure ou égale, ou plage qui traverse une nuit bloquée → on repart.
+    if (iso <= checkIn || rangeHasUnavailable(checkIn, iso)) {
+      onChange(iso, null);
       return;
     }
-    // La plage traverserait une nuit bloquée → on repart de cette date.
-    if (rangeHasUnavailable(checkIn, iso)) {
-      setCheckIn(iso);
-      setCheckOut(null);
-      return;
-    }
-    setCheckOut(iso);
+    onChange(checkIn, iso);
   }
 
   // Fin de plage effective : départ choisi, ou aperçu au survol (si valide).
@@ -148,20 +135,8 @@ export function BookingDatePicker({
     return fr.booking.cliquezArrivee;
   }, [checkIn, checkOut, intlLocale, fr.booking]);
 
-  function clear() {
-    setCheckIn(null);
-    setCheckOut(null);
-    setHovered(null);
-  }
-
   return (
-    <form
-      method="GET"
-      className="mt-6 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-darna/10 sm:p-7"
-    >
-      <input type="hidden" name="arrivee" value={checkIn ?? ""} />
-      <input type="hidden" name="depart" value={checkOut ?? ""} />
-
+    <div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-darna/10 sm:p-7">
       {/* En-tête : intitulé + état de la sélection */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
@@ -184,7 +159,10 @@ export function BookingDatePicker({
         {(checkIn || checkOut) && (
           <button
             type="button"
-            onClick={clear}
+            onClick={() => {
+              onChange(null, null);
+              setHovered(null);
+            }}
             className="rounded-full px-3 py-1 text-xs font-semibold text-ink/50 transition hover:bg-cream hover:text-darna"
           >
             {fr.booking.effacer}
@@ -254,19 +232,16 @@ export function BookingDatePicker({
                     onMouseEnter={() => setHovered(iso)}
                     aria-pressed={isEndpoint}
                     className={[
-                      "relative flex h-11 items-center justify-center text-sm transition",
+                      "relative flex h-11 items-center justify-center rounded-xl text-sm transition",
                       isEndpoint
-                        ? "z-10 rounded-xl bg-darna font-bold text-white shadow-sm"
+                        ? "z-10 bg-darna font-bold text-white shadow-sm"
                         : inRange
                           ? "bg-darna/10 font-semibold text-darna"
                           : isPast
                             ? "cursor-default text-ink/25"
                             : isUnavail
                               ? "cursor-not-allowed text-ink/30 line-through"
-                              : "rounded-xl font-medium text-ink hover:bg-darna/10 hover:text-darna",
-                      // Coins arrondis aux extrémités de plage.
-                      isStart && effectiveOut ? "rounded-e-none" : "",
-                      isEnd && checkIn ? "rounded-s-none" : "",
+                              : "font-medium text-ink hover:bg-darna/10 hover:text-darna",
                     ].join(" ")}
                   >
                     {i + 1}
@@ -296,57 +271,6 @@ export function BookingDatePicker({
           <span className="line-through decoration-ink/40">{fr.property.legende}</span>
         </span>
       </div>
-
-      {/* Voyageurs + recherche */}
-      <div className="mt-6 flex flex-wrap items-end justify-between gap-4 border-t border-darna/10 pt-5">
-        <label className="flex flex-col gap-1.5">
-          <span className="flex items-center gap-1 text-xs font-semibold text-ink/60">
-            <UsersIcon width={13} height={13} />
-            {fr.search.voyageurs}
-          </span>
-          <div className="flex items-center gap-1 rounded-xl border border-darna/15 bg-cream p-1">
-            <button
-              type="button"
-              aria-label="-"
-              onClick={() => setVoyageurs((v) => Math.max(1, v - 1))}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-lg font-bold text-darna transition hover:bg-white disabled:opacity-30"
-              disabled={voyageurs <= 1}
-            >
-              −
-            </button>
-            <input
-              type="number"
-              name="voyageurs"
-              min={1}
-              max={maxGuests}
-              value={voyageurs}
-              onChange={(e) =>
-                setVoyageurs(
-                  Math.max(1, Math.min(maxGuests, Number(e.target.value) || 1))
-                )
-              }
-              className="w-10 bg-transparent text-center text-sm font-bold text-ink outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-            />
-            <button
-              type="button"
-              aria-label="+"
-              onClick={() => setVoyageurs((v) => Math.min(maxGuests, v + 1))}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-lg font-bold text-darna transition hover:bg-white disabled:opacity-30"
-              disabled={voyageurs >= maxGuests}
-            >
-              +
-            </button>
-          </div>
-        </label>
-
-        <button
-          type="submit"
-          disabled={!complete}
-          className="ms-auto rounded-xl bg-darna px-6 py-3 text-sm font-bold text-white transition hover:bg-darna-light disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          {fr.common.rechercher}
-        </button>
-      </div>
-    </form>
+    </div>
   );
 }

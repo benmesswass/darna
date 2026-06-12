@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getT } from "@/lib/i18n/server";
@@ -10,8 +11,17 @@ import {
   HeartIcon,
   ShieldIcon,
   SparklesIcon,
+  UserIcon,
   UsersIcon,
 } from "@/components/icons";
+
+/** Initiales (1 à 2 lettres) pour l'avatar par défaut de l'en-tête. */
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
 
 export default async function DashboardLayout({
   children,
@@ -34,25 +44,47 @@ export default async function DashboardLayout({
       : []),
     { href: "/dashboard/reservations", label: fr.dashboard.mesReservations, icon: CalendarIcon },
     { href: "/dashboard/favoris", label: fr.dashboard.favoris, icon: HeartIcon },
+    { href: "/dashboard/profil", label: fr.dashboard.monProfil, icon: UserIcon },
     { href: "/dashboard/kyc", label: fr.dashboard.kyc, icon: ShieldIcon },
   ];
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-darna">
-            {fr.dashboard.bonjour(user.name)}
-          </h1>
-          <p className="mt-0.5 flex items-center gap-2 text-sm text-ink/60">
-            {user.email}
-            {user.kycStatus === "VERIFIE" ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-sand px-2 py-0.5 text-[11px] font-semibold text-darna-dark">
-                <CheckIcon width={11} height={11} strokeWidth={3} />
-                {fr.kyc.statutVerifie}
+        <div className="flex items-center gap-3.5">
+          <Link
+            href="/dashboard/profil"
+            aria-label={fr.dashboard.monProfil}
+            className="group relative h-14 w-14 shrink-0 overflow-hidden rounded-full bg-sand ring-2 ring-white shadow-sm transition hover:ring-darna/20"
+          >
+            {user.image ? (
+              <Image
+                src={user.image}
+                alt={user.name}
+                width={56}
+                height={56}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <span className="flex h-full w-full items-center justify-center text-lg font-bold text-darna-dark">
+                {initials(user.name)}
               </span>
-            ) : null}
-          </p>
+            )}
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold text-darna">
+              {fr.dashboard.bonjour(user.name)}
+            </h1>
+            <p className="mt-0.5 flex items-center gap-2 text-sm text-ink/60">
+              {user.email}
+              {user.kycStatus === "VERIFIE" ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-sand px-2 py-0.5 text-[11px] font-semibold text-darna-dark">
+                  <CheckIcon width={11} height={11} strokeWidth={3} />
+                  {fr.kyc.statutVerifie}
+                </span>
+              ) : null}
+            </p>
+          </div>
         </div>
         <form action={logoutAction}>
           <button

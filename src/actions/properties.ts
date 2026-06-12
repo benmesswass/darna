@@ -462,26 +462,113 @@ export async function setCoverPhotoAction(formData: FormData): Promise<void> {
   revalidatePath(`/annonce/${photo.property.slug}`);
 }
 
-/** Favori (cœur) sur une annonce — bascule ajout/retrait. */
-export async function toggleFavoriteAction(formData: FormData): Promise<void> {
+// Nom de dossier de favoris : libre, non vide, borné. La suggestion par
+// défaut « Ville, Mois Année » est calculée côté client (locale-aware).
+const folderNameSchema = z.string().trim().min(1).max(80);
+
+/**
+ * Retire un logement des favoris — appelé au clic sur le cœur déjà rempli.
+ * deleteMany (et non delete) : idempotent, aucune erreur si déjà absent.
+ */
+export async function removeFavoriteAction(propertyId: string): Promise<void> {
   const user = await requireUser();
-  const parsed = idSchema.safeParse(formData.get("propertyId"));
+  const parsed = idSchema.safeParse(propertyId);
   if (!parsed.success) return;
 
-  const existing = await prisma.favorite.findUnique({
-    where: { userId_propertyId: { userId: user.id, propertyId: parsed.data } },
+  await prisma.favorite.deleteMany({
+    where: { userId: user.id, propertyId: parsed.data },
   });
-  if (existing) {
-    await prisma.favorite.delete({ where: { id: existing.id } });
-  } else {
-    await prisma.favorite.create({
-      data: { userId: user.id, propertyId: parsed.data },
-    });
-  }
   revalidatePath("/dashboard/favoris");
+}
 
-  const path = formData.get("path");
-  if (typeof path === "string" && /^\/annonce\/[a-z0-9-]+$/.test(path)) {
-    revalidatePath(path);
+/**
+ * Enregistre un logement dans un dossier existant (folderId), ou « Sans
+ * dossier » (folderId null). upsert → réutilisable pour DÉPLACER un favori
+ * déjà présent vers un autre dossier. Le dossier ciblé doit appartenir au user.
+ */
+export async function addFavoriteAction(
+  propertyId: string,
+  folderId: string | null
+): Promise<void> {
+  const user = await requireUser();
+  const pid = idSchema.safeParse(propertyId);
+  if (!pid.success) return;
+
+  let resolvedFolderId: string | null = null;
+  if (folderId) {
+    const fid = idSchema.safeParse(folderId);
+    if (!fid.success) return;
+    // Autorisation : jamais confiance au client — le dossier doit être le sien.
+    const folder = await prisma.favoriteFolder.findFirst({
+      where: { id: fid.data, userId: user.id },
+      select: { id: true },
+    });
+    if (!folder) return;
+    resolvedFolderId = folder.id;
   }
+
+  await prisma.favorite.upsert({
+    where: { userId_propertyId: { userId: user.id, propertyId: pid.data } },
+    create: { userId: user.id, propertyId: pid.data, folderId: resolvedFolderId },
+    update: { folderId: resolvedFolderId },
+  });
+  revalidatePath("/dashboard/favoris");
+}
+
+/**
+ * Crée un nouveau dossier (nom fourni par l'utilisateur, déjà pré-rempli
+ * « Ville, Mois Année » côté client) PUIS y enregistre le logement — en une
+ * transaction pour ne jamais laisser un dossier orphelin si l'ajout échoue.
+ */
+export async function createFolderWithFavoriteAction(
+  propertyId: string,
+  name: string
+): Promise<{ folderId: string } | null> {
+  const user = await requireUser();
+  const pid = idSchema.safeParse(propertyId);
+  const parsedName = folderNameSchema.safeParse(name);
+  if (!pid.success || !parsedName.success) return null;
+
+  const folder = await prisma.$transaction(async (tx) => {
+    const created = await tx.favoriteFolder.create({
+      data: { userId: user.id, name: parsedName.data },
+    });
+    await tx.favorite.upsert({
+      where: { userId_propertyId: { userId: user.id, propertyId: pid.data } },
+      create: { userId: user.id, propertyId: pid.data, folderId: created.id },
+      update: { folderId: created.id },
+    });
+    return created;
+  });
+  revalidatePath("/dashboard/favoris");
+  return { folderId: folder.id };
+}
+
+/** Renomme un dossier de favoris (propriété vérifiée côté serveur). */
+export async function renameFolderAction(formData: FormData): Promise<void> {
+  const user = await requireUser();
+  const fid = idSchema.safeParse(formData.get("folderId"));
+  const parsedName = folderNameSchema.safeParse(formData.get("name"));
+  if (!fid.success || !parsedName.success) return;
+
+  await prisma.favoriteFolder.updateMany({
+    where: { id: fid.data, userId: user.id },
+    data: { name: parsedName.data },
+  });
+  revalidatePath("/dashboard/favoris");
+}
+
+/**
+ * Supprime un dossier. Ses favoris ne sont PAS supprimés : ils repassent
+ * « Sans dossier » (Favorite.folderId → null via onDelete: SetNull au schéma).
+ */
+export async function deleteFolderAction(formData: FormData): Promise<void> {
+  const user = await requireUser();
+  const fid = idSchema.safeParse(formData.get("folderId"));
+  if (!fid.success) return;
+
+  await prisma.favoriteFolder.deleteMany({
+    where: { id: fid.data, userId: user.id },
+  });
+  revalidatePath("/dashboard/favoris");
 }

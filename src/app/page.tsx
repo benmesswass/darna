@@ -2,6 +2,8 @@ import Link from "next/link";
 import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { activeListingWhere, getAlaUneListings, getFeaturedListings } from "@/lib/listings";
+import { getSessionUser } from "@/lib/session";
+import { getFavoriteContext, favoritePropFor } from "@/lib/favorites";
 import { PropertyCard } from "@/components/property/PropertyCard";
 import { CityAutocomplete } from "@/components/search/CityAutocomplete";
 import {
@@ -28,6 +30,7 @@ export default async function HomePage() {
       prisma.property.groupBy({ by: ["city"], where: activeListingWhere() }),
       prisma.review.count(),
     ]);
+  const favCtx = await getFavoriteContext((await getSessionUser())?.id);
   return (
     <div>
       {/* Hero — recherche directe + message de marque + preuves chiffrées */}
@@ -148,7 +151,12 @@ export default async function HomePage() {
           </div>
           <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {alaUne.map((p) => (
-              <PropertyCard key={p.id} property={p} showType />
+              <PropertyCard
+                key={p.id}
+                property={p}
+                showType
+                favorite={favoritePropFor(favCtx, p.id)}
+              />
             ))}
           </div>
         </section>
@@ -169,7 +177,12 @@ export default async function HomePage() {
           </div>
           <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {featured.map((p) => (
-              <PropertyCard key={p.id} property={p} showType />
+              <PropertyCard
+                key={p.id}
+                property={p}
+                showType
+                favorite={favoritePropFor(favCtx, p.id)}
+              />
             ))}
           </div>
         </section>

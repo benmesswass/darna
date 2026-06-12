@@ -5,8 +5,8 @@ import { fr as frMeta } from "@/lib/i18n/fr";
 import { buildUnavailableDates, getPropertyBySlug } from "@/lib/listings";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
-import { toggleFavoriteAction } from "@/actions/properties";
-import { HeartIcon } from "@/components/icons";
+import { getFavoriteContext } from "@/lib/favorites";
+import { FavoriteButton } from "@/components/property/FavoriteButton";
 import { markerPriceLabel } from "@/lib/format";
 import { Price } from "@/components/currency/Price";
 import { PropertyMap } from "@/components/map/PropertyMap";
@@ -89,12 +89,7 @@ export default async function AnnoncePage({
   if (!property) notFound();
 
   const user = await getSessionUser();
-  const favorite = user
-    ? await prisma.favorite.findUnique({
-        where: { userId_propertyId: { userId: user.id, propertyId: property.id } },
-        select: { id: true },
-      })
-    : null;
+  const favCtx = await getFavoriteContext(user?.id);
 
   // Avis possible uniquement après un séjour confirmé et terminé, sans avis existant.
   const eligibleBooking =
@@ -154,31 +149,13 @@ export default async function AnnoncePage({
           </div>
           <div className="mt-3 flex items-center gap-3">
             <h1 className="text-3xl font-bold text-darna">{property.title}</h1>
-            {user ? (
-              <form action={toggleFavoriteAction}>
-                <input type="hidden" name="propertyId" value={property.id} />
-                <input type="hidden" name="path" value={`/annonce/${property.slug}`} />
-                <button
-                  type="submit"
-                  aria-label={
-                    favorite ? fr.property.favoriRetirer : fr.property.favoriAjouter
-                  }
-                  title={
-                    favorite ? fr.property.favoriRetirer : fr.property.favoriAjouter
-                  }
-                  className={`rounded-full p-2 ring-1 transition ${
-                    favorite
-                      ? "bg-red-50 text-red-600 ring-red-200"
-                      : "bg-white text-ink/40 ring-darna/15 hover:text-red-500"
-                  }`}
-                >
-                  <HeartIcon
-                    width={18}
-                    height={18}
-                    fill={favorite ? "currentColor" : "none"}
-                  />
-                </button>
-              </form>
+            {favCtx ? (
+              <FavoriteButton
+                propertyId={property.id}
+                city={property.city}
+                isFavorited={favCtx.favoritedIds.has(property.id)}
+                folders={favCtx.folders}
+              />
             ) : null}
           </div>
           <p className="mt-1 flex items-center gap-1.5 text-ink/60">
@@ -194,10 +171,15 @@ export default async function AnnoncePage({
             className="text-3xl font-bold text-darna"
           />
           {avgRating ? (
-            <p className="mt-1 flex items-center justify-end gap-1 text-sm text-ink/70">
+            <a
+              href="#avis"
+              aria-label={fr.property.voirAvis}
+              title={fr.property.voirAvis}
+              className="mt-1 inline-flex items-center justify-end gap-1 rounded-full text-sm text-ink/70 underline-offset-4 transition hover:text-darna hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-darna/40"
+            >
               <StarIcon width={15} height={15} fill="currentColor" className="text-sand" />
               {avgRating.toFixed(1)} · {fr.property.nbAvis(property.reviews.length)}
-            </p>
+            </a>
           ) : null}
         </div>
       </div>

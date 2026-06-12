@@ -199,6 +199,97 @@ export async function createBookingAction(
   redirect(`/reservation/${bookingId}/paiement`);
 }
 
+export type BookingQuote =
+  | { ok: true; nights: number; subtotal: number; serviceFee: number; total: number }
+  | { ok: false; error: string };
+
+const quoteSchema = z.object({
+  slug: z.string().trim().min(1).max(200),
+  arrivee: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  depart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  voyageurs: z.coerce.number().int().min(1).max(30),
+});
+
+/**
+ * Devis (aperçu) du séjour, calculé CÔTÉ SERVEUR pour alimenter le
+ * récapitulatif en direct — sans rechargement de page. Lecture seule : aucune
+ * confiance n'est faite au client, et le prix faisant foi est de toute façon
+ * recalculé à la création (createBookingAction). Vérifie aussi la dispo pour
+ * signaler tout de suite des dates qui viendraient d'être prises.
+ */
+export async function quoteBookingAction(input: {
+  slug: string;
+  arrivee: string;
+  depart: string;
+  voyageurs: number;
+}): Promise<BookingQuote> {
+  const fr = await getT();
+  const parsed = quoteSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: fr.booking.datesInvalides };
+
+  const checkIn = new Date(`${parsed.data.arrivee}T00:00:00.000Z`);
+  const checkOut = new Date(`${parsed.data.depart}T00:00:00.000Z`);
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
+
+  const nights = Math.round((checkOut.getTime() - checkIn.getTime()) / DAY);
+  if (checkIn < today || nights < 1 || nights > 90) {
+    return { ok: false, error: fr.booking.datesInvalides };
+  }
+
+  const property = await prisma.property.findUnique({
+    where: { slug: parsed.data.slug },
+    select: {
+      id: true,
+      type: true,
+      status: true,
+      expiresAt: true,
+      price: true,
+      maxGuests: true,
+    },
+  });
+  if (
+    !property ||
+    property.type !== "SEJOUR" ||
+    property.status !== "ACTIVE" ||
+    property.expiresAt.getTime() < Date.now()
+  ) {
+    return { ok: false, error: fr.booking.datesIndisponibles };
+  }
+  if (property.maxGuests && parsed.data.voyageurs > property.maxGuests) {
+    return { ok: false, error: fr.booking.capaciteDepassee(property.maxGuests) };
+  }
+
+  // Conflit de disponibilité : réservations actives + blocages hôte.
+  const conflict = await prisma.property.findFirst({
+    where: {
+      id: property.id,
+      OR: [
+        {
+          bookings: {
+            some: {
+              status: { in: ["CONFIRMEE", "EN_ATTENTE"] },
+              checkIn: { lt: checkOut },
+              checkOut: { gt: checkIn },
+            },
+          },
+        },
+        {
+          availabilities: {
+            some: { startDate: { lt: checkOut }, endDate: { gt: checkIn } },
+          },
+        },
+      ],
+    },
+    select: { id: true },
+  });
+  if (conflict) return { ok: false, error: fr.booking.datesIndisponibles };
+
+  const subtotal = property.price * nights;
+  const serviceFee = Math.round(subtotal * SERVICE_FEE_RATE);
+  return { ok: true, nights, subtotal, serviceFee, total: subtotal + serviceFee };
+}
+
 const confirmSchema = z.string().cuid();
 
 /** Paiement simulé : passe la réservation en séquestre Darna. */

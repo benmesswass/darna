@@ -26,6 +26,7 @@ model User {
   passwordHash  String
   name          String
   phone         String?
+  image         String?  // Photo de profil — URL locale /uploads (cf. src/lib/uploads.ts)
   role          String   @default("VOYAGEUR") // VOYAGEUR | HOTE | AGENCE | ADMIN
   phoneVerified Boolean  @default(false)
   kycStatus     String   @default("NON_VERIFIE") // NON_VERIFIE | EN_ATTENTE | VERIFIE
@@ -37,6 +38,7 @@ model User {
   reviews         Review[]
   contactRequests ContactRequest[]
   favorites       Favorite[]
+  favoriteFolders FavoriteFolder[]
   auditLogs       AuditLog[]
 }
 
@@ -183,8 +185,29 @@ model Favorite {
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   propertyId String
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  // Dossier de classement (null = « Sans dossier »). Supprimer un dossier
+  // déclasse ses favoris sans les supprimer (onDelete: SetNull).
+  folderId   String?
+  folder     FavoriteFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
 
   @@unique([userId, propertyId])
+  @@index([folderId])
+}
+
+// Dossier de favoris d'un utilisateur (« Monastir, Juin 2026 »…).
+// Le nom par défaut suggéré est « Ville, Mois Année » mais reste librement
+// modifiable par l'utilisateur à la création.
+model FavoriteFolder {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  favorites Favorite[]
+
+  @@index([userId])
 }
 
 model WakilApplication {
