@@ -50,7 +50,14 @@ export async function PropertyCard({
               className="object-cover transition duration-300 group-hover:scale-105"
             />
           ) : null}
-          <div className="absolute start-3 top-3 flex flex-wrap gap-1.5">
+          {/* Quand le cœur est présent (end-3), on borne la rangée à end-14
+              pour qu'elle retourne à la ligne avant la zone du cœur — sinon
+              le dernier badge (Vérifié) passe dessous. */}
+          <div
+            className={`absolute start-3 top-3 flex flex-wrap gap-1.5 ${
+              favorite ? "end-14" : ""
+            }`}
+          >
             {featured ? <FeaturedBadge small /> : null}
             {showType ? <TypeBadge type={property.type} /> : null}
             {property.verified ? <VerifiedBadge small /> : null}

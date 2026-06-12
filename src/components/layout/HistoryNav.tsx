@@ -92,21 +92,25 @@ export function HistoryNav() {
     router.forward();
   }, [router]);
 
+  // Deux boutons indépendants, ancrés sous l'en-tête sticky (h-16) avec une
+  // marge : « précédent » côté start (gauche en LTR, droite en RTL), « suivant »
+  // côté end. En arabe la disposition se reflète, comme les flèches du navigateur.
+  const buttonClass =
+    "no-print accent-transition fixed top-20 z-[1000] flex items-center gap-1.5 rounded-full border border-black/5 bg-cream/90 px-3.5 py-2 text-sm font-semibold text-darna shadow-lg backdrop-blur disabled:cursor-not-allowed disabled:opacity-40 enabled:hover:bg-darna/10";
+
   return (
-    <div className="no-print fixed bottom-4 end-4 z-[1000] flex items-center gap-0.5 rounded-full border border-black/5 bg-cream/90 p-1 text-darna shadow-lg backdrop-blur">
+    <>
       <button
         type="button"
         onClick={goBack}
         disabled={!canBack}
         aria-label={fr.nav.precedent}
         title={fr.nav.precedent}
-        className="accent-transition flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40 enabled:hover:bg-darna/10"
+        className={`${buttonClass} start-4`}
       >
         <ChevronLeftIcon width={18} height={18} className="rtl:rotate-180" />
         <span className="hidden sm:inline">{fr.nav.precedent}</span>
       </button>
-
-      <span className="h-5 w-px bg-darna/15" aria-hidden />
 
       <button
         type="button"
@@ -114,7 +118,7 @@ export function HistoryNav() {
         disabled={!canForward}
         aria-label={fr.nav.suivant}
         title={fr.nav.suivant}
-        className="accent-transition flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40 enabled:hover:bg-darna/10"
+        className={`${buttonClass} end-4`}
       >
         <span className="hidden sm:inline">{fr.nav.suivant}</span>
         <ChevronLeftIcon
@@ -123,6 +127,6 @@ export function HistoryNav() {
           className="rotate-180 rtl:rotate-0"
         />
       </button>
-    </div>
+    </>
   );
 }
