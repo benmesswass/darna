@@ -351,17 +351,14 @@ export const fr = {
     disponibilitesTitre: "Bloquer des dates",
     disponibilitesAide:
       "Rendez votre logement indisponible sur une période (séjour perso, travaux…). Les dates bloquées disparaissent du calendrier de réservation des voyageurs.",
-    blocageDebut: "Du (premier jour)",
-    blocageFin: "Au (dernier jour, inclus)",
     bloquerDates: "Bloquer ces dates",
     aucunBlocage: "Aucune date bloquée pour le moment.",
     blocageAjoute: "Dates bloquées.",
     supprimerBlocage: "Retirer ce blocage",
     blocageDatesInvalides:
-      "Dates invalides — le dernier jour doit être égal ou postérieur au premier, et non passé.",
+      "Dates invalides — choisissez une arrivée et un départ (départ après l'arrivée, période non passée).",
     blocageConflitReservation:
       "Impossible : une réservation existe déjà sur cette période.",
-    blocagePeriode: (debut: string, fin: string) => `Du ${debut} au ${fin}`,
   },
   kyc: {
     titre: "Vérification d'identité (KYC)",

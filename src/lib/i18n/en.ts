@@ -351,17 +351,14 @@ export const en: Dictionary = {
     disponibilitesTitre: "Block dates",
     disponibilitesAide:
       "Make your place unavailable for a period (personal stay, renovation…). Blocked dates disappear from travellers' booking calendar.",
-    blocageDebut: "From (first day)",
-    blocageFin: "To (last day, included)",
     bloquerDates: "Block these dates",
     aucunBlocage: "No blocked dates yet.",
     blocageAjoute: "Dates blocked.",
     supprimerBlocage: "Remove this block",
     blocageDatesInvalides:
-      "Invalid dates — the last day must be on or after the first, and not in the past.",
+      "Invalid dates — pick a check-in and check-out (check-out after check-in, not in the past).",
     blocageConflitReservation:
       "Can't block: a booking already exists for this period.",
-    blocagePeriode: (debut: string, fin: string) => `From ${debut} to ${fin}`,
   },
   kyc: {
     titre: "Identity verification (KYC)",

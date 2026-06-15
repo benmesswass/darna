@@ -470,7 +470,8 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 const blockDatesSchema = z.object({
   propertyId: z.string().cuid(),
-  // Premier et dernier jour bloqués (INCLUS), en jour civil YYYY-MM-DD.
+  // Arrivée (premier jour bloqué) et départ (exclusif, jour de nouveau libre),
+  // en jour civil YYYY-MM-DD — même modèle que les réservations.
   start: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   end: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
 });
@@ -481,9 +482,9 @@ const blockDatesSchema = z.object({
  * prises en compte par le calendrier, le devis et l'anti-conflit (modèle
  * `Availability`).
  *
- * UI inclusive [premier jour, dernier jour] ; en base on stocke `endDate`
- * EXCLUSIVE (dernier jour + 1) pour coller à la sémantique des réservations
- * (`checkIn < endDate && checkOut > startDate`, itération `[start, end)`).
+ * Bornes arrivée → départ EXCLUSIF, comme une réservation : on stocke
+ * `startDate`/`endDate` tels quels (`checkIn < endDate && checkOut > startDate`,
+ * itération `[start, end)`).
  */
 export async function blockDatesAction(
   _prev: BlockDatesFormState,
@@ -504,17 +505,16 @@ export async function blockDatesAction(
   if (property.type !== "SEJOUR") return { error: fr.common.erreurInconnue };
 
   const startDate = new Date(`${parsed.data.start}T00:00:00.000Z`);
-  const lastDay = new Date(`${parsed.data.end}T00:00:00.000Z`);
+  const endDate = new Date(`${parsed.data.end}T00:00:00.000Z`);
   const today = new Date();
   today.setUTCHours(0, 0, 0, 0);
-  const endDate = new Date(lastDay.getTime() + DAY_MS); // exclusive
   const nights = Math.round((endDate.getTime() - startDate.getTime()) / DAY_MS);
   if (
     Number.isNaN(startDate.getTime()) ||
-    Number.isNaN(lastDay.getTime()) ||
-    lastDay < startDate ||
-    startDate < today ||
-    nights > 365
+    Number.isNaN(endDate.getTime()) ||
+    nights < 1 ||
+    nights > 365 ||
+    startDate < today
   ) {
     return { error: fr.annonceForm.blocageDatesInvalides };
   }

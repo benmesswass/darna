@@ -5,8 +5,7 @@ import { getSessionUser } from "@/lib/session";
 import { PropertyForm } from "@/components/dashboard/PropertyForm";
 import { PhotoManager } from "@/components/dashboard/PhotoManager";
 import { BlockedDatesManager } from "@/components/dashboard/BlockedDatesManager";
-
-const DAY_MS = 24 * 60 * 60 * 1000;
+import { expandUnavailable } from "@/lib/availability";
 
 export default async function ModifierAnnoncePage({
   params,
@@ -28,9 +27,27 @@ export default async function ModifierAnnoncePage({
         where: { endDate: { gt: new Date() } },
         orderBy: { startDate: "asc" },
       },
+      // Réservations actives : grisées au calendrier de blocage (non bloquables).
+      bookings: {
+        where: {
+          checkOut: { gte: new Date() },
+          OR: [
+            { status: "CONFIRMEE" },
+            { status: "EN_ATTENTE", expiresAt: { gt: new Date() } },
+          ],
+        },
+        select: { checkIn: true, checkOut: true },
+      },
     },
   });
   if (!property) notFound();
+
+  // Dates déjà prises (réservations actives) ou déjà bloquées → non
+  // re-sélectionnables dans le calendrier de blocage.
+  const unavailable = expandUnavailable([
+    ...property.bookings.map((b) => ({ start: b.checkIn, end: b.checkOut })),
+    ...property.availabilities.map((a) => ({ start: a.startDate, end: a.endDate })),
+  ]);
 
   return (
     <div className="space-y-8">
@@ -84,11 +101,11 @@ export default async function ModifierAnnoncePage({
           <div className="mt-5 rounded-3xl bg-white p-6 ring-1 ring-darna/10">
             <BlockedDatesManager
               propertyId={property.id}
+              unavailable={unavailable}
               blocks={property.availabilities.map((a) => ({
                 id: a.id,
                 start: a.startDate.toISOString().slice(0, 10),
-                // endDate est exclusive en base → dernier jour bloqué = endDate − 1 j.
-                end: new Date(a.endDate.getTime() - DAY_MS).toISOString().slice(0, 10),
+                end: a.endDate.toISOString().slice(0, 10), // exclusif (arrivée → départ)
               }))}
             />
           </div>
