@@ -355,6 +355,7 @@ export const en: Dictionary = {
     aucunBlocage: "No blocked dates yet.",
     blocageAjoute: "Dates blocked.",
     supprimerBlocage: "Remove this block",
+    blocageNotePlaceholder: "Note (e.g. family stay, renovation…) — optional",
     blocageDatesInvalides:
       "Invalid dates — pick a check-in and check-out (check-out after check-in, not in the past).",
     blocageConflitReservation:

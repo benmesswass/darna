@@ -355,6 +355,7 @@ export const fr = {
     aucunBlocage: "Aucune date bloquée pour le moment.",
     blocageAjoute: "Dates bloquées.",
     supprimerBlocage: "Retirer ce blocage",
+    blocageNotePlaceholder: "Note (ex. séjour famille, travaux…) — facultatif",
     blocageDatesInvalides:
       "Dates invalides — choisissez une arrivée et un départ (départ après l'arrivée, période non passée).",
     blocageConflitReservation:

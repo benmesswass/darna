@@ -105,6 +105,9 @@ model Availability {
   id        String   @id @default(cuid())
   startDate DateTime
   endDate   DateTime
+  // Note privée de l'hôte (ex. « séjour famille », « travaux ») — jamais
+  // exposée aux voyageurs, aide-mémoire dans le dashboard uniquement.
+  reason    String?
 
   propertyId String
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)

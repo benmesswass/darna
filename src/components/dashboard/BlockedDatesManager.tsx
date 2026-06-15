@@ -18,7 +18,12 @@ const INTL_LOCALE: Record<string, string> = {
 };
 
 /** Un blocage : bornes arrivée → départ EXCLUSIF (ISO), comme une réservation. */
-export type DateBlock = { id: string; start: string; end: string };
+export type DateBlock = {
+  id: string;
+  start: string;
+  end: string;
+  reason: string | null;
+};
 
 /**
  * Gestion des dates bloquées d'une annonce (séjour perso, travaux…). Liste les
@@ -78,8 +83,13 @@ export function BlockedDatesManager({
               key={b.id}
               className="flex items-center justify-between gap-3 rounded-2xl bg-cream/60 px-4 py-2.5 ring-1 ring-darna/10"
             >
-              <span className="text-sm font-medium text-ink">
-                {fr.booking.sejourDates(fmt(b.start), fmt(b.end))}
+              <span className="min-w-0 text-sm text-ink">
+                <span className="font-medium">
+                  {fr.booking.sejourDates(fmt(b.start), fmt(b.end))}
+                </span>
+                {b.reason ? (
+                  <span className="block truncate text-xs text-ink/55">{b.reason}</span>
+                ) : null}
               </span>
               <form action={unblockDatesAction}>
                 <input type="hidden" name="availabilityId" value={b.id} />
@@ -128,6 +138,17 @@ export function BlockedDatesManager({
             setCheckOut(co);
           }}
         />
+
+        <label className="block">
+          <span className="sr-only">{fr.annonceForm.blocageNotePlaceholder}</span>
+          <input
+            type="text"
+            name="reason"
+            maxLength={120}
+            placeholder={fr.annonceForm.blocageNotePlaceholder}
+            className="w-full rounded-xl bg-cream px-3.5 py-2.5 text-sm text-ink ring-1 ring-darna/10 placeholder:text-ink/40 focus:outline-none focus:ring-2 focus:ring-darna/40"
+          />
+        </label>
 
         <button
           type="submit"

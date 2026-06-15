@@ -474,6 +474,8 @@ const blockDatesSchema = z.object({
   // en jour civil YYYY-MM-DD — même modèle que les réservations.
   start: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   end: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  // Note privée facultative (aide-mémoire de l'hôte, jamais montrée au voyageur).
+  reason: z.string().trim().max(120).optional(),
 });
 
 /**
@@ -495,6 +497,7 @@ export async function blockDatesAction(
     propertyId: formData.get("propertyId"),
     start: formData.get("start"),
     end: formData.get("end"),
+    reason: (formData.get("reason") as string) || undefined,
   });
   if (!parsed.success) return { error: fr.annonceForm.blocageDatesInvalides };
 
@@ -536,7 +539,7 @@ export async function blockDatesAction(
   if (conflict) return { error: fr.annonceForm.blocageConflitReservation };
 
   await prisma.availability.create({
-    data: { propertyId: property.id, startDate, endDate },
+    data: { propertyId: property.id, startDate, endDate, reason: parsed.data.reason || null },
   });
 
   await logAudit({

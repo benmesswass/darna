@@ -106,6 +106,7 @@ export default async function ModifierAnnoncePage({
                 id: a.id,
                 start: a.startDate.toISOString().slice(0, 10),
                 end: a.endDate.toISOString().slice(0, 10), // exclusif (arrivée → départ)
+                reason: a.reason,
               }))}
             />
           </div>
