@@ -374,6 +374,8 @@ export const ar: Dictionary = {
     aucunBlocage: "ما فماش تواريخ مبلوكية للتوّ.",
     blocageAjoute: "التواريخ تبلوكات.",
     supprimerBlocage: "نحّي هالبلوكاج",
+    blocageRetraitConfirmer: "تنحّي هالبلوكاج؟",
+    blocageRetraitOui: "نحّي",
     blocageNotePlaceholder: "ملاحظة (مثلا: إقامة عائلية، خدمة…) — اختياري",
     blocageDatesInvalides:
       "تواريخ غالطة — اختار تاريخ وصول وتاريخ مغادرة (المغادرة بعد الوصول، وفترة ماهيش فايتة).",

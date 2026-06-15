@@ -52,6 +52,8 @@ export function BlockedDatesManager({
   );
   const [checkIn, setCheckIn] = useState<string | null>(null);
   const [checkOut, setCheckOut] = useState<string | null>(null);
+  // Blocage en attente de confirmation de retrait (× cliqué, pas encore confirmé).
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
 
   // Réinitialise la sélection une fois le blocage enregistré.
   useEffect(() => {
@@ -94,17 +96,39 @@ export function BlockedDatesManager({
                   <span className="block truncate text-xs text-ink/55">{b.reason}</span>
                 ) : null}
               </span>
-              <form action={unblockDatesAction}>
-                <input type="hidden" name="availabilityId" value={b.id} />
+              {confirmingId === b.id ? (
+                <div className="flex shrink-0 items-center gap-2">
+                  <span className="text-xs font-medium text-ink/70">
+                    {fr.annonceForm.blocageRetraitConfirmer}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmingId(null)}
+                    className="rounded-full px-3 py-1 text-xs font-semibold text-ink/55 transition hover:bg-cream hover:text-ink"
+                  >
+                    {fr.common.annuler}
+                  </button>
+                  <form action={unblockDatesAction}>
+                    <input type="hidden" name="availabilityId" value={b.id} />
+                    <button
+                      type="submit"
+                      className="rounded-full bg-red-600 px-3 py-1 text-xs font-semibold text-white transition hover:bg-red-700"
+                    >
+                      {fr.annonceForm.blocageRetraitOui}
+                    </button>
+                  </form>
+                </div>
+              ) : (
                 <button
-                  type="submit"
+                  type="button"
+                  onClick={() => setConfirmingId(b.id)}
                   title={fr.annonceForm.supprimerBlocage}
                   aria-label={fr.annonceForm.supprimerBlocage}
-                  className="flex h-7 w-7 items-center justify-center rounded-full bg-ink/70 text-white transition hover:bg-red-600"
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-ink/70 text-white transition hover:bg-red-600"
                 >
                   <CloseIcon width={12} height={12} />
                 </button>
-              </form>
+              )}
             </li>
           ))}
         </ul>
