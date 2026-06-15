@@ -348,6 +348,8 @@ export const ar: Dictionary = {
     photosTitre: "صور الإعلان",
     photosAide:
       "JPEG، PNG ولا WebP — 5 ميغا كحد أقصى للصورة، 8 صور للإعلان. الغلاف هو أول صورة تظهر.",
+    photosCreationAide:
+      "JPEG، PNG ولا WebP (اختياري). كان ما زدتش تصاور، يتحطّو visuels مؤقتين — تنجّم تبدّلهم من بعد من «تعديل».",
     ajouterPhotos: "زيد الصور",
     choisirFichiers: "اختار ملفات…",
     photosAjoutees: "الصور تزادت!",

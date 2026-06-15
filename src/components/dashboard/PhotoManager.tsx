@@ -10,6 +10,7 @@ import {
   type PhotoFormState,
 } from "@/actions/properties";
 import { useT } from "@/components/i18n/LocaleProvider";
+import { compressFileInput } from "@/lib/image-compress";
 import { CheckIcon, CloseIcon, StarIcon } from "@/components/icons";
 
 export type ManagedPhoto = {
@@ -63,42 +64,6 @@ function PhotoCaptionField({ photo }: { photo: ManagedPhoto }) {
       </div>
     </form>
   );
-}
-
-/**
- * Compression côté client avant upload : redimensionne à 1920 px max et
- * réencode en JPEG. Une photo de téléphone de 6 Mo part en ~400 Ko —
- * essentiel sur les réseaux mobiles tunisiens, et reste sous la limite
- * de corps des Server Actions.
- */
-async function compressImage(file: File): Promise<File> {
-  // Déjà léger : on ne touche pas.
-  if (file.size < 600 * 1024) return file;
-
-  try {
-    const bitmap = await createImageBitmap(file);
-    const MAX_EDGE = 1920;
-    const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
-    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return file;
-    ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-    bitmap.close();
-
-    const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob(resolve, "image/jpeg", 0.82)
-    );
-    if (!blob || blob.size >= file.size) return file;
-
-    return new File([blob], file.name.replace(/\.[^.]+$/, "") + ".jpg", {
-      type: "image/jpeg",
-    });
-  } catch {
-    // Format non décodable par le navigateur : le serveur tranchera.
-    return file;
-  }
 }
 
 /** Gestion des photos d'une annonce : ajout (upload), couverture, suppression. */
@@ -191,16 +156,7 @@ export function PhotoManager({
             accept="image/jpeg,image/png,image/webp"
             multiple
             required
-            onChange={async (e) => {
-              // Compresse à la sélection, puis remplace les fichiers de l'input.
-              const input = e.currentTarget;
-              const files = [...(input.files ?? [])];
-              if (files.length === 0) return;
-              const compressed = await Promise.all(files.map(compressImage));
-              const dt = new DataTransfer();
-              compressed.forEach((f) => dt.items.add(f));
-              input.files = dt.files;
-            }}
+            onChange={(e) => compressFileInput(e.currentTarget)}
             className="text-sm text-ink/70 file:me-3 file:rounded-full file:border-0 file:bg-darna file:px-4 file:py-2 file:text-xs file:font-bold file:text-white hover:file:bg-darna-light"
           />
           <button

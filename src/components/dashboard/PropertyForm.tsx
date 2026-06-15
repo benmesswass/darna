@@ -7,6 +7,7 @@ import {
   type PropertyFormState,
 } from "@/actions/properties";
 import { useT } from "@/components/i18n/LocaleProvider";
+import { compressFileInput } from "@/lib/image-compress";
 import { generateDescription } from "@/lib/description";
 import { AMENITIES } from "@/lib/constants";
 import { CITIES, getCity, nearestCity, resolveCity } from "@/lib/geo";
@@ -283,6 +284,22 @@ export function PropertyForm({ initial }: { initial?: PropertyFormInitial }) {
         />
         <p className="text-xs text-ink/40">{fr.annonceForm.genererDescriptionAide}</p>
       </div>
+
+      {/* Photos — création uniquement (en édition, géré par le PhotoManager). */}
+      {!isEdit ? (
+        <div className="space-y-1.5">
+          <span className={labelClass}>{fr.annonceForm.photosTitre}</span>
+          <input
+            type="file"
+            name="photos"
+            accept="image/jpeg,image/png,image/webp"
+            multiple
+            onChange={(e) => compressFileInput(e.currentTarget)}
+            className="block w-full text-sm text-ink/70 file:me-3 file:rounded-full file:border-0 file:bg-darna file:px-4 file:py-2 file:text-xs file:font-bold file:text-white hover:file:bg-darna-light"
+          />
+          <p className="text-xs text-ink/40">{fr.annonceForm.photosCreationAide}</p>
+        </div>
+      ) : null}
 
       <button
         type="submit"

@@ -87,6 +87,36 @@ export async function createPropertyAction(
 
   const seedChar = data.title.length + cityRef.name.length;
 
+  // Photos fournies par l'hôte à la création (facultatif). On valide et on
+  // sauvegarde AVANT de créer l'annonce : si une image est refusée, on renvoie
+  // l'erreur sans créer d'annonce orpheline. Sans photo valide, on retombe sur
+  // des visuels temporaires — l'annonce n'est jamais publiée sans image.
+  const uploads = formData
+    .getAll("photos")
+    .filter((f): f is File => f instanceof File && f.size > 0);
+  if (uploads.length > MAX_PHOTOS_PER_PROPERTY) {
+    return { error: fr.annonceForm.maxPhotos(MAX_PHOTOS_PER_PROPERTY) };
+  }
+  const uploadedUrls: string[] = [];
+  for (const file of uploads) {
+    const url = await saveUploadedImage(file);
+    if (!url) return { error: fr.annonceForm.erreurUpload };
+    uploadedUrls.push(url);
+  }
+
+  const photoRecords =
+    uploadedUrls.length > 0
+      ? uploadedUrls.map((url, i) => ({
+          url,
+          alt: `${data.title} — photo ${i + 1}`,
+          position: i,
+        }))
+      : [0, 1, 2].map((n) => ({
+          url: `/placeholders/${PLACEHOLDER_POOL[(seedChar + n * 3) % PLACEHOLDER_POOL.length]}.svg`,
+          alt: `${data.title} — photo ${n + 1}`,
+          position: n,
+        }));
+
   const property = await prisma.property.create({
     data: {
       slug,
@@ -105,13 +135,7 @@ export async function createPropertyAction(
       amenities: data.amenities.join("|"),
       expiresAt: new Date(Date.now() + LISTING_LIFETIME_DAYS * 24 * 60 * 60 * 1000),
       ownerId: user.id,
-      photos: {
-        create: [0, 1, 2].map((n) => ({
-          url: `/placeholders/${PLACEHOLDER_POOL[(seedChar + n * 3) % PLACEHOLDER_POOL.length]}.svg`,
-          alt: `${data.title} — photo ${n + 1}`,
-          position: n,
-        })),
-      },
+      photos: { create: photoRecords },
     },
   });
 

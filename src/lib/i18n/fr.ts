@@ -328,6 +328,8 @@ export const fr = {
     photosTitre: "Photos de l'annonce",
     photosAide:
       "JPEG, PNG ou WebP — 5 Mo max par photo, 8 photos par annonce. La couverture est la première photo affichée.",
+    photosCreationAide:
+      "JPEG, PNG ou WebP (facultatif). Sans photo, des visuels temporaires seront posés — à remplacer ensuite depuis « Modifier ».",
     ajouterPhotos: "Ajouter les photos",
     choisirFichiers: "Choisir des fichiers…",
     photosAjoutees: "Photos ajoutées !",
