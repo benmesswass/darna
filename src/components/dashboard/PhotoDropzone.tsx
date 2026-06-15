@@ -27,6 +27,8 @@ export function PhotoDropzone({
   const [items, setItems] = useState<Item[]>([]);
   const [dragging, setDragging] = useState(false);
   const [busy, setBusy] = useState(false);
+  // Index de la vignette en cours de déplacement (réordonnancement).
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
   // Input sérialisé par le formulaire (name="photos") — synchronisé sur `items`.
   const hiddenRef = useRef<HTMLInputElement>(null);
   // Input invisible servant uniquement de sélecteur natif (sans name).
@@ -61,6 +63,17 @@ export function PhotoDropzone({
       return [...prev, ...added];
     });
     setBusy(false);
+  }
+
+  /** Déplace la vignette `from` à la position `to` (réordonnancement par glisser). */
+  function moveItem(from: number, to: number) {
+    if (from === to) return;
+    setItems((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
   }
 
   function removeAt(i: number) {
@@ -131,39 +144,67 @@ export function PhotoDropzone({
       />
       <input ref={hiddenRef} type="file" name="photos" multiple className="hidden" />
 
-      {/* Aperçu des photos retenues */}
+      {/* Aperçu des photos retenues — glisser-déposer pour réordonner. */}
       {items.length > 0 ? (
-        <ul className="grid grid-cols-3 gap-3 sm:grid-cols-4">
-          {items.map((it, i) => (
-            <li key={it.url}>
-              <div className="group relative aspect-[4/3] overflow-hidden rounded-2xl ring-1 ring-darna/10">
-                <Image
-                  src={it.url}
-                  alt={`Photo ${i + 1}`}
-                  fill
-                  unoptimized
-                  sizes="(max-width: 640px) 33vw, 160px"
-                  className="object-cover"
-                />
-                {i === 0 ? (
-                  <span className="absolute start-2 top-2 inline-flex items-center gap-1 rounded-full bg-sand px-2 py-0.5 text-[10px] font-bold text-darna-dark">
-                    <StarIcon width={10} height={10} />
-                    {fr.annonceForm.couverture}
-                  </span>
-                ) : null}
-                <button
-                  type="button"
-                  onClick={() => removeAt(i)}
-                  title={fr.annonceForm.supprimerPhoto}
-                  aria-label={fr.annonceForm.supprimerPhoto}
-                  className="absolute end-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-ink/70 text-white opacity-0 transition hover:bg-red-600 group-hover:opacity-100"
+        <>
+          {items.length > 1 ? (
+            <p className="text-xs text-ink/50">{fr.annonceForm.photosReordonner}</p>
+          ) : null}
+          <ul className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+            {items.map((it, i) => (
+              <li
+                key={it.url}
+                draggable
+                onDragStart={(e) => {
+                  setDragIndex(i);
+                  e.dataTransfer.effectAllowed = "move";
+                  e.dataTransfer.setData("text/plain", String(i));
+                }}
+                onDragOver={(e) => e.preventDefault()}
+                onDragEnter={() => {
+                  if (dragIndex !== null && dragIndex !== i) {
+                    moveItem(dragIndex, i);
+                    setDragIndex(i);
+                  }
+                }}
+                onDragEnd={() => setDragIndex(null)}
+                className={dragIndex === i ? "opacity-40" : ""}
+              >
+                <div
+                  className={[
+                    "group relative aspect-[4/3] cursor-move overflow-hidden rounded-2xl ring-1 transition",
+                    i === 0 ? "ring-2 ring-darna" : "ring-darna/10",
+                  ].join(" ")}
                 >
-                  <CloseIcon width={12} height={12} />
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+                  <Image
+                    src={it.url}
+                    alt={`Photo ${i + 1}`}
+                    fill
+                    unoptimized
+                    draggable={false}
+                    sizes="(max-width: 640px) 33vw, 160px"
+                    className="object-cover"
+                  />
+                  {i === 0 ? (
+                    <span className="absolute start-2 top-2 inline-flex items-center gap-1 rounded-full bg-sand px-2 py-0.5 text-[10px] font-bold text-darna-dark">
+                      <StarIcon width={10} height={10} />
+                      {fr.annonceForm.couverture}
+                    </span>
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={() => removeAt(i)}
+                    title={fr.annonceForm.supprimerPhoto}
+                    aria-label={fr.annonceForm.supprimerPhoto}
+                    className="absolute end-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-ink/70 text-white opacity-0 transition hover:bg-red-600 group-hover:opacity-100"
+                  >
+                    <CloseIcon width={12} height={12} />
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </>
       ) : null}
 
       <p className="text-xs text-ink/40">{fr.annonceForm.photosCreationAide}</p>

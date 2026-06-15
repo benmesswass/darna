@@ -334,6 +334,7 @@ export const en: Dictionary = {
     photosDeposerAide: "or browse your files — JPEG, PNG or WebP",
     photosParcourir: "Browse my photos",
     photosCreationAide: "The first photo will be your listing’s cover.",
+    photosReordonner: "Drag the photos to change their order.",
     photoRequise: "Add at least one photo to publish your listing.",
     ajouterPhotos: "Add photos",
     choisirFichiers: "Choose files…",

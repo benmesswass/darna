@@ -114,6 +114,14 @@ export function PropertyForm({ initial }: { initial?: PropertyFormInitial }) {
 
       {initial ? <input type="hidden" name="propertyId" value={initial.id} /> : null}
 
+      {/* Photos en tête (création) : premier critère de confiance, on les met
+          en avant. En édition, c'est le PhotoManager qui gère les photos. */}
+      {!isEdit ? (
+        <div className="rounded-2xl bg-cream/40 p-4 ring-1 ring-darna/10">
+          <PhotoDropzone onCountChange={setPhotoCount} />
+        </div>
+      ) : null}
+
       <label className="block space-y-1.5">
         <span className={labelClass}>{fr.annonceForm.titre}</span>
         <input
@@ -286,13 +294,6 @@ export function PropertyForm({ initial }: { initial?: PropertyFormInitial }) {
         />
         <p className="text-xs text-ink/40">{fr.annonceForm.genererDescriptionAide}</p>
       </div>
-
-      {/* Photos — création uniquement (en édition, géré par le PhotoManager). */}
-      {!isEdit ? (
-        <div className="rounded-2xl bg-cream/40 p-4 ring-1 ring-darna/10">
-          <PhotoDropzone onCountChange={setPhotoCount} />
-        </div>
-      ) : null}
 
       <button
         type="submit"

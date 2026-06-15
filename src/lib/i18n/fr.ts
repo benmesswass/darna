@@ -334,6 +334,7 @@ export const fr = {
     photosDeposerAide: "ou parcourez vos fichiers — JPEG, PNG ou WebP",
     photosParcourir: "Parcourir mes photos",
     photosCreationAide: "La première photo servira de couverture à votre annonce.",
+    photosReordonner: "Glissez les photos pour changer leur ordre.",
     photoRequise: "Ajoutez au moins une photo pour publier votre annonce.",
     ajouterPhotos: "Ajouter les photos",
     choisirFichiers: "Choisir des fichiers…",

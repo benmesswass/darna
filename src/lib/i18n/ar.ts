@@ -354,6 +354,7 @@ export const ar: Dictionary = {
     photosDeposerAide: "ولا اختار من ملفّاتك — JPEG، PNG ولا WebP",
     photosParcourir: "اختار تصاوري",
     photosCreationAide: "أوّل صورة باش تولّي غلاف إعلانك.",
+    photosReordonner: "اسحب التصاور باش تبدّل ترتيبهم.",
     photoRequise: "زيد على الأقل صورة وحدة باش تنشر إعلانك.",
     ajouterPhotos: "زيد الصور",
     choisirFichiers: "اختار ملفات…",
