@@ -105,7 +105,7 @@ export async function createBookingAction(
 
   // GUARD : un hôte ne peut pas réserver son propre logement
   if (property.ownerId === user.id) {
-    return { error: fr.booking.datesIndisponibles };
+    return { error: fr.booking.proprietaireImpossible };
   }
 
   if (property.maxGuests && parsed.data.voyageurs > property.maxGuests) {

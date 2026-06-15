@@ -442,6 +442,9 @@ export const en: Dictionary = {
     datesInvalides: "Invalid dates — check-out must come after check-in.",
     datesIndisponibles:
       "These dates are no longer available. Please choose different ones.",
+    proprietaireImpossible: "You can't book your own listing.",
+    proprietaireImpossibleAide:
+      "This is your listing. To test it as a traveller, sign in with another account.",
     capaciteDepassee: (max: number) =>
       `This accommodation hosts a maximum of ${max} guests.`,
     connexionRequise: "Sign in to book.",

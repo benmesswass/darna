@@ -59,6 +59,7 @@ export default async function ReserverPage({
       expiresAt: true,
       price: true,
       maxGuests: true,
+      ownerId: true,
       // Disponibilités temps réel : nuits confirmées + holds en attente non
       // expirés + blocages hôte → affichées directement sur le calendrier.
       bookings: {
@@ -81,6 +82,10 @@ export default async function ReserverPage({
 
   const user = await getSessionUser();
 
+  // Un hôte ne peut pas réserver son propre logement : on l'explique d'emblée
+  // plutôt que de laisser le formulaire échouer après affichage du prix.
+  const isOwner = Boolean(user && user.id === property.ownerId);
+
   const maxGuests = property.maxGuests ?? 30;
   const voyageurs = Math.max(1, Math.min(maxGuests, Number(sp.voyageurs) || 1));
 
@@ -98,16 +103,30 @@ export default async function ReserverPage({
         {property.title} — {property.city}
       </p>
 
-      {/* Calendrier interactif + récapitulatif live (prix calculés côté serveur) */}
-      <BookingPanel
-        slug={property.slug}
-        unavailable={unavailable}
-        maxGuests={maxGuests}
-        defaultArrivee={sp.arrivee ?? ""}
-        defaultDepart={sp.depart ?? ""}
-        defaultVoyageurs={voyageurs}
-        isLoggedIn={Boolean(user)}
-      />
+      {isOwner ? (
+        <div
+          role="status"
+          className="mt-6 rounded-3xl bg-white p-8 text-center shadow-sm ring-1 ring-darna/10"
+        >
+          <p className="text-lg font-bold text-darna">
+            {fr.booking.proprietaireImpossible}
+          </p>
+          <p className="mx-auto mt-2 max-w-md text-sm text-ink/60">
+            {fr.booking.proprietaireImpossibleAide}
+          </p>
+        </div>
+      ) : (
+        /* Calendrier interactif + récapitulatif live (prix calculés côté serveur) */
+        <BookingPanel
+          slug={property.slug}
+          unavailable={unavailable}
+          maxGuests={maxGuests}
+          defaultArrivee={sp.arrivee ?? ""}
+          defaultDepart={sp.depart ?? ""}
+          defaultVoyageurs={voyageurs}
+          isLoggedIn={Boolean(user)}
+        />
+      )}
     </div>
   );
 }

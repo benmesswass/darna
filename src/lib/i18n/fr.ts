@@ -442,6 +442,9 @@ export const fr = {
     datesInvalides: "Dates invalides — la date de départ doit suivre l'arrivée.",
     datesIndisponibles:
       "Ces dates ne sont plus disponibles. Merci d'en choisir d'autres.",
+    proprietaireImpossible: "Vous ne pouvez pas réserver votre propre logement.",
+    proprietaireImpossibleAide:
+      "C'est votre annonce. Pour la tester en tant que voyageur, connectez-vous avec un autre compte.",
     capaciteDepassee: (max: number) =>
       `Ce logement accueille au maximum ${max} voyageurs.`,
     connexionRequise: "Connectez-vous pour réserver.",

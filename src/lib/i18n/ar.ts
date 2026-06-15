@@ -465,6 +465,9 @@ export const ar: Dictionary = {
     datesInvalides: "التواريخ غالطة — تاريخ المغادرة لازم يجي بعد الوصول.",
     datesIndisponibles:
       "التواريخ هاذي ما عادتش متوفّرة. اختار غيرها من فضلك.",
+    proprietaireImpossible: "ما تنجمش تحجز الدار متاعك.",
+    proprietaireImpossibleAide:
+      "هاذي إعلانك. باش تجرّبها كمسافر، ادخل بحساب آخر.",
     capaciteDepassee: (max: number) =>
       `الدار هاذي تسع ${max} مسافرين كحد أقصى.`,
     connexionRequise: "ادخل لحسابك باش تحجز.",
