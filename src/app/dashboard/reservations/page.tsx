@@ -51,7 +51,7 @@ export default async function MesReservationsPage() {
 
     return (
       <div>
-        <h2 className="text-xl font-bold text-darna">{fr.dashboard.mesReservations}</h2>
+        <h2 className="text-xl font-bold text-darna">{fr.dashboard.mesVoyageurs}</h2>
 
         {bookings.length === 0 ? (
           <div className="mt-6 rounded-3xl bg-white p-10 text-center ring-1 ring-darna/10">
@@ -88,11 +88,18 @@ export default async function MesReservationsPage() {
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <span
-                    className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold ${STATUS_STYLES[b.status] ?? "bg-cream text-ink"}`}
-                  >
-                    {fr.dashboard.statutReservation[b.status] ?? b.status}
-                  </span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold ${STATUS_STYLES[b.status] ?? "bg-cream text-ink"}`}
+                    >
+                      {fr.dashboard.statutReservation[b.status] ?? b.status}
+                    </span>
+                    {b.paidAt ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
+                        ✓ {fr.dashboard.payeLe(formatDateShortFr(b.paidAt))}
+                      </span>
+                    ) : null}
+                  </div>
 
                   <Link
                     href={`/annonce/${b.property.slug}`}

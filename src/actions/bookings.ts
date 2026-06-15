@@ -29,6 +29,25 @@ class BookingConflictError extends Error {
   }
 }
 
+/**
+ * Filtre Prisma des réservations qui bloquent RÉELLEMENT un créneau : les
+ * réservations confirmées + les holds EN_ATTENTE encore vivants. Les holds
+ * expirés (créés lors d'une tentative abandonnée, pas encore balayés en ANNULEE)
+ * NE bloquent PAS : sinon un panier expiré rendrait les dates « indisponibles »
+ * alors que le calendrier les propose librement (la page reserver filtre déjà
+ * `expiresAt > now`). C'est exactement le même critère, gardé cohérent ici.
+ */
+function blockingBookingOverlap(checkIn: Date, checkOut: Date) {
+  return {
+    checkIn: { lt: checkOut },
+    checkOut: { gt: checkIn },
+    OR: [
+      { status: "CONFIRMEE" },
+      { status: "EN_ATTENTE", expiresAt: { gt: new Date() } },
+    ],
+  };
+}
+
 export async function createBookingAction(
   _prev: BookingFormState,
   formData: FormData
@@ -129,15 +148,7 @@ export async function createBookingAction(
         where: {
           id: property.id,
           OR: [
-            {
-              bookings: {
-                some: {
-                  status: { in: ["CONFIRMEE", "EN_ATTENTE"] },
-                  checkIn: { lt: checkOut },
-                  checkOut: { gt: checkIn },
-                },
-              },
-            },
+            { bookings: { some: blockingBookingOverlap(checkIn, checkOut) } },
             {
               availabilities: {
                 some: { startDate: { lt: checkOut }, endDate: { gt: checkIn } },
@@ -265,15 +276,7 @@ export async function quoteBookingAction(input: {
     where: {
       id: property.id,
       OR: [
-        {
-          bookings: {
-            some: {
-              status: { in: ["CONFIRMEE", "EN_ATTENTE"] },
-              checkIn: { lt: checkOut },
-              checkOut: { gt: checkIn },
-            },
-          },
-        },
+        { bookings: { some: blockingBookingOverlap(checkIn, checkOut) } },
         {
           availabilities: {
             some: { startDate: { lt: checkOut }, endDate: { gt: checkIn } },
@@ -327,6 +330,7 @@ export async function confirmPaymentAction(formData: FormData): Promise<void> {
       status: "CONFIRMEE",
       escrow: "EN_SEQUESTRE",
       expiresAt: null, // Plus d'expiration une fois confirmé
+      paidAt: new Date(),
     },
   });
 

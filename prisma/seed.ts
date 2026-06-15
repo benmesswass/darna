@@ -844,6 +844,8 @@ async function main() {
         totalPrice: target.price * r.nights + serviceFee,
         status: "TERMINEE",
         escrow: "LIBERE",
+        // Payé quelques jours avant l'arrivée (réaliste pour un séjour).
+        paidAt: new Date(checkIn.getTime() - 3 * DAY),
       },
     });
 
@@ -878,6 +880,7 @@ async function main() {
       totalPrice: villaHammamet.price * nights + fee,
       status: "CONFIRMEE",
       escrow: "EN_SEQUESTRE",
+      paidAt: daysAgo(3),
     },
   });
 

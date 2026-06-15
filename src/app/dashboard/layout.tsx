@@ -42,7 +42,11 @@ export default async function DashboardLayout({
           { href: "/dashboard/yield", label: fr.dashboard.yieldAdvisor, icon: SparklesIcon },
         ]
       : []),
-    { href: "/dashboard/reservations", label: fr.dashboard.mesReservations, icon: CalendarIcon },
+    {
+      href: "/dashboard/reservations",
+      label: isLister ? fr.dashboard.mesVoyageurs : fr.dashboard.mesReservations,
+      icon: CalendarIcon,
+    },
     { href: "/dashboard/favoris", label: fr.dashboard.favoris, icon: HeartIcon },
     { href: "/dashboard/profil", label: fr.dashboard.monProfil, icon: UserIcon },
     { href: "/dashboard/kyc", label: fr.dashboard.kyc, icon: ShieldIcon },

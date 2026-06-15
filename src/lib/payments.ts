@@ -105,7 +105,12 @@ export async function settleKonnectBooking(
   // re-logger ni re-déclencher d'effet de bord.
   const updated = await prisma.booking.updateMany({
     where: { id: booking.id, status: "EN_ATTENTE" },
-    data: { status: "CONFIRMEE", escrow: "EN_SEQUESTRE", expiresAt: null },
+    data: {
+      status: "CONFIRMEE",
+      escrow: "EN_SEQUESTRE",
+      expiresAt: null,
+      paidAt: new Date(),
+    },
   });
   if (updated.count === 0) return "CONFIRMEE";
 

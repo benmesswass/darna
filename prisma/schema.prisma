@@ -128,6 +128,9 @@ model Booking {
   // Expiration des réservations EN_ATTENTE (15 min après création)
   // Null une fois la réservation CONFIRMEE.
   expiresAt    DateTime?
+  // Date de règlement : posée quand le paiement est confirmé (fonds sous
+  // séquestre). Null tant que la réservation n'est pas payée.
+  paidAt       DateTime?
   createdAt    DateTime  @default(now())
 
   propertyId String
