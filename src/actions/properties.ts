@@ -462,6 +462,122 @@ export async function setCoverPhotoAction(formData: FormData): Promise<void> {
   revalidatePath(`/annonce/${photo.property.slug}`);
 }
 
+// ── Disponibilités : blocage de dates par l'hôte ─────────────────────────────
+
+export type BlockDatesFormState = { error?: string; success?: string } | undefined;
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+const blockDatesSchema = z.object({
+  propertyId: z.string().cuid(),
+  // Premier et dernier jour bloqués (INCLUS), en jour civil YYYY-MM-DD.
+  start: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  end: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+});
+
+/**
+ * Bloque une période de dates pour une annonce (séjour perso, travaux…). Les
+ * nuits bloquées deviennent indisponibles à la réservation — elles sont déjà
+ * prises en compte par le calendrier, le devis et l'anti-conflit (modèle
+ * `Availability`).
+ *
+ * UI inclusive [premier jour, dernier jour] ; en base on stocke `endDate`
+ * EXCLUSIVE (dernier jour + 1) pour coller à la sémantique des réservations
+ * (`checkIn < endDate && checkOut > startDate`, itération `[start, end)`).
+ */
+export async function blockDatesAction(
+  _prev: BlockDatesFormState,
+  formData: FormData
+): Promise<BlockDatesFormState> {
+  const fr = await getT();
+  const parsed = blockDatesSchema.safeParse({
+    propertyId: formData.get("propertyId"),
+    start: formData.get("start"),
+    end: formData.get("end"),
+  });
+  if (!parsed.success) return { error: fr.annonceForm.blocageDatesInvalides };
+
+  // Autorisation serveur : l'annonce doit appartenir à l'utilisateur connecté.
+  const property = await requireOwnProperty(parsed.data.propertyId).catch(() => null);
+  if (!property) return { error: fr.common.erreurInconnue };
+  // Le blocage n'a de sens que pour un séjour (seul type réservable).
+  if (property.type !== "SEJOUR") return { error: fr.common.erreurInconnue };
+
+  const startDate = new Date(`${parsed.data.start}T00:00:00.000Z`);
+  const lastDay = new Date(`${parsed.data.end}T00:00:00.000Z`);
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
+  const endDate = new Date(lastDay.getTime() + DAY_MS); // exclusive
+  const nights = Math.round((endDate.getTime() - startDate.getTime()) / DAY_MS);
+  if (
+    Number.isNaN(startDate.getTime()) ||
+    Number.isNaN(lastDay.getTime()) ||
+    lastDay < startDate ||
+    startDate < today ||
+    nights > 365
+  ) {
+    return { error: fr.annonceForm.blocageDatesInvalides };
+  }
+
+  // On ne bloque pas une période déjà réservée par un voyageur (réservation
+  // confirmée, ou hold en attente encore vivant).
+  const conflict = await prisma.booking.findFirst({
+    where: {
+      propertyId: property.id,
+      checkIn: { lt: endDate },
+      checkOut: { gt: startDate },
+      OR: [
+        { status: "CONFIRMEE" },
+        { status: "EN_ATTENTE", expiresAt: { gt: new Date() } },
+      ],
+    },
+    select: { id: true },
+  });
+  if (conflict) return { error: fr.annonceForm.blocageConflitReservation };
+
+  await prisma.availability.create({
+    data: { propertyId: property.id, startDate, endDate },
+  });
+
+  await logAudit({
+    action: "AVAILABILITY_BLOCKED",
+    userId: property.ownerId,
+    success: true,
+    metadata: { propertyId: property.id, start: parsed.data.start, end: parsed.data.end },
+  });
+
+  revalidatePath(`/dashboard/annonces/${property.id}/modifier`);
+  revalidatePath(`/annonce/${property.slug}`);
+  revalidatePath(`/annonce/${property.slug}/reserver`);
+  return { success: fr.annonceForm.blocageAjoute };
+}
+
+/** Retire un blocage de dates (idempotent ; ne touche jamais aux réservations). */
+export async function unblockDatesAction(formData: FormData): Promise<void> {
+  const user = await requireUser();
+  const parsed = idSchema.safeParse(formData.get("availabilityId"));
+  if (!parsed.success) return;
+
+  const block = await prisma.availability.findUnique({
+    where: { id: parsed.data },
+    select: { id: true, property: { select: { id: true, slug: true, ownerId: true } } },
+  });
+  if (!block || block.property.ownerId !== user.id) return;
+
+  await prisma.availability.delete({ where: { id: block.id } });
+
+  await logAudit({
+    action: "AVAILABILITY_UNBLOCKED",
+    userId: user.id,
+    success: true,
+    metadata: { availabilityId: block.id, propertyId: block.property.id },
+  });
+
+  revalidatePath(`/dashboard/annonces/${block.property.id}/modifier`);
+  revalidatePath(`/annonce/${block.property.slug}`);
+  revalidatePath(`/annonce/${block.property.slug}/reserver`);
+}
+
 // Nom de dossier de favoris : libre, non vide, borné. La suggestion par
 // défaut « Ville, Mois Année » est calculée côté client (locale-aware).
 const folderNameSchema = z.string().trim().min(1).max(80);

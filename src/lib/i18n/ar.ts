@@ -367,6 +367,20 @@ export const ar: Dictionary = {
     rechercheAdresse: "نلوّج…",
     aucuneAdresse: "ما لقيناش العنوان — اختار المدينة وحرّك العلامة.",
     repereAide: "حرّك العلامة (ولا أنقر على الخريطة) باش تأشّر على البلاصة بالضبط.",
+    disponibilitesTitre: "بلوكي تواريخ",
+    disponibilitesAide:
+      "خلّي دارك ماهيش متوفّرة في فترة معيّنة (إقامة شخصية، خدمة…). التواريخ المبلوكية تختفي من روزنامة الحجز متاع المسافرين.",
+    blocageDebut: "من (أول نهار)",
+    blocageFin: "إلى (آخر نهار، داخل)",
+    bloquerDates: "بلوكي هالتواريخ",
+    aucunBlocage: "ما فماش تواريخ مبلوكية للتوّ.",
+    blocageAjoute: "التواريخ تبلوكات.",
+    supprimerBlocage: "نحّي هالبلوكاج",
+    blocageDatesInvalides:
+      "تواريخ غالطة — آخر نهار لازم يكون نفس أول نهار ولا بعدو، وماهوش فايت.",
+    blocageConflitReservation:
+      "ما ينجمش: فما حجز موجود في هالفترة.",
+    blocagePeriode: (debut: string, fin: string) => `من ${debut} إلى ${fin}`,
   },
   kyc: {
     titre: "توثيق الهوية (KYC)",

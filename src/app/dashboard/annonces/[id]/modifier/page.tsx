@@ -4,6 +4,9 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { PropertyForm } from "@/components/dashboard/PropertyForm";
 import { PhotoManager } from "@/components/dashboard/PhotoManager";
+import { BlockedDatesManager } from "@/components/dashboard/BlockedDatesManager";
+
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 export default async function ModifierAnnoncePage({
   params,
@@ -18,7 +21,14 @@ export default async function ModifierAnnoncePage({
   // Autorisation : l'annonce doit appartenir à l'utilisateur connecté.
   const property = await prisma.property.findFirst({
     where: { id, ownerId: user.id },
-    include: { photos: { orderBy: { position: "asc" } } },
+    include: {
+      photos: { orderBy: { position: "asc" } },
+      // Blocages en cours (on masque ceux entièrement passés).
+      availabilities: {
+        where: { endDate: { gt: new Date() } },
+        orderBy: { startDate: "asc" },
+      },
+    },
   });
   if (!property) notFound();
 
@@ -64,6 +74,26 @@ export default async function ModifierAnnoncePage({
           />
         </div>
       </div>
+
+      {/* Blocage de dates : pertinent uniquement pour les séjours réservables. */}
+      {property.type === "SEJOUR" ? (
+        <div>
+          <h2 className="text-xl font-bold text-darna">
+            {fr.annonceForm.disponibilitesTitre}
+          </h2>
+          <div className="mt-5 rounded-3xl bg-white p-6 ring-1 ring-darna/10">
+            <BlockedDatesManager
+              propertyId={property.id}
+              blocks={property.availabilities.map((a) => ({
+                id: a.id,
+                start: a.startDate.toISOString().slice(0, 10),
+                // endDate est exclusive en base → dernier jour bloqué = endDate − 1 j.
+                end: new Date(a.endDate.getTime() - DAY_MS).toISOString().slice(0, 10),
+              }))}
+            />
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

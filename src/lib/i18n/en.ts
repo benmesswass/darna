@@ -348,6 +348,20 @@ export const en: Dictionary = {
     rechercheAdresse: "Searching…",
     aucuneAdresse: "No address found — pick the city and drag the marker.",
     repereAide: "Drag the marker (or click the map) to pinpoint the exact spot.",
+    disponibilitesTitre: "Block dates",
+    disponibilitesAide:
+      "Make your place unavailable for a period (personal stay, renovation…). Blocked dates disappear from travellers' booking calendar.",
+    blocageDebut: "From (first day)",
+    blocageFin: "To (last day, included)",
+    bloquerDates: "Block these dates",
+    aucunBlocage: "No blocked dates yet.",
+    blocageAjoute: "Dates blocked.",
+    supprimerBlocage: "Remove this block",
+    blocageDatesInvalides:
+      "Invalid dates — the last day must be on or after the first, and not in the past.",
+    blocageConflitReservation:
+      "Can't block: a booking already exists for this period.",
+    blocagePeriode: (debut: string, fin: string) => `From ${debut} to ${fin}`,
   },
   kyc: {
     titre: "Identity verification (KYC)",
