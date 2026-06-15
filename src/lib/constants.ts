@@ -12,6 +12,10 @@ export type KycStatus = (typeof KYC_STATUSES)[number];
 export const PROPERTY_TYPES = ["SEJOUR", "LOCATION", "VENTE"] as const;
 export type PropertyType = (typeof PROPERTY_TYPES)[number];
 
+/** Limites d'upload de photos — partagées client (dropzone) et serveur (uploads). */
+export const MAX_PHOTOS_PER_PROPERTY = 8;
+export const MAX_PHOTO_SIZE = 5 * 1024 * 1024; // 5 Mo
+
 export const PROPERTY_STATUSES = ["ACTIVE", "LOUE", "VENDU", "EXPIREE"] as const;
 export type PropertyStatus = (typeof PROPERTY_STATUSES)[number];
 

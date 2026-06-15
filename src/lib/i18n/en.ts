@@ -328,8 +328,13 @@ export const en: Dictionary = {
     photosTitre: "Listing photos",
     photosAide:
       "JPEG, PNG or WebP — 5 MB max per photo, 8 photos per listing. The cover is the first photo displayed.",
-    photosCreationAide:
-      "JPEG, PNG or WebP (optional). Without photos, temporary visuals are used — replace them later from “Edit”.",
+    photosAccroche:
+      "Listings with great photos get viewed far more often. Add at least one.",
+    photosDeposer: "Drag your photos here",
+    photosDeposerAide: "or browse your files — JPEG, PNG or WebP",
+    photosParcourir: "Browse my photos",
+    photosCreationAide: "The first photo will be your listing’s cover.",
+    photoRequise: "Add at least one photo to publish your listing.",
     ajouterPhotos: "Add photos",
     choisirFichiers: "Choose files…",
     photosAjoutees: "Photos added!",

@@ -7,7 +7,7 @@ import {
   type PropertyFormState,
 } from "@/actions/properties";
 import { useT } from "@/components/i18n/LocaleProvider";
-import { compressFileInput } from "@/lib/image-compress";
+import { PhotoDropzone } from "./PhotoDropzone";
 import { generateDescription } from "@/lib/description";
 import { AMENITIES } from "@/lib/constants";
 import { CITIES, getCity, nearestCity, resolveCity } from "@/lib/geo";
@@ -53,6 +53,8 @@ export function PropertyForm({ initial }: { initial?: PropertyFormInitial }) {
     lng: initial?.longitude ?? 10.1815,
   });
   const [description, setDescription] = useState(initial?.description ?? "");
+  // Nombre de photos sélectionnées (création) — au moins une requise.
+  const [photoCount, setPhotoCount] = useState(0);
 
   const priceLabel =
     type === "SEJOUR"
@@ -287,24 +289,15 @@ export function PropertyForm({ initial }: { initial?: PropertyFormInitial }) {
 
       {/* Photos — création uniquement (en édition, géré par le PhotoManager). */}
       {!isEdit ? (
-        <div className="space-y-1.5">
-          <span className={labelClass}>{fr.annonceForm.photosTitre}</span>
-          <input
-            type="file"
-            name="photos"
-            accept="image/jpeg,image/png,image/webp"
-            multiple
-            onChange={(e) => compressFileInput(e.currentTarget)}
-            className="block w-full text-sm text-ink/70 file:me-3 file:rounded-full file:border-0 file:bg-darna file:px-4 file:py-2 file:text-xs file:font-bold file:text-white hover:file:bg-darna-light"
-          />
-          <p className="text-xs text-ink/40">{fr.annonceForm.photosCreationAide}</p>
+        <div className="rounded-2xl bg-cream/40 p-4 ring-1 ring-darna/10">
+          <PhotoDropzone onCountChange={setPhotoCount} />
         </div>
       ) : null}
 
       <button
         type="submit"
-        disabled={pending}
-        className="w-full rounded-xl bg-darna px-5 py-3 text-sm font-bold text-white transition hover:bg-darna-light disabled:opacity-60 sm:w-auto sm:px-10"
+        disabled={pending || (!isEdit && photoCount === 0)}
+        className="w-full rounded-xl bg-darna px-5 py-3 text-sm font-bold text-white transition hover:bg-darna-light disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-10"
       >
         {pending
           ? fr.common.chargement
@@ -312,6 +305,9 @@ export function PropertyForm({ initial }: { initial?: PropertyFormInitial }) {
             ? fr.annonceForm.enregistrerModifs
             : fr.annonceForm.publier}
       </button>
+      {!isEdit && photoCount === 0 ? (
+        <p className="text-xs font-medium text-ink/50">{fr.annonceForm.photoRequise}</p>
+      ) : null}
     </form>
   );
 }

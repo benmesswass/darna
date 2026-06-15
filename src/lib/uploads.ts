@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { mkdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { MAX_PHOTO_SIZE, MAX_PHOTOS_PER_PROPERTY } from "@/lib/constants";
 
 /**
  * Upload local d'images (V0) : disque sous /public/uploads, aucun service
@@ -12,8 +13,8 @@ import path from "node:path";
  * En production : déplacer vers un stockage objet (S3/R2) + CDN.
  */
 
-export const MAX_PHOTO_SIZE = 5 * 1024 * 1024; // 5 Mo
-export const MAX_PHOTOS_PER_PROPERTY = 8;
+// Réexport pour les importeurs serveur historiques (ex. actions/properties).
+export { MAX_PHOTO_SIZE, MAX_PHOTOS_PER_PROPERTY };
 
 const ALLOWED_TYPES: Record<string, string> = {
   "image/jpeg": "jpg",
