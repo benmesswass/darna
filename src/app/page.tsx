@@ -6,6 +6,7 @@ import { getSessionUser } from "@/lib/session";
 import { getFavoriteContext, favoritePropFor } from "@/lib/favorites";
 import { PropertyCard } from "@/components/property/PropertyCard";
 import { CityAutocomplete } from "@/components/search/CityAutocomplete";
+import { ActiveSection } from "@/components/layout/ActiveSection";
 import {
   ArrowRightIcon,
   BuildingIcon,
@@ -33,6 +34,8 @@ export default async function HomePage() {
   const favCtx = await getFavoriteContext((await getSessionUser())?.id);
   return (
     <div>
+      {/* Accueil = vitrine séjours : on garde « Séjours » en surbrillance dans la nav. */}
+      <ActiveSection name="sejours" />
       {/* Hero — recherche directe + message de marque + preuves chiffrées */}
       <section className="relative overflow-hidden bg-darna text-white">
         <div
