@@ -53,11 +53,18 @@ export function BookingDatePicker({
   checkIn,
   checkOut,
   onChange,
+  notes,
 }: {
   unavailable: string[];
   checkIn: string | null;
   checkOut: string | null;
   onChange: (checkIn: string | null, checkOut: string | null) => void;
+  /**
+   * Carte jour civil (YYYY-MM-DD) → note privée de l'hôte, affichée au survol du
+   * jour bloqué. Réservée au calendrier de blocage de l'hôte (côté dashboard) :
+   * absente du parcours voyageur, donc jamais montrée au public.
+   */
+  notes?: Record<string, string>;
 }) {
   const fr = useT();
   const locale = useLocale();
@@ -222,33 +229,52 @@ export function BookingDatePicker({
                 const inRange =
                   effectiveOut && checkIn ? iso > checkIn && iso < effectiveOut : false;
                 const isEndpoint = isStart || isEnd;
+                // Note privée de l'hôte sur ce jour bloqué (jamais sur un jour passé).
+                const note = !isPast ? notes?.[iso] : undefined;
 
                 return (
-                  <button
-                    key={iso}
-                    type="button"
-                    disabled={isDisabled}
-                    onClick={() => handleSelect(iso)}
-                    onMouseEnter={() => setHovered(iso)}
-                    aria-pressed={isEndpoint}
-                    className={[
-                      "relative flex h-11 items-center justify-center rounded-xl text-sm transition",
-                      isEndpoint
-                        ? "z-10 bg-darna font-bold text-white shadow-sm"
-                        : inRange
-                          ? "bg-darna/10 font-semibold text-darna"
-                          : isPast
-                            ? "cursor-default text-ink/25"
-                            : isUnavail
-                              ? "cursor-not-allowed text-ink/30 line-through"
-                              : "font-medium text-ink hover:bg-darna/10 hover:text-darna",
-                    ].join(" ")}
-                  >
-                    {i + 1}
-                    {isUnavail && !isPast && (
-                      <span className="absolute bottom-1 h-1 w-1 rounded-full bg-ink/30" />
-                    )}
-                  </button>
+                  // Enveloppe `group` : ancre du tooltip. Le survol d'un bouton
+                  // désactivé ne déclenche pas d'évènement JS, mais le `:hover`
+                  // CSS remonte bien à ce parent → la note s'affiche quand même.
+                  <div key={iso} className="group relative">
+                    <button
+                      type="button"
+                      disabled={isDisabled}
+                      onClick={() => handleSelect(iso)}
+                      onMouseEnter={() => setHovered(iso)}
+                      aria-pressed={isEndpoint}
+                      className={[
+                        "relative flex h-11 w-full items-center justify-center rounded-xl text-sm transition",
+                        isEndpoint
+                          ? "z-10 bg-darna font-bold text-white shadow-sm"
+                          : inRange
+                            ? "bg-darna/10 font-semibold text-darna"
+                            : isPast
+                              ? "cursor-default text-ink/25"
+                              : isUnavail
+                                ? "cursor-not-allowed text-ink/30 line-through"
+                                : "font-medium text-ink hover:bg-darna/10 hover:text-darna",
+                      ].join(" ")}
+                    >
+                      {i + 1}
+                      {isUnavail && !isPast && (
+                        <span
+                          className={[
+                            "absolute bottom-1 h-1 w-1 rounded-full",
+                            note ? "bg-darna/70" : "bg-ink/30",
+                          ].join(" ")}
+                        />
+                      )}
+                    </button>
+                    {note ? (
+                      <span
+                        role="tooltip"
+                        className="pointer-events-none absolute bottom-full start-1/2 z-20 mb-1.5 w-max max-w-[12rem] -translate-x-1/2 rounded-lg bg-ink px-2.5 py-1.5 text-start text-xs font-medium leading-snug text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 rtl:translate-x-1/2"
+                      >
+                        {note}
+                      </span>
+                    ) : null}
+                  </div>
                 );
               })}
             </div>

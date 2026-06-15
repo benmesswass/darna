@@ -35,10 +35,13 @@ export function BlockedDatesManager({
   propertyId,
   blocks,
   unavailable,
+  notes,
 }: {
   propertyId: string;
   blocks: DateBlock[];
   unavailable: string[];
+  /** Jour civil → note du blocage, affichée au survol dans le calendrier. */
+  notes: Record<string, string>;
 }) {
   const fr = useT();
   const locale = useLocale();
@@ -131,6 +134,7 @@ export function BlockedDatesManager({
 
         <BookingDatePicker
           unavailable={unavailable}
+          notes={notes}
           checkIn={checkIn}
           checkOut={checkOut}
           onChange={(ci, co) => {

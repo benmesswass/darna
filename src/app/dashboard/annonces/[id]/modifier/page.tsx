@@ -5,7 +5,7 @@ import { getSessionUser } from "@/lib/session";
 import { PropertyForm } from "@/components/dashboard/PropertyForm";
 import { PhotoManager } from "@/components/dashboard/PhotoManager";
 import { BlockedDatesManager } from "@/components/dashboard/BlockedDatesManager";
-import { expandUnavailable } from "@/lib/availability";
+import { expandUnavailable, expandNotes } from "@/lib/availability";
 
 export default async function ModifierAnnoncePage({
   params,
@@ -48,6 +48,15 @@ export default async function ModifierAnnoncePage({
     ...property.bookings.map((b) => ({ start: b.checkIn, end: b.checkOut })),
     ...property.availabilities.map((a) => ({ start: a.startDate, end: a.endDate })),
   ]);
+
+  // Note privée par jour bloqué → tooltip au survol (côté hôte uniquement).
+  const blockNotes = expandNotes(
+    property.availabilities.map((a) => ({
+      start: a.startDate,
+      end: a.endDate,
+      reason: a.reason,
+    }))
+  );
 
   return (
     <div className="space-y-8">
@@ -102,6 +111,7 @@ export default async function ModifierAnnoncePage({
             <BlockedDatesManager
               propertyId={property.id}
               unavailable={unavailable}
+              notes={blockNotes}
               blocks={property.availabilities.map((a) => ({
                 id: a.id,
                 start: a.startDate.toISOString().slice(0, 10),
