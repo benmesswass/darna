@@ -54,6 +54,9 @@ jobs:
       - name: Typecheck
         run: npx tsc --noEmit
 
+      - name: Tests (chemins critiques — paiement, booking, rate limiting)
+        run: npm test
+
       - name: Build
         run: npm run build
 
