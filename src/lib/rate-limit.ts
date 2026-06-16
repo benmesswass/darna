@@ -16,23 +16,17 @@ type Bucket = { count: number; resetAt: number };
 const buckets = new Map<string, Bucket>();
 
 export async function clientIp(): Promise<string> {
-  const h = await headers();
+  // Les en-têtes d'IP (cf-connecting-ip / x-real-ip) ne sont fiables QUE
+  // derrière un proxy de confiance qui les pose lui-même. Hors de ce cas, ils
+  // sont librement spoofables par le client → on refuse de les lire (sinon
+  // contournement trivial du rate limiting). À activer en prod via
+  // TRUSTED_PROXY="true" derrière Vercel / Cloudflare / Nginx.
+  if (process.env.TRUSTED_PROXY !== "true") {
+    return "untrusted";
+  }
 
-  // Ordre de priorité : headers posés par le proxy de confiance (couche
-  // infrastructure), jamais contrôlables par le client.
-  //
-  // • cf-connecting-ip  → IP réelle côté Cloudflare (non spoofable)
-  // • x-real-ip         → posé par Vercel Edge ou Nginx avec
-  //                        `proxy_set_header X-Real-IP $remote_addr`
-  //
-  // ⚠️  x-forwarded-for est INTENTIONNELLEMENT absent : un client peut
-  //     injecter n'importe quelle valeur dans ce header, ce qui court-
-  //     circuiterait complètement le rate limiting.
-  return (
-    h.get("cf-connecting-ip") ??
-    h.get("x-real-ip") ??
-    "unknown"
-  );
+  const h = await headers();
+  return h.get("cf-connecting-ip") ?? h.get("x-real-ip") ?? "unknown";
 }
 
 /** Retourne true si la tentative est autorisée, false si le quota est dépassé. */
