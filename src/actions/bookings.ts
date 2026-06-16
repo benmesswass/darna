@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
@@ -124,11 +125,9 @@ export async function createBookingAction(
      * TRANSACTION ATOMIQUE — protège contre le double booking (TOCTOU).
      *
      * Les trois étapes (expiration des EN_ATTENTE, vérification conflit,
-     * création réservation) s'exécutent en une seule transaction.
-     *
-     * Avec PostgreSQL en production, utiliser l'isolation SERIALIZABLE :
-     *   { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
-     * SQLite utilise un verrou fichier global qui garantit déjà l'atomicité.
+     * création réservation) s'exécutent en une seule transaction SERIALIZABLE
+     * (PostgreSQL) — garantie anti double-réservation sous concurrence.
+     * Retry applicatif sur conflit de sérialisation (P2034) → Phase 2.
      */
     const booking = await prisma.$transaction(async (tx) => {
       // 1. Expiration paresseuse des réservations EN_ATTENTE périmées
@@ -177,7 +176,7 @@ export async function createBookingAction(
         },
         select: { id: true },
       });
-    });
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
 
     bookingId = booking.id;
   } catch (err) {
@@ -297,6 +296,11 @@ const confirmSchema = z.string().cuid();
 
 /** Paiement simulé : passe la réservation en séquestre Darna. */
 export async function confirmPaymentAction(formData: FormData): Promise<void> {
+  // Garde : si Konnect est actif, seul le flux réel (startKonnectPaymentAction
+  // + webhook) confirme un paiement. Le chemin mock ne doit jamais coexister
+  // avec le paiement réel (sinon contournement : confirmer sans payer).
+  if (isKonnectEnabled()) return;
+
   const user = await requireUser();
   const parsed = confirmSchema.safeParse(formData.get("bookingId"));
   if (!parsed.success) return;
