@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    # Postgres jetable : permet `migrate deploy` (valide en continu la migration
+    # de rattrapage) et le `next build` (génération du sitemap qui lit la DB).
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: darna
+          POSTGRES_USER: darna
+          POSTGRES_PASSWORD: darna
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U darna"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://darna:darna@localhost:5432/darna
+      # Secret factice CI (≥ 32 car.) — jamais un vrai secret.
+      AUTH_SECRET: ci-only-dummy-secret-do-not-use-in-prod
+      SITE_URL: http://localhost:3000
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Prisma generate
+        run: npx prisma generate
+
+      - name: Apply migrations (vérifie l'absence de dérive)
+        run: npx prisma migrate deploy
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
+
+      - name: Audit (bloque sur faille haute/critique)
+        run: npm audit --audit-level=high

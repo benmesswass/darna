@@ -30,9 +30,14 @@ export function AddressAutocomplete({
   const boxRef = useRef<HTMLDivElement>(null);
   // Ignore les réponses obsolètes (course entre frappes successives).
   const reqId = useRef(0);
+  // Ne déclenche la recherche qu'après une vraie saisie : en modification, le
+  // champ est pré-rempli avec l'adresse existante, ce qui ouvrirait sinon la
+  // liste automatiquement au chargement de la page.
+  const userTyped = useRef(false);
 
   // Recherche débouncée (300 ms), à partir de 3 caractères.
   useEffect(() => {
+    if (!userTyped.current) return;
     const q = value.trim();
     if (q.length < 3) {
       setSuggestions([]);
@@ -65,6 +70,9 @@ export function AddressAutocomplete({
   function choose(s: AddressSuggestion) {
     onSelect(s);
     setOpen(false);
+    // La sélection réécrit `value` : sans ça l'effet relancerait une recherche
+    // et rouvrirait la liste juste après le choix.
+    userTyped.current = false;
   }
 
   return (
@@ -75,7 +83,10 @@ export function AddressAutocomplete({
         autoComplete="off"
         maxLength={200}
         value={value}
-        onChange={(e) => onValueChange(e.target.value)}
+        onChange={(e) => {
+          userTyped.current = true;
+          onValueChange(e.target.value);
+        }}
         onFocus={() => suggestions.length > 0 && setOpen(true)}
         placeholder={fr.annonceForm.adresseRecherchePlaceholder}
         className={inputClass}
