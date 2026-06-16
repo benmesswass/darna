@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useActionState, useRef, useState } from "react";
 import {
   createPropertyAction,
@@ -14,7 +15,14 @@ import { CITIES, getCity, nearestCity, resolveCity } from "@/lib/geo";
 import { AddressAutocomplete } from "./AddressAutocomplete";
 import { LocationPicker } from "@/components/map/LocationPicker";
 import type { AddressSuggestion } from "@/actions/geocode";
-import { SparklesIcon } from "@/components/icons";
+import {
+  SparklesIcon,
+  MapPinIcon,
+  RulerIcon,
+  DoorIcon,
+  UsersIcon,
+  CloseIcon,
+} from "@/components/icons";
 
 const inputClass =
   "w-full rounded-xl border border-darna/15 bg-cream px-3.5 py-2.5 text-sm outline-none focus:border-darna disabled:opacity-60";
@@ -53,8 +61,17 @@ export function PropertyForm({ initial }: { initial?: PropertyFormInitial }) {
     lng: initial?.longitude ?? 10.1815,
   });
   const [description, setDescription] = useState(initial?.description ?? "");
-  // Nombre de photos sélectionnées (création) — au moins une requise.
-  const [photoCount, setPhotoCount] = useState(0);
+  // URLs d'aperçu des photos sélectionnées (création), dans l'ordre choisi.
+  const [photoUrls, setPhotoUrls] = useState<string[]>([]);
+  // Instantané des champs au moment d'ouvrir l'aperçu (null = aperçu fermé).
+  const [preview, setPreview] = useState<{
+    title: string;
+    price: number;
+    surface: number | null;
+    rooms: number | null;
+    maxGuests: number | null;
+    amenities: string[];
+  } | null>(null);
 
   const priceLabel =
     type === "SEJOUR"
@@ -104,6 +121,32 @@ export function PropertyForm({ initial }: { initial?: PropertyFormInitial }) {
     setDescription(generated);
   }
 
+  /** Valide le formulaire puis ouvre l'aperçu avant publication (création). */
+  function openPreview() {
+    const form = formRef.current;
+    if (!form || !form.reportValidity()) return; // déclenche la validation native
+    const data = new FormData(form);
+    setPreview({
+      title: String(data.get("title") ?? "").trim(),
+      price: Number(data.get("price")) || 0,
+      surface: Number(data.get("surface")) || null,
+      rooms: Number(data.get("rooms")) || null,
+      maxGuests: Number(data.get("maxGuests")) || null,
+      amenities: data.getAll("amenities").map(String),
+    });
+  }
+
+  // Libellés d'affichage pour l'aperçu.
+  const typeLabel =
+    type === "SEJOUR"
+      ? fr.annonceForm.typeSejour
+      : type === "LOCATION"
+        ? fr.annonceForm.typeLocation
+        : fr.annonceForm.typeVente;
+  const priceSuffix =
+    type === "SEJOUR" ? fr.common.parNuit : type === "LOCATION" ? fr.common.parMois : "";
+  const gouvernorat = getCity(cityName)?.gouvernorat;
+
   return (
     <form ref={formRef} action={action} className="space-y-5">
       {state?.error ? (
@@ -118,7 +161,7 @@ export function PropertyForm({ initial }: { initial?: PropertyFormInitial }) {
           en avant. En édition, c'est le PhotoManager qui gère les photos. */}
       {!isEdit ? (
         <div className="rounded-2xl bg-cream/40 p-4 ring-1 ring-darna/10">
-          <PhotoDropzone onCountChange={setPhotoCount} />
+          <PhotoDropzone onPhotosChange={setPhotoUrls} />
         </div>
       ) : null}
 
@@ -295,19 +338,190 @@ export function PropertyForm({ initial }: { initial?: PropertyFormInitial }) {
         <p className="text-xs text-ink/40">{fr.annonceForm.genererDescriptionAide}</p>
       </div>
 
-      <button
-        type="submit"
-        disabled={pending || (!isEdit && photoCount === 0)}
-        className="w-full rounded-xl bg-darna px-5 py-3 text-sm font-bold text-white transition hover:bg-darna-light disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-10"
-      >
-        {pending
-          ? fr.common.chargement
-          : isEdit
-            ? fr.annonceForm.enregistrerModifs
-            : fr.annonceForm.publier}
-      </button>
-      {!isEdit && photoCount === 0 ? (
-        <p className="text-xs font-medium text-ink/50">{fr.annonceForm.photoRequise}</p>
+      {isEdit ? (
+        <button
+          type="submit"
+          disabled={pending}
+          className="w-full rounded-xl bg-darna px-5 py-3 text-sm font-bold text-white transition hover:bg-darna-light disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-10"
+        >
+          {pending ? fr.common.chargement : fr.annonceForm.enregistrerModifs}
+        </button>
+      ) : (
+        <>
+          {/* En création : on passe par un aperçu avant la publication réelle. */}
+          <button
+            type="button"
+            onClick={openPreview}
+            disabled={photoUrls.length === 0}
+            className="w-full rounded-xl bg-darna px-5 py-3 text-sm font-bold text-white transition hover:bg-darna-light disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-10"
+          >
+            {fr.annonceForm.apercuPublier}
+          </button>
+          {photoUrls.length === 0 ? (
+            <p className="text-xs font-medium text-ink/50">{fr.annonceForm.photoRequise}</p>
+          ) : null}
+        </>
+      )}
+
+      {/* Aperçu avant publication : tel que l'annonce apparaîtra aux voyageurs. */}
+      {preview ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={fr.annonceForm.apercuTitre}
+          // z très élevé : la carte Leaflet pose ses panes/contrôles jusqu'à
+          // ~z-1000 dans le contexte d'empilement racine — il faut passer au-dessus.
+          className="fixed inset-0 z-[2000] flex items-start justify-center overflow-y-auto bg-ink/60 p-4 sm:p-8"
+        >
+          <div className="w-full max-w-2xl rounded-3xl bg-white shadow-xl">
+            <div className="flex items-start justify-between gap-3 border-b border-darna/10 px-6 py-4">
+              <div>
+                <h3 className="text-lg font-bold text-darna">{fr.annonceForm.apercuTitre}</h3>
+                <p className="mt-0.5 text-xs text-ink/55">{fr.annonceForm.apercuAide}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPreview(null)}
+                aria-label={fr.common.annuler}
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-ink/60 transition hover:bg-cream hover:text-darna"
+              >
+                <CloseIcon width={16} height={16} />
+              </button>
+            </div>
+
+            <div className="space-y-5 px-6 py-5">
+              {/* Galerie */}
+              {photoUrls.length > 0 ? (
+                <div>
+                  <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-darna/10">
+                    <Image
+                      src={photoUrls[0]}
+                      alt={preview.title}
+                      fill
+                      unoptimized
+                      sizes="(max-width: 640px) 100vw, 640px"
+                      className="object-cover"
+                    />
+                    <span className="absolute start-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-bold text-darna">
+                      {typeLabel}
+                    </span>
+                  </div>
+                  {photoUrls.length > 1 ? (
+                    <div className="mt-2 grid grid-cols-5 gap-2">
+                      {photoUrls.slice(1).map((url) => (
+                        <div
+                          key={url}
+                          className="relative aspect-square overflow-hidden rounded-lg bg-darna/10"
+                        >
+                          <Image
+                            src={url}
+                            alt=""
+                            fill
+                            unoptimized
+                            sizes="120px"
+                            className="object-cover"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {/* Titre + localisation */}
+              <div className="space-y-1.5">
+                <h4 className="text-xl font-bold text-ink">{preview.title}</h4>
+                <p className="flex items-center gap-1 text-sm text-ink/60">
+                  <MapPinIcon width={15} height={15} />
+                  {cityName}
+                  {gouvernorat ? `, ${gouvernorat}` : ""}
+                </p>
+                {address ? <p className="text-sm text-ink/50">{address}</p> : null}
+              </div>
+
+              {/* Caractéristiques */}
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-ink/60">
+                {preview.surface ? (
+                  <span className="flex items-center gap-1.5">
+                    <RulerIcon width={15} height={15} />
+                    {fr.property.surface(preview.surface)}
+                  </span>
+                ) : null}
+                {preview.rooms ? (
+                  <span className="flex items-center gap-1.5">
+                    <DoorIcon width={15} height={15} />
+                    {fr.property.pieces(preview.rooms)}
+                  </span>
+                ) : null}
+                {type === "SEJOUR" && preview.maxGuests ? (
+                  <span className="flex items-center gap-1.5">
+                    <UsersIcon width={15} height={15} />
+                    {fr.property.capacite(preview.maxGuests)}
+                  </span>
+                ) : null}
+              </div>
+
+              {/* Prix */}
+              <p className="text-2xl font-bold text-darna">
+                {preview.price.toLocaleString("fr-FR")} TND
+                {priceSuffix ? (
+                  <span className="ms-1 text-sm font-medium text-ink/55">{priceSuffix}</span>
+                ) : null}
+              </p>
+
+              {/* Équipements */}
+              {preview.amenities.length > 0 ? (
+                <div className="space-y-2">
+                  <p className="text-sm font-semibold text-ink/70">
+                    {fr.annonceForm.equipements}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {preview.amenities.map((a) => (
+                      <span
+                        key={a}
+                        className="rounded-full bg-cream px-3 py-1 text-xs font-medium text-ink ring-1 ring-darna/10"
+                      >
+                        {a}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {/* Description */}
+              <p className="whitespace-pre-line text-sm leading-relaxed text-ink/75">
+                {description}
+              </p>
+            </div>
+
+            <div className="space-y-3 border-t border-darna/10 px-6 py-4">
+              {state?.error ? (
+                <p
+                  role="alert"
+                  className="rounded-xl bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700"
+                >
+                  {state.error}
+                </p>
+              ) : null}
+              <div className="flex flex-wrap justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setPreview(null)}
+                  className="rounded-xl px-5 py-3 text-sm font-bold text-ink/70 transition hover:bg-cream"
+                >
+                  {fr.annonceForm.continuerEdition}
+                </button>
+                <button
+                  type="submit"
+                  disabled={pending}
+                  className="rounded-xl bg-darna px-6 py-3 text-sm font-bold text-white transition hover:bg-darna-light disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {pending ? fr.common.chargement : fr.annonceForm.confirmerPublier}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       ) : null}
     </form>
   );

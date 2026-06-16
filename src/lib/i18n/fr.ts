@@ -319,6 +319,11 @@ export const fr = {
     genererDescriptionAide:
       "Compose un texte à partir des champs saisis — modifiable ensuite.",
     publier: "Publier l'annonce",
+    apercuPublier: "Aperçu avant publication",
+    apercuTitre: "Aperçu de votre annonce",
+    apercuAide: "Voici comment votre annonce apparaîtra aux voyageurs. Vérifiez, puis confirmez.",
+    continuerEdition: "Continuer l'édition",
+    confirmerPublier: "Confirmer et publier",
     annonceCreee: "Annonce publiée ! Elle est en ligne pour 30 jours.",
     modifierTitre: "Modifier l'annonce",
     enregistrerModifs: "Enregistrer les modifications",

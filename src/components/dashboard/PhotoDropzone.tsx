@@ -19,9 +19,10 @@ type Item = { file: File; url: string };
  * seulement notifié du nombre de photos (pour activer/désactiver « Publier »).
  */
 export function PhotoDropzone({
-  onCountChange,
+  onPhotosChange,
 }: {
-  onCountChange?: (count: number) => void;
+  /** Notifie le parent des URLs d'aperçu, dans l'ordre (1re = couverture). */
+  onPhotosChange?: (urls: string[]) => void;
 }) {
   const fr = useT();
   const [items, setItems] = useState<Item[]>([]);
@@ -41,8 +42,8 @@ export function PhotoDropzone({
       items.forEach((it) => dt.items.add(it.file));
       hiddenRef.current.files = dt.files;
     }
-    onCountChange?.(items.length);
-  }, [items, onCountChange]);
+    onPhotosChange?.(items.map((it) => it.url));
+  }, [items, onPhotosChange]);
 
   const full = items.length >= MAX_PHOTOS_PER_PROPERTY;
 

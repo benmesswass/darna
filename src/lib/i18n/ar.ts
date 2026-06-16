@@ -339,6 +339,11 @@ export const ar: Dictionary = {
     genererDescriptionAide:
       "يركّب نص من المعطيات اللي دخلتها — تنجم تبدّلو من بعد.",
     publier: "انشر الإعلان",
+    apercuPublier: "شوف الإعلان قبل النشر",
+    apercuTitre: "نظرة على إعلانك",
+    apercuAide: "هكا باش يبان إعلانك للمسافرين. تثبّت، ومن بعد أكّد.",
+    continuerEdition: "كمّل التعديل",
+    confirmerPublier: "أكّد وانشر",
     annonceCreee: "الإعلان تنشر! باش يقعد أونلاين 30 يوم.",
     modifierTitre: "بدّل الإعلان",
     enregistrerModifs: "سجّل التبديلات",

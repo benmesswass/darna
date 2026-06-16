@@ -319,6 +319,11 @@ export const en: Dictionary = {
     genererDescriptionAide:
       "Composes a text from the fields you filled in — editable afterwards.",
     publier: "Publish listing",
+    apercuPublier: "Preview before publishing",
+    apercuTitre: "Preview your listing",
+    apercuAide: "Here is how your listing will appear to travelers. Review it, then confirm.",
+    continuerEdition: "Keep editing",
+    confirmerPublier: "Confirm and publish",
     annonceCreee: "Listing published! It is online for 30 days.",
     modifierTitre: "Edit listing",
     enregistrerModifs: "Save changes",
