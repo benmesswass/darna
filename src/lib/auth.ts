@@ -38,7 +38,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!user) {
           // Délai constant pour résister aux attaques de timing même quand
           // l'utilisateur n'existe pas (évite l'énumération par timing).
-          await bcrypt.compare(parsed.data.password, "$2b$12$invalidhashpadding000000000000000000000000000000000000000");
+          // Hash bcrypt VALIDE (60 car., coût 12) : un hash mal formé serait
+          // rejeté instantanément par bcrypt et la défense serait inopérante.
+          await bcrypt.compare(parsed.data.password, "$2b$12$f/0oq4Vt.wjtcqw76TM1DONwSQqoVa/lcI0H/3sTvjhBSBTJBjYHG");
           logStructured("warn", "auth.login_failure", {
             reason: "user_not_found",
             email: parsed.data.email,
