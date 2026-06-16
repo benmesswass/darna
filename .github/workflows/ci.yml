@@ -28,6 +28,9 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://darna:darna@localhost:5432/darna
+      # Pas de pooler en CI : connexion directe = DATABASE_URL (requis par le
+      # `directUrl` du schema pour `prisma migrate deploy`).
+      DIRECT_URL: postgresql://darna:darna@localhost:5432/darna
       # Secret factice CI (≥ 32 car.) — jamais un vrai secret.
       AUTH_SECRET: ci-only-dummy-secret-do-not-use-in-prod
       SITE_URL: http://localhost:3000
