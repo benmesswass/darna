@@ -17,7 +17,14 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  // url : connexion applicative. En prod elle peut pointer un pooler
+  //   (PgBouncer / Prisma Accelerate / pooler Supabase) via des paramètres
+  //   d'URL : ?pgbouncer=true&connection_limit=10&pool_timeout=20 (cf. .env.example).
+  // directUrl : connexion DIRECTE utilisée par `prisma migrate` / `db push` — le
+  //   pooler en mode transaction ne supporte pas les requêtes du moteur de
+  //   migration. En local/démo (pas de pooler) : DIRECT_URL = DATABASE_URL.
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -81,6 +88,10 @@ model Property {
   favorites       Favorite[]
 
   @@index([type, status, expiresAt])
+  // Annonces actives requêtées SANS filtre de type (accueil getFeaturedListings,
+  // sitemap, market) : l'index composite ci-dessus, préfixé par `type`, ne peut
+  // pas les servir (PostgreSQL 16 n'a pas de skip-scan d'index).
+  @@index([status, expiresAt])
   @@index([city])
   @@index([gouvernorat])
   @@index([ownerId])
@@ -98,6 +109,12 @@ model Photo {
 
   propertyId String
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  // Les photos sont toujours chargées par annonce et triées par position
+  // (vignette take:1 des cartes + galerie de la page annonce). PostgreSQL
+  // n'indexe pas les clés étrangères automatiquement → sans cet index, chaque
+  // lecture de photos est un seq scan.
+  @@index([propertyId, position])
 }
 
 // Période d'indisponibilité (bloquée par l'hôte) pour les séjours.

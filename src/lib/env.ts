@@ -8,6 +8,9 @@ import { z } from "zod";
  */
 const envSchema = z.object({
   DATABASE_URL: z.string().min(1, "DATABASE_URL requis"),
+  // Connexion directe pour les migrations (cf. schema.prisma). Optionnelle : si
+  // absente, src/lib/prisma.ts la fait retomber sur DATABASE_URL (démo sans pooler).
+  DIRECT_URL: z.string().optional(),
   AUTH_SECRET: z.string().min(32, "AUTH_SECRET doit faire au moins 32 caractères"),
   SITE_URL: z.string().url().optional(),
   TRUSTED_PROXY: z.enum(["true", "false"]).optional(),
