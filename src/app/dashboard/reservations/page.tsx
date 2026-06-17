@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
+import { completeElapsedBookings } from "@/lib/bookings";
 import { formatDateShortFr } from "@/lib/format";
 import { Price } from "@/components/currency/Price";
 import { WhatsAppIcon } from "@/components/icons";
@@ -24,6 +25,9 @@ export default async function MesReservationsPage() {
   const fr = await getT();
   const user = await getSessionUser();
   if (!user) redirect("/connexion");
+
+  // Complétion paresseuse : séjours terminés → TERMINEE + séquestre libéré.
+  await completeElapsedBookings();
 
   // Côté hôte / agence : « Mes réservations » = les réservations REÇUES sur ses
   // annonces (qui a réservé chez lui), pas ses propres réservations de voyageur.
