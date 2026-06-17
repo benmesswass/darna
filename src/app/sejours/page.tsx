@@ -11,6 +11,7 @@ import { getFavoriteContext, favoritePropFor } from "@/lib/favorites";
 import { PropertyCard } from "@/components/property/PropertyCard";
 import { PropertyMap } from "@/components/map/PropertyMap";
 import { SplitView } from "@/components/search/SplitView";
+import { Pagination } from "@/components/search/Pagination";
 import { CityAutocomplete } from "@/components/search/CityAutocomplete";
 import { CalendarIcon, SearchIcon, UsersIcon } from "@/components/icons";
 
@@ -26,7 +27,8 @@ export default async function SejoursPage({
 }) {
   const fr = await getT();
   const params = await searchParams;
-  const { results, resolvedCity, unknownCity } = await searchSejours(params);
+  const { results, resolvedCity, unknownCity, total, page, pageSize } =
+    await searchSejours(params);
   const favCtx = await getFavoriteContext((await getSessionUser())?.id);
 
   // Dates recherchées propagées : nom de dossier par défaut = mois d'ARRIVÉE
@@ -117,7 +119,7 @@ export default async function SejoursPage({
 
       <div className="mt-4 flex items-center gap-2 text-sm text-ink/60">
         <span className="font-semibold text-darna">
-          {fr.search.resultats(results.length)}
+          {fr.search.resultats(total)}
         </span>
         {resolvedCity ? (
           <span className="rounded-full bg-darna/10 px-2.5 py-0.5 text-xs font-medium text-darna">
@@ -147,6 +149,14 @@ export default async function SejoursPage({
           />
         )}
       </div>
+
+      <Pagination
+        page={page}
+        total={total}
+        pageSize={pageSize}
+        basePath="/sejours"
+        params={params}
+      />
     </div>
   );
 }

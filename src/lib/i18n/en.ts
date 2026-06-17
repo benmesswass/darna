@@ -139,6 +139,9 @@ export const en: Dictionary = {
     indifferent: "Any",
     resultats: (n: number) =>
       n === 0 ? "No results" : n === 1 ? "1 listing" : `${n} listings`,
+    precedent: "Previous",
+    suivant: "Next",
+    pageInfo: (page: number, total: number) => `Page ${page} of ${total}`,
     aucunResultatTitre: "No listing matches",
     aucunResultatDesc:
       "Try widening your criteria or removing filters. Expired listings are automatically removed from results.",
