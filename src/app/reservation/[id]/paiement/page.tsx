@@ -5,6 +5,7 @@ import { fr as frMeta } from "@/lib/i18n/fr";
 import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
+import { stayEnabled } from "@/lib/modes";
 import { confirmPaymentAction } from "@/actions/bookings";
 import { settleKonnectBooking } from "@/lib/payments";
 import { isKonnectEnabled } from "@/lib/konnect";
@@ -26,6 +27,9 @@ export default async function PaiementPage({
   const fr = await getT();
   const { id } = await params;
   const { konnect } = await searchParams;
+  // Paiement = parcours séjour : 404 si la verticale Séjours est désactivée.
+  if (!stayEnabled()) notFound();
+
   const user = await getSessionUser();
   if (!user) redirect("/connexion");
 

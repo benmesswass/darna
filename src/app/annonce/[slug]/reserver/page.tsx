@@ -4,6 +4,7 @@ import { getT } from "@/lib/i18n/server";
 import { fr as frMeta } from "@/lib/i18n/fr";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
+import { stayEnabled } from "@/lib/modes";
 import { BookingPanel } from "@/components/booking/BookingPanel";
 import { ActiveSection } from "@/components/layout/ActiveSection";
 import { expandUnavailable } from "@/lib/availability";
@@ -49,7 +50,9 @@ export default async function ReserverPage({
       availabilities: { select: { startDate: true, endDate: true } },
     },
   });
-  if (!property || property.type !== "SEJOUR") notFound();
+  // Réservation = parcours séjour : 404 si le bien n'est pas un séjour ou si la
+  // verticale Séjours est désactivée par config.
+  if (!property || property.type !== "SEJOUR" || !stayEnabled()) notFound();
   if (property.status !== "ACTIVE" || property.expiresAt.getTime() < Date.now()) {
     redirect(`/annonce/${slug}`);
   }

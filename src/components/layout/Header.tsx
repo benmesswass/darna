@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getT } from "@/lib/i18n/server";
 import { getSessionUser } from "@/lib/session";
+import { immoEnabled, stayEnabled } from "@/lib/modes";
 import { HouseIcon } from "@/components/icons";
 import { MobileMenu } from "./MobileMenu";
 import { NavLink } from "./NavLink";
@@ -11,10 +12,12 @@ import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 export async function Header() {
   const [user, fr] = await Promise.all([getSessionUser(), getT()]);
 
+  // Navigation des verticales : seules les verticales activées sont proposées
+  // (cf. src/lib/modes.ts). En démo, les deux sont actives → nav inchangée.
   const primaryItems = [
-    { href: "/sejours", label: fr.nav.sejours },
-    { href: "/immobilier", label: fr.nav.immobilier },
-  ];
+    stayEnabled() ? { href: "/sejours", label: fr.nav.sejours } : null,
+    immoEnabled() ? { href: "/immobilier", label: fr.nav.immobilier } : null,
+  ].filter((item): item is { href: string; label: string } => item !== null);
 
   const mobileItems = [
     ...primaryItems,

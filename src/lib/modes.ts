@@ -10,6 +10,8 @@
  * Module SERVEUR uniquement (lit process.env). Ne jamais importer côté client.
  */
 
+import type { Vertical } from "@/lib/constants";
+
 export type PaymentMode = "demo" | "konnect";
 export type KycMode = "demo" | "production";
 export type StorageMode = "local" | "s3";
@@ -46,4 +48,24 @@ export function storageMode(): StorageMode {
     return "s3";
   }
   return "local";
+}
+
+/**
+ * Activation des verticales (feature flags par module). Défaut : les DEUX
+ * activées — seule la valeur explicite "false" désactive une verticale, donc la
+ * démo reste complète sans aucune config. La garde au boot (src/lib/env.ts)
+ * interdit de désactiver les deux à la fois (site sans contenu). Un déploiement
+ * mono-verticale (split physique futur) se fait alors par simple config.
+ */
+export function stayEnabled(): boolean {
+  return process.env.STAY_ENABLED !== "false";
+}
+
+export function immoEnabled(): boolean {
+  return process.env.IMMO_ENABLED !== "false";
+}
+
+/** Verticale active ? Aiguillage unique pour le gating des routes/nav. */
+export function verticalEnabled(vertical: Vertical): boolean {
+  return vertical === "STAY" ? stayEnabled() : immoEnabled();
 }
