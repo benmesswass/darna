@@ -23,19 +23,51 @@ export function KycFlow({ initialStatus }: { initialStatus: string }) {
     FormData
   >(verifyKycOtpAction, undefined);
 
-  const verified = initialStatus === "VERIFIE" || verifyState?.verified;
+  // DEMO_VERIFIE (vérif démo) reste distinct de VERIFIE (vérif réelle) : badge,
+  // couleur et message différents pour ne jamais laisser croire à une vérif réelle.
+  const demoVerified = initialStatus === "DEMO_VERIFIE" || verifyState?.demo;
+  const verified =
+    initialStatus === "VERIFIE" || initialStatus === "DEMO_VERIFIE" || verifyState?.verified;
 
   if (verified) {
     return (
-      <div className="rounded-3xl bg-emerald-50 p-8 text-center ring-1 ring-emerald-200">
-        <span className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white">
+      <div
+        className={
+          demoVerified
+            ? "rounded-3xl bg-sand-light/60 p-8 text-center ring-1 ring-sand"
+            : "rounded-3xl bg-emerald-50 p-8 text-center ring-1 ring-emerald-200"
+        }
+      >
+        <span
+          className={
+            demoVerified
+              ? "inline-flex h-14 w-14 items-center justify-center rounded-full bg-sand text-darna-dark"
+              : "inline-flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white"
+          }
+        >
           <CheckIcon width={28} height={28} strokeWidth={2.5} />
         </span>
-        <p className="mt-4 text-lg font-bold text-emerald-800">
-          {fr.kyc.statutVerifie}
+        <p
+          className={
+            demoVerified
+              ? "mt-4 text-lg font-bold text-darna-dark"
+              : "mt-4 text-lg font-bold text-emerald-800"
+          }
+        >
+          {demoVerified ? fr.kyc.statutVerifieDemo : fr.kyc.statutVerifie}
         </p>
-        <p className="mx-auto mt-1 max-w-md text-sm text-emerald-700">
-          {initialStatus === "VERIFIE" ? fr.kyc.dejaVerifie : fr.kyc.verifieBravo}
+        <p
+          className={
+            demoVerified
+              ? "mx-auto mt-1 max-w-md text-sm text-darna-dark/80"
+              : "mx-auto mt-1 max-w-md text-sm text-emerald-700"
+          }
+        >
+          {demoVerified
+            ? fr.kyc.verifieDemoBravo
+            : initialStatus === "VERIFIE"
+              ? fr.kyc.dejaVerifie
+              : fr.kyc.verifieBravo}
         </p>
       </div>
     );

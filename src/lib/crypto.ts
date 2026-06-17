@@ -16,6 +16,30 @@ function key32(): Buffer | null {
   return createHash("sha256").update(k).digest(); // 32 octets déterministes
 }
 
+/**
+ * Vrai si le chiffrement au repos est actif (KYC_ENC_KEY présent). En
+ * KYC_MODE=production, src/lib/env.ts garantit que c'est TOUJOURS le cas (boot
+ * fail-fast) → impossible de stocker une CIN en clair en production.
+ */
+export function isEncryptionEnabled(): boolean {
+  return Boolean(process.env.KYC_ENC_KEY);
+}
+
+/**
+ * Helper de MIGRATION (backfill) — à exécuter UNE fois, hors chemin chaud, le
+ * jour où KYC_ENC_KEY est introduit pour chiffrer les CIN historiquement en
+ * clair. Idempotent : une valeur déjà chiffrée (préfixe `enc:`) est renvoyée
+ * telle quelle. Exemple de script :
+ *
+ *   // scripts/backfill-cin.ts  (npx tsx scripts/backfill-cin.ts)
+ *   for (const u of await prisma.user.findMany({ where: { cin: { not: null } } }))
+ *     await prisma.user.update({ where: { id: u.id }, data: { cin: ensureEncrypted(u.cin!) } });
+ */
+export function ensureEncrypted(stored: string): string {
+  if (stored.startsWith(PREFIX)) return stored; // déjà chiffré → no-op
+  return encryptSensitive(stored);
+}
+
 /** Chiffre une valeur sensible. Sans clé : renvoie la valeur en clair. */
 export function encryptSensitive(plain: string): string {
   const key = key32();

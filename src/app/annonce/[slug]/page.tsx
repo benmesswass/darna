@@ -374,6 +374,13 @@ export default async function AnnoncePage({
                 <CheckIcon width={12} height={12} strokeWidth={3} />
                 {fr.kyc.statutVerifie}
               </p>
+            ) : property.owner.kycStatus === "DEMO_VERIFIE" ? (
+              // Badge DÉMO distinct (couleur neutre, libellé explicite) : ne jamais
+              // afficher une confiance « vérifié réel » pour une vérification de démo.
+              <p className="mt-2 inline-flex items-center gap-1 rounded-full bg-ink/[0.06] px-2.5 py-1 text-xs font-medium text-ink/55">
+                <CheckIcon width={12} height={12} strokeWidth={3} />
+                {fr.kyc.statutVerifieDemo}
+              </p>
             ) : null}
           </div>
         </aside>

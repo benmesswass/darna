@@ -419,6 +419,9 @@ export const ar: Dictionary = {
     verifieBravo:
       "مبروك، هويتك توثّقت! العلامة تظهر توا على حسابك.",
     dejaVerifie: "هويتك موثّقة من قبل.",
+    statutVerifieDemo: "الهوية موثّقة (ديمو)",
+    verifieDemoBravo:
+      "التثبّت تمّ في الوضع التجريبي. في الإنتاج، يلزم SMS حقيقي باش تاخذ علامة التوثيق الحقيقية.",
   },
   profil: {
     titre: "معلوماتي",

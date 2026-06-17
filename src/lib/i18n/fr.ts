@@ -400,6 +400,9 @@ export const fr = {
     verifieBravo:
       "Félicitations, votre identité est vérifiée ! Le badge apparaît désormais sur votre profil.",
     dejaVerifie: "Votre identité est déjà vérifiée.",
+    statutVerifieDemo: "Identité vérifiée (démo)",
+    verifieDemoBravo:
+      "Vérification effectuée en mode démonstration. En production, un SMS réel sera requis pour obtenir le vrai badge vérifié.",
   },
   profil: {
     titre: "Mes informations",
