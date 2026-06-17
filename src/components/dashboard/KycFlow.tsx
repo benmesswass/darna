@@ -42,6 +42,7 @@ export function KycFlow({ initialStatus }: { initialStatus: string }) {
   }
 
   const otp = requestState?.otp;
+  const sent = requestState?.sent;
 
   return (
     <div className="space-y-5">
@@ -89,23 +90,31 @@ export function KycFlow({ initialStatus }: { initialStatus: string }) {
         </button>
       </form>
 
-      {/* Étape 2 : OTP mock affiché à l'écran */}
-      {otp ? (
+      {/* Étape 2 : saisie du code (affiché en démo, envoyé par SMS en prod) */}
+      {sent ? (
         <form
           action={verifyAction}
           className="rounded-3xl bg-white p-6 ring-1 ring-sand"
         >
-          <p className="rounded-xl bg-sand-light/60 px-4 py-3 text-sm font-medium text-darna-dark">
-            {fr.kyc.otpMockInfo}
-          </p>
-          <div className="mt-4 text-center">
-            <p className="text-xs font-semibold uppercase tracking-wide text-ink/50">
-              {fr.kyc.votreCode}
+          {otp ? (
+            <>
+              <p className="rounded-xl bg-sand-light/60 px-4 py-3 text-sm font-medium text-darna-dark">
+                {fr.kyc.otpMockInfo}
+              </p>
+              <div className="mt-4 text-center">
+                <p className="text-xs font-semibold uppercase tracking-wide text-ink/50">
+                  {fr.kyc.votreCode}
+                </p>
+                <p className="mt-1 font-mono text-4xl font-bold tracking-[0.4em] text-darna">
+                  {otp}
+                </p>
+              </div>
+            </>
+          ) : (
+            <p className="rounded-xl bg-sand-light/60 px-4 py-3 text-sm font-medium text-darna-dark">
+              {fr.kyc.otpSmsInfo}
             </p>
-            <p className="mt-1 font-mono text-4xl font-bold tracking-[0.4em] text-darna">
-              {otp}
-            </p>
-          </div>
+          )}
 
           {verifyState?.error ? (
             <p role="alert" className="mt-4 rounded-xl bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700">

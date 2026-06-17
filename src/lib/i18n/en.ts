@@ -391,6 +391,7 @@ export const en: Dictionary = {
     envoyerOtp: "Receive the verification code",
     otpMockInfo:
       "Demo mode: no real SMS is sent. Your code is displayed below.",
+    otpSmsInfo: "A verification code has been sent to you by SMS.",
     votreCode: "Your verification code",
     saisirOtp: "Enter the code you received",
     valider: "Validate the code",

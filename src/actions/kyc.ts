@@ -1,27 +1,19 @@
 "use server";
 
-import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { assertRateLimit } from "@/lib/rate-limit";
+import { issueOtp, verifyOtp } from "@/lib/otp";
+import { sendSms } from "@/lib/sms";
+import { encryptSensitive } from "@/lib/crypto";
+import { logAudit } from "@/lib/audit";
 
 export type KycFormState =
-  | { error?: string; otp?: string; verified?: boolean }
+  | { error?: string; otp?: string; sent?: boolean; verified?: boolean }
   | undefined;
-
-/**
- * OTP de démonstration : dérivé de l'utilisateur et de la CIN, affiché à
- * l'écran (aucun SMS réel en V0). Déterministe → vérifiable sans stockage.
- */
-function computeMockOtp(userId: string, cin: string): string {
-  const digest = createHash("sha256")
-    .update(`${userId}:${cin}:${process.env.AUTH_SECRET ?? "darna"}`)
-    .digest("hex");
-  return String(parseInt(digest.slice(0, 8), 16) % 1_000_000).padStart(6, "0");
-}
 
 const requestSchema = z.object({
   cin: z.string().trim().regex(/^[0-9]{8}$/),
@@ -46,17 +38,28 @@ export async function requestKycOtpAction(
   });
   if (!parsed.success) return { error: fr.common.champsRequis };
 
+  // CIN chiffrée au repos si KYC_ENC_KEY est défini (sinon clair, cf. crypto.ts).
   await prisma.user.update({
     where: { id: user.id },
     data: {
-      cin: parsed.data.cin,
+      cin: encryptSensitive(parsed.data.cin),
       phone: parsed.data.phone,
       kycStatus: "EN_ATTENTE",
     },
   });
 
+  const code = await issueOtp(user.id);
+  const sent = await sendSms(
+    parsed.data.phone,
+    `Darna : votre code de vérification est ${code}`
+  );
+
+  await logAudit({ action: "KYC_OTP_REQUESTED", userId: user.id, success: true });
   revalidatePath("/dashboard/kyc");
-  return { otp: computeMockOtp(user.id, parsed.data.cin) };
+
+  // Mode dev/démo (aucun provider SMS) : on renvoie le code pour l'afficher.
+  // Mode prod (SMS envoyé) : on signale juste `sent` sans exposer le code.
+  return sent ? { sent: true } : { sent: true, otp: code };
 }
 
 const verifySchema = z.object({
@@ -78,13 +81,7 @@ export async function verifyKycOtpAction(
   const parsed = verifySchema.safeParse({ otp: formData.get("otp") });
   if (!parsed.success) return { error: fr.kyc.otpInvalide };
 
-  const dbUser = await prisma.user.findUnique({
-    where: { id: user.id },
-    select: { cin: true },
-  });
-  if (!dbUser?.cin) return { error: fr.kyc.otpInvalide };
-
-  if (computeMockOtp(user.id, dbUser.cin) !== parsed.data.otp) {
+  if (!(await verifyOtp(user.id, parsed.data.otp))) {
     return { error: fr.kyc.otpInvalide };
   }
 
@@ -93,6 +90,7 @@ export async function verifyKycOtpAction(
     data: { kycStatus: "VERIFIE", phoneVerified: true },
   });
 
+  await logAudit({ action: "KYC_VERIFIED", userId: user.id, success: true });
   revalidatePath("/dashboard");
   return { verified: true };
 }

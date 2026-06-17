@@ -28,6 +28,9 @@ const envSchema = z.object({
   S3_SECRET_ACCESS_KEY: z.string().optional(),
   S3_REGION: z.string().optional(),
   S3_PUBLIC_URL: z.string().url().optional(),
+  // Chiffrement au repos des données sensibles (CIN, cf. src/lib/crypto.ts).
+  // Optionnel : absent ⇒ stockage en clair (comportement actuel).
+  KYC_ENC_KEY: z.string().min(16).optional(),
 }).refine(
   (e) =>
     e.STORAGE_DRIVER !== "s3" ||
