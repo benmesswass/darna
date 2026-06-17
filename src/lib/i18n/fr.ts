@@ -139,6 +139,9 @@ export const fr = {
     indifferent: "Indifférent",
     resultats: (n: number) =>
       n === 0 ? "Aucun résultat" : n === 1 ? "1 annonce" : `${n} annonces`,
+    precedent: "Précédent",
+    suivant: "Suivant",
+    pageInfo: (page: number, total: number) => `Page ${page} / ${total}`,
     aucunResultatTitre: "Aucune annonce ne correspond",
     aucunResultatDesc:
       "Essayez d'élargir vos critères ou de retirer des filtres. Les annonces expirées sont automatiquement retirées des résultats.",

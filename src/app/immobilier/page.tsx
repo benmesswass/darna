@@ -12,6 +12,7 @@ import { getFavoriteContext, favoritePropFor } from "@/lib/favorites";
 import { PropertyCard } from "@/components/property/PropertyCard";
 import { PropertyMap } from "@/components/map/PropertyMap";
 import { SplitView } from "@/components/search/SplitView";
+import { Pagination } from "@/components/search/Pagination";
 import { SearchIcon } from "@/components/icons";
 
 export const metadata: Metadata = {
@@ -26,7 +27,8 @@ export default async function ImmobilierPage({
 }) {
   const fr = await getT();
   const params = await searchParams;
-  const { results, transaction } = await searchImmobilier(params);
+  const { results, transaction, total, page, pageSize } =
+    await searchImmobilier(params);
   const favCtx = await getFavoriteContext((await getSessionUser())?.id);
 
   const markers = results.map((p) => ({
@@ -165,7 +167,7 @@ export default async function ImmobilierPage({
       </form>
 
       <div className="mt-4 text-sm font-semibold text-darna">
-        {fr.search.resultats(results.length)}
+        {fr.search.resultats(total)}
       </div>
 
       <div className="mt-4">
@@ -195,6 +197,14 @@ export default async function ImmobilierPage({
           />
         )}
       </div>
+
+      <Pagination
+        page={page}
+        total={total}
+        pageSize={pageSize}
+        basePath="/immobilier"
+        params={params}
+      />
     </div>
   );
 }

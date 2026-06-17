@@ -152,6 +152,9 @@ export const ar: Dictionary = {
             : n <= 10
               ? `${n} إعلانات`
               : `${n} إعلان`,
+    precedent: "السابق",
+    suivant: "التالي",
+    pageInfo: (page: number, total: number) => `الصفحة ${page} من ${total}`,
     aucunResultatTitre: "حتى إعلان ما يطابق",
     aucunResultatDesc:
       "جرّب وسّع المعايير متاعك ولا نحّي فلاتر. الإعلانات المنتهية تتنحّى وحدها من النتائج.",

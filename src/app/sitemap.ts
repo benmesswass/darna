@@ -13,11 +13,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/devenir-wakil`, changeFrequency: "monthly", priority: 0.5 },
   ];
 
-  // Seules les annonces actives et non expirées sont indexables.
+  // Seules les annonces actives et non expirées sont indexables. Borné à la
+  // limite Google d'un fichier sitemap (50 000 URL) — au-delà, passer à un
+  // index de sitemaps paginés. Les plus récentes d'abord.
   const properties = await prisma.property.findMany({
     where: activeListingWhere(),
     select: { slug: true, updatedAt: true },
     orderBy: { publishedAt: "desc" },
+    take: 50_000 - staticPages.length,
   });
 
   return [
