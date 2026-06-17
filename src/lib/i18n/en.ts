@@ -100,6 +100,7 @@ export const en: Dictionary = {
     imprimer: "Print",
     chargement: "Loading…",
     erreurInconnue: "Something went wrong. Please try again.",
+    reessayer: "Try again",
     champsRequis: "Please check the form fields.",
     tropDeTentatives: "Too many attempts. Please wait a few minutes and try again.",
     optionnel: "optional",
