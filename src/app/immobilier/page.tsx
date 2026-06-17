@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { fr as frMeta } from "@/lib/i18n/fr";
 import { getT } from "@/lib/i18n/server";
+import { immoEnabled } from "@/lib/modes";
 import { GOUVERNORATS } from "@/lib/geo";
 import {
   searchImmobilier,
@@ -25,6 +27,9 @@ export default async function ImmobilierPage({
 }: {
   searchParams: Promise<ImmobilierSearchParams>;
 }) {
+  // Verticale Immo désactivée par config → la route n'existe pas (404).
+  if (!immoEnabled()) notFound();
+
   const fr = await getT();
   const params = await searchParams;
   const { results, transaction, total, page, pageSize } =

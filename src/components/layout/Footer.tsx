@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getT } from "@/lib/i18n/server";
+import { immoEnabled, stayEnabled } from "@/lib/modes";
 import { HouseIcon } from "@/components/icons";
 
 export async function Footer() {
@@ -25,16 +26,20 @@ export async function Footer() {
             {fr.footer.explorer}
           </h3>
           <ul className="mt-3 space-y-2 text-sm">
-            <li>
-              <Link href="/sejours" className="text-white/80 hover:text-sand">
-                {fr.nav.sejours}
-              </Link>
-            </li>
-            <li>
-              <Link href="/immobilier" className="text-white/80 hover:text-sand">
-                {fr.nav.immobilier}
-              </Link>
-            </li>
+            {stayEnabled() ? (
+              <li>
+                <Link href="/sejours" className="text-white/80 hover:text-sand">
+                  {fr.nav.sejours}
+                </Link>
+              </li>
+            ) : null}
+            {immoEnabled() ? (
+              <li>
+                <Link href="/immobilier" className="text-white/80 hover:text-sand">
+                  {fr.nav.immobilier}
+                </Link>
+              </li>
+            ) : null}
             <li>
               <Link href="/prix-du-marche" className="text-white/80 hover:text-sand">
                 {fr.nav.prixDuMarche}

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { fr as frMeta } from "@/lib/i18n/fr";
 import { getT } from "@/lib/i18n/server";
+import { stayEnabled } from "@/lib/modes";
 import {
   searchSejours,
   type SejoursSearchParams,
@@ -25,6 +27,9 @@ export default async function SejoursPage({
 }: {
   searchParams: Promise<SejoursSearchParams>;
 }) {
+  // Verticale Séjours désactivée par config → la route n'existe pas (404).
+  if (!stayEnabled()) notFound();
+
   const fr = await getT();
   const params = await searchParams;
   const { results, resolvedCity, unknownCity, total, page, pageSize } =

@@ -3,6 +3,7 @@ import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { activeListingWhere, getAlaUneListings, getFeaturedListings } from "@/lib/listings";
 import { getSessionUser } from "@/lib/session";
+import { immoEnabled, stayEnabled } from "@/lib/modes";
 import { getFavoriteContext, favoritePropFor } from "@/lib/favorites";
 import { PropertyCard } from "@/components/property/PropertyCard";
 import { CityAutocomplete } from "@/components/search/CityAutocomplete";
@@ -107,36 +108,41 @@ export default async function HomePage() {
       {/* Les deux verticales */}
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
         <div className="grid gap-6 md:grid-cols-2">
-          <Link
-            href="/sejours"
-            className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-darna to-darna-light p-8 text-white shadow-lg transition hover:shadow-xl"
-          >
-            <PalmIcon width={44} height={44} className="text-sand" />
-            <h2 className="mt-4 text-2xl font-bold">{fr.home.verticalSejoursTitle}</h2>
-            <p className="mt-2 max-w-md text-sm text-white/80">
-              {fr.home.verticalSejoursDesc}
-            </p>
-            <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-sand">
-              {fr.brand.ctaSejours}
-              <ArrowRightIcon className="transition group-hover:translate-x-1" />
-            </span>
-          </Link>
-          <Link
-            href="/immobilier"
-            className="group relative overflow-hidden rounded-3xl bg-white p-8 shadow-lg ring-1 ring-darna/10 transition hover:shadow-xl"
-          >
-            <BuildingIcon width={44} height={44} className="text-darna" />
-            <h2 className="mt-4 text-2xl font-bold text-darna">
-              {fr.home.verticalImmobilierTitle}
-            </h2>
-            <p className="mt-2 max-w-md text-sm text-ink/70">
-              {fr.home.verticalImmobilierDesc}
-            </p>
-            <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-darna">
-              {fr.brand.ctaImmobilier}
-              <ArrowRightIcon className="transition group-hover:translate-x-1" />
-            </span>
-          </Link>
+          {/* Une carte par verticale activée (cf. src/lib/modes.ts). */}
+          {stayEnabled() ? (
+            <Link
+              href="/sejours"
+              className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-darna to-darna-light p-8 text-white shadow-lg transition hover:shadow-xl"
+            >
+              <PalmIcon width={44} height={44} className="text-sand" />
+              <h2 className="mt-4 text-2xl font-bold">{fr.home.verticalSejoursTitle}</h2>
+              <p className="mt-2 max-w-md text-sm text-white/80">
+                {fr.home.verticalSejoursDesc}
+              </p>
+              <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-sand">
+                {fr.brand.ctaSejours}
+                <ArrowRightIcon className="transition group-hover:translate-x-1" />
+              </span>
+            </Link>
+          ) : null}
+          {immoEnabled() ? (
+            <Link
+              href="/immobilier"
+              className="group relative overflow-hidden rounded-3xl bg-white p-8 shadow-lg ring-1 ring-darna/10 transition hover:shadow-xl"
+            >
+              <BuildingIcon width={44} height={44} className="text-darna" />
+              <h2 className="mt-4 text-2xl font-bold text-darna">
+                {fr.home.verticalImmobilierTitle}
+              </h2>
+              <p className="mt-2 max-w-md text-sm text-ink/70">
+                {fr.home.verticalImmobilierDesc}
+              </p>
+              <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-darna">
+                {fr.brand.ctaImmobilier}
+                <ArrowRightIcon className="transition group-hover:translate-x-1" />
+              </span>
+            </Link>
+          ) : null}
         </div>
       </section>
 

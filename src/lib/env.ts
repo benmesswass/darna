@@ -34,6 +34,11 @@ const envSchema = z
     STORAGE_MODE: z.enum(["local", "s3"]).optional(),
     STORAGE_DRIVER: z.enum(["disk", "s3"]).optional(),
 
+    // Verticales (cf. src/lib/modes.ts). Absent ⇒ activée (défaut démo complète).
+    // "false" désactive la verticale. Les deux ne peuvent pas être "false".
+    STAY_ENABLED: z.enum(["true", "false"]).optional(),
+    IMMO_ENABLED: z.enum(["true", "false"]).optional(),
+
     KONNECT_API_KEY: z.string().optional(),
     KONNECT_RECEIVER_WALLET_ID: z.string().optional(),
     KONNECT_API_URL: z.string().url().optional(),
@@ -55,6 +60,16 @@ const envSchema = z
     OBSERVABILITY_WEBHOOK_URL: z.string().url().optional(),
   })
   .superRefine((e, ctx) => {
+    // Au moins une verticale doit rester active : un site sans Séjours NI Immo
+    // n'a aucun contenu. Désactiver les deux est forcément une erreur de config.
+    if (e.STAY_ENABLED === "false" && e.IMMO_ENABLED === "false") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "STAY_ENABLED et IMMO_ENABLED ne peuvent pas valoir \"false\" simultanément : au moins une verticale doit rester active.",
+      });
+    }
+
     const isProd = e.NODE_ENV === "production";
     const paymentKonnect = e.PAYMENT_MODE === "konnect";
     const kycProd = e.KYC_MODE === "production";

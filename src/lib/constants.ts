@@ -19,6 +19,26 @@ export type KycStatus = (typeof KYC_STATUSES)[number];
 export const PROPERTY_TYPES = ["SEJOUR", "LOCATION", "VENTE"] as const;
 export type PropertyType = (typeof PROPERTY_TYPES)[number];
 
+/**
+ * Verticales du produit — frontière de module ET de feature-flag (cf.
+ * src/modules/README.md). DISTINCT du `type` d'annonce : STAY ⊃ {SEJOUR} ;
+ * IMMO ⊃ {LOCATION, VENTE}. L'activation/désactivation par config vit dans
+ * src/lib/modes.ts (stayEnabled/immoEnabled). Module client-safe (pas de env).
+ */
+export const VERTICALS = ["STAY", "IMMO"] as const;
+export type Vertical = (typeof VERTICALS)[number];
+
+/** Types d'annonce regroupés par verticale. */
+export const TYPES_BY_VERTICAL: Record<Vertical, readonly PropertyType[]> = {
+  STAY: ["SEJOUR"],
+  IMMO: ["LOCATION", "VENTE"],
+};
+
+/** Verticale d'un type d'annonce. SEJOUR → STAY ; LOCATION/VENTE → IMMO. */
+export function verticalOfType(type: string): Vertical {
+  return type === "SEJOUR" ? "STAY" : "IMMO";
+}
+
 /** Limites d'upload de photos — partagées client (dropzone) et serveur (uploads). */
 export const MAX_PHOTOS_PER_PROPERTY = 8;
 export const MAX_PHOTO_SIZE = 5 * 1024 * 1024; // 5 Mo

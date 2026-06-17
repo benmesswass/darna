@@ -10,7 +10,7 @@ import {
 import { useT } from "@/components/i18n/LocaleProvider";
 import { PhotoDropzone } from "./PhotoDropzone";
 import { generateDescription } from "@/lib/description";
-import { AMENITIES } from "@/lib/constants";
+import { AMENITIES, PROPERTY_TYPES, type PropertyType } from "@/lib/constants";
 import { CITIES, getCity, nearestCity, resolveCity } from "@/lib/geo";
 import { AddressAutocomplete } from "./AddressAutocomplete";
 import { LocationPicker } from "@/components/map/LocationPicker";
@@ -45,7 +45,15 @@ export type PropertyFormInitial = {
 };
 
 /** Formulaire d'annonce — création (sans `initial`) ou modification (avec). */
-export function PropertyForm({ initial }: { initial?: PropertyFormInitial }) {
+export function PropertyForm({
+  initial,
+  // Types proposés à la création : restreints aux verticales activées (cf.
+  // src/lib/modes.ts), calculés côté serveur par la page. Défaut : tous.
+  allowedTypes = [...PROPERTY_TYPES],
+}: {
+  initial?: PropertyFormInitial;
+  allowedTypes?: PropertyType[];
+}) {
   const fr = useT();
   const isEdit = Boolean(initial);
   const [state, action, pending] = useActionState<PropertyFormState, FormData>(
@@ -53,7 +61,9 @@ export function PropertyForm({ initial }: { initial?: PropertyFormInitial }) {
     undefined
   );
   const formRef = useRef<HTMLFormElement>(null);
-  const [type, setType] = useState(initial?.type ?? "SEJOUR");
+  const [type, setType] = useState<string>(
+    initial?.type ?? allowedTypes[0] ?? "SEJOUR"
+  );
   const [cityName, setCityName] = useState(initial?.city ?? "Tunis");
   const [address, setAddress] = useState(initial?.address ?? "");
   const [coords, setCoords] = useState<{ lat: number; lng: number }>({
@@ -189,9 +199,15 @@ export function PropertyForm({ initial }: { initial?: PropertyFormInitial }) {
             onChange={(e) => setType(e.target.value)}
             className={inputClass}
           >
-            <option value="SEJOUR">{fr.annonceForm.typeSejour}</option>
-            <option value="LOCATION">{fr.annonceForm.typeLocation}</option>
-            <option value="VENTE">{fr.annonceForm.typeVente}</option>
+            {allowedTypes.includes("SEJOUR") ? (
+              <option value="SEJOUR">{fr.annonceForm.typeSejour}</option>
+            ) : null}
+            {allowedTypes.includes("LOCATION") ? (
+              <option value="LOCATION">{fr.annonceForm.typeLocation}</option>
+            ) : null}
+            {allowedTypes.includes("VENTE") ? (
+              <option value="VENTE">{fr.annonceForm.typeVente}</option>
+            ) : null}
           </select>
           {isEdit ? (
             <span className="block text-xs text-ink/40">

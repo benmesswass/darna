@@ -6,6 +6,8 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { getFavoriteContext } from "@/lib/favorites";
 import { formatTndServer } from "@/lib/format";
+import { verticalEnabled } from "@/lib/modes";
+import { verticalOfType } from "@/lib/constants";
 import { StayDetail } from "@/modules/stay/listing/StayDetail";
 import { ImmoDetail } from "@/modules/immo/listing/ImmoDetail";
 
@@ -72,6 +74,9 @@ export default async function AnnoncePage({
   const { arrivee } = await searchParams;
   const property = await getPropertyBySlug(slug);
   if (!property) notFound();
+
+  // Verticale du bien désactivée par config → la fiche n'existe pas (404).
+  if (!verticalEnabled(verticalOfType(property.type))) notFound();
 
   const user = await getSessionUser();
   const favCtx = await getFavoriteContext(user?.id);

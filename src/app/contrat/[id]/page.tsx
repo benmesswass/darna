@@ -4,6 +4,7 @@ import { getT } from "@/lib/i18n/server";
 import { fr as frMeta } from "@/lib/i18n/fr";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
+import { immoEnabled } from "@/lib/modes";
 import { decryptSensitive } from "@/lib/crypto";
 import { formatDateFr, formatTndServer } from "@/lib/format";
 import { PrintButton } from "@/components/contract/PrintButton";
@@ -32,7 +33,9 @@ export default async function ContratPage({
       },
     },
   });
-  if (!request || request.property.type !== "LOCATION") notFound();
+  // Bail = parcours immo (location) : 404 si la demande ne porte pas sur une
+  // location ou si la verticale Immo est désactivée par config.
+  if (!request || request.property.type !== "LOCATION" || !immoEnabled()) notFound();
 
   // Autorisation : seuls le propriétaire du bien ou l'auteur de la demande.
   const allowed =
