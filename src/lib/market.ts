@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { activeListingWhere } from "@/lib/listings";
+import { cached } from "@/lib/cache";
 
 export type M2Row = {
   label: string;
@@ -19,6 +20,12 @@ export type NightRow = {
  * moyenne par ville (séjours). Annonces sans surface exclues du m².
  */
 export async function computeMarketIndex() {
+  // Agrégat lourd et lent à changer → mémoïsé 5 min (Redis si REDIS_URL,
+  // sinon cache in-memory par instance). Cf. src/lib/cache.ts.
+  return cached("market:index", 300, computeMarketIndexRaw);
+}
+
+async function computeMarketIndexRaw() {
   const [withSurface, sejours] = await Promise.all([
     prisma.property.findMany({
       where: {

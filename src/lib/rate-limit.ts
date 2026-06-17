@@ -1,13 +1,17 @@
 import { headers } from "next/headers";
+import { getRedis } from "@/lib/redis";
+import { logStructured } from "@/lib/audit";
 
 /**
- * Rate limiting en mémoire (V0) : 5 tentatives / 15 minutes / IP
- * sur les actions sensibles (connexion, inscription, OTP).
+ * Rate limiting : 5 tentatives / 15 minutes / IP sur les actions sensibles
+ * (connexion, inscription, OTP).
  *
- * IMPORTANT PRODUCTION : remplacer par Redis / Upstash :
- *   - l'in-memory Map ne survit pas aux redémarrages du process
- *   - en déploiement multi-instance (Vercel / k8s), chaque instance
- *     a son propre compteur → utiliser @upstash/ratelimit avec Redis.
+ * Deux modes, aiguillés par la présence de `REDIS_URL` :
+ *   - **distribué** (Redis) : compteur partagé entre instances, survit aux
+ *     redémarrages (fenêtre fixe atomique : INCR + PEXPIRE au premier hit).
+ *   - **fallback in-memory** (Map) : mono-instance, suffisant pour la démo.
+ * Si Redis tombe en cours de route, on retombe sur le compteur in-memory de
+ * l'instance plutôt que de verrouiller les utilisateurs (dégradation gracieuse).
  */
 const WINDOW_MS = 15 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
@@ -52,5 +56,22 @@ export function checkRateLimit(action: string, ip: string): boolean {
 }
 
 export async function assertRateLimit(action: string): Promise<boolean> {
-  return checkRateLimit(action, await clientIp());
+  const ip = await clientIp();
+  const redis = getRedis();
+  if (!redis) return checkRateLimit(action, ip);
+
+  try {
+    // Fenêtre fixe distribuée : INCR atomique ; le TTL n'est posé qu'au
+    // premier hit (count === 1) pour ne pas réarmer la fenêtre à chaque essai.
+    const key = `rl:${action}:${ip}`;
+    const count = await redis.incr(key);
+    if (count === 1) await redis.pexpire(key, WINDOW_MS);
+    return count <= MAX_ATTEMPTS;
+  } catch (err) {
+    logStructured("warn", "ratelimit.redis_fallback", {
+      action,
+      message: (err as Error).message,
+    });
+    return checkRateLimit(action, ip);
+  }
 }

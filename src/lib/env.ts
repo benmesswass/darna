@@ -14,6 +14,9 @@ const envSchema = z.object({
   AUTH_SECRET: z.string().min(32, "AUTH_SECRET doit faire au moins 32 caractères"),
   SITE_URL: z.string().url().optional(),
   TRUSTED_PROXY: z.enum(["true", "false"]).optional(),
+  // Cache + rate limiting distribués (OPTIONNEL). Absent ⇒ fallback in-memory
+  // mono-instance (cf. src/lib/redis.ts). À définir en prod multi-instance.
+  REDIS_URL: z.string().url().optional(),
   KONNECT_API_KEY: z.string().optional(),
   KONNECT_RECEIVER_WALLET_ID: z.string().optional(),
   KONNECT_API_URL: z.string().url().optional(),
