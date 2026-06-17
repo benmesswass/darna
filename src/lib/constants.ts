@@ -6,7 +6,14 @@ export type Role = (typeof ROLES)[number];
 /** Durée de vie d'une réservation EN_ATTENTE avant expiration automatique. */
 export const BOOKING_EXPIRY_MS = 15 * 60 * 1000; // 15 minutes
 
-export const KYC_STATUSES = ["NON_VERIFIE", "EN_ATTENTE", "VERIFIE"] as const;
+// DEMO_VERIFIE : vérifié en MODE DÉMO (OTP affiché à l'écran). Distinct de VERIFIE
+// (vérification réelle par SMS) pour ne jamais confondre confiance réelle et démo.
+export const KYC_STATUSES = [
+  "NON_VERIFIE",
+  "EN_ATTENTE",
+  "VERIFIE",
+  "DEMO_VERIFIE",
+] as const;
 export type KycStatus = (typeof KYC_STATUSES)[number];
 
 export const PROPERTY_TYPES = ["SEJOUR", "LOCATION", "VENTE"] as const;

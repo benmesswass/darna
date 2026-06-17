@@ -400,6 +400,9 @@ export const en: Dictionary = {
     verifieBravo:
       "Congratulations, your identity is verified! The badge now appears on your profile.",
     dejaVerifie: "Your identity is already verified.",
+    statutVerifieDemo: "Identity verified (demo)",
+    verifieDemoBravo:
+      "Verification completed in demo mode. In production, a real SMS will be required to earn the genuine verified badge.",
   },
   profil: {
     titre: "My details",

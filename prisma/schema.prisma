@@ -36,8 +36,10 @@ model User {
   image         String?  // Photo de profil — URL locale /uploads (cf. src/lib/uploads.ts)
   role          String   @default("VOYAGEUR") // VOYAGEUR | HOTE | AGENCE | ADMIN
   phoneVerified Boolean  @default(false)
-  kycStatus     String   @default("NON_VERIFIE") // NON_VERIFIE | EN_ATTENTE | VERIFIE
-  cin           String?  // CIN saisie au KYC — TODO : chiffrer au repos (AES-256)
+  kycStatus     String   @default("NON_VERIFIE") // NON_VERIFIE | EN_ATTENTE | VERIFIE | DEMO_VERIFIE
+  // CIN saisie au KYC. Chiffrée au repos (AES-256-GCM) dès KYC_ENC_KEY défini ;
+  // OBLIGATOIRE en KYC_MODE=production (boot fail-fast). Cf. src/lib/crypto.ts.
+  cin           String?
   createdAt     DateTime @default(now())
 
   properties      Property[]
@@ -159,6 +161,9 @@ model Booking {
   totalPrice   Int  // TND
   status       String    @default("EN_ATTENTE") // EN_ATTENTE | CONFIRMEE | ANNULEE | TERMINEE
   escrow       String    @default("AUCUN")      // AUCUN | EN_SEQUESTRE | LIBERE
+  // true = confirmée via paiement SIMULÉ (PAYMENT_MODE=demo) : aucun argent réel
+  // n'a transité. Permet de distinguer sans ambiguïté les réservations de démo.
+  demo         Boolean   @default(false)
   // Référence du paiement Konnect (null tant que le paiement n'est pas initié).
   // Unique : sert de clé de réconciliation côté webhook. Null en mode mock.
   paymentRef   String?   @unique

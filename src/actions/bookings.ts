@@ -335,6 +335,7 @@ export async function confirmPaymentAction(formData: FormData): Promise<void> {
       escrow: "EN_SEQUESTRE",
       expiresAt: null, // Plus d'expiration une fois confirmé
       paidAt: new Date(),
+      demo: true, // Aucun argent réel n'a transité : réservation marquée DÉMO.
     },
   });
 
@@ -342,7 +343,7 @@ export async function confirmPaymentAction(formData: FormData): Promise<void> {
     action: "PAYMENT_CONFIRMED",
     userId: user.id,
     success: true,
-    metadata: { bookingId: booking.id, totalPrice: booking.totalPrice },
+    metadata: { bookingId: booking.id, totalPrice: booking.totalPrice, demo: true },
   });
 
   revalidatePath(`/reservation/${booking.id}/paiement`);

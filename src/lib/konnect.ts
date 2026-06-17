@@ -17,6 +17,8 @@
 const KONNECT_API_URL =
   process.env.KONNECT_API_URL ?? "https://api.sandbox.konnect.network/api/v2";
 
+import { paymentMode } from "@/lib/modes";
+
 const KONNECT_API_KEY = process.env.KONNECT_API_KEY;
 const KONNECT_RECEIVER_WALLET_ID = process.env.KONNECT_RECEIVER_WALLET_ID;
 
@@ -29,12 +31,15 @@ export function tndToMillimes(tnd: number): number {
 }
 
 /**
- * Vrai si Konnect est configuré. Sert d'aiguillage : `true` → paiement réel,
- * `false` → séquestre simulé. Lu à chaque requête (pas de cache module-level
- * figé au build).
+ * Vrai si le paiement réel Konnect est ACTIF. Aiguillage : `true` → paiement
+ * réel, `false` → séquestre simulé (démo). Piloté EXPLICITEMENT par
+ * PAYMENT_MODE=konnect (cf. src/lib/modes.ts) — la simple présence des clés ne
+ * suffit plus à activer un paiement réel (anti-activation accidentelle). La
+ * complétude de la config Konnect est garantie au boot par src/lib/env.ts.
+ * Lu à chaque requête (pas de cache module-level figé au build).
  */
 export function isKonnectEnabled(): boolean {
-  return Boolean(KONNECT_API_KEY && KONNECT_RECEIVER_WALLET_ID);
+  return paymentMode() === "konnect";
 }
 
 /** Erreur dédiée : permet aux appelants de logger sans exposer le détail au client. */

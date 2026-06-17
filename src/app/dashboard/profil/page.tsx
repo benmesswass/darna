@@ -35,10 +35,12 @@ export default async function ProfilPage() {
                 <span className="inline-flex items-center rounded-full bg-darna/[0.06] px-2.5 py-0.5 text-[11px] font-semibold text-darna">
                   {roleLabel}
                 </span>
-                {user.kycStatus === "VERIFIE" ? (
+                {user.kycStatus === "VERIFIE" || user.kycStatus === "DEMO_VERIFIE" ? (
                   <span className="inline-flex items-center gap-1 rounded-full bg-sand px-2.5 py-0.5 text-[11px] font-semibold text-darna-dark">
                     <CheckIcon width={11} height={11} strokeWidth={3} />
-                    {fr.kyc.statutVerifie}
+                    {user.kycStatus === "DEMO_VERIFIE"
+                      ? fr.kyc.statutVerifieDemo
+                      : fr.kyc.statutVerifie}
                   </span>
                 ) : null}
               </div>

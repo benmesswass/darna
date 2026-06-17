@@ -9,11 +9,17 @@ import { assertRateLimit } from "@/lib/rate-limit";
 import { issueOtp, verifyOtp } from "@/lib/otp";
 import { sendSms } from "@/lib/sms";
 import { encryptSensitive } from "@/lib/crypto";
+import { kycMode } from "@/lib/modes";
 import { logAudit } from "@/lib/audit";
 
 export type KycFormState =
-  | { error?: string; otp?: string; sent?: boolean; verified?: boolean }
+  | { error?: string; otp?: string; sent?: boolean; verified?: boolean; demo?: boolean }
   | undefined;
+
+/** Statuts considérés comme « déjà vérifié » (réel OU démo) — pas de re-vérif. */
+function isAlreadyVerified(status: string): boolean {
+  return status === "VERIFIE" || status === "DEMO_VERIFIE";
+}
 
 const requestSchema = z.object({
   cin: z.string().trim().regex(/^[0-9]{8}$/),
@@ -26,7 +32,9 @@ export async function requestKycOtpAction(
 ): Promise<KycFormState> {
   const fr = await getT();
   const user = await requireUser();
-  if (user.kycStatus === "VERIFIE") return { verified: true };
+  if (isAlreadyVerified(user.kycStatus)) {
+    return { verified: true, demo: user.kycStatus === "DEMO_VERIFIE" };
+  }
 
   if (!(await assertRateLimit("otp"))) {
     return { error: fr.common.tropDeTentatives };
@@ -57,9 +65,10 @@ export async function requestKycOtpAction(
   await logAudit({ action: "KYC_OTP_REQUESTED", userId: user.id, success: true });
   revalidatePath("/dashboard/kyc");
 
-  // Mode dev/démo (aucun provider SMS) : on renvoie le code pour l'afficher.
-  // Mode prod (SMS envoyé) : on signale juste `sent` sans exposer le code.
-  return sent ? { sent: true } : { sent: true, otp: code };
+  // Le code n'est renvoyé au client QU'EN MODE DÉMO (sendSms n'a rien envoyé).
+  // En production, sendSms a réellement envoyé le SMS (ou levé) → on ne renvoie
+  // JAMAIS le code, on signale seulement `sent`.
+  return kycMode() === "demo" && !sent ? { sent: true, otp: code } : { sent: true };
 }
 
 const verifySchema = z.object({
@@ -72,7 +81,9 @@ export async function verifyKycOtpAction(
 ): Promise<KycFormState> {
   const fr = await getT();
   const user = await requireUser();
-  if (user.kycStatus === "VERIFIE") return { verified: true };
+  if (isAlreadyVerified(user.kycStatus)) {
+    return { verified: true, demo: user.kycStatus === "DEMO_VERIFIE" };
+  }
 
   if (!(await assertRateLimit("otp-verif"))) {
     return { error: fr.common.tropDeTentatives };
@@ -85,12 +96,21 @@ export async function verifyKycOtpAction(
     return { error: fr.kyc.otpInvalide };
   }
 
+  // DÉMO : statut DEMO_VERIFIE — un OTP affiché à l'écran ne prouve PAS l'identité,
+  // on ne décerne donc jamais le vrai badge VERIFIE. PRODUCTION : VERIFIE, atteint
+  // uniquement après un OTP réellement reçu par SMS (cf. sendSms / env.ts).
+  const demo = kycMode() === "demo";
   await prisma.user.update({
     where: { id: user.id },
-    data: { kycStatus: "VERIFIE", phoneVerified: true },
+    data: { kycStatus: demo ? "DEMO_VERIFIE" : "VERIFIE", phoneVerified: !demo },
   });
 
-  await logAudit({ action: "KYC_VERIFIED", userId: user.id, success: true });
+  await logAudit({
+    action: "KYC_VERIFIED",
+    userId: user.id,
+    success: true,
+    metadata: { mode: kycMode() },
+  });
   revalidatePath("/dashboard");
-  return { verified: true };
+  return { verified: true, demo };
 }

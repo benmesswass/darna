@@ -4,14 +4,15 @@ import path from "node:path";
 import { AwsClient } from "aws4fetch";
 import { MAX_PHOTO_SIZE } from "@/lib/constants";
 import { logStructured } from "@/lib/audit";
+import { storageMode } from "@/lib/modes";
 
 /**
  * Abstraction de stockage des images — seam d'architecture.
  *
- * Driver sélectionné par `STORAGE_DRIVER` :
- *   - `disk` (défaut, démo) : `/public/uploads`, serveur persistant requis.
+ * Driver sélectionné par `STORAGE_MODE` (cf. src/lib/modes.ts) :
+ *   - `local` (défaut, démo) : `/public/uploads`, serveur persistant requis.
  *   - `s3` : objet S3-compatible (Cloudflare R2 / AWS S3 / MinIO) via aws4fetch
- *     — opt-in, configuré par les variables `S3_*` (cf. .env.example).
+ *     — opt-in, config `S3_*` exigée au boot par env.ts (cf. .env.example).
  * Les appelants passent toujours par src/lib/uploads (API stable) : changer de
  * driver ne touche aucun appelant.
  *
@@ -179,7 +180,7 @@ const s3Storage: StorageAdapter = {
 
 /** Sélection du driver (point de bascule unique). Exportée pour les tests. */
 export function selectStorage(): StorageAdapter {
-  return process.env.STORAGE_DRIVER === "s3" ? s3Storage : diskStorage;
+  return storageMode() === "s3" ? s3Storage : diskStorage;
 }
 
 export const storage: StorageAdapter = selectStorage();

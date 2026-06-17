@@ -81,10 +81,12 @@ export default async function DashboardLayout({
             </h1>
             <p className="mt-0.5 flex items-center gap-2 text-sm text-ink/60">
               {user.email}
-              {user.kycStatus === "VERIFIE" ? (
+              {user.kycStatus === "VERIFIE" || user.kycStatus === "DEMO_VERIFIE" ? (
                 <span className="inline-flex items-center gap-1 rounded-full bg-sand px-2 py-0.5 text-[11px] font-semibold text-darna-dark">
                   <CheckIcon width={11} height={11} strokeWidth={3} />
-                  {fr.kyc.statutVerifie}
+                  {user.kycStatus === "DEMO_VERIFIE"
+                    ? fr.kyc.statutVerifieDemo
+                    : fr.kyc.statutVerifie}
                 </span>
               ) : null}
             </p>

@@ -20,17 +20,32 @@ type Bucket = { count: number; resetAt: number };
 const buckets = new Map<string, Bucket>();
 
 export async function clientIp(): Promise<string> {
-  // Les en-têtes d'IP (cf-connecting-ip / x-real-ip) ne sont fiables QUE
-  // derrière un proxy de confiance qui les pose lui-même. Hors de ce cas, ils
-  // sont librement spoofables par le client → on refuse de les lire (sinon
-  // contournement trivial du rate limiting). À activer en prod via
-  // TRUSTED_PROXY="true" derrière Vercel / Cloudflare / Nginx.
-  if (process.env.TRUSTED_PROXY !== "true") {
-    return "untrusted";
+  // CAS PROD SÉCURISÉ — derrière un proxy de confiance qui POSE lui-même
+  // l'en-tête d'IP (Cloudflare / Nginx / Vercel). C'est la seule configuration
+  // où ces en-têtes sont dignes de confiance. Activé via TRUSTED_PROXY="true".
+  // En production réelle, src/lib/env.ts EXIGE ce réglage (fail-fast au boot).
+  if (process.env.TRUSTED_PROXY === "true") {
+    const h = await headers();
+    return h.get("cf-connecting-ip") ?? h.get("x-real-ip") ?? "unknown";
   }
 
-  const h = await headers();
-  return h.get("cf-connecting-ip") ?? h.get("x-real-ip") ?? "unknown";
+  // CAS DÉVELOPPEMENT — pas de frontière de sécurité en local : on lit l'en-tête
+  // best-effort pour que le rate limiting fonctionne par client, sinon un
+  // identifiant fixe « dev-local ». On NE retombe PAS sur un bucket global ici.
+  if (process.env.NODE_ENV !== "production") {
+    const h = await headers();
+    return (
+      h?.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      h?.get("x-real-ip") ||
+      "dev-local"
+    );
+  }
+
+  // CAS PROD SANS PROXY DE CONFIANCE — on REFUSE de lire des en-têtes spoofables
+  // (sinon contournement trivial). Bucket commun « untrusted » assumé : ce
+  // chemin ne doit exister qu'en démo, où env.ts laisse passer mais avertit.
+  // Un lancement public réel est bloqué au boot tant que TRUSTED_PROXY≠"true".
+  return "untrusted";
 }
 
 /** Retourne true si la tentative est autorisée, false si le quota est dépassé. */
