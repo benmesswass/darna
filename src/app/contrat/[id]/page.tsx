@@ -4,6 +4,7 @@ import { getT } from "@/lib/i18n/server";
 import { fr as frMeta } from "@/lib/i18n/fr";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
+import { decryptSensitive } from "@/lib/crypto";
 import { formatDateFr, formatTndServer } from "@/lib/format";
 import { PrintButton } from "@/components/contract/PrintButton";
 
@@ -39,6 +40,8 @@ export default async function ContratPage({
   if (!allowed) notFound();
 
   const property = request.property;
+  // CIN déchiffrée pour le bail (passthrough si valeur legacy en clair).
+  const ownerCin = property.owner.cin ? decryptSensitive(property.owner.cin) : null;
   const loyer = formatTndServer(property.price);
   const caution = formatTndServer(property.price); // un mois de loyer
 
@@ -67,8 +70,8 @@ export default async function ContratPage({
                 {fr.bail.bailleur}
               </p>
               <p className="mt-2 font-semibold">{property.owner.name}</p>
-              {property.owner.cin ? (
-                <p className="text-sm text-ink/70">CIN : {property.owner.cin}</p>
+              {ownerCin ? (
+                <p className="text-sm text-ink/70">CIN : {ownerCin}</p>
               ) : (
                 <p className="text-sm text-ink/40">CIN : ____________________</p>
               )}

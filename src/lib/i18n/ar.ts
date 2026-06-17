@@ -410,6 +410,7 @@ export const ar: Dictionary = {
     envoyerOtp: "ابعثلي رمز التثبّت",
     otpMockInfo:
       "وضع تجريبي: حتى SMS حقيقي ما يتبعث. الرمز متاعك يظهر لوطا.",
+    otpSmsInfo: "تبعثلك رمز التحقق عبر SMS.",
     votreCode: "رمز التثبّت متاعك",
     saisirOtp: "اكتب الرمز اللي وصلك",
     valider: "ثبّت الرمز",

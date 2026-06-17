@@ -391,6 +391,7 @@ export const fr = {
     envoyerOtp: "Recevoir le code de vérification",
     otpMockInfo:
       "Mode démonstration : aucun SMS réel n'est envoyé. Votre code s'affiche ci-dessous.",
+    otpSmsInfo: "Un code de vérification vous a été envoyé par SMS.",
     votreCode: "Votre code de vérification",
     saisirOtp: "Saisissez le code reçu",
     valider: "Valider le code",

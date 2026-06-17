@@ -47,6 +47,23 @@ model User {
   favorites       Favorite[]
   favoriteFolders FavoriteFolder[]
   auditLogs       AuditLog[]
+  otpChallenges   OtpChallenge[]
+}
+
+// Défi OTP de vérification KYC : code haché (jamais en clair) + TTL + compteur
+// de tentatives. Une seule challenge active par utilisateur (les anciennes sont
+// purgées à l'émission). Cf. src/lib/otp.ts.
+model OtpChallenge {
+  id        String   @id @default(cuid())
+  codeHash  String
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Property {
