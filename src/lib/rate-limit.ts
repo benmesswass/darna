@@ -55,23 +55,31 @@ export function checkRateLimit(action: string, ip: string): boolean {
   return true;
 }
 
-export async function assertRateLimit(action: string): Promise<boolean> {
-  const ip = await clientIp();
+/**
+ * Rate limit générique sur une clé arbitraire (IP, payment_ref…). Distribué si
+ * Redis, sinon in-memory. C'est le primitif partagé ; `assertRateLimit` n'en est
+ * qu'un cas particulier (clé = IP du client).
+ */
+export async function rateLimit(action: string, key: string): Promise<boolean> {
   const redis = getRedis();
-  if (!redis) return checkRateLimit(action, ip);
+  if (!redis) return checkRateLimit(action, key);
 
   try {
     // Fenêtre fixe distribuée : INCR atomique ; le TTL n'est posé qu'au
     // premier hit (count === 1) pour ne pas réarmer la fenêtre à chaque essai.
-    const key = `rl:${action}:${ip}`;
-    const count = await redis.incr(key);
-    if (count === 1) await redis.pexpire(key, WINDOW_MS);
+    const redisKey = `rl:${action}:${key}`;
+    const count = await redis.incr(redisKey);
+    if (count === 1) await redis.pexpire(redisKey, WINDOW_MS);
     return count <= MAX_ATTEMPTS;
   } catch (err) {
     logStructured("warn", "ratelimit.redis_fallback", {
       action,
       message: (err as Error).message,
     });
-    return checkRateLimit(action, ip);
+    return checkRateLimit(action, key);
   }
+}
+
+export async function assertRateLimit(action: string): Promise<boolean> {
+  return rateLimit(action, await clientIp());
 }

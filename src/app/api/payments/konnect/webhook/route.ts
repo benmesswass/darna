@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { settleKonnectBooking } from "@/lib/payments";
 import { isKonnectEnabled } from "@/lib/konnect";
+import { rateLimit } from "@/lib/rate-limit";
 import { logStructured } from "@/lib/audit";
 
 /**
@@ -28,8 +29,20 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "missing payment_ref" }, { status: 400 });
   }
 
+  // Anti-abus : borne le nombre d'appels par référence (défense en profondeur).
+  // Le règlement est déjà idempotent ET court-circuite une ref déjà réglée avant
+  // tout appel Konnect ; ceci empêche seulement le martelage d'une même ref.
+  if (!(await rateLimit("konnect-webhook", paymentRef))) {
+    logStructured("warn", "konnect.webhook_rate_limited", { paymentRef });
+    return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+  }
+
   const result = await settleKonnectBooking({ paymentRef });
-  logStructured("info", "konnect.webhook", { paymentRef, result });
+  // INTROUVABLE = ref inconnue → signal d'abus potentiel, journalisé en warn.
+  logStructured(result === "INTROUVABLE" ? "warn" : "info", "konnect.webhook", {
+    paymentRef,
+    result,
+  });
 
   return NextResponse.json({ received: true, result });
 }
