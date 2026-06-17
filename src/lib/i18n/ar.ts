@@ -104,6 +104,7 @@ export const ar: Dictionary = {
     imprimer: "اطبع",
     chargement: "يحمّل…",
     erreurInconnue: "صار مشكل. عاود جرّب من فضلك.",
+    reessayer: "عاود جرّب",
     champsRequis: "الرجاء التثبّت من خانات الاستمارة.",
     tropDeTentatives: "برشة محاولات. استنّى دقايق وعاود جرّب.",
     optionnel: "اختياري",

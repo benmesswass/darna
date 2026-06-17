@@ -99,6 +99,7 @@ export const fr = {
     imprimer: "Imprimer",
     chargement: "Chargement…",
     erreurInconnue: "Une erreur est survenue. Merci de réessayer.",
+    reessayer: "Réessayer",
     champsRequis: "Merci de vérifier les champs du formulaire.",
     tropDeTentatives:
       "Trop de tentatives. Merci de patienter quelques minutes avant de réessayer.",
