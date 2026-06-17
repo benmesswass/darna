@@ -20,7 +20,23 @@ const envSchema = z.object({
   KONNECT_API_KEY: z.string().optional(),
   KONNECT_RECEIVER_WALLET_ID: z.string().optional(),
   KONNECT_API_URL: z.string().url().optional(),
-});
+  // Stockage des images (cf. src/lib/storage.ts). "disk" (défaut, démo) ou "s3".
+  STORAGE_DRIVER: z.enum(["disk", "s3"]).optional(),
+  S3_ENDPOINT: z.string().url().optional(),
+  S3_BUCKET: z.string().optional(),
+  S3_ACCESS_KEY_ID: z.string().optional(),
+  S3_SECRET_ACCESS_KEY: z.string().optional(),
+  S3_REGION: z.string().optional(),
+  S3_PUBLIC_URL: z.string().url().optional(),
+}).refine(
+  (e) =>
+    e.STORAGE_DRIVER !== "s3" ||
+    Boolean(e.S3_ENDPOINT && e.S3_BUCKET && e.S3_ACCESS_KEY_ID && e.S3_SECRET_ACCESS_KEY),
+  {
+    message:
+      "STORAGE_DRIVER=s3 requiert S3_ENDPOINT, S3_BUCKET, S3_ACCESS_KEY_ID et S3_SECRET_ACCESS_KEY",
+  }
+);
 
 export type Env = z.infer<typeof envSchema>;
 
@@ -29,7 +45,7 @@ const parsed = envSchema.safeParse(process.env);
 if (!parsed.success) {
   console.error(
     "[env] Configuration invalide :",
-    JSON.stringify(parsed.error.flatten().fieldErrors)
+    JSON.stringify(parsed.error.flatten())
   );
   throw new Error("Variables d'environnement invalides — démarrage interrompu.");
 }
