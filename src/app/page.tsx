@@ -5,17 +5,14 @@ import { activeListingWhere, getAlaUneListings, getFeaturedListings } from "@/li
 import { getSessionUser } from "@/lib/session";
 import { immoEnabled, stayEnabled } from "@/lib/modes";
 import { getFavoriteContext, favoritePropFor } from "@/lib/favorites";
+import { GOUVERNORATS } from "@/lib/geo";
 import { PropertyCard } from "@/components/property/PropertyCard";
-import { CityAutocomplete } from "@/components/search/CityAutocomplete";
-import { ActiveSection } from "@/components/layout/ActiveSection";
+import { HomeHero } from "@/components/layout/HomeHero";
 import {
   ArrowRightIcon,
-  BuildingIcon,
   CheckIcon,
   CoinsIcon,
   GlobeIcon,
-  PalmIcon,
-  SearchIcon,
   ShieldIcon,
   SparklesIcon,
 } from "@/components/icons";
@@ -35,116 +32,19 @@ export default async function HomePage() {
   const favCtx = await getFavoriteContext((await getSessionUser())?.id);
   return (
     <div>
-      {/* Accueil = vitrine séjours : on garde « Séjours » en surbrillance dans la nav. */}
-      <ActiveSection name="sejours" />
-      {/* Hero — recherche directe + message de marque + preuves chiffrées */}
-      <section className="relative overflow-hidden bg-darna text-white">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-32 -top-32 h-[28rem] w-[28rem] rounded-full bg-darna-light/30 blur-3xl"
-        />
-        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24">
-          <h1 className="max-w-3xl text-4xl font-bold leading-tight tracking-tight sm:text-5xl md:text-6xl">
-            {fr.brand.heroTitle}
-            <br />
-            <span className="text-sand">{fr.brand.heroLine2}</span>
-            <br />
-            {fr.brand.heroLine3}
-          </h1>
-          <p className="mt-5 max-w-2xl text-lg text-white/75">{fr.brand.heroSub}</p>
-
-          {/* Recherche immédiate */}
-          <form
-            method="GET"
-            action="/sejours"
-            className="mt-9 flex max-w-2xl items-center gap-2 rounded-full bg-white p-2 ps-5 shadow-2xl shadow-black/20"
-          >
-            <SearchIcon width={20} height={20} className="shrink-0 text-darna" />
-            <CityAutocomplete
-              placeholder={fr.search.villePlaceholder}
-              inputClassName="h-11 w-full min-w-0 bg-transparent text-base text-ink outline-none placeholder:text-ink/40"
-            />
-            <button
-              type="submit"
-              className="shrink-0 rounded-full bg-darna px-6 py-3 text-sm font-bold text-white transition hover:bg-darna-light sm:px-8"
-            >
-              {fr.common.rechercher}
-            </button>
-          </form>
-
-          {/* Destinations en un clic */}
-          <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
-            <span className="text-white/50">{fr.home.villesPopulaires}</span>
-            {POPULAR_CITIES.map((city) => (
-              <Link
-                key={city}
-                href={`/sejours?ville=${encodeURIComponent(city)}`}
-                className="rounded-full border border-white/20 bg-white/5 px-3.5 py-1 font-medium text-white/85 transition hover:border-sand hover:bg-sand hover:text-darna-dark"
-              >
-                {city}
-              </Link>
-            ))}
-          </div>
-
-          {/* Preuves chiffrées, calculées en direct depuis la base */}
-          <dl className="mt-12 grid max-w-2xl grid-cols-3 gap-4 border-t border-white/10 pt-7">
-            {[
-              { value: verifiedCount, label: fr.home.statsAnnoncesVerifiees },
-              { value: activeCities.length, label: fr.home.statsVilles },
-              { value: reviewCount, label: fr.home.statsAvis },
-            ].map(({ value, label }) => (
-              <div key={label}>
-                <dt className="sr-only">{label}</dt>
-                <dd className="text-3xl font-bold text-sand sm:text-4xl">{value}</dd>
-                <dd className="mt-1 text-xs leading-snug text-white/60 sm:text-sm">
-                  {label}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      </section>
-
-      {/* Les deux verticales */}
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Une carte par verticale activée (cf. src/lib/modes.ts). */}
-          {stayEnabled() ? (
-            <Link
-              href="/sejours"
-              className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-darna to-darna-light p-8 text-white shadow-lg transition hover:shadow-xl"
-            >
-              <PalmIcon width={44} height={44} className="text-sand" />
-              <h2 className="mt-4 text-2xl font-bold">{fr.home.verticalSejoursTitle}</h2>
-              <p className="mt-2 max-w-md text-sm text-white/80">
-                {fr.home.verticalSejoursDesc}
-              </p>
-              <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-sand">
-                {fr.brand.ctaSejours}
-                <ArrowRightIcon className="transition group-hover:translate-x-1" />
-              </span>
-            </Link>
-          ) : null}
-          {immoEnabled() ? (
-            <Link
-              href="/immobilier"
-              className="group relative overflow-hidden rounded-3xl bg-white p-8 shadow-lg ring-1 ring-darna/10 transition hover:shadow-xl"
-            >
-              <BuildingIcon width={44} height={44} className="text-darna" />
-              <h2 className="mt-4 text-2xl font-bold text-darna">
-                {fr.home.verticalImmobilierTitle}
-              </h2>
-              <p className="mt-2 max-w-md text-sm text-ink/70">
-                {fr.home.verticalImmobilierDesc}
-              </p>
-              <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-darna">
-                {fr.brand.ctaImmobilier}
-                <ArrowRightIcon className="transition group-hover:translate-x-1" />
-              </span>
-            </Link>
-          ) : null}
-        </div>
-      </section>
+      {/* Hero « double mode » — Séjours et Immobilier à égalité, recherche qui
+          se métamorphose + identité couleur par verticale (cf. HomeHero). */}
+      <HomeHero
+        stayEnabled={stayEnabled()}
+        immoEnabled={immoEnabled()}
+        gouvernorats={GOUVERNORATS}
+        popularCities={POPULAR_CITIES}
+        stats={{
+          verified: verifiedCount,
+          cities: activeCities.length,
+          reviews: reviewCount,
+        }}
+      />
 
       {/* À la une — annonces mises en avant par les hôtes (placement payant) */}
       {alaUne.length > 0 ? (
