@@ -45,6 +45,9 @@ const listingOrderBy: Prisma.PropertyOrderByWithRelationInput[] = [
 
 export const listingCardInclude = {
   photos: { orderBy: { position: "asc" as const }, take: 1 },
+  // Capacité séjour lue depuis la table satellite (M2). maxGuests reste en
+  // shadow sur Property jusqu'à PR8 ; la carte lit désormais stay.maxGuests.
+  stay: { select: { maxGuests: true } },
 } satisfies Prisma.PropertyInclude;
 
 export type ListingWithPhoto = Prisma.PropertyGetPayload<{
@@ -106,8 +109,11 @@ export async function searchSejours(params: SejoursSearchParams) {
     }
   }
 
+  // Filtre capacité sur la table satellite (M2) : un séjour matche s'il a une
+  // ligne StayDetails dont maxGuests ≥ voyageurs (équivalent à l'ancien filtre
+  // sur Property.maxGuests, les valeurs étant synchronisées en shadow).
   const voyageurs = parsePositiveInt(params.voyageurs);
-  if (voyageurs) where.maxGuests = { gte: voyageurs };
+  if (voyageurs) where.stay = { maxGuests: { gte: voyageurs } };
 
   const arrivee = parseDate(params.arrivee);
   const depart = parseDate(params.depart);
@@ -202,6 +208,8 @@ export async function getPropertyBySlug(slug: string) {
     where: { slug },
     include: {
       photos: { orderBy: { position: "asc" } },
+      // Capacité séjour depuis la table satellite (M2).
+      stay: { select: { maxGuests: true } },
       owner: {
         select: {
           id: true,

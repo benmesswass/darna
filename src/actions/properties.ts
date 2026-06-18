@@ -119,6 +119,7 @@ export async function createPropertyAction(
       price: data.price,
       surface: data.surface ? Number(data.surface) : null,
       rooms: data.rooms ? Number(data.rooms) : null,
+      // Shadow (M2) : conservé jusqu'à PR8 ; la lecture passe par StayDetails.
       maxGuests: data.type === "SEJOUR" && data.maxGuests ? Number(data.maxGuests) : null,
       city: cityRef.name,
       gouvernorat: cityRef.gouvernorat,
@@ -129,6 +130,11 @@ export async function createPropertyAction(
       expiresAt: new Date(Date.now() + LISTING_LIFETIME_DAYS * 24 * 60 * 60 * 1000),
       ownerId: user.id,
       photos: { create: photoRecords },
+      // Détails séjour (table satellite, M2) : source de vérité des lectures.
+      stay:
+        data.type === "SEJOUR" && data.maxGuests
+          ? { create: { maxGuests: Number(data.maxGuests) } }
+          : undefined,
     },
   });
 
@@ -212,6 +218,7 @@ export async function updatePropertyAction(
       price: data.price,
       surface: data.surface ? Number(data.surface) : null,
       rooms: data.rooms ? Number(data.rooms) : null,
+      // Shadow (M2) : conservé jusqu'à PR8 ; la lecture passe par StayDetails.
       maxGuests:
         property.type === "SEJOUR" && data.maxGuests ? Number(data.maxGuests) : null,
       city: cityRef.name,
@@ -220,6 +227,16 @@ export async function updatePropertyAction(
       latitude: data.latitude,
       longitude: data.longitude,
       amenities: data.amenities.join("|"),
+      // Détails séjour (table satellite, M2) : tenu synchrone avec le shadow.
+      stay:
+        property.type === "SEJOUR" && data.maxGuests
+          ? {
+              upsert: {
+                create: { maxGuests: Number(data.maxGuests) },
+                update: { maxGuests: Number(data.maxGuests) },
+              },
+            }
+          : undefined,
       // Le slug est conservé (stabilité SEO) ; statut et expiration inchangés
       // — la republication reste l'acte explicite de fraîcheur.
     },

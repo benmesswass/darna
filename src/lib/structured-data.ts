@@ -13,7 +13,8 @@ type PropertyForJsonLd = {
   longitude: number;
   surface: number | null;
   rooms: number | null;
-  maxGuests: number | null;
+  // Capacité séjour depuis la table satellite (M2).
+  stay: { maxGuests: number } | null;
   photos: { url: string }[];
   reviews: { rating: number }[];
 };
@@ -75,8 +76,8 @@ export function buildPropertyJsonLd(
     return {
       ...base,
       "@type": "Accommodation",
-      occupancy: property.maxGuests
-        ? { "@type": "QuantitativeValue", maxValue: property.maxGuests }
+      occupancy: property.stay?.maxGuests
+        ? { "@type": "QuantitativeValue", maxValue: property.stay.maxGuests }
         : undefined,
       offers: {
         "@type": "Offer",

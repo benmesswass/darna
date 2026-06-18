@@ -90,7 +90,8 @@ export async function createBookingAction(
       status: true,
       expiresAt: true,
       price: true,
-      maxGuests: true,
+      // Capacité depuis la table satellite (M2).
+      stay: { select: { maxGuests: true } },
       ownerId: true,
     },
   });
@@ -109,8 +110,8 @@ export async function createBookingAction(
     return { error: fr.booking.proprietaireImpossible };
   }
 
-  if (property.maxGuests && parsed.data.voyageurs > property.maxGuests) {
-    return { error: fr.booking.capaciteDepassee(property.maxGuests) };
+  if (property.stay?.maxGuests && parsed.data.voyageurs > property.stay.maxGuests) {
+    return { error: fr.booking.capaciteDepassee(property.stay.maxGuests) };
   }
 
   const subtotal = property.price * nights;
@@ -255,7 +256,8 @@ export async function quoteBookingAction(input: {
       status: true,
       expiresAt: true,
       price: true,
-      maxGuests: true,
+      // Capacité depuis la table satellite (M2).
+      stay: { select: { maxGuests: true } },
     },
   });
   if (
@@ -266,8 +268,8 @@ export async function quoteBookingAction(input: {
   ) {
     return { ok: false, error: fr.booking.datesIndisponibles };
   }
-  if (property.maxGuests && parsed.data.voyageurs > property.maxGuests) {
-    return { ok: false, error: fr.booking.capaciteDepassee(property.maxGuests) };
+  if (property.stay?.maxGuests && parsed.data.voyageurs > property.stay.maxGuests) {
+    return { ok: false, error: fr.booking.capaciteDepassee(property.stay.maxGuests) };
   }
 
   // Conflit de disponibilité : réservations actives + blocages hôte.

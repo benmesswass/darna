@@ -22,6 +22,8 @@ export default async function ModifierAnnoncePage({
     where: { id, ownerId: user.id },
     include: {
       photos: { orderBy: { position: "asc" } },
+      // Capacité séjour depuis la table satellite (M2) pour préremplir le form.
+      stay: { select: { maxGuests: true } },
       // Blocages en cours (on masque ceux entièrement passés).
       availabilities: {
         where: { endDate: { gt: new Date() } },
@@ -75,7 +77,7 @@ export default async function ModifierAnnoncePage({
               address: property.address ?? "",
               surface: property.surface,
               rooms: property.rooms,
-              maxGuests: property.maxGuests,
+              maxGuests: property.stay?.maxGuests ?? null,
               latitude: property.latitude,
               longitude: property.longitude,
               description: property.description,

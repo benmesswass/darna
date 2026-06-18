@@ -33,7 +33,8 @@ export default async function ReserverPage({
       status: true,
       expiresAt: true,
       price: true,
-      maxGuests: true,
+      // Capacité depuis la table satellite (M2).
+      stay: { select: { maxGuests: true } },
       ownerId: true,
       // Disponibilités temps réel : nuits confirmées + holds en attente non
       // expirés + blocages hôte → affichées directement sur le calendrier.
@@ -63,7 +64,7 @@ export default async function ReserverPage({
   // plutôt que de laisser le formulaire échouer après affichage du prix.
   const isOwner = Boolean(user && user.id === property.ownerId);
 
-  const maxGuests = property.maxGuests ?? 30;
+  const maxGuests = property.stay?.maxGuests ?? 30;
   const voyageurs = Math.max(1, Math.min(maxGuests, Number(sp.voyageurs) || 1));
 
   const unavailable = expandUnavailable([

@@ -62,10 +62,10 @@ export async function StayDetail({
       priceSuffix={fr.common.parNuit}
       eligibleBookingId={eligibleBooking?.id}
       characteristicsExtra={
-        property.maxGuests ? (
+        property.stay?.maxGuests ? (
           <Caracteristique
             icon={<UsersIcon />}
-            label={fr.property.capacite(property.maxGuests)}
+            label={fr.property.capacite(property.stay.maxGuests)}
           />
         ) : null
       }
