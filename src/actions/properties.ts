@@ -114,6 +114,8 @@ export async function createPropertyAction(
       title: data.title,
       description: data.description,
       type: data.type,
+      // Verticale dérivée du type, toujours renseignée (jamais lue côté client).
+      vertical: verticalOfType(data.type),
       price: data.price,
       surface: data.surface ? Number(data.surface) : null,
       rooms: data.rooms ? Number(data.rooms) : null,

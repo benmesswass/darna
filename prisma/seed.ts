@@ -6,6 +6,7 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { getCity } from "../src/lib/geo";
 import { buildPropertySlug } from "../src/lib/slug";
+import { verticalOfType } from "../src/lib/constants";
 
 const prisma = new PrismaClient();
 
@@ -752,6 +753,7 @@ async function main() {
         title: p.title,
         description: p.description,
         type: p.type,
+        vertical: verticalOfType(p.type),
         status: p.status ?? "ACTIVE",
         verified: p.verified,
         price: p.price,
