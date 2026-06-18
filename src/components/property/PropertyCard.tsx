@@ -90,10 +90,10 @@ export async function PropertyCard({
                 {fr.property.pieces(property.rooms)}
               </span>
             ) : null}
-            {property.type === "SEJOUR" && property.maxGuests ? (
+            {property.type === "SEJOUR" && property.stay?.maxGuests ? (
               <span className="flex items-center gap-1">
                 <UsersIcon width={14} height={14} />
-                {fr.property.capacite(property.maxGuests)}
+                {fr.property.capacite(property.stay.maxGuests)}
               </span>
             ) : null}
           </div>

@@ -759,7 +759,11 @@ async function main() {
         price: p.price,
         surface: p.surface ?? null,
         rooms: p.rooms ?? null,
-        maxGuests: p.maxGuests ?? null,
+        maxGuests: p.maxGuests ?? null, // shadow (M2)
+        stay:
+          p.type === "SEJOUR" && p.maxGuests
+            ? { create: { maxGuests: p.maxGuests } }
+            : undefined,
         city: cityRef.name,
         gouvernorat: cityRef.gouvernorat,
         address: p.address ?? null,
