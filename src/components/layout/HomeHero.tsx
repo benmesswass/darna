@@ -71,7 +71,7 @@ export function HomeHero({
         type="button"
         onClick={() => setMode(m)}
         aria-pressed={active}
-        className="flex flex-1 items-center gap-3 rounded-2xl border px-4 py-3 text-start transition"
+        className="flex flex-1 items-center gap-4 rounded-2xl border-2 px-6 py-5 text-start transition"
         style={
           active
             ? { background: t.btnBg, color: t.btnText, borderColor: t.btnBg }
@@ -86,8 +86,8 @@ export function HomeHero({
           {icon}
         </span>
         <span className="leading-tight">
-          <span className="block text-sm font-bold">{label}</span>
-          <span className="block text-xs opacity-80">{sub}</span>
+          <span className="block text-lg font-bold">{label}</span>
+          <span className="block text-sm opacity-80">{sub}</span>
         </span>
       </button>
     );
@@ -111,18 +111,18 @@ export function HomeHero({
 
         {/* Onglets de verticale (égalité de poids) — masqués si une seule active */}
         {showTabs ? (
-          <div className="mt-7 flex max-w-xl gap-3">
+          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
             <Tab
               m="sejours"
-              icon={<PalmIcon width={22} height={22} />}
+              icon={<PalmIcon width={28} height={28} />}
               label={fr.nav.sejours}
-              sub={fr.home.verticalSejoursDesc}
+              sub={fr.home.tabSejoursSub}
             />
             <Tab
               m="immobilier"
-              icon={<BuildingIcon width={22} height={22} />}
+              icon={<BuildingIcon width={28} height={28} />}
               label={fr.nav.immobilier}
-              sub={fr.home.verticalImmobilierDesc}
+              sub={fr.home.tabImmoSub}
             />
           </div>
         ) : null}

@@ -49,6 +49,8 @@ export const ar: Dictionary = {
     verticalImmobilierTitle: "عقارات",
     verticalImmobilierDesc:
       "كراء طويل الأمد وبيع — إعلانات جديدة، أسعار المتر المربع من السوق، واتصال مباشر بالمالك أو الوكالة.",
+    tabSejoursSub: "إقامات موثوقة",
+    tabImmoSub: "كراء ولا شراء",
     trustTitle: "كيفاش دارنا تحميك",
     trust1Title: "إعلانات موثّقة",
     trust1Desc:

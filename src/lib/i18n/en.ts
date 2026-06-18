@@ -45,6 +45,8 @@ export const en: Dictionary = {
     verticalImmobilierTitle: "Real estate",
     verticalImmobilierDesc:
       "Long-term rentals and sales — fresh listings, market price per m², direct contact with the owner or agency.",
+    tabSejoursSub: "Verified holiday stays",
+    tabImmoSub: "Buy or rent",
     trustTitle: "How Darna protects you",
     trust1Title: "Verified listings",
     trust1Desc:

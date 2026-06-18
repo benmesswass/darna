@@ -44,6 +44,8 @@ export const fr = {
     verticalImmobilierTitle: "Immobilier",
     verticalImmobilierDesc:
       "Location longue durée et vente — annonces fraîches, prix au m² du marché, contact direct propriétaire ou agence.",
+    tabSejoursSub: "Vacances vérifiées",
+    tabImmoSub: "Acheter ou louer",
     trustTitle: "Comment Darna vous protège",
     trust1Title: "Annonces vérifiées",
     trust1Desc:
