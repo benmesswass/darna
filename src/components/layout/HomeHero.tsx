@@ -44,11 +44,11 @@ export function HomeHero({
   // Palette d'ambiance par verticale (couleurs validées).
   const t = isSej
     ? {
-        bg: "#0c4a57", // mer méditerranéenne profonde
+        bg: "var(--color-darna)", // même bleu de marque que le header → cohérent
         text: "#ffffff",
-        kicker: "#7fd4e0",
-        accent: "#34b3c4", // turquoise
-        btnBg: "#e6b45e", // sable
+        kicker: "#7fd4e0", // turquoise « écume de mer »
+        accent: "#5cc9d6", // turquoise (pop sur le bleu profond)
+        btnBg: "var(--color-sand)", // sable chaud = pop plage
         btnText: "#3a2a08",
       }
     : {

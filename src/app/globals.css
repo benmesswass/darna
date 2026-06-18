@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 @theme {
-  /* Identité Sidi Bou Saïd */
-  --color-darna: #1e3a5f; /* bleu profond */
-  --color-darna-dark: #152a46;
-  --color-darna-light: #2e5384;
+  /* Identité Sidi Bou Saïd — bleu méditerranéen (parent des deux verticales) */
+  --color-darna: #0f4c7c; /* bleu mer profond / Sidi Bou */
+  --color-darna-dark: #0a3961;
+  --color-darna-light: #1c6ba8;
   --color-sand: #e3a93c; /* jaune sable */
   --color-sand-light: #f5d99a;
   --color-cream: #faf7f1; /* blanc cassé */
