@@ -74,6 +74,11 @@ model Property {
   title       String
   description String
   type        String // SEJOUR | LOCATION | VENTE
+  // Verticale du produit (frontière de module + feature-flag). DÉRIVÉE de `type`
+  // (SEJOUR→STAY ; LOCATION/VENTE→IMMO) et toujours renseignée à la création.
+  // Distincte de `type` : permet le gating par verticale et un futur split
+  // physique. Cf. src/lib/constants.ts (verticalOfType) et src/lib/modes.ts.
+  vertical    String // STAY | IMMO
   status      String   @default("ACTIVE") // ACTIVE | LOUE | VENDU | EXPIREE
   verified    Boolean  @default(false)
   // Prix en TND : nuitée (SEJOUR), loyer mensuel (LOCATION), prix total (VENTE)
@@ -105,8 +110,15 @@ model Property {
   reviews         Review[]
   contactRequests ContactRequest[]
   favorites       Favorite[]
+  // Détails spécifiques par verticale (1:1, séparables physiquement). Vides
+  // tant que les lectures ne sont pas branchées (cf. roadmap PR4/PR5).
+  stay            StayDetails?
+  immo            ImmoDetails?
 
   @@index([type, status, expiresAt])
+  // Listing + gating par verticale (searchSejours/searchImmobilier, flags) :
+  // index préfixé par `vertical` pour servir les requêtes filtrées par module.
+  @@index([vertical, status, expiresAt])
   // Annonces actives requêtées SANS filtre de type (accueil getFeaturedListings,
   // sitemap, market) : l'index composite ci-dessus, préfixé par `type`, ne peut
   // pas les servir (PostgreSQL 16 n'a pas de skip-scan d'index).
@@ -115,6 +127,31 @@ model Property {
   @@index([gouvernorat])
   @@index([ownerId])
   @@index([featuredUntil]) // tri « à la une » + purge paresseuse des boosts expirés
+}
+
+// Détails spécifiques à la verticale SÉJOUR (1:1 avec Property). Table séparée
+// du noyau pour rendre un futur split physique trivial. Backfill + lecture
+// branchés en PR4 (roadmap) ; vide à la création de la table.
+model StayDetails {
+  propertyId String   @id
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  // Capacité d'accueil (migrée depuis Property.maxGuests en PR4).
+  maxGuests  Int
+}
+
+// Détails spécifiques à la verticale IMMO (1:1 avec Property). Écriture/lecture
+// branchées en PR5 (roadmap) ; vide à la création de la table. JAMAIS de champ
+// de paiement ici (invariant : l'immo n'a pas de transaction en ligne).
+model ImmoDetails {
+  propertyId    String   @id
+  property      Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  kind          String // APPARTEMENT | MAISON | VILLA | STUDIO | BUREAU | LOCAL | TERRAIN
+  condition     String? // NEUF | ANCIEN (null pour TERRAIN)
+  floor         Int?
+  furnished     Boolean  @default(false)
+  charges       Int? // charges mensuelles (LOCATION)
+  landBuildable Boolean? // terrain constructible
+  dpe           String? // classe énergie (A..G)
 }
 
 model Photo {
