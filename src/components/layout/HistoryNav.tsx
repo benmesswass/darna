@@ -137,35 +137,39 @@ export function HistoryNav() {
   const buttonClass =
     "no-print accent-transition fixed top-20 z-[1000] flex items-center gap-1.5 rounded-full border border-black/5 bg-cream/90 px-3.5 py-2 text-sm font-semibold text-darna shadow-lg backdrop-blur disabled:cursor-not-allowed disabled:opacity-40 enabled:hover:bg-darna/10";
 
+  // Boutons MASQUÉS quand inutilisables (plutôt que grisés) : pas de « Précédent »
+  // sur l'accueil, pas de « Suivant » sans historique avant.
   return (
     <>
-      <button
-        type="button"
-        onClick={goBack}
-        disabled={!canBack}
-        aria-label={fr.nav.precedent}
-        title={fr.nav.precedent}
-        className={`${buttonClass} start-4`}
-      >
-        <ChevronLeftIcon width={18} height={18} className="rtl:rotate-180" />
-        <span className="hidden sm:inline">{fr.nav.precedent}</span>
-      </button>
+      {canBack ? (
+        <button
+          type="button"
+          onClick={goBack}
+          aria-label={fr.nav.precedent}
+          title={fr.nav.precedent}
+          className={`${buttonClass} start-4`}
+        >
+          <ChevronLeftIcon width={18} height={18} className="rtl:rotate-180" />
+          <span className="hidden sm:inline">{fr.nav.precedent}</span>
+        </button>
+      ) : null}
 
-      <button
-        type="button"
-        onClick={goForward}
-        disabled={!canForward}
-        aria-label={fr.nav.suivant}
-        title={fr.nav.suivant}
-        className={`${buttonClass} end-4`}
-      >
-        <span className="hidden sm:inline">{fr.nav.suivant}</span>
-        <ChevronLeftIcon
-          width={18}
-          height={18}
-          className="rotate-180 rtl:rotate-0"
-        />
-      </button>
+      {canForward ? (
+        <button
+          type="button"
+          onClick={goForward}
+          aria-label={fr.nav.suivant}
+          title={fr.nav.suivant}
+          className={`${buttonClass} end-4`}
+        >
+          <span className="hidden sm:inline">{fr.nav.suivant}</span>
+          <ChevronLeftIcon
+            width={18}
+            height={18}
+            className="rotate-180 rtl:rotate-0"
+          />
+        </button>
+      ) : null}
     </>
   );
 }

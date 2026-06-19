@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { fr as frMeta } from "@/lib/i18n/fr";
 import { getT } from "@/lib/i18n/server";
@@ -15,7 +16,8 @@ import { PropertyMap } from "@/components/map/PropertyMap";
 import { SplitView } from "@/components/search/SplitView";
 import { Pagination } from "@/components/search/Pagination";
 import { CityAutocomplete } from "@/components/search/CityAutocomplete";
-import { CalendarIcon, SearchIcon, UsersIcon } from "@/components/icons";
+import { SearchDateRange } from "@/components/search/SearchDateRange";
+import { HouseIcon, SearchIcon, UsersIcon } from "@/components/icons";
 
 export const metadata: Metadata = {
   title: frMeta.nav.sejours,
@@ -58,6 +60,14 @@ export default async function SejoursPage({
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      {/* Fil d'Ariane : « tu es dans le catalogue Séjours » (≠ accueil). */}
+      <nav className="mb-2 flex items-center gap-2 text-sm text-ink/45">
+        <Link href="/" aria-label={fr.meta.siteName} className="inline-flex items-center hover:text-darna">
+          <HouseIcon width={15} height={15} />
+        </Link>
+        <span aria-hidden>›</span>
+        <span className="font-medium text-darna">{fr.nav.sejours}</span>
+      </nav>
       <h1 className="text-3xl font-bold text-darna">{fr.nav.sejours}</h1>
 
       {/* Barre de recherche ville + dates + voyageurs — collante au scroll */}
@@ -75,30 +85,11 @@ export default async function SejoursPage({
             inputClassName="w-full rounded-xl border border-darna/15 bg-cream px-3 py-2.5 text-sm outline-none focus:border-darna"
           />
         </label>
-        <label className="flex flex-col gap-1">
-          <span className="flex items-center gap-1 text-xs font-semibold text-ink/60">
-            <CalendarIcon width={13} height={13} />
-            {fr.search.arrivee}
-          </span>
-          <input
-            type="date"
-            name="arrivee"
-            defaultValue={params.arrivee ?? ""}
-            className="rounded-xl border border-darna/15 bg-cream px-3 py-2.5 text-sm outline-none focus:border-darna"
-          />
-        </label>
-        <label className="flex flex-col gap-1">
-          <span className="flex items-center gap-1 text-xs font-semibold text-ink/60">
-            <CalendarIcon width={13} height={13} />
-            {fr.search.depart}
-          </span>
-          <input
-            type="date"
-            name="depart"
-            defaultValue={params.depart ?? ""}
-            className="rounded-xl border border-darna/15 bg-cream px-3 py-2.5 text-sm outline-none focus:border-darna"
-          />
-        </label>
+        <SearchDateRange
+          defaultCheckIn={params.arrivee}
+          defaultCheckOut={params.depart}
+          fieldClassName="w-full rounded-xl border border-darna/15 bg-cream px-3 py-2.5 text-sm outline-none focus:border-darna"
+        />
         <label className="flex flex-col gap-1">
           <span className="flex items-center gap-1 text-xs font-semibold text-ink/60">
             <UsersIcon width={13} height={13} />

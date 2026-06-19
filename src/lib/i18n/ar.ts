@@ -18,7 +18,7 @@ export const ar: Dictionary = {
     sejours: "إقامات",
     immobilier: "عقارات",
     prixDuMarche: "أسعار السوق",
-    diaspora: "الجالية",
+    diaspora: "تونسيو الخارج",
     devenirWakil: "ولّي وكيل",
     connexion: "تسجيل الدخول",
     inscription: "إنشاء حساب",
@@ -49,6 +49,14 @@ export const ar: Dictionary = {
     verticalImmobilierTitle: "عقارات",
     verticalImmobilierDesc:
       "كراء طويل الأمد وبيع — إعلانات جديدة، أسعار المتر المربع من السوق، واتصال مباشر بالمالك أو الوكالة.",
+    tabSejoursSub: "إقامات موثوقة",
+    tabImmoSub: "كراء ولا شراء",
+    heroQuestion: "شنوّة تلوّج عليه؟",
+    diffTitle: "إقامات ولا عقارات؟",
+    diffSejours:
+      "للعطلة: أحجز مسكن موثوق وخلّص بأمان (ضمان) — الفلوس ما تتعطاش للمضيف كان بعد ما توصل.",
+    diffImmo:
+      "باش تسكن طول العام: شراء ولا كراء طويل الأمد، اتصال مباشر بالمالك ولا الوكالة — بلا خلاص أونلاين.",
     trustTitle: "كيفاش دارنا تحميك",
     trust1Title: "إعلانات موثّقة",
     trust1Desc:
@@ -70,7 +78,7 @@ export const ar: Dictionary = {
     diasporaTitle: "تونسيو الخارج",
     diasporaDesc:
       "لوّج، قارن واحجز من أوروبا بكل ثقة — عرض الأسعار باليورو وزيارات بالفيديو قريبًا.",
-    diasporaCta: "اكتشف فضاء الجالية",
+    diasporaCta: "اكتشف الفضاء المخصّص",
     wakilTitle: "ولّي وكيل دارنا",
     wakilDesc:
       "انضم لشبكة وكلاء الثقة اللي يتثبتوا من العقارات في عين المكان واربح دخل إضافي.",
@@ -132,6 +140,7 @@ export const ar: Dictionary = {
     ouAllezVous: "وين باش تمشي؟",
     arrivee: "الوصول",
     depart: "المغادرة",
+    datePlaceholder: "يوم/شهر/سنة",
     voyageurs: "المسافرين",
     transaction: "نوع المعاملة",
     louer: "كراء",
@@ -641,7 +650,7 @@ export const ar: Dictionary = {
       "معدلات بسيطة محسوبة على الإعلانات النشيطة وغير المنتهية في دارنا. الإعلانات بلا مساحة مذكورة مستثناة من حسابات المتر المربع. المؤشر يثرى كل ما تكبر المنصة.",
   },
   diaspora: {
-    titre: "دارنا الجالية",
+    titre: "دارنا — تونسيو الخارج",
     sousTitre:
       "للتوانسة اللي في الخارج: لوّج، قارن وأمّن بلاصتك في البلاد، بلا مفاجآت خايبة.",
     arg1Titre: "احجز من الخارج",

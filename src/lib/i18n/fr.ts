@@ -13,7 +13,7 @@ export const fr = {
     sejours: "Séjours",
     immobilier: "Immobilier",
     prixDuMarche: "Prix du marché",
-    diaspora: "Diaspora",
+    diaspora: "Tunisiens à l'étranger",
     devenirWakil: "Devenir Wakil",
     connexion: "Connexion",
     inscription: "Inscription",
@@ -44,6 +44,14 @@ export const fr = {
     verticalImmobilierTitle: "Immobilier",
     verticalImmobilierDesc:
       "Location longue durée et vente — annonces fraîches, prix au m² du marché, contact direct propriétaire ou agence.",
+    tabSejoursSub: "Vacances vérifiées",
+    tabImmoSub: "Acheter ou louer",
+    heroQuestion: "Que cherchez-vous ?",
+    diffTitle: "Séjours ou Immobilier ?",
+    diffSejours:
+      "Pour vos vacances : réservez un logement vérifié et payez en sécurité (séquestre) — l'argent n'est versé à l'hôte qu'après votre arrivée.",
+    diffImmo:
+      "Pour habiter à l'année : achat ou location longue durée, en contact direct avec le propriétaire ou l'agence — sans paiement en ligne.",
     trustTitle: "Comment Darna vous protège",
     trust1Title: "Annonces vérifiées",
     trust1Desc:
@@ -62,10 +70,10 @@ export const fr = {
     statsDesc:
       "L'Indice Darna agrège les prix réels de la plateforme : consultez les prix au m² par gouvernorat et les nuitées moyennes par ville.",
     statsCta: "Consulter l'Indice Darna",
-    diasporaTitle: "Tunisiens de l'étranger",
+    diasporaTitle: "Tunisiens à l'étranger",
     diasporaDesc:
       "Cherchez, comparez et réservez depuis l'Europe en toute confiance — affichage en euros et visites vidéo bientôt disponibles.",
-    diasporaCta: "Découvrir l'espace diaspora",
+    diasporaCta: "Découvrir l'espace dédié",
     wakilTitle: "Devenez Wakil Darna",
     wakilDesc:
       "Rejoignez le réseau d'agents de confiance qui vérifient les biens sur le terrain et gagnez un revenu complémentaire.",
@@ -127,6 +135,7 @@ export const fr = {
     ouAllezVous: "Où allez-vous ?",
     arrivee: "Arrivée",
     depart: "Départ",
+    datePlaceholder: "jj/mm/aaaa",
     voyageurs: "Voyageurs",
     transaction: "Transaction",
     louer: "Louer",
@@ -613,7 +622,7 @@ export const fr = {
       "Moyennes simples calculées sur les annonces actives et non expirées de Darna. Les annonces sans surface renseignée sont exclues des calculs au m². L'indice s'enrichit à mesure que la plateforme grandit.",
   },
   diaspora: {
-    titre: "Darna Diaspora",
+    titre: "Darna — Tunisiens à l'étranger",
     sousTitre:
       "Pour les Tunisiens de l'étranger : cherchez, comparez et sécurisez votre pied-à-terre au pays, sans mauvaise surprise.",
     arg1Titre: "Réservez depuis l'étranger",

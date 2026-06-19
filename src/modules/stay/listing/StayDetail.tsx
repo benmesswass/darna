@@ -2,8 +2,8 @@ import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { buildUnavailableDates } from "@/lib/listings";
 import { markerPriceLabel } from "@/lib/format";
-import { AvailabilityCalendar } from "@/components/property/AvailabilityCalendar";
 import { PropertyCtas } from "@/components/property/PropertyCtas";
+import { StayDatesPicker } from "@/modules/stay/listing/StayDatesPicker";
 import { UsersIcon } from "@/components/icons";
 import { ListingDetail } from "@/modules/core/listing/ListingDetail";
 import { Caracteristique } from "@/modules/core/listing/Caracteristique";
@@ -74,8 +74,12 @@ export async function StayDetail({
           <h2 className="text-xl font-bold text-darna">
             {fr.property.disponibilites}
           </h2>
-          <div className="mt-4 rounded-3xl bg-white p-5 ring-1 ring-darna/10">
-            <AvailabilityCalendar unavailable={unavailable} />
+          <div className="mt-4">
+            <StayDatesPicker
+              slug={property.slug}
+              unavailable={unavailable}
+              active={isActive}
+            />
           </div>
         </section>
       }

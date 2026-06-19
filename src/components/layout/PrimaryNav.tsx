@@ -64,6 +64,11 @@ export function PrimaryNav({ items }: { items: Item[] }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeIndex]);
 
+  // Sur l'accueil, le hero porte déjà le choix de verticale (onglets Séjours /
+  // Immobilier) : on masque la pastille du header pour éviter le doublon. Elle
+  // réapparaît sur toutes les autres pages comme navigation entre verticales.
+  if (pathname === "/") return null;
+
   return (
     <nav
       ref={navRef}
