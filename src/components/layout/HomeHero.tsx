@@ -111,19 +111,24 @@ export function HomeHero({
 
         {/* Onglets de verticale (égalité de poids) — masqués si une seule active */}
         {showTabs ? (
-          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-            <Tab
-              m="sejours"
-              icon={<PalmIcon width={28} height={28} />}
-              label={fr.nav.sejours}
-              sub={fr.home.tabSejoursSub}
-            />
-            <Tab
-              m="immobilier"
-              icon={<BuildingIcon width={28} height={28} />}
-              label={fr.nav.immobilier}
-              sub={fr.home.tabImmoSub}
-            />
+          <div className="mt-7">
+            <p className="mb-2 text-sm font-semibold" style={{ color: t.kicker }}>
+              {fr.home.heroQuestion}
+            </p>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Tab
+                m="sejours"
+                icon={<PalmIcon width={28} height={28} />}
+                label={fr.nav.sejours}
+                sub={fr.home.tabSejoursSub}
+              />
+              <Tab
+                m="immobilier"
+                icon={<BuildingIcon width={28} height={28} />}
+                label={fr.nav.immobilier}
+                sub={fr.home.tabImmoSub}
+              />
+            </div>
           </div>
         ) : null}
 
@@ -255,17 +260,53 @@ export function HomeHero({
         <div className="h-5" style={{ background: "#e7d3aa" }} aria-hidden />
       ) : null}
 
-      {/* Frise « Sidi Bou Saïd » (Immobilier) — emplacement de la photo/grille.
-          Placeholder en attendant un visuel propre (libre de droits) déposé dans
-          public/. Remplacer ce bloc par <Image src="/immo/frise-sidi-bou.png" …>. */}
+      {/* Frise « Sidi Bou Saïd » (Immobilier) : grille en fer forgé recréée en
+          SVG vectoriel (bleu cobalt sur blanc) — net, recolorable, sans
+          watermark. Tuilée horizontalement (barreaux + volutes + cœurs). */}
       {!isSej ? (
         <div
-          className="flex h-12 items-center justify-center gap-2 text-xs font-medium tracking-wide text-white"
-          style={{ background: "#15539e" }}
           aria-hidden
+          style={{
+            background: "#ffffff",
+            borderTop: "3px solid #15539e",
+            borderBottom: "3px solid #15539e",
+          }}
         >
-          <BuildingIcon width={14} height={14} />
-          frise Sidi Bou Saïd — photo à venir
+          <svg
+            width="100%"
+            height="58"
+            preserveAspectRatio="xMidYMid slice"
+            style={{ display: "block" }}
+          >
+            <defs>
+              <pattern
+                id="sidiBouFer"
+                width="60"
+                height="58"
+                patternUnits="userSpaceOnUse"
+              >
+                <g
+                  fill="none"
+                  stroke="#15539e"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                >
+                  {/* barreaux verticaux */}
+                  <path d="M0 2 L0 56" />
+                  <path d="M30 2 L30 56" />
+                  {/* cœur central */}
+                  <path d="M30 12 C 27 7, 21 8, 23 14 C 24 18, 30 20, 30 20 C 30 20, 36 18, 37 14 C 39 8, 33 7, 30 12 Z" />
+                  {/* volutes gauche (haut + bas) */}
+                  <path d="M30 29 C 18 25, 8 29, 10 39 C 11 44, 17 44, 17 39 C 17 36, 13 36, 14 39" />
+                  <path d="M30 29 C 18 33, 8 29, 10 19 C 11 14, 17 14, 17 19 C 17 22, 13 22, 14 19" />
+                  {/* volutes droite (haut + bas) */}
+                  <path d="M30 29 C 42 25, 52 29, 50 39 C 49 44, 43 44, 43 39 C 43 36, 47 36, 46 39" />
+                  <path d="M30 29 C 42 33, 52 29, 50 19 C 49 14, 43 14, 43 19 C 43 22, 47 22, 46 19" />
+                </g>
+              </pattern>
+            </defs>
+            <rect width="100%" height="58" fill="url(#sidiBouFer)" />
+          </svg>
         </div>
       ) : null}
     </section>

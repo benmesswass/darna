@@ -10,9 +10,11 @@ import { PropertyCard } from "@/components/property/PropertyCard";
 import { HomeHero } from "@/components/layout/HomeHero";
 import {
   ArrowRightIcon,
+  BuildingIcon,
   CheckIcon,
   CoinsIcon,
   GlobeIcon,
+  PalmIcon,
   ShieldIcon,
   SparklesIcon,
 } from "@/components/icons";
@@ -45,6 +47,37 @@ export default async function HomePage() {
           reviews: reviewCount,
         }}
       />
+
+      {/* La différence entre les deux verticales — clarifie le produit */}
+      <section className="mx-auto max-w-7xl px-4 pt-14 sm:px-6">
+        <h2 className="text-center text-2xl font-bold text-darna sm:text-3xl">
+          {fr.home.diffTitle}
+        </h2>
+        <div className="mx-auto mt-6 grid max-w-4xl gap-5 md:grid-cols-2">
+          <div className="rounded-3xl bg-white p-6 ring-1 ring-darna/10">
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sand/20 text-darna">
+                <PalmIcon width={22} height={22} />
+              </span>
+              <h3 className="text-lg font-bold text-darna">{fr.nav.sejours}</h3>
+            </div>
+            <p className="mt-3 text-sm leading-relaxed text-ink/70">
+              {fr.home.diffSejours}
+            </p>
+          </div>
+          <div className="rounded-3xl bg-white p-6 ring-1 ring-darna/10">
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-darna/10 text-darna">
+                <BuildingIcon width={22} height={22} />
+              </span>
+              <h3 className="text-lg font-bold text-darna">{fr.nav.immobilier}</h3>
+            </div>
+            <p className="mt-3 text-sm leading-relaxed text-ink/70">
+              {fr.home.diffImmo}
+            </p>
+          </div>
+        </div>
+      </section>
 
       {/* À la une — annonces mises en avant par les hôtes (placement payant) */}
       {alaUne.length > 0 ? (

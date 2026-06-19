@@ -47,6 +47,12 @@ export const en: Dictionary = {
       "Long-term rentals and sales — fresh listings, market price per m², direct contact with the owner or agency.",
     tabSejoursSub: "Verified holiday stays",
     tabImmoSub: "Buy or rent",
+    heroQuestion: "What are you looking for?",
+    diffTitle: "Stays or Real estate?",
+    diffSejours:
+      "For your holidays: book a verified place and pay securely (escrow) — funds are released to the host only after check-in.",
+    diffImmo:
+      "To live year-round: buy or rent long-term, in direct contact with the owner or agency — no online payment.",
     trustTitle: "How Darna protects you",
     trust1Title: "Verified listings",
     trust1Desc:

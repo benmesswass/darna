@@ -46,6 +46,12 @@ export const fr = {
       "Location longue durée et vente — annonces fraîches, prix au m² du marché, contact direct propriétaire ou agence.",
     tabSejoursSub: "Vacances vérifiées",
     tabImmoSub: "Acheter ou louer",
+    heroQuestion: "Que cherchez-vous ?",
+    diffTitle: "Séjours ou Immobilier ?",
+    diffSejours:
+      "Pour vos vacances : réservez un logement vérifié et payez en sécurité (séquestre) — l'argent n'est versé à l'hôte qu'après votre arrivée.",
+    diffImmo:
+      "Pour habiter à l'année : achat ou location longue durée, en contact direct avec le propriétaire ou l'agence — sans paiement en ligne.",
     trustTitle: "Comment Darna vous protège",
     trust1Title: "Annonces vérifiées",
     trust1Desc:
