@@ -14,7 +14,7 @@ export const en: Dictionary = {
     sejours: "Stays",
     immobilier: "Real estate",
     prixDuMarche: "Market prices",
-    diaspora: "Diaspora",
+    diaspora: "Tunisians abroad",
     devenirWakil: "Become a Wakil",
     connexion: "Sign in",
     inscription: "Sign up",
@@ -74,7 +74,7 @@ export const en: Dictionary = {
     diasporaTitle: "Tunisians abroad",
     diasporaDesc:
       "Search, compare and book from Europe with full confidence — prices in euros and video visits coming soon.",
-    diasporaCta: "Discover the diaspora space",
+    diasporaCta: "Discover the dedicated space",
     wakilTitle: "Become a Darna Wakil",
     wakilDesc:
       "Join the network of trusted agents who verify properties on the ground and earn extra income.",
@@ -621,7 +621,7 @@ export const en: Dictionary = {
       "Simple averages computed on Darna's active, non-expired listings. Listings without a specified area are excluded from per-m² calculations. The index grows richer as the platform grows.",
   },
   diaspora: {
-    titre: "Darna Diaspora",
+    titre: "Darna — Tunisians abroad",
     sousTitre:
       "For Tunisians abroad: search, compare and secure your home in the country, without unpleasant surprises.",
     arg1Titre: "Book from abroad",
