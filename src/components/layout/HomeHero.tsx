@@ -290,18 +290,16 @@ export function HomeHero({
                   stroke="#15539e"
                   strokeWidth="2"
                   strokeLinecap="round"
+                  strokeLinejoin="round"
                 >
-                  {/* barreaux verticaux */}
-                  <path d="M0 2 L0 56" />
-                  <path d="M30 2 L30 56" />
-                  {/* cœur central */}
-                  <path d="M30 12 C 27 7, 21 8, 23 14 C 24 18, 30 20, 30 20 C 30 20, 36 18, 37 14 C 39 8, 33 7, 30 12 Z" />
-                  {/* volutes gauche (haut + bas) */}
-                  <path d="M30 29 C 18 25, 8 29, 10 39 C 11 44, 17 44, 17 39 C 17 36, 13 36, 14 39" />
-                  <path d="M30 29 C 18 33, 8 29, 10 19 C 11 14, 17 14, 17 19 C 17 22, 13 22, 14 19" />
-                  {/* volutes droite (haut + bas) */}
-                  <path d="M30 29 C 42 25, 52 29, 50 39 C 49 44, 43 44, 43 39 C 43 36, 47 36, 46 39" />
-                  <path d="M30 29 C 42 33, 52 29, 50 19 C 49 14, 43 14, 43 19 C 43 22, 47 22, 46 19" />
+                  {/* barreau d'encadrement (chaîne d'une tuile à l'autre) */}
+                  <path d="M0 3 L0 55" />
+                  {/* cœur central proéminent (motif Sidi Bou Saïd) */}
+                  <path d="M30 40 C 11 26, 18 8, 30 19 C 42 8, 49 26, 30 40 Z" />
+                  {/* volute basse gauche (spirale vers l'extérieur) */}
+                  <path d="M30 40 C 22 47, 11 47, 9 38 C 8 33, 14 32, 15 37 C 15.6 40, 12.5 40.5, 12 37.5" />
+                  {/* volute basse droite (miroir) */}
+                  <path d="M30 40 C 38 47, 49 47, 51 38 C 52 33, 46 32, 45 37 C 44.4 40, 47.5 40.5, 48 37.5" />
                 </g>
               </pattern>
             </defs>
