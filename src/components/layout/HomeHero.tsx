@@ -4,9 +4,9 @@ import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useT } from "@/components/i18n/LocaleProvider";
 import { CityAutocomplete } from "@/components/search/CityAutocomplete";
+import { SearchDateRange } from "@/components/search/SearchDateRange";
 import {
   BuildingIcon,
-  CalendarIcon,
   PalmIcon,
   SearchIcon,
   UsersIcon,
@@ -145,20 +145,12 @@ export function HomeHero({
                   inputClassName={`w-full ${fieldStyle}`}
                 />
               </label>
-              <label className="block">
-                <span className={`${labelStyle} flex items-center gap-1`} style={{ color: "#0c5f6e" }}>
-                  <CalendarIcon width={13} height={13} />
-                  {fr.search.arrivee}
-                </span>
-                <input type="date" name="arrivee" className={`w-full ${fieldStyle}`} />
-              </label>
-              <label className="block">
-                <span className={`${labelStyle} flex items-center gap-1`} style={{ color: "#0c5f6e" }}>
-                  <CalendarIcon width={13} height={13} />
-                  {fr.search.depart}
-                </span>
-                <input type="date" name="depart" className={`w-full ${fieldStyle}`} />
-              </label>
+              <SearchDateRange
+                fieldClassName={`w-full ${fieldStyle}`}
+                labelClassName="block"
+                labelTextClassName={`${labelStyle} flex items-center gap-1`}
+                labelStyle={{ color: "#0c5f6e" }}
+              />
               <label className="block">
                 <span className={`${labelStyle} flex items-center gap-1`} style={{ color: "#0c5f6e" }}>
                   <UsersIcon width={13} height={13} />

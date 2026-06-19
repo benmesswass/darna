@@ -135,6 +135,7 @@ export const fr = {
     ouAllezVous: "Où allez-vous ?",
     arrivee: "Arrivée",
     depart: "Départ",
+    datePlaceholder: "jj/mm/aaaa",
     voyageurs: "Voyageurs",
     transaction: "Transaction",
     louer: "Louer",

@@ -135,6 +135,7 @@ export const en: Dictionary = {
     ouAllezVous: "Where are you going?",
     arrivee: "Check-in",
     depart: "Check-out",
+    datePlaceholder: "dd/mm/yyyy",
     voyageurs: "Guests",
     transaction: "Transaction",
     louer: "Rent",

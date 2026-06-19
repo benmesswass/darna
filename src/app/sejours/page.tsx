@@ -16,7 +16,8 @@ import { PropertyMap } from "@/components/map/PropertyMap";
 import { SplitView } from "@/components/search/SplitView";
 import { Pagination } from "@/components/search/Pagination";
 import { CityAutocomplete } from "@/components/search/CityAutocomplete";
-import { CalendarIcon, HouseIcon, SearchIcon, UsersIcon } from "@/components/icons";
+import { SearchDateRange } from "@/components/search/SearchDateRange";
+import { HouseIcon, SearchIcon, UsersIcon } from "@/components/icons";
 
 export const metadata: Metadata = {
   title: frMeta.nav.sejours,
@@ -84,30 +85,11 @@ export default async function SejoursPage({
             inputClassName="w-full rounded-xl border border-darna/15 bg-cream px-3 py-2.5 text-sm outline-none focus:border-darna"
           />
         </label>
-        <label className="flex flex-col gap-1">
-          <span className="flex items-center gap-1 text-xs font-semibold text-ink/60">
-            <CalendarIcon width={13} height={13} />
-            {fr.search.arrivee}
-          </span>
-          <input
-            type="date"
-            name="arrivee"
-            defaultValue={params.arrivee ?? ""}
-            className="rounded-xl border border-darna/15 bg-cream px-3 py-2.5 text-sm outline-none focus:border-darna"
-          />
-        </label>
-        <label className="flex flex-col gap-1">
-          <span className="flex items-center gap-1 text-xs font-semibold text-ink/60">
-            <CalendarIcon width={13} height={13} />
-            {fr.search.depart}
-          </span>
-          <input
-            type="date"
-            name="depart"
-            defaultValue={params.depart ?? ""}
-            className="rounded-xl border border-darna/15 bg-cream px-3 py-2.5 text-sm outline-none focus:border-darna"
-          />
-        </label>
+        <SearchDateRange
+          defaultCheckIn={params.arrivee}
+          defaultCheckOut={params.depart}
+          fieldClassName="w-full rounded-xl border border-darna/15 bg-cream px-3 py-2.5 text-sm outline-none focus:border-darna"
+        />
         <label className="flex flex-col gap-1">
           <span className="flex items-center gap-1 text-xs font-semibold text-ink/60">
             <UsersIcon width={13} height={13} />

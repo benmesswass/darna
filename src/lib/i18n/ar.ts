@@ -140,6 +140,7 @@ export const ar: Dictionary = {
     ouAllezVous: "وين باش تمشي؟",
     arrivee: "الوصول",
     depart: "المغادرة",
+    datePlaceholder: "يوم/شهر/سنة",
     voyageurs: "المسافرين",
     transaction: "نوع المعاملة",
     louer: "كراء",
