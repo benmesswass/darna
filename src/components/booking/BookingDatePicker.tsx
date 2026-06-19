@@ -41,12 +41,14 @@ function nightsBetween(startIso: string, endIso: string): number {
 }
 
 /**
- * Calendrier de réservation interactif (sélection de plage arrivée → départ).
- * Composant CONTRÔLÉ : l'état des dates vit chez le parent (BookingPanel) qui
- * en dérive le devis en direct. Ici, on n'affiche que la grille + la dispo.
+ * Calendrier de réservation interactif (sélection de plage arrivée → départ dans
+ * UN SEUL calendrier, deux mois affichés). Composant CONTRÔLÉ : l'état des dates
+ * vit chez le parent (BookingPanel) qui en dérive le devis en direct.
  *
- * - Les nuits réservées ou bloquées par l'hôte apparaissent barrées et inertes.
- * - On empêche de sélectionner une plage qui chevauche une nuit indisponible.
+ * Design : bande de plage CONTINUE entre les deux dates, extrémités en pastilles
+ * rondes, et un badge « X nuits » qui suit le survol (aperçu live de la durée).
+ * Les nuits réservées/bloquées sont barrées et inertes ; on empêche de
+ * sélectionner une plage qui chevauche une nuit indisponible.
  */
 export function BookingDatePicker({
   unavailable,
@@ -131,20 +133,23 @@ export function BookingDatePicker({
       : null;
   const effectiveOut = checkOut ?? previewEnd;
 
-  const nights = checkIn && checkOut ? nightsBetween(checkIn, checkOut) : 0;
-  const complete = Boolean(checkIn && checkOut);
+  // Nuits effectives = plage choisie OU aperçu au survol (→ « X nuits » live).
+  const effectiveNights =
+    checkIn && effectiveOut ? nightsBetween(checkIn, effectiveOut) : 0;
+  const hasRange = Boolean(checkIn && effectiveOut);
 
   const rangeLabel = useMemo(() => {
     const fmt = new Intl.DateTimeFormat(intlLocale, { day: "numeric", month: "short" });
     const fmtIso = (iso: string) => fmt.format(new Date(`${iso}T00:00:00`));
-    if (checkIn && checkOut) return fr.booking.sejourDates(fmtIso(checkIn), fmtIso(checkOut));
+    if (checkIn && effectiveOut)
+      return fr.booking.sejourDates(fmtIso(checkIn), fmtIso(effectiveOut));
     if (checkIn) return fr.booking.cliquezDepart;
     return fr.booking.cliquezArrivee;
-  }, [checkIn, checkOut, intlLocale, fr.booking]);
+  }, [checkIn, effectiveOut, intlLocale, fr.booking]);
 
   return (
     <div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-darna/10 sm:p-7">
-      {/* En-tête : intitulé + état de la sélection */}
+      {/* En-tête : intitulé + état de la sélection (nuits live, survol inclus) */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-darna/10 text-darna">
@@ -153,9 +158,12 @@ export function BookingDatePicker({
           <div>
             <p className="text-sm font-bold text-darna">{fr.booking.choisirDates}</p>
             <p className="text-xs font-medium text-ink/55">
-              {complete ? (
+              {hasRange ? (
                 <>
-                  {rangeLabel} · {fr.booking.nuits(nights)}
+                  {rangeLabel} ·{" "}
+                  <span className="font-bold text-darna">
+                    {fr.booking.nuits(effectiveNights)}
+                  </span>
                 </>
               ) : (
                 rangeLabel
@@ -199,14 +207,18 @@ export function BookingDatePicker({
         </button>
       </div>
 
-      {/* Grilles mensuelles */}
-      <div className="mt-3 grid gap-7 sm:grid-cols-2">
+      {/* Grilles mensuelles (clic arrivée puis départ — un seul calendrier) */}
+      <div
+        className="mt-3 grid gap-7 sm:grid-cols-2"
+        onMouseLeave={() => setHovered(null)}
+      >
         {months.map(({ key, first, daysInMonth, startWeekday, label }) => (
           <div key={key}>
             <p className="mb-3 text-center text-sm font-bold capitalize text-darna">
               {label}
             </p>
-            <div className="grid grid-cols-7 gap-1">
+            {/* Pas de gap horizontal → la bande de plage est continue. */}
+            <div className="grid grid-cols-7 gap-y-1">
               {weekdays.map((d, i) => (
                 <span
                   key={`wd-${i}`}
@@ -227,16 +239,29 @@ export function BookingDatePicker({
                 const isStart = iso === checkIn;
                 const isEnd = iso === effectiveOut;
                 const inRange =
-                  effectiveOut && checkIn ? iso > checkIn && iso < effectiveOut : false;
+                  checkIn && effectiveOut ? iso > checkIn && iso < effectiveOut : false;
                 const isEndpoint = isStart || isEnd;
                 // Note privée de l'hôte sur ce jour bloqué (jamais sur un jour passé).
                 const note = !isPast ? notes?.[iso] : undefined;
+                // Bande de plage continue : fond clair, arrondi seulement aux bouts.
+                const band =
+                  hasRange && (isEndpoint || inRange)
+                    ? `bg-darna/10 ${isStart ? "rounded-s-full" : ""} ${
+                        isEnd ? "rounded-e-full" : ""
+                      }`
+                    : "";
 
                 return (
-                  // Enveloppe `group` : ancre du tooltip. Le survol d'un bouton
-                  // désactivé ne déclenche pas d'évènement JS, mais le `:hover`
-                  // CSS remonte bien à ce parent → la note s'affiche quand même.
-                  <div key={iso} className="group relative">
+                  <div
+                    key={iso}
+                    className={`group relative flex h-11 items-center justify-center ${band}`}
+                  >
+                    {/* Badge « X nuits » sur la date de fin (réelle ou survolée). */}
+                    {isEnd && hasRange ? (
+                      <span className="pointer-events-none absolute -top-6 start-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-full bg-darna px-2 py-0.5 text-[10px] font-bold text-white shadow-md rtl:translate-x-1/2">
+                        {fr.booking.nuits(effectiveNights)}
+                      </span>
+                    ) : null}
                     <button
                       type="button"
                       disabled={isDisabled}
@@ -244,16 +269,16 @@ export function BookingDatePicker({
                       onMouseEnter={() => setHovered(iso)}
                       aria-pressed={isEndpoint}
                       className={[
-                        "relative flex h-11 w-full items-center justify-center rounded-xl text-sm transition",
+                        "relative flex h-10 w-10 items-center justify-center rounded-full text-sm transition",
                         isEndpoint
                           ? "z-10 bg-darna font-bold text-white shadow-sm"
                           : inRange
-                            ? "bg-darna/10 font-semibold text-darna"
+                            ? "font-semibold text-darna"
                             : isPast
                               ? "cursor-default text-ink/25"
                               : isUnavail
                                 ? "cursor-not-allowed text-ink/30 line-through"
-                                : "font-medium text-ink hover:bg-darna/10 hover:text-darna",
+                                : "font-medium text-ink hover:bg-darna/15 hover:text-darna",
                       ].join(" ")}
                     >
                       {i + 1}
@@ -269,7 +294,7 @@ export function BookingDatePicker({
                     {note ? (
                       <span
                         role="tooltip"
-                        className="pointer-events-none absolute bottom-full start-1/2 z-20 mb-1.5 w-max max-w-[12rem] -translate-x-1/2 rounded-lg bg-ink px-2.5 py-1.5 text-start text-xs font-medium leading-snug text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 rtl:translate-x-1/2"
+                        className="pointer-events-none absolute bottom-full start-1/2 z-30 mb-1.5 w-max max-w-[12rem] -translate-x-1/2 rounded-lg bg-ink px-2.5 py-1.5 text-start text-xs font-medium leading-snug text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 rtl:translate-x-1/2"
                       >
                         {note}
                       </span>
@@ -285,11 +310,11 @@ export function BookingDatePicker({
       {/* Légende */}
       <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-ink/60">
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-3.5 w-3.5 rounded bg-darna" />
+          <span className="inline-block h-3.5 w-3.5 rounded-full bg-darna" />
           {fr.booking.selectionne}
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-3.5 w-3.5 rounded bg-darna/10 ring-1 ring-darna/15" />
+          <span className="inline-block h-3.5 w-3.5 rounded-full bg-darna/10 ring-1 ring-darna/15" />
           {fr.property.jourLibre}
         </span>
         <span className="flex items-center gap-1.5">
