@@ -44,11 +44,11 @@ export function HomeHero({
   // Palette d'ambiance par verticale (couleurs validées).
   const t = isSej
     ? {
-        bg: "var(--color-darna)", // même bleu de marque que le header → cohérent
+        bg: "#17708a", // turquoise mer (même famille bleue que le header)
         text: "#ffffff",
-        kicker: "#7fd4e0", // turquoise « écume de mer »
-        accent: "#5cc9d6", // turquoise (pop sur le bleu profond)
-        btnBg: "var(--color-sand)", // sable chaud = pop plage
+        kicker: "#f2dcae", // sable clair
+        accent: "#f4d9a0", // sable (chiffres) = combine sable + mer
+        btnBg: "#e8b85e", // sable doré = pop plage
         btnText: "#3a2a08",
       }
     : {
@@ -248,6 +248,12 @@ export function HomeHero({
           ))}
         </dl>
       </div>
+
+      {/* Bande de sable (Séjours) : la plage qui rencontre la mer — combine les
+          deux couleurs sable + mer (cf. palette validée). */}
+      {isSej ? (
+        <div className="h-5" style={{ background: "#e7d3aa" }} aria-hidden />
+      ) : null}
 
       {/* Frise « Sidi Bou Saïd » (Immobilier) — emplacement de la photo/grille.
           Placeholder en attendant un visuel propre (libre de droits) déposé dans
