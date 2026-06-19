@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { fr as frMeta } from "@/lib/i18n/fr";
 import { getT } from "@/lib/i18n/server";
@@ -15,7 +16,7 @@ import { PropertyCard } from "@/components/property/PropertyCard";
 import { PropertyMap } from "@/components/map/PropertyMap";
 import { SplitView } from "@/components/search/SplitView";
 import { Pagination } from "@/components/search/Pagination";
-import { SearchIcon } from "@/components/icons";
+import { HouseIcon, SearchIcon } from "@/components/icons";
 
 export const metadata: Metadata = {
   title: frMeta.nav.immobilier,
@@ -50,6 +51,14 @@ export default async function ImmobilierPage({
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      {/* Fil d'Ariane : « tu es dans le catalogue Immobilier » (≠ accueil). */}
+      <nav className="mb-2 flex items-center gap-2 text-sm text-ink/45">
+        <Link href="/" aria-label={fr.meta.siteName} className="inline-flex items-center hover:text-darna">
+          <HouseIcon width={15} height={15} />
+        </Link>
+        <span aria-hidden>›</span>
+        <span className="font-medium text-darna">{fr.nav.immobilier}</span>
+      </nav>
       <h1 className="text-3xl font-bold text-darna">{fr.nav.immobilier}</h1>
 
       <form
