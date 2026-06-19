@@ -253,60 +253,6 @@ export function HomeHero({
           ))}
         </dl>
       </div>
-
-      {/* Bande de sable (Séjours) : la plage qui rencontre la mer — combine les
-          deux couleurs sable + mer (cf. palette validée). */}
-      {isSej ? (
-        <div className="h-5" style={{ background: "#e7d3aa" }} aria-hidden />
-      ) : null}
-
-      {/* Frise « Sidi Bou Saïd » (Immobilier) : grille en fer forgé recréée en
-          SVG vectoriel (bleu cobalt sur blanc) — net, recolorable, sans
-          watermark. Tuilée horizontalement (barreaux + volutes + cœurs). */}
-      {!isSej ? (
-        <div
-          aria-hidden
-          style={{
-            background: "#ffffff",
-            borderTop: "3px solid #15539e",
-            borderBottom: "3px solid #15539e",
-          }}
-        >
-          <svg
-            width="100%"
-            height="58"
-            preserveAspectRatio="xMidYMid slice"
-            style={{ display: "block" }}
-          >
-            <defs>
-              <pattern
-                id="sidiBouFer"
-                width="60"
-                height="58"
-                patternUnits="userSpaceOnUse"
-              >
-                <g
-                  fill="none"
-                  stroke="#15539e"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  {/* barreau d'encadrement (chaîne d'une tuile à l'autre) */}
-                  <path d="M0 3 L0 55" />
-                  {/* cœur central proéminent (motif Sidi Bou Saïd) */}
-                  <path d="M30 40 C 11 26, 18 8, 30 19 C 42 8, 49 26, 30 40 Z" />
-                  {/* volute basse gauche (spirale vers l'extérieur) */}
-                  <path d="M30 40 C 22 47, 11 47, 9 38 C 8 33, 14 32, 15 37 C 15.6 40, 12.5 40.5, 12 37.5" />
-                  {/* volute basse droite (miroir) */}
-                  <path d="M30 40 C 38 47, 49 47, 51 38 C 52 33, 46 32, 45 37 C 44.4 40, 47.5 40.5, 48 37.5" />
-                </g>
-              </pattern>
-            </defs>
-            <rect width="100%" height="58" fill="url(#sidiBouFer)" />
-          </svg>
-        </div>
-      ) : null}
     </section>
   );
 }
