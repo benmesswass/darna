@@ -66,6 +66,20 @@ export const CITIES: City[] = [
   { name: "Gabès", gouvernorat: "Gabès", latitude: 33.8815, longitude: 10.0982, aliases: ["gabes", "9abes", "gabis"] },
   { name: "Hammam Sousse", gouvernorat: "Sousse", latitude: 35.8608, longitude: 10.6033, aliases: ["7ammam sousse", "hamam sousse"] },
   { name: "Ben Arous", gouvernorat: "Ben Arous", latitude: 36.7531, longitude: 10.2189, aliases: ["benarous", "bin arous"] },
+  // Chefs-lieux de l'intérieur et du Sud + Douz (porte du Sahara) — couverture
+  // nationale : sans eux, « Kébili », « Douz », « Tataouine »… étaient traités
+  // comme des villes inconnues et n'ouvraient même pas l'élargissement.
+  { name: "Béja", gouvernorat: "Béja", latitude: 36.7256, longitude: 9.1817, aliases: ["beja", "baja"] },
+  { name: "Gafsa", gouvernorat: "Gafsa", latitude: 34.425, longitude: 8.7842, aliases: ["gafsa", "9afsa", "qafsa", "gabsa"] },
+  { name: "Kasserine", gouvernorat: "Kasserine", latitude: 35.1676, longitude: 8.8365, aliases: ["kasrine", "9asserine", "kaserine"] },
+  { name: "Kébili", gouvernorat: "Kébili", latitude: 33.705, longitude: 8.969, aliases: ["kebili", "9bili", "9ebili", "kbili"] },
+  { name: "Douz", gouvernorat: "Kébili", latitude: 33.4662, longitude: 9.0203, aliases: ["duz", "dooz", "douz sahara"] },
+  { name: "Le Kef", gouvernorat: "Le Kef", latitude: 36.1822, longitude: 8.7148, aliases: ["el kef", "kef", "lkef", "kaf"] },
+  { name: "La Manouba", gouvernorat: "La Manouba", latitude: 36.8101, longitude: 10.0972, aliases: ["manouba", "mannouba", "manuba"] },
+  { name: "Sidi Bouzid", gouvernorat: "Sidi Bouzid", latitude: 35.0382, longitude: 9.4849, aliases: ["sidi bou zid", "bouzid", "sidibouzid"] },
+  { name: "Siliana", gouvernorat: "Siliana", latitude: 36.088, longitude: 9.3708, aliases: ["selyana", "silyana", "sliana"] },
+  { name: "Tataouine", gouvernorat: "Tataouine", latitude: 32.9297, longitude: 10.4518, aliases: ["tatawin", "tataween", "tatouine"] },
+  { name: "Zaghouan", gouvernorat: "Zaghouan", latitude: 36.4028, longitude: 10.1425, aliases: ["zaghwan", "zaghouen", "zghouan"] },
 ];
 
 /**
