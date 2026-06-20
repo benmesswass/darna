@@ -224,7 +224,7 @@ export function HomeHero({
                   {fr.search.acheter}
                 </label>
               </div>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_auto]">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr_auto]">
                 <label className="block">
                   <span className={labelStyle} style={{ color: "#15539e" }}>
                     {fr.search.gouvernorat}
@@ -237,9 +237,34 @@ export function HomeHero({
                 </label>
                 <label className="block">
                   <span className={labelStyle} style={{ color: "#15539e" }}>
+                    {fr.search.prixMin} ({fr.common.tnd})
+                  </span>
+                  <input type="number" name="prixMin" min={0} step={50} className={`w-full ${fieldStyle}`} />
+                </label>
+                <label className="block">
+                  <span className={labelStyle} style={{ color: "#15539e" }}>
                     {fr.search.prixMax} ({fr.common.tnd})
                   </span>
                   <input type="number" name="prixMax" min={0} step={50} className={`w-full ${fieldStyle}`} />
+                </label>
+                <label className="block">
+                  <span className={labelStyle} style={{ color: "#15539e" }}>
+                    {fr.search.surfaceMin}
+                  </span>
+                  <input type="number" name="surfaceMin" min={0} className={`w-full ${fieldStyle}`} />
+                </label>
+                <label className="block">
+                  <span className={labelStyle} style={{ color: "#15539e" }}>
+                    {fr.search.piecesMin}
+                  </span>
+                  <select name="pieces" defaultValue="" className={`w-full ${fieldStyle}`}>
+                    <option value="">{fr.search.indifferent}</option>
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <option key={n} value={n}>
+                        {n}+
+                      </option>
+                    ))}
+                  </select>
                 </label>
                 <button
                   type="submit"
