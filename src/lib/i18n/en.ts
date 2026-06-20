@@ -163,8 +163,9 @@ export const en: Dictionary = {
       `No listing in ${ville} for these dates`,
     elargirProche: "Widen your search to nearby cities:",
     elargirPopulaire: "Discover our most active destinations instead:",
-    suggestionVille: (ville: string, n: number) =>
-      `${ville} · ${n === 1 ? "1 listing" : `${n} listings`}`,
+    elargiProximiteIntro: "Here are stays in the closest cities:",
+    voirToutVille: (ville: string, n: number) =>
+      `${ville} · see ${n === 1 ? "1 listing" : `all ${n} listings`}`,
     voirListe: "List",
     voirCarte: "Map",
     chargementCarte: "Loading map…",

@@ -164,8 +164,9 @@ export const fr = {
       `Aucune annonce à ${ville} pour ces dates`,
     elargirProche: "Élargissez votre recherche aux villes proches :",
     elargirPopulaire: "Découvrez plutôt nos destinations les plus actives :",
-    suggestionVille: (ville: string, n: number) =>
-      `${ville} · ${n === 1 ? "1 annonce" : `${n} annonces`}`,
+    elargiProximiteIntro: "Voici des séjours dans les villes les plus proches :",
+    voirToutVille: (ville: string, n: number) =>
+      `${ville} · voir ${n === 1 ? "1 annonce" : `les ${n} annonces`}`,
     voirListe: "Liste",
     voirCarte: "Carte",
     chargementCarte: "Chargement de la carte…",
