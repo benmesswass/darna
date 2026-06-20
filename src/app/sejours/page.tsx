@@ -151,40 +151,51 @@ export default async function SejoursPage({
       <div className="mt-4">
         {results.length > 0 ? (
           <SplitView list={listingGrid(results)} map={<PropertyMap markers={markers} />} />
-        ) : showSuggestions && suggestions ? (
-          <div className="space-y-5">
-            {/* Bandeau d'élargissement : on transforme le cul-de-sac en rebond
-                en montrant directement des annonces proches. */}
-            <div className="rounded-2xl bg-darna/5 p-4 ring-1 ring-darna/10">
-              <p className="text-base font-semibold text-darna">
-                {resolvedCity
-                  ? fr.search.aucuneAnnonceVille(resolvedCity)
-                  : fr.search.aucunResultatTitre}
-              </p>
-              <p className="mt-1 text-sm text-ink/70">
-                {suggestions.kind === "nearby"
-                  ? fr.search.elargiProximiteIntro
-                  : fr.search.elargirPopulaire}
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {suggestions.cities.map((s) => (
-                  <Link
-                    key={s.city}
-                    href={suggestionHref(s.city)}
-                    className="rounded-full bg-white px-4 py-1.5 text-sm font-medium text-darna ring-1 ring-darna/15 transition hover:bg-darna hover:text-white"
-                  >
-                    {fr.search.voirToutVille(s.city, s.count)}
-                  </Link>
-                ))}
-              </div>
-            </div>
-            <SplitView
-              list={listingGrid(suggestionListings)}
-              map={<PropertyMap markers={suggestionMarkers} />}
-            />
-          </div>
         ) : (
-          <EmptyState unknownCity={unknownCity} query={params.ville} resolvedCity={resolvedCity} />
+          <div className="space-y-5">
+            {showSuggestions && suggestions ? (
+              <div className="space-y-5">
+                {/* Bandeau d'élargissement : on transforme le cul-de-sac en
+                    rebond en montrant directement des annonces proches. */}
+                <div className="rounded-2xl bg-darna/5 p-4 ring-1 ring-darna/10">
+                  <p className="text-base font-semibold text-darna">
+                    {resolvedCity
+                      ? fr.search.aucuneAnnonceVille(resolvedCity)
+                      : fr.search.aucunResultatTitre}
+                  </p>
+                  <p className="mt-1 text-sm text-ink/70">
+                    {suggestions.kind === "nearby"
+                      ? fr.search.elargiProximiteIntro
+                      : fr.search.elargirPopulaire}
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {suggestions.cities.map((s) => (
+                      <Link
+                        key={s.city}
+                        href={suggestionHref(s.city)}
+                        className="rounded-full bg-white px-4 py-1.5 text-sm font-medium text-darna ring-1 ring-darna/15 transition hover:bg-darna hover:text-white"
+                      >
+                        {fr.search.voirToutVille(s.city, s.count)}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+                <SplitView
+                  list={listingGrid(suggestionListings)}
+                  map={<PropertyMap markers={suggestionMarkers} />}
+                />
+              </div>
+            ) : (
+              <EmptyState
+                unknownCity={unknownCity}
+                query={params.ville}
+                resolvedCity={resolvedCity}
+              />
+            )}
+            {/* Amorçage de l'offre : dès qu'une vraie ville est vide, on invite
+                à devenir le premier hôte de la destination (acquisition). */}
+            {resolvedCity ? <HostCta ville={resolvedCity} /> : null}
+          </div>
         )}
       </div>
 
@@ -221,6 +232,26 @@ async function EmptyState({
       <p className="mx-auto mt-2 max-w-md text-sm text-ink/60">
         {fr.search.aucunResultatDesc}
       </p>
+    </div>
+  );
+}
+
+async function HostCta({ ville }: { ville: string }) {
+  const fr = await getT();
+  return (
+    <div className="rounded-2xl border border-dashed border-darna/30 bg-cream p-5 text-center">
+      <p className="text-sm font-semibold text-darna">
+        {fr.search.hoteAbsentTitre(ville)}
+      </p>
+      <p className="mx-auto mt-1 max-w-sm text-sm text-ink/60">
+        {fr.search.hoteAbsentDesc}
+      </p>
+      <Link
+        href="/dashboard/annonces/nouvelle"
+        className="mt-3 inline-flex items-center justify-center rounded-xl bg-darna px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-darna-light"
+      >
+        {fr.nav.publier}
+      </Link>
     </div>
   );
 }

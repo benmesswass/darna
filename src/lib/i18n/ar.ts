@@ -178,6 +178,8 @@ export const ar: Dictionary = {
     elargiProximiteIntro: "هاو إقامات في أقرب المدن :",
     voirToutVille: (ville: string, n: number) =>
       `${ville} · شوف ${n === 1 ? "إعلان واحد" : `${n} إعلانات`}`,
+    hoteAbsentTitre: (ville: string) => `ما زال ما فماش مضيّف في ${ville} ؟`,
+    hoteAbsentDesc: "اعرض الدار متاعك وكون أول واحد في هاذي الوجهة.",
     voirListe: "قائمة",
     voirCarte: "خريطة",
     chargementCarte: "الخريطة تحمّل…",

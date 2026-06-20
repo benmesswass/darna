@@ -166,6 +166,8 @@ export const en: Dictionary = {
     elargiProximiteIntro: "Here are stays in the closest cities:",
     voirToutVille: (ville: string, n: number) =>
       `${ville} · see ${n === 1 ? "1 listing" : `all ${n} listings`}`,
+    hoteAbsentTitre: (ville: string) => `No host in ${ville} yet?`,
+    hoteAbsentDesc: "List your place and be the first on this destination.",
     voirListe: "List",
     voirCarte: "Map",
     chargementCarte: "Loading map…",

@@ -167,6 +167,9 @@ export const fr = {
     elargiProximiteIntro: "Voici des séjours dans les villes les plus proches :",
     voirToutVille: (ville: string, n: number) =>
       `${ville} · voir ${n === 1 ? "1 annonce" : `les ${n} annonces`}`,
+    hoteAbsentTitre: (ville: string) => `Pas encore d'hôte à ${ville} ?`,
+    hoteAbsentDesc:
+      "Proposez votre logement et soyez le premier sur cette destination.",
     voirListe: "Liste",
     voirCarte: "Carte",
     chargementCarte: "Chargement de la carte…",
