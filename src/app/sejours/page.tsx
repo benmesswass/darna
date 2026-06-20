@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { fr as frMeta } from "@/lib/i18n/fr";
 import { getT } from "@/lib/i18n/server";
@@ -7,6 +8,7 @@ import {
   searchSejours,
   toMapMarkers,
   type SejoursSearchParams,
+  type StaySuggestions,
 } from "@/lib/listings";
 import { getSessionUser } from "@/lib/session";
 import { getFavoriteContext, favoritePropFor } from "@/lib/favorites";
@@ -34,7 +36,7 @@ export default async function SejoursPage({
 
   const fr = await getT();
   const params = await searchParams;
-  const { results, resolvedCity, unknownCity, total, page, pageSize } =
+  const { results, resolvedCity, unknownCity, total, page, pageSize, suggestions } =
     await searchSejours(params);
   const favCtx = await getFavoriteContext((await getSessionUser())?.id);
 
@@ -119,7 +121,13 @@ export default async function SejoursPage({
 
       <div className="mt-4">
         {results.length === 0 ? (
-          <EmptyState unknownCity={unknownCity} query={params.ville} />
+          <EmptyState
+            unknownCity={unknownCity}
+            query={params.ville}
+            resolvedCity={resolvedCity}
+            suggestions={suggestions}
+            params={params}
+          />
         ) : (
           <SplitView
             list={
@@ -150,17 +158,64 @@ export default async function SejoursPage({
   );
 }
 
-async function EmptyState({ unknownCity, query }: { unknownCity: boolean; query?: string }) {
+async function EmptyState({
+  unknownCity,
+  query,
+  resolvedCity,
+  suggestions,
+  params,
+}: {
+  unknownCity: boolean;
+  query?: string;
+  resolvedCity: string | null;
+  suggestions: StaySuggestions | null;
+  params: SejoursSearchParams;
+}) {
   const fr = await getT();
+
+  // Lien d'élargissement : on garde dates + voyageurs, on change la ville,
+  // on repart en page 1.
+  const suggestionHref = (city: string) => {
+    const qs = new URLSearchParams();
+    qs.set("ville", city);
+    if (params.arrivee) qs.set("arrivee", params.arrivee);
+    if (params.depart) qs.set("depart", params.depart);
+    if (params.voyageurs) qs.set("voyageurs", params.voyageurs);
+    return `/sejours?${qs.toString()}`;
+  };
+
   return (
     <div className="rounded-3xl bg-white p-10 text-center ring-1 ring-darna/10">
       <p className="text-lg font-semibold text-darna">
-        {fr.search.aucunResultatTitre}
-        {unknownCity && query ? ` — « ${query} »` : ""}
+        {resolvedCity
+          ? fr.search.aucuneAnnonceVille(resolvedCity)
+          : `${fr.search.aucunResultatTitre}${unknownCity && query ? ` — « ${query} »` : ""}`}
       </p>
-      <p className="mx-auto mt-2 max-w-md text-sm text-ink/60">
-        {fr.search.aucunResultatDesc}
-      </p>
+
+      {suggestions ? (
+        <>
+          <p className="mx-auto mt-3 max-w-md text-sm text-ink/60">
+            {suggestions.kind === "nearby"
+              ? fr.search.elargirProche
+              : fr.search.elargirPopulaire}
+          </p>
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
+            {suggestions.cities.map((s) => (
+              <Link
+                key={s.city}
+                href={suggestionHref(s.city)}
+                className="rounded-full bg-darna/10 px-4 py-2 text-sm font-medium text-darna transition hover:bg-darna hover:text-white"
+              >
+                {fr.search.suggestionVille(s.city, s.count)}
+              </Link>
+            ))}
+          </div>
+        </>
+      ) : (
+        <p className="mx-auto mt-2 max-w-md text-sm text-ink/60">
+          {fr.search.aucunResultatDesc}
+        </p>
+      )}
     </div>
   );
 }

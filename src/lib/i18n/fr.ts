@@ -160,6 +160,12 @@ export const fr = {
     aucunResultatTitre: "Aucune annonce ne correspond",
     aucunResultatDesc:
       "Essayez d'élargir vos critères ou de retirer des filtres. Les annonces expirées sont automatiquement retirées des résultats.",
+    aucuneAnnonceVille: (ville: string) =>
+      `Aucune annonce à ${ville} pour ces dates`,
+    elargirProche: "Élargissez votre recherche aux villes proches :",
+    elargirPopulaire: "Découvrez plutôt nos destinations les plus actives :",
+    suggestionVille: (ville: string, n: number) =>
+      `${ville} · ${n === 1 ? "1 annonce" : `${n} annonces`}`,
     voirListe: "Liste",
     voirCarte: "Carte",
     chargementCarte: "Chargement de la carte…",

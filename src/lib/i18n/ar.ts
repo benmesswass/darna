@@ -171,6 +171,12 @@ export const ar: Dictionary = {
     aucunResultatTitre: "حتى إعلان ما يطابق",
     aucunResultatDesc:
       "جرّب وسّع المعايير متاعك ولا نحّي فلاتر. الإعلانات المنتهية تتنحّى وحدها من النتائج.",
+    aucuneAnnonceVille: (ville: string) =>
+      `ما فماش إعلان في ${ville} في هاك التواريخ`,
+    elargirProche: "وسّع البحث متاعك للمدن القريبة :",
+    elargirPopulaire: "اكتشف بالأحرى أكثر وجهات نشيطة عندنا :",
+    suggestionVille: (ville: string, n: number) =>
+      `${ville} · ${n === 1 ? "إعلان واحد" : `${n} إعلانات`}`,
     voirListe: "قائمة",
     voirCarte: "خريطة",
     chargementCarte: "الخريطة تحمّل…",
