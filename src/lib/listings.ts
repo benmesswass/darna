@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { resolveCity } from "@/lib/geo";
+import { resolveCity, nearbyCities } from "@/lib/geo";
 import { markerPriceLabel } from "@/lib/format";
 import type { MapMarker } from "@/components/map/types";
 
@@ -113,36 +113,77 @@ function parsePage(value?: string): number {
   return Number.isFinite(n) && n >= 1 ? n : 1;
 }
 
+/** Une suggestion d'élargissement : ville alternative + nombre d'annonces dispo. */
+export type CitySuggestion = { city: string; count: number };
+export type StaySuggestions = {
+  /** `nearby` = villes proches de la ville cherchée ; `popular` = repli national. */
+  kind: "nearby" | "popular";
+  cities: CitySuggestion[];
+};
+
+/**
+ * Quand une ville CONNUE ne renvoie aucune annonce, propose des alternatives
+ * pour garder l'utilisateur sur le site plutôt que dans un cul-de-sac :
+ *  1. villes proches (même gouvernorat puis distance) qui ont des annonces
+ *     dispo avec LES MÊMES filtres (dates, voyageurs) — `nearby` ;
+ *  2. à défaut, les destinations les plus pourvues du pays — `popular`.
+ * Les comptes sont calculés avec les filtres réels : on ne promet jamais une
+ * ville « pleine » qui s'avère vide au clic (transparence = positionnement Darna).
+ */
+async function suggestStayAlternatives(
+  resolvedCity: string,
+  baseWhere: Prisma.PropertyWhereInput
+): Promise<StaySuggestions | null> {
+  const candidates = nearbyCities(resolvedCity).map((c) => c.name);
+  if (candidates.length) {
+    const grouped = await prisma.property.groupBy({
+      by: ["city"],
+      where: { ...baseWhere, city: { in: candidates } },
+      _count: { city: true },
+    });
+    const nearby = grouped
+      .map((g) => ({ city: g.city, count: g._count.city }))
+      .filter((s) => s.count > 0)
+      // Réordonne selon la proximité (groupBy ne garantit pas l'ordre).
+      .sort((a, b) => candidates.indexOf(a.city) - candidates.indexOf(b.city))
+      .slice(0, 3);
+    if (nearby.length) return { kind: "nearby", cities: nearby };
+  }
+
+  // Repli : destinations les plus pourvues, toutes régions confondues.
+  const popular = await prisma.property.groupBy({
+    by: ["city"],
+    where: { ...baseWhere, city: { not: resolvedCity } },
+    _count: { city: true },
+    orderBy: { _count: { city: "desc" } },
+    take: 3,
+  });
+  const cities = popular
+    .map((g) => ({ city: g.city, count: g._count.city }))
+    .filter((s) => s.count > 0);
+  return cities.length ? { kind: "popular", cities } : null;
+}
+
 export async function searchSejours(params: SejoursSearchParams) {
   await clearExpiredFeatured();
 
-  const where: Prisma.PropertyWhereInput = {
+  // Contraintes hors-ville (capacité + disponibilité), réutilisées telles
+  // quelles pour calculer les suggestions d'élargissement à filtres égaux.
+  const baseWhere: Prisma.PropertyWhereInput = {
     ...activeListingWhere(),
     type: "SEJOUR",
   };
-
-  // Recherche tolérante à la translittération (« 7ammamet » → Hammamet).
-  let resolvedCity: string | null = null;
-  let unknownCity = false;
-  if (params.ville?.trim()) {
-    resolvedCity = resolveCity(params.ville);
-    if (resolvedCity) {
-      where.city = resolvedCity;
-    } else {
-      unknownCity = true;
-    }
-  }
 
   // Filtre capacité sur la table satellite (M2) : un séjour matche s'il a une
   // ligne StayDetails dont maxGuests ≥ voyageurs (équivalent à l'ancien filtre
   // sur Property.maxGuests, les valeurs étant synchronisées en shadow).
   const voyageurs = parsePositiveInt(params.voyageurs);
-  if (voyageurs) where.stay = { maxGuests: { gte: voyageurs } };
+  if (voyageurs) baseWhere.stay = { maxGuests: { gte: voyageurs } };
 
   const arrivee = parseDate(params.arrivee);
   const depart = parseDate(params.depart);
   if (arrivee && depart && depart > arrivee) {
-    where.NOT = {
+    baseWhere.NOT = {
       OR: [
         {
           bookings: {
@@ -162,12 +203,32 @@ export async function searchSejours(params: SejoursSearchParams) {
     };
   }
 
+  // Recherche tolérante à la translittération (« 7ammamet » → Hammamet).
+  let resolvedCity: string | null = null;
+  let unknownCity = false;
+  if (params.ville?.trim()) {
+    resolvedCity = resolveCity(params.ville);
+    if (!resolvedCity) unknownCity = true;
+  }
+
   const page = parsePage(params.page);
   const skip = (page - 1) * PAGE_SIZE;
 
   if (unknownCity) {
-    return { results: [], resolvedCity, unknownCity, total: 0, page, pageSize: PAGE_SIZE };
+    return {
+      results: [],
+      resolvedCity,
+      unknownCity,
+      total: 0,
+      page,
+      pageSize: PAGE_SIZE,
+      suggestions: null as StaySuggestions | null,
+    };
   }
+
+  const where: Prisma.PropertyWhereInput = resolvedCity
+    ? { ...baseWhere, city: resolvedCity }
+    : baseWhere;
 
   const [results, total] = await Promise.all([
     prisma.property.findMany({
@@ -180,7 +241,13 @@ export async function searchSejours(params: SejoursSearchParams) {
     prisma.property.count({ where }),
   ]);
 
-  return { results, resolvedCity, unknownCity, total, page, pageSize: PAGE_SIZE };
+  // Ville connue mais aucune annonce → on propose un élargissement.
+  const suggestions =
+    resolvedCity && total === 0
+      ? await suggestStayAlternatives(resolvedCity, baseWhere)
+      : null;
+
+  return { results, resolvedCity, unknownCity, total, page, pageSize: PAGE_SIZE, suggestions };
 }
 
 export async function searchImmobilier(params: ImmobilierSearchParams) {

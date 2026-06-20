@@ -145,6 +145,34 @@ export function nearestCity(latitude: number, longitude: number): City {
 }
 
 /**
+ * Villes voisines d'une ville canonique, triées par proximité — même
+ * gouvernorat d'abord (lien naturel : Hammamet ↔ Nabeul), puis distance
+ * croissante. La longitude est pondérée par cos(latitude) pour rapprocher
+ * la distance euclidienne de la distance réelle à l'échelle du pays.
+ * Sert à proposer un élargissement quand une ville n'a aucune annonce
+ * (« rien à Hammamet → essayez Nabeul, Sousse ») sans faire sortir
+ * l'utilisateur du site. Renvoie [] si la ville n'est pas au référentiel.
+ */
+export function nearbyCities(name: string, limit = 6): City[] {
+  const origin = getCity(name);
+  if (!origin) return [];
+  const cosLat = Math.cos((origin.latitude * Math.PI) / 180);
+  return CITIES.filter((c) => c.name !== origin.name)
+    .map((c) => {
+      const dLat = c.latitude - origin.latitude;
+      const dLng = (c.longitude - origin.longitude) * cosLat;
+      return {
+        city: c,
+        sameGouvernorat: c.gouvernorat === origin.gouvernorat ? 0 : 1,
+        dist: dLat * dLat + dLng * dLng,
+      };
+    })
+    .sort((a, b) => a.sameGouvernorat - b.sameGouvernorat || a.dist - b.dist)
+    .slice(0, limit)
+    .map((s) => s.city);
+}
+
+/**
  * Suggestions de villes pour l'autocomplétion — tolérantes à la
  * translittération (« dje » → Djerba, « 7am » → Hammamet, « soussa » → Sousse).
  * Priorité aux préfixes du nom canonique, puis aux alias, puis aux
