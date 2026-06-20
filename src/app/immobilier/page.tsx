@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { fr as frMeta } from "@/lib/i18n/fr";
 import { getT } from "@/lib/i18n/server";
@@ -16,7 +15,8 @@ import { PropertyCard } from "@/components/property/PropertyCard";
 import { PropertyMap } from "@/components/map/PropertyMap";
 import { SplitView } from "@/components/search/SplitView";
 import { Pagination } from "@/components/search/Pagination";
-import { HouseIcon, SearchIcon } from "@/components/icons";
+import { SectionHero } from "@/components/layout/SectionHero";
+import { SearchIcon } from "@/components/icons";
 
 export const metadata: Metadata = {
   title: frMeta.nav.immobilier,
@@ -51,19 +51,20 @@ export default async function ImmobilierPage({
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-      {/* Fil d'Ariane : « tu es dans le catalogue Immobilier » (≠ accueil). */}
-      <nav className="mb-2 flex items-center gap-2 text-sm text-ink/45">
-        <Link href="/" aria-label={fr.meta.siteName} className="inline-flex items-center hover:text-darna">
-          <HouseIcon width={15} height={15} />
-        </Link>
-        <span aria-hidden>›</span>
-        <span className="font-medium text-darna">{fr.nav.immobilier}</span>
-      </nav>
-      <h1 className="text-3xl font-bold text-darna">{fr.nav.immobilier}</h1>
+      <SectionHero
+        variant="immobilier"
+        title={fr.nav.immobilier}
+        description={fr.home.verticalImmobilierDesc}
+        siteName={fr.meta.siteName}
+        imageSrc="/images/immobilier-hero.jpg"
+        // Cadrage de la photo : "center" | "top" | "bottom" | "center 30%"…
+        imagePosition="center 40%"
+      />
 
+      {/* Barre de recherche — flotte sur le bas du hero puis colle au scroll. */}
       <form
         method="GET"
-        className="mt-5 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-darna/10 lg:sticky lg:top-[4.5rem] lg:z-[1040] lg:shadow-md"
+        className="relative -mt-8 rounded-3xl bg-white p-4 shadow-lg ring-1 ring-darna/10 sm:-mt-12 lg:sticky lg:top-[4.5rem] lg:z-[1040]"
       >
         {/* Onglets Louer / Acheter */}
         <div className="flex w-fit rounded-full bg-cream p-1 ring-1 ring-darna/10">
