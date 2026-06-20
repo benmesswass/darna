@@ -139,6 +139,7 @@ export const ar: Dictionary = {
   search: {
     villePlaceholder: "مدينة — الحمامات، جربة، المرسى…",
     suggestionsVilles: "اقتراحات مدن",
+    suggestionsGouvernorats: "اقتراحات ولايات",
     ouAllezVous: "وين باش تمشي؟",
     arrivee: "الوصول",
     depart: "المغادرة",

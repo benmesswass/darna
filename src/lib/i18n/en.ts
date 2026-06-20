@@ -135,6 +135,7 @@ export const en: Dictionary = {
   search: {
     villePlaceholder: "City — Hammamet, Djerba, La Marsa…",
     suggestionsVilles: "City suggestions",
+    suggestionsGouvernorats: "Governorate suggestions",
     ouAllezVous: "Where are you going?",
     arrivee: "Check-in",
     depart: "Check-out",

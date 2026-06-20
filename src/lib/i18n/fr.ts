@@ -136,6 +136,7 @@ export const fr = {
   search: {
     villePlaceholder: "Ville — Hammamet, Djerba, La Marsa…",
     suggestionsVilles: "Suggestions de villes",
+    suggestionsGouvernorats: "Suggestions de gouvernorats",
     ouAllezVous: "Où allez-vous ?",
     arrivee: "Arrivée",
     depart: "Départ",
