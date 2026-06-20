@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useT } from "@/components/i18n/LocaleProvider";
 import { CityAutocomplete } from "@/components/search/CityAutocomplete";
+import { GouvernoratAutocomplete } from "@/components/search/GouvernoratAutocomplete";
 import { SearchDateRange } from "@/components/search/SearchDateRange";
 import {
   BuildingIcon,
@@ -228,14 +229,11 @@ export function HomeHero({
                   <span className={labelStyle} style={{ color: "#15539e" }}>
                     {fr.search.gouvernorat}
                   </span>
-                  <select name="gouvernorat" defaultValue="" className={`w-full ${fieldStyle}`}>
-                    <option value="">{fr.search.tousGouvernorats}</option>
-                    {gouvernorats.map((g) => (
-                      <option key={g} value={g}>
-                        {g}
-                      </option>
-                    ))}
-                  </select>
+                  <GouvernoratAutocomplete
+                    options={gouvernorats}
+                    placeholder={fr.search.tousGouvernorats}
+                    inputClassName={`w-full ${fieldStyle}`}
+                  />
                 </label>
                 <label className="block">
                   <span className={labelStyle} style={{ color: "#15539e" }}>

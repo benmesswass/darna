@@ -16,6 +16,7 @@ import { PropertyMap } from "@/components/map/PropertyMap";
 import { SplitView } from "@/components/search/SplitView";
 import { Pagination } from "@/components/search/Pagination";
 import { SectionHero } from "@/components/layout/SectionHero";
+import { GouvernoratAutocomplete } from "@/components/search/GouvernoratAutocomplete";
 import { SearchIcon } from "@/components/icons";
 
 export const metadata: Metadata = {
@@ -103,18 +104,12 @@ export default async function ImmobilierPage({
             <span className="text-xs font-semibold text-ink/60">
               {fr.search.gouvernorat}
             </span>
-            <select
-              name="gouvernorat"
+            <GouvernoratAutocomplete
+              options={GOUVERNORATS}
               defaultValue={params.gouvernorat ?? ""}
-              className="rounded-xl border border-darna/15 bg-cream px-3 py-2.5 text-sm outline-none focus:border-darna"
-            >
-              <option value="">{fr.search.tousGouvernorats}</option>
-              {GOUVERNORATS.map((g) => (
-                <option key={g} value={g}>
-                  {g}
-                </option>
-              ))}
-            </select>
+              placeholder={fr.search.tousGouvernorats}
+              inputClassName="w-full rounded-xl border border-darna/15 bg-cream px-3 py-2.5 text-sm outline-none focus:border-darna"
+            />
           </label>
           <label className="flex flex-col gap-1">
             <span className="text-xs font-semibold text-ink/60">
