@@ -216,9 +216,14 @@ export async function ListingDetail({
                     slug: property.slug,
                     title: property.title,
                     priceLabel: markerPriceLabel(property.price, property.type),
+                    price: property.price,
                     verified: property.verified,
                     latitude: property.latitude,
                     longitude: property.longitude,
+                    imageUrl: property.photos[0]?.url ?? null,
+                    rating: avgRating,
+                    reviewCount: property.reviews.length,
+                    city: property.city,
                   },
                 ]}
               />

@@ -6,9 +6,9 @@ import { immoEnabled } from "@/lib/modes";
 import { GOUVERNORATS } from "@/lib/geo";
 import {
   searchImmobilier,
+  toMapMarkers,
   type ImmobilierSearchParams,
 } from "@/lib/listings";
-import { markerPriceLabel } from "@/lib/format";
 import { getSessionUser } from "@/lib/session";
 import { getFavoriteContext, favoritePropFor } from "@/lib/favorites";
 import { PropertyCard } from "@/components/property/PropertyCard";
@@ -38,15 +38,7 @@ export default async function ImmobilierPage({
     await searchImmobilier(params);
   const favCtx = await getFavoriteContext((await getSessionUser())?.id);
 
-  const markers = results.map((p) => ({
-    id: p.id,
-    slug: p.slug,
-    title: p.title,
-    priceLabel: markerPriceLabel(p.price, p.type),
-    verified: p.verified,
-    latitude: p.latitude,
-    longitude: p.longitude,
-  }));
+  const markers = toMapMarkers(results);
 
   const isVente = transaction === "VENTE";
 
