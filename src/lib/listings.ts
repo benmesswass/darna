@@ -118,8 +118,14 @@ export type CitySuggestion = { city: string; count: number };
 export type StaySuggestions = {
   /** `nearby` = villes proches de la ville cherchée ; `popular` = repli national. */
   kind: "nearby" | "popular";
+  /** Villes alternatives + compteurs (chips « voir tout à X »). */
   cities: CitySuggestion[];
+  /** Échantillon d'annonces réelles de ces villes, affiché directement. */
+  listings: ListingWithPhoto[];
 };
+
+/** Taille de l'échantillon d'annonces montré dans le bandeau d'élargissement. */
+const SUGGESTION_SAMPLE = 6;
 
 /**
  * Quand une ville CONNUE ne renvoie aucune annonce, propose des alternatives
@@ -127,8 +133,10 @@ export type StaySuggestions = {
  *  1. villes proches (même gouvernorat puis distance) qui ont des annonces
  *     dispo avec LES MÊMES filtres (dates, voyageurs) — `nearby` ;
  *  2. à défaut, les destinations les plus pourvues du pays — `popular`.
- * Les comptes sont calculés avec les filtres réels : on ne promet jamais une
- * ville « pleine » qui s'avère vide au clic (transparence = positionnement Darna).
+ * On renvoie à la fois les compteurs par ville (chips) ET un échantillon
+ * d'annonces réelles à afficher tout de suite. Tout est calculé avec les
+ * filtres réels : on ne promet jamais une ville « pleine » qui s'avère vide
+ * au clic (transparence = positionnement Darna).
  */
 async function suggestStayAlternatives(
   resolvedCity: string,
@@ -147,7 +155,10 @@ async function suggestStayAlternatives(
       // Réordonne selon la proximité (groupBy ne garantit pas l'ordre).
       .sort((a, b) => candidates.indexOf(a.city) - candidates.indexOf(b.city))
       .slice(0, 3);
-    if (nearby.length) return { kind: "nearby", cities: nearby };
+    if (nearby.length) {
+      const listings = await sampleListings(baseWhere, nearby.map((c) => c.city));
+      return { kind: "nearby", cities: nearby, listings };
+    }
   }
 
   // Repli : destinations les plus pourvues, toutes régions confondues.
@@ -161,7 +172,22 @@ async function suggestStayAlternatives(
   const cities = popular
     .map((g) => ({ city: g.city, count: g._count.city }))
     .filter((s) => s.count > 0);
-  return cities.length ? { kind: "popular", cities } : null;
+  if (!cities.length) return null;
+  const listings = await sampleListings(baseWhere, cities.map((c) => c.city));
+  return { kind: "popular", cities, listings };
+}
+
+/** Échantillon d'annonces (même tri que la recherche) pour un jeu de villes. */
+async function sampleListings(
+  baseWhere: Prisma.PropertyWhereInput,
+  cities: string[]
+): Promise<ListingWithPhoto[]> {
+  return prisma.property.findMany({
+    where: { ...baseWhere, city: { in: cities } },
+    include: listingCardInclude,
+    orderBy: listingOrderBy,
+    take: SUGGESTION_SAMPLE,
+  });
 }
 
 export async function searchSejours(params: SejoursSearchParams) {

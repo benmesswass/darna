@@ -175,8 +175,9 @@ export const ar: Dictionary = {
       `ما فماش إعلان في ${ville} في هاك التواريخ`,
     elargirProche: "وسّع البحث متاعك للمدن القريبة :",
     elargirPopulaire: "اكتشف بالأحرى أكثر وجهات نشيطة عندنا :",
-    suggestionVille: (ville: string, n: number) =>
-      `${ville} · ${n === 1 ? "إعلان واحد" : `${n} إعلانات`}`,
+    elargiProximiteIntro: "هاو إقامات في أقرب المدن :",
+    voirToutVille: (ville: string, n: number) =>
+      `${ville} · شوف ${n === 1 ? "إعلان واحد" : `${n} إعلانات`}`,
     voirListe: "قائمة",
     voirCarte: "خريطة",
     chargementCarte: "الخريطة تحمّل…",

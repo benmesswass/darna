@@ -8,7 +8,7 @@ import {
   searchSejours,
   toMapMarkers,
   type SejoursSearchParams,
-  type StaySuggestions,
+  type ListingWithPhoto,
 } from "@/lib/listings";
 import { getSessionUser } from "@/lib/session";
 import { getFavoriteContext, favoritePropFor } from "@/lib/favorites";
@@ -51,6 +51,35 @@ export default async function SejoursPage({
   })();
 
   const markers = toMapMarkers(results);
+
+  // Élargissement : annonces des villes proches/populaires à afficher quand la
+  // ville cherchée est vide (suggestions non-null ⇒ il y a toujours ≥1 annonce).
+  const suggestionListings = results.length === 0 && suggestions ? suggestions.listings : [];
+  const showSuggestions = suggestionListings.length > 0;
+  const suggestionMarkers = toMapMarkers(suggestionListings);
+
+  // Lien d'élargissement : garde dates + voyageurs, change la ville, page 1.
+  const suggestionHref = (city: string) => {
+    const qs = new URLSearchParams();
+    qs.set("ville", city);
+    if (params.arrivee) qs.set("arrivee", params.arrivee);
+    if (params.depart) qs.set("depart", params.depart);
+    if (params.voyageurs) qs.set("voyageurs", params.voyageurs);
+    return `/sejours?${qs.toString()}`;
+  };
+
+  const listingGrid = (items: ListingWithPhoto[]) => (
+    <div className="grid gap-5 sm:grid-cols-2">
+      {items.map((p) => (
+        <PropertyCard
+          key={p.id}
+          property={p}
+          favorite={favoritePropFor(favCtx, p.id, params.arrivee)}
+          query={dateQuery}
+        />
+      ))}
+    </div>
+  );
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
@@ -120,40 +149,54 @@ export default async function SejoursPage({
       </div>
 
       <div className="mt-4">
-        {results.length === 0 ? (
-          <EmptyState
-            unknownCity={unknownCity}
-            query={params.ville}
-            resolvedCity={resolvedCity}
-            suggestions={suggestions}
-            params={params}
-          />
-        ) : (
-          <SplitView
-            list={
-              <div className="grid gap-5 sm:grid-cols-2">
-                {results.map((p) => (
-                  <PropertyCard
-                    key={p.id}
-                    property={p}
-                    favorite={favoritePropFor(favCtx, p.id, params.arrivee)}
-                    query={dateQuery}
-                  />
+        {results.length > 0 ? (
+          <SplitView list={listingGrid(results)} map={<PropertyMap markers={markers} />} />
+        ) : showSuggestions && suggestions ? (
+          <div className="space-y-5">
+            {/* Bandeau d'élargissement : on transforme le cul-de-sac en rebond
+                en montrant directement des annonces proches. */}
+            <div className="rounded-2xl bg-darna/5 p-4 ring-1 ring-darna/10">
+              <p className="text-base font-semibold text-darna">
+                {resolvedCity
+                  ? fr.search.aucuneAnnonceVille(resolvedCity)
+                  : fr.search.aucunResultatTitre}
+              </p>
+              <p className="mt-1 text-sm text-ink/70">
+                {suggestions.kind === "nearby"
+                  ? fr.search.elargiProximiteIntro
+                  : fr.search.elargirPopulaire}
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {suggestions.cities.map((s) => (
+                  <Link
+                    key={s.city}
+                    href={suggestionHref(s.city)}
+                    className="rounded-full bg-white px-4 py-1.5 text-sm font-medium text-darna ring-1 ring-darna/15 transition hover:bg-darna hover:text-white"
+                  >
+                    {fr.search.voirToutVille(s.city, s.count)}
+                  </Link>
                 ))}
               </div>
-            }
-            map={<PropertyMap markers={markers} />}
-          />
+            </div>
+            <SplitView
+              list={listingGrid(suggestionListings)}
+              map={<PropertyMap markers={suggestionMarkers} />}
+            />
+          </div>
+        ) : (
+          <EmptyState unknownCity={unknownCity} query={params.ville} resolvedCity={resolvedCity} />
         )}
       </div>
 
-      <Pagination
-        page={page}
-        total={total}
-        pageSize={pageSize}
-        basePath="/sejours"
-        params={params}
-      />
+      {results.length > 0 ? (
+        <Pagination
+          page={page}
+          total={total}
+          pageSize={pageSize}
+          basePath="/sejours"
+          params={params}
+        />
+      ) : null}
     </div>
   );
 }
@@ -162,28 +205,12 @@ async function EmptyState({
   unknownCity,
   query,
   resolvedCity,
-  suggestions,
-  params,
 }: {
   unknownCity: boolean;
   query?: string;
   resolvedCity: string | null;
-  suggestions: StaySuggestions | null;
-  params: SejoursSearchParams;
 }) {
   const fr = await getT();
-
-  // Lien d'élargissement : on garde dates + voyageurs, on change la ville,
-  // on repart en page 1.
-  const suggestionHref = (city: string) => {
-    const qs = new URLSearchParams();
-    qs.set("ville", city);
-    if (params.arrivee) qs.set("arrivee", params.arrivee);
-    if (params.depart) qs.set("depart", params.depart);
-    if (params.voyageurs) qs.set("voyageurs", params.voyageurs);
-    return `/sejours?${qs.toString()}`;
-  };
-
   return (
     <div className="rounded-3xl bg-white p-10 text-center ring-1 ring-darna/10">
       <p className="text-lg font-semibold text-darna">
@@ -191,31 +218,9 @@ async function EmptyState({
           ? fr.search.aucuneAnnonceVille(resolvedCity)
           : `${fr.search.aucunResultatTitre}${unknownCity && query ? ` — « ${query} »` : ""}`}
       </p>
-
-      {suggestions ? (
-        <>
-          <p className="mx-auto mt-3 max-w-md text-sm text-ink/60">
-            {suggestions.kind === "nearby"
-              ? fr.search.elargirProche
-              : fr.search.elargirPopulaire}
-          </p>
-          <div className="mt-4 flex flex-wrap justify-center gap-2">
-            {suggestions.cities.map((s) => (
-              <Link
-                key={s.city}
-                href={suggestionHref(s.city)}
-                className="rounded-full bg-darna/10 px-4 py-2 text-sm font-medium text-darna transition hover:bg-darna hover:text-white"
-              >
-                {fr.search.suggestionVille(s.city, s.count)}
-              </Link>
-            ))}
-          </div>
-        </>
-      ) : (
-        <p className="mx-auto mt-2 max-w-md text-sm text-ink/60">
-          {fr.search.aucunResultatDesc}
-        </p>
-      )}
+      <p className="mx-auto mt-2 max-w-md text-sm text-ink/60">
+        {fr.search.aucunResultatDesc}
+      </p>
     </div>
   );
 }
