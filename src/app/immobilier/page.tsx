@@ -58,7 +58,7 @@ export default async function ImmobilierPage({
         siteName={fr.meta.siteName}
         imageSrc="/images/immobilier-hero.jpg"
         // Cadrage de la photo : "center" | "top" | "bottom" | "center 30%"…
-        imagePosition="center"
+        imagePosition="center 40%"
       />
 
       {/* Barre de recherche — flotte sur le bas du hero puis colle au scroll. */}
