@@ -67,7 +67,7 @@ export default async function SejoursPage({
         siteName={fr.meta.siteName}
         imageSrc="/images/sejours-hero.jpg"
         // Cadrage de la photo : "center" | "top" | "bottom" | "center 30%"…
-        imagePosition="center 70%"
+        imagePosition="center 60%"
       />
 
       {/* Barre de recherche ville + dates + voyageurs — flotte sur le bas du
