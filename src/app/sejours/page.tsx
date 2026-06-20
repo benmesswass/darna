@@ -186,7 +186,7 @@ export default async function SejoursPage({
                     href="/dashboard/annonces/nouvelle"
                     className="inline-flex items-center gap-1 font-semibold text-darna hover:underline"
                   >
-                    {fr.nav.publier}
+                    {fr.search.hoteCtaBouton}
                     <span aria-hidden>→</span>
                   </Link>
                 </div>
@@ -237,13 +237,13 @@ async function EmptyState({
           {/* Ville connue mais vide partout : pas de cartes à montrer, donc
               l'amorçage de l'offre devient l'action principale, bien visible. */}
           <p className="mx-auto mt-2 max-w-md text-sm text-ink/60">
-            {fr.search.hoteAbsentDesc}
+            {fr.search.hoteAbsentDesc(resolvedCity)}
           </p>
           <Link
             href="/dashboard/annonces/nouvelle"
             className="mt-4 inline-flex items-center justify-center rounded-xl bg-darna px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-darna-light"
           >
-            {fr.nav.publier}
+            {fr.search.hoteCtaBouton}
           </Link>
         </>
       ) : (

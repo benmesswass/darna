@@ -167,9 +167,11 @@ export const fr = {
     elargiProximiteIntro: "Voici des séjours dans les villes les plus proches :",
     voirToutVille: (ville: string, n: number) =>
       `${ville} · voir ${n === 1 ? "1 annonce" : `les ${n} annonces`}`,
-    hoteAbsentTitre: (ville: string) => `Pas encore d'hôte à ${ville} ?`,
-    hoteAbsentDesc:
-      "Proposez votre logement et soyez le premier sur cette destination.",
+    hoteAbsentTitre: (ville: string) =>
+      `Vous avez un logement à ${ville} ? Des voyageurs en cherchent déjà.`,
+    hoteAbsentDesc: (ville: string) =>
+      `Des voyageurs cherchent déjà un séjour à ${ville}. Devenez le premier hôte de la destination et publiez votre première annonce en quelques minutes.`,
+    hoteCtaBouton: "Devenir hôte",
     voirListe: "Liste",
     voirCarte: "Carte",
     chargementCarte: "Chargement de la carte…",
