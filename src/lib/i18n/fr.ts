@@ -46,6 +46,10 @@ export const fr = {
       "Location longue durée et vente — annonces fraîches, prix au m² du marché, contact direct propriétaire ou agence.",
     tabSejoursSub: "Vacances vérifiées",
     tabImmoSub: "Acheter ou louer",
+    tabSejoursDesc:
+      "Villas et maisons d'hôtes pour vos vacances, paiement protégé.",
+    tabImmoDesc:
+      "Vente et location longue durée, en direct avec le propriétaire.",
     heroQuestion: "Que cherchez-vous ?",
     diffTitle: "Séjours ou Immobilier ?",
     diffSejours:

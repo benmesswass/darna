@@ -47,6 +47,9 @@ export const en: Dictionary = {
       "Long-term rentals and sales — fresh listings, market price per m², direct contact with the owner or agency.",
     tabSejoursSub: "Verified holiday stays",
     tabImmoSub: "Buy or rent",
+    tabSejoursDesc:
+      "Villas and guesthouses for your holidays, with protected payment.",
+    tabImmoDesc: "Sales and long-term rentals, directly with the owner.",
     heroQuestion: "What are you looking for?",
     diffTitle: "Stays or Real estate?",
     diffSejours:
