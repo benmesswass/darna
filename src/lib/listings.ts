@@ -1,6 +1,8 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { resolveCity } from "@/lib/geo";
+import { markerPriceLabel } from "@/lib/format";
+import type { MapMarker } from "@/components/map/types";
 
 /** Taille de page pour les listings (protection DoS + UX). */
 const PAGE_SIZE = 24;
@@ -48,11 +50,33 @@ export const listingCardInclude = {
   // Capacité séjour lue depuis la table satellite (M2). maxGuests reste en
   // shadow sur Property jusqu'à PR8 ; la carte lit désormais stay.maxGuests.
   stay: { select: { maxGuests: true } },
+  // Notes des avis : moyenne + nombre affichés sur la carte (survol marqueur).
+  reviews: { select: { rating: true } },
 } satisfies Prisma.PropertyInclude;
 
 export type ListingWithPhoto = Prisma.PropertyGetPayload<{
   include: typeof listingCardInclude;
 }>;
+
+/** Construit les marqueurs carte (prix, photo, note, avis) depuis des résultats. */
+export function toMapMarkers(results: ListingWithPhoto[]): MapMarker[] {
+  return results.map((p) => ({
+    id: p.id,
+    slug: p.slug,
+    title: p.title,
+    priceLabel: markerPriceLabel(p.price, p.type),
+    price: p.price,
+    verified: p.verified,
+    latitude: p.latitude,
+    longitude: p.longitude,
+    imageUrl: p.photos[0]?.url ?? null,
+    rating: p.reviews.length
+      ? p.reviews.reduce((sum, r) => sum + r.rating, 0) / p.reviews.length
+      : null,
+    reviewCount: p.reviews.length,
+    city: p.city,
+  }));
+}
 
 export type SejoursSearchParams = {
   ville?: string;

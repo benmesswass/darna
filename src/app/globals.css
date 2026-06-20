@@ -88,6 +88,24 @@ html[dir="rtl"] body {
   color: var(--color-darna-dark);
 }
 
+/* Carte de survol des marqueurs : popup persistant et interactif. On neutralise
+   le chrome Leaflet par défaut (wrapper blanc, padding, flèche, bouton fermer)
+   pour laisser place à notre carte (MarkerCard, largeur w-56 = 224px). */
+.leaflet-popup.darna-map-pop .leaflet-popup-content-wrapper {
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 16px;
+  overflow: visible;
+}
+.leaflet-popup.darna-map-pop .leaflet-popup-content {
+  margin: 0;
+  width: 224px !important;
+}
+.leaflet-popup.darna-map-pop .leaflet-popup-tip-container {
+  display: none;
+}
+
 /* Repère déplaçable du sélecteur d'emplacement (formulaire annonce) */
 .darna-pin {
   width: 22px;

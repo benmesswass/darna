@@ -5,9 +5,9 @@ import { getT } from "@/lib/i18n/server";
 import { stayEnabled } from "@/lib/modes";
 import {
   searchSejours,
+  toMapMarkers,
   type SejoursSearchParams,
 } from "@/lib/listings";
-import { markerPriceLabel } from "@/lib/format";
 import { getSessionUser } from "@/lib/session";
 import { getFavoriteContext, favoritePropFor } from "@/lib/favorites";
 import { PropertyCard } from "@/components/property/PropertyCard";
@@ -48,15 +48,7 @@ export default async function SejoursPage({
     return s ? `?${s}` : "";
   })();
 
-  const markers = results.map((p) => ({
-    id: p.id,
-    slug: p.slug,
-    title: p.title,
-    priceLabel: markerPriceLabel(p.price, p.type),
-    verified: p.verified,
-    latitude: p.latitude,
-    longitude: p.longitude,
-  }));
+  const markers = toMapMarkers(results);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
