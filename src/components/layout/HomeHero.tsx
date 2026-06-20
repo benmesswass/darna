@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useT } from "@/components/i18n/LocaleProvider";
 import { CityAutocomplete } from "@/components/search/CityAutocomplete";
@@ -98,6 +99,39 @@ export function HomeHero({
       className="accent-transition relative overflow-hidden"
       style={{ background: t.bg, color: t.text }}
     >
+      {/* Toile de fond photo — mêmes visuels que les catalogues (continuité de
+          marque). Les deux sont empilées et se fondent (crossfade) selon
+          l'onglet actif. */}
+      <Image
+        src="/images/sejours-hero.jpg"
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        className={`object-cover transition-opacity duration-500 ${
+          isSej ? "opacity-100" : "opacity-0"
+        }`}
+      />
+      <Image
+        src="/images/immobilier-hero.jpg"
+        alt=""
+        fill
+        sizes="100vw"
+        className={`object-cover transition-opacity duration-500 ${
+          isSej ? "opacity-0" : "opacity-100"
+        }`}
+      />
+      {/* Voile thématique : fort à gauche (lisibilité du texte) → plus clair à
+          droite (la photo respire dans la zone sans texte). */}
+      <div
+        aria-hidden
+        className="accent-transition absolute inset-0"
+        style={{
+          background: isSej
+            ? "linear-gradient(100deg, rgba(13,22,30,.72) 0%, rgba(13,22,30,.52) 45%, rgba(13,22,30,.20) 100%)"
+            : "linear-gradient(100deg, rgba(244,248,253,.96) 0%, rgba(244,248,253,.82) 42%, rgba(244,248,253,.45) 100%)",
+        }}
+      />
       <div className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20">
         <p className="text-sm font-semibold" style={{ color: t.kicker }}>
           {fr.footer.baseline}
@@ -115,19 +149,29 @@ export function HomeHero({
             <p className="mb-2 text-sm font-semibold" style={{ color: t.kicker }}>
               {fr.home.heroQuestion}
             </p>
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Tab
-                m="sejours"
-                icon={<PalmIcon width={28} height={28} />}
-                label={fr.nav.sejours}
-                sub={fr.home.tabSejoursSub}
-              />
-              <Tab
-                m="immobilier"
-                icon={<BuildingIcon width={28} height={28} />}
-                label={fr.nav.immobilier}
-                sub={fr.home.tabImmoSub}
-              />
+            <div className="flex flex-col gap-4 sm:flex-row">
+              <div className="flex flex-1 flex-col gap-1.5">
+                <Tab
+                  m="sejours"
+                  icon={<PalmIcon width={28} height={28} />}
+                  label={fr.nav.sejours}
+                  sub={fr.home.tabSejoursSub}
+                />
+                <p className="px-1 text-xs leading-snug opacity-65">
+                  {fr.home.tabSejoursDesc}
+                </p>
+              </div>
+              <div className="flex flex-1 flex-col gap-1.5">
+                <Tab
+                  m="immobilier"
+                  icon={<BuildingIcon width={28} height={28} />}
+                  label={fr.nav.immobilier}
+                  sub={fr.home.tabImmoSub}
+                />
+                <p className="px-1 text-xs leading-snug opacity-65">
+                  {fr.home.tabImmoDesc}
+                </p>
+              </div>
             </div>
           </div>
         ) : null}
