@@ -40,6 +40,9 @@ export function HomeHero({
 }) {
   const fr = useT();
   const [mode, setMode] = useState<Mode>(stayEnabled ? "sejours" : "immobilier");
+  // Ville saisie dans la barre séjours → alimente le panneau d'inspiration
+  // destination de la modale de dates.
+  const [ville, setVille] = useState("");
   const isSej = mode === "sejours";
   const showTabs = stayEnabled && immoEnabled;
 
@@ -97,42 +100,46 @@ export function HomeHero({
 
   return (
     <section
-      className="accent-transition relative overflow-hidden"
+      className="accent-transition relative"
       style={{ background: t.bg, color: t.text }}
     >
-      {/* Toile de fond photo — mêmes visuels que les catalogues (continuité de
-          marque). Les deux sont empilées et se fondent (crossfade) selon
-          l'onglet actif. */}
-      <Image
-        src="/images/sejours-hero.jpg"
-        alt=""
-        fill
-        priority
-        sizes="100vw"
-        className={`object-cover transition-opacity duration-500 ${
-          isSej ? "opacity-100" : "opacity-0"
-        }`}
-      />
-      <Image
-        src="/images/immobilier-hero.jpg"
-        alt=""
-        fill
-        sizes="100vw"
-        className={`object-cover transition-opacity duration-500 ${
-          isSej ? "opacity-0" : "opacity-100"
-        }`}
-      />
-      {/* Voile thématique : fort à gauche (lisibilité du texte) → plus clair à
-          droite (la photo respire dans la zone sans texte). */}
-      <div
-        aria-hidden
-        className="accent-transition absolute inset-0"
-        style={{
-          background: isSej
-            ? "linear-gradient(100deg, rgba(13,22,30,.72) 0%, rgba(13,22,30,.52) 45%, rgba(13,22,30,.20) 100%)"
-            : "linear-gradient(100deg, rgba(244,248,253,.96) 0%, rgba(244,248,253,.82) 42%, rgba(244,248,253,.45) 100%)",
-        }}
-      />
+      {/* Couche de fond clippée À PART : le `overflow-hidden` ne vit que sur
+          cette toile (images + voile) et plus sur la section, sinon il rogne
+          les popovers qui débordent vers le bas (ex. calendrier de recherche). */}
+      <div aria-hidden className="absolute inset-0 overflow-hidden">
+        {/* Toile de fond photo — mêmes visuels que les catalogues (continuité de
+            marque). Les deux sont empilées et se fondent (crossfade) selon
+            l'onglet actif. */}
+        <Image
+          src="/images/sejours-hero.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className={`object-cover transition-opacity duration-500 ${
+            isSej ? "opacity-100" : "opacity-0"
+          }`}
+        />
+        <Image
+          src="/images/immobilier-hero.jpg"
+          alt=""
+          fill
+          sizes="100vw"
+          className={`object-cover transition-opacity duration-500 ${
+            isSej ? "opacity-0" : "opacity-100"
+          }`}
+        />
+        {/* Voile thématique : fort à gauche (lisibilité du texte) → plus clair à
+            droite (la photo respire dans la zone sans texte). */}
+        <div
+          className="accent-transition absolute inset-0"
+          style={{
+            background: isSej
+              ? "linear-gradient(100deg, rgba(13,22,30,.72) 0%, rgba(13,22,30,.52) 45%, rgba(13,22,30,.20) 100%)"
+              : "linear-gradient(100deg, rgba(244,248,253,.96) 0%, rgba(244,248,253,.82) 42%, rgba(244,248,253,.45) 100%)",
+          }}
+        />
+      </div>
       <div className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20">
         <p className="text-sm font-semibold" style={{ color: t.kicker }}>
           {fr.footer.baseline}
@@ -188,9 +195,11 @@ export function HomeHero({
                 <CityAutocomplete
                   placeholder={fr.search.villePlaceholder}
                   inputClassName={`w-full ${fieldStyle}`}
+                  onValueChange={setVille}
                 />
               </label>
               <SearchDateRange
+                ville={ville}
                 fieldClassName={`w-full ${fieldStyle}`}
                 labelClassName="block"
                 labelTextClassName={`${labelStyle} flex items-center gap-1`}

@@ -185,6 +185,27 @@ export const fr = {
     toutesNotes: "Toutes les notes",
     noteMinPlus: (n: number) => `${n}★ et +`,
   },
+  destination: {
+    chargement: "Chargement de la destination…",
+    logementsDispo: (n: number) =>
+      n <= 0
+        ? "Aucun logement disponible"
+        : n === 1
+          ? "1 logement disponible"
+          : `${n} logements disponibles`,
+    voirTout: (n: number) => (n === 1 ? "Voir l'annonce" : `Voir les ${n} logements`),
+    recommandations: "Nos recommandations",
+    aucunIci: "Pas encore de logement ici — à découvrir tout près :",
+    autreDestination: "Ou explorez une autre destination",
+    destinationsPopulaires: "Destinations du moment",
+    verifie: "Vérifié",
+    meteoClear: "Ensoleillé",
+    meteoClouds: "Nuageux",
+    meteoRain: "Pluvieux",
+    meteoActuelle: "Météo actuelle",
+    meteoSejour: "Pour votre séjour",
+    meteoMoyenneSaison: "moyenne de saison",
+  },
   property: {
     description: "Description",
     caracteristiques: "Caractéristiques",

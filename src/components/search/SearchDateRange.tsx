@@ -1,8 +1,12 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useLocale, useT } from "@/components/i18n/LocaleProvider";
 import { BookingDatePicker } from "@/components/booking/BookingDatePicker";
+import { DestinationPanel } from "@/components/search/DestinationPanel";
+import { destinationPreviewAction } from "@/actions/destination";
+import type { DestinationPreview } from "@/lib/destination";
 import { CalendarIcon } from "@/components/icons";
 
 const INTL_LOCALE: Record<string, string> = {
@@ -14,8 +18,12 @@ const INTL_LOCALE: Record<string, string> = {
 /**
  * Champ « Arrivée / Départ » de la barre de recherche : deux déclencheurs
  * compacts qui ouvrent le calendrier moderne `BookingDatePicker` (plage sur
- * deux mois, mêmes interactions que la réservation) en popover, au lieu de
- * l'input date natif du navigateur.
+ * deux mois, mêmes interactions que la réservation) dans une MODALE centrée
+ * (voile sombre, façon Airbnb), au lieu de l'input date natif du navigateur.
+ *
+ * La modale est rendue en portail sur `document.body` : elle échappe ainsi à
+ * tout `overflow`/empilement du Hero et se place toujours au centre du viewport,
+ * quelle que soit la hauteur de la page → jamais besoin de scroller pour la voir.
  *
  * Reste compatible GET : la sélection alimente deux `<input hidden>`
  * (`arrivee`/`depart` en ISO YYYY-MM-DD), donc le formulaire parent se soumet
@@ -25,6 +33,7 @@ const INTL_LOCALE: Record<string, string> = {
 export function SearchDateRange({
   defaultCheckIn,
   defaultCheckOut,
+  ville,
   fieldClassName,
   labelClassName = "flex flex-col gap-1",
   labelTextClassName = "flex items-center gap-1 text-xs font-semibold text-ink/60",
@@ -32,6 +41,8 @@ export function SearchDateRange({
 }: {
   defaultCheckIn?: string;
   defaultCheckOut?: string;
+  /** Ville saisie dans la barre (alimente le panneau d'inspiration destination). */
+  ville?: string;
   /** Style du bouton-champ (aligné sur les autres champs de la barre). */
   fieldClassName: string;
   /** Conteneur de cellule (par défaut une colonne de la grille). */
@@ -48,40 +59,51 @@ export function SearchDateRange({
   const [checkIn, setCheckIn] = useState<string | null>(defaultCheckIn ?? null);
   const [checkOut, setCheckOut] = useState<string | null>(defaultCheckOut ?? null);
   const [open, setOpen] = useState(false);
-  // Côté d'ancrage du popover : par défaut au début du champ ; basculé en fin si
-  // les deux mois déborderaient à droite (largeurs intermédiaires). Positionné
-  // via propriétés logiques inline → fiable et compatible RTL.
-  const [alignEnd, setAlignEnd] = useState(false);
-  const dialogRef = useRef<HTMLDivElement>(null);
 
-  useLayoutEffect(() => {
-    if (!open) return;
-    const el = dialogRef.current;
-    if (!el) return;
-    // Repart de l'ancrage par défaut, puis bascule si le bord de fin dépasse.
-    setAlignEnd(false);
-    const rect = el.getBoundingClientRect();
-    const margin = 8;
-    if (rect.right > window.innerWidth - margin) setAlignEnd(true);
-  }, [open]);
+  // Aperçu « inspiration destination » (colonne de droite de la modale).
+  const [preview, setPreview] = useState<DestinationPreview | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  // Jeton de requête : on n'applique que la réponse de la dernière demande
+  // (la ville/les dates peuvent changer pendant que la modale est ouverte).
+  const reqIdRef = useRef(0);
 
-  // Click-outside / Échap : on ferme dès que l'interaction sort du champ ou du
-  // popover (tous deux marqués `data-search-dates`).
+  // Charge l'aperçu à l'ouverture, puis à chaque changement de ville/dates tant
+  // que la modale est ouverte. Calculé côté serveur (vraies annonces + météo).
   useEffect(() => {
-    function onClickOutside(event: MouseEvent) {
-      const target = event.target as HTMLElement | null;
-      if (!target?.closest("[data-search-dates]")) setOpen(false);
-    }
+    if (!open) return;
+    const reqId = ++reqIdRef.current;
+    setPreviewLoading(true);
+    destinationPreviewAction({
+      ville,
+      arrivee: checkIn ?? undefined,
+      depart: checkOut ?? undefined,
+    })
+      .then((res) => {
+        if (reqIdRef.current === reqId) {
+          setPreview(res);
+          setPreviewLoading(false);
+        }
+      })
+      .catch(() => {
+        if (reqIdRef.current === reqId) setPreviewLoading(false);
+      });
+  }, [open, ville, checkIn, checkOut]);
+
+  // Modale ouverte : fermeture au clavier (Échap) + gel du scroll de l'arrière-
+  // plan pour que seule la modale « vive ».
+  useEffect(() => {
+    if (!open) return;
     function onKey(event: KeyboardEvent) {
       if (event.key === "Escape") setOpen(false);
     }
-    document.addEventListener("mousedown", onClickOutside);
     document.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     return () => {
-      document.removeEventListener("mousedown", onClickOutside);
       document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
     };
-  }, []);
+  }, [open]);
 
   function fmt(iso: string | null): string | null {
     if (!iso) return null;
@@ -112,41 +134,15 @@ export function SearchDateRange({
 
   return (
     <>
-      <label data-search-dates className={`relative ${labelClassName}`}>
+      <label className={labelClassName}>
         <span className={labelTextClassName} style={labelStyle}>
           <CalendarIcon width={13} height={13} />
           {fr.search.arrivee}
         </span>
         {field("in")}
-        {open ? (
-          <div
-            ref={dialogRef}
-            data-search-dates
-            role="dialog"
-            aria-label={fr.booking.choisirDates}
-            className="absolute top-full z-[1070] mt-2 w-[18rem] max-w-[90vw] sm:w-[40rem]"
-            style={
-              alignEnd
-                ? { insetInlineEnd: 0, insetInlineStart: "auto" }
-                : { insetInlineStart: 0, insetInlineEnd: "auto" }
-            }
-          >
-            <BookingDatePicker
-              unavailable={[]}
-              checkIn={checkIn}
-              checkOut={checkOut}
-              onChange={(ci, co) => {
-                setCheckIn(ci);
-                setCheckOut(co);
-                // Plage complète → on referme pour libérer la barre.
-                if (ci && co) setOpen(false);
-              }}
-            />
-          </div>
-        ) : null}
       </label>
 
-      <label data-search-dates className={labelClassName}>
+      <label className={labelClassName}>
         <span className={labelTextClassName} style={labelStyle}>
           <CalendarIcon width={13} height={13} />
           {fr.search.depart}
@@ -156,6 +152,47 @@ export function SearchDateRange({
 
       <input type="hidden" name="arrivee" value={checkIn ?? ""} />
       <input type="hidden" name="depart" value={checkOut ?? ""} />
+
+      {open && typeof document !== "undefined"
+        ? createPortal(
+            <div
+              // Voile : clic sur le fond → fermeture.
+              onMouseDown={(e) => {
+                if (e.target === e.currentTarget) setOpen(false);
+              }}
+              className="fixed inset-0 z-[1100] flex items-center justify-center bg-ink/50 p-4 backdrop-blur-sm"
+            >
+              <div
+                role="dialog"
+                aria-modal="true"
+                aria-label={fr.booking.choisirDates}
+                className="flex max-h-[92vh] w-full max-w-[60rem] flex-col gap-3 overflow-y-auto sm:flex-row sm:items-stretch"
+              >
+                {/* Tâche principale : le calendrier */}
+                <div className="sm:flex-[1.4]">
+                  <BookingDatePicker
+                    unavailable={[]}
+                    checkIn={checkIn}
+                    checkOut={checkOut}
+                    showLegend={false}
+                    onClose={() => setOpen(false)}
+                    onChange={(ci, co) => {
+                      setCheckIn(ci);
+                      setCheckOut(co);
+                      // Plage complète → on referme pour libérer la barre.
+                      if (ci && co) setOpen(false);
+                    }}
+                  />
+                </div>
+                {/* Inspiration destination (météo, logements, recommandations) */}
+                <aside className="sm:flex-1">
+                  <DestinationPanel loading={previewLoading} data={preview} />
+                </aside>
+              </div>
+            </div>,
+            document.body
+          )
+        : null}
     </>
   );
 }

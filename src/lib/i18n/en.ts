@@ -184,6 +184,27 @@ export const en: Dictionary = {
     toutesNotes: "All ratings",
     noteMinPlus: (n: number) => `${n}★ & up`,
   },
+  destination: {
+    chargement: "Loading destination…",
+    logementsDispo: (n: number) =>
+      n <= 0
+        ? "No places available"
+        : n === 1
+          ? "1 place available"
+          : `${n} places available`,
+    voirTout: (n: number) => (n === 1 ? "View listing" : `View all ${n} places`),
+    recommandations: "Our picks",
+    aucunIci: "No place here yet — discover nearby:",
+    autreDestination: "Or explore another destination",
+    destinationsPopulaires: "Trending destinations",
+    verifie: "Verified",
+    meteoClear: "Sunny",
+    meteoClouds: "Cloudy",
+    meteoRain: "Rainy",
+    meteoActuelle: "Current weather",
+    meteoSejour: "For your stay",
+    meteoMoyenneSaison: "seasonal average",
+  },
   property: {
     description: "Description",
     caracteristiques: "Features",
