@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useLocale, useT } from "@/components/i18n/LocaleProvider";
-import { CalendarIcon, ArrowRightIcon } from "@/components/icons";
+import { CalendarIcon, ArrowRightIcon, CloseIcon } from "@/components/icons";
 
 const INTL_LOCALE: Record<string, string> = {
   fr: "fr-FR",
@@ -56,6 +56,10 @@ export function BookingDatePicker({
   checkOut,
   onChange,
   notes,
+  monthsToShow = 2,
+  showLegend = true,
+  compact = false,
+  onClose,
 }: {
   unavailable: string[];
   checkIn: string | null;
@@ -67,6 +71,28 @@ export function BookingDatePicker({
    * absente du parcours voyageur, donc jamais montrée au public.
    */
   notes?: Record<string, string>;
+  /**
+   * Nombre de mois affichés côte à côte (défaut 2). On passe à 1 sur les petits
+   * écrans (popover de recherche) pour que le panneau tienne sans scroll. La
+   * navigation avance/recule alors d'autant de mois.
+   */
+  monthsToShow?: 1 | 2;
+  /**
+   * Affiche la légende (Sélectionné / Libre / Indisponible). Masquée dans le
+   * popover de recherche — aucune date n'y est bloquée et ça raccourcit le
+   * panneau pour qu'il tienne sans scroll.
+   */
+  showLegend?: boolean;
+  /**
+   * Densité compacte (padding et cellules resserrés). Indépendant du nombre de
+   * mois : le popover de recherche affiche 2 mois EN compact.
+   */
+  compact?: boolean;
+  /**
+   * Si fourni, affiche un bouton de fermeture (✕) dans l'en-tête, à côté de
+   * « Effacer ». Utilisé quand le calendrier est présenté en modale (recherche).
+   */
+  onClose?: () => void;
 }) {
   const fr = useT();
   const locale = useLocale();
@@ -90,7 +116,7 @@ export function BookingDatePicker({
   const months = useMemo(() => {
     const base = new Date();
     base.setDate(1);
-    return [0, 1].map((i) => {
+    return Array.from({ length: monthsToShow }, (_, i) => i).map((i) => {
       const first = new Date(base.getFullYear(), base.getMonth() + offset + i, 1);
       const daysInMonth = new Date(
         first.getFullYear(),
@@ -104,7 +130,7 @@ export function BookingDatePicker({
       }).format(first);
       return { key: toIso(first), first, daysInMonth, startWeekday, label };
     });
-  }, [offset, intlLocale]);
+  }, [offset, intlLocale, monthsToShow]);
 
   /** Une plage [a, b) chevauche-t-elle une nuit indisponible ? */
   function rangeHasUnavailable(a: string, b: string): boolean {
@@ -148,7 +174,11 @@ export function BookingDatePicker({
   }, [checkIn, effectiveOut, intlLocale, fr.booking]);
 
   return (
-    <div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-darna/10 sm:p-7">
+    <div
+      className={`rounded-3xl bg-white shadow-sm ring-1 ring-darna/10 ${
+        compact ? "p-4 sm:p-5" : "p-5 sm:p-7"
+      }`}
+    >
       {/* En-tête : intitulé + état de la sélection (nuits live, survol inclus) */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
@@ -171,25 +201,37 @@ export function BookingDatePicker({
             </p>
           </div>
         </div>
-        {(checkIn || checkOut) && (
-          <button
-            type="button"
-            onClick={() => {
-              onChange(null, null);
-              setHovered(null);
-            }}
-            className="rounded-full px-3 py-1 text-xs font-semibold text-ink/50 transition hover:bg-cream hover:text-darna"
-          >
-            {fr.booking.effacer}
-          </button>
-        )}
+        <div className="flex items-center gap-1">
+          {(checkIn || checkOut) && (
+            <button
+              type="button"
+              onClick={() => {
+                onChange(null, null);
+                setHovered(null);
+              }}
+              className="rounded-full px-3 py-1 text-xs font-semibold text-ink/50 transition hover:bg-cream hover:text-darna"
+            >
+              {fr.booking.effacer}
+            </button>
+          )}
+          {onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label={fr.common.fermer}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-ink/50 transition hover:bg-cream hover:text-darna"
+            >
+              <CloseIcon width={18} height={18} />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Navigation mois */}
-      <div className="mt-5 flex items-center justify-between">
+      <div className={`flex items-center justify-between ${compact ? "mt-3" : "mt-5"}`}>
         <button
           type="button"
-          onClick={() => setOffset((o) => Math.max(0, o - 2))}
+          onClick={() => setOffset((o) => Math.max(0, o - monthsToShow))}
           disabled={offset === 0}
           aria-label={fr.booking.moisPrecedent}
           className="flex h-9 w-9 items-center justify-center rounded-full text-darna transition hover:bg-cream disabled:opacity-25"
@@ -198,7 +240,7 @@ export function BookingDatePicker({
         </button>
         <button
           type="button"
-          onClick={() => setOffset((o) => Math.min(MAX_OFFSET, o + 2))}
+          onClick={() => setOffset((o) => Math.min(MAX_OFFSET, o + monthsToShow))}
           disabled={offset >= MAX_OFFSET}
           aria-label={fr.booking.moisSuivant}
           className="flex h-9 w-9 items-center justify-center rounded-full text-darna transition hover:bg-cream disabled:opacity-25"
@@ -209,12 +251,12 @@ export function BookingDatePicker({
 
       {/* Grilles mensuelles (clic arrivée puis départ — un seul calendrier) */}
       <div
-        className="mt-3 grid gap-7 sm:grid-cols-2"
+        className={`mt-3 grid gap-7 ${monthsToShow === 1 ? "grid-cols-1" : "sm:grid-cols-2"}`}
         onMouseLeave={() => setHovered(null)}
       >
         {months.map(({ key, first, daysInMonth, startWeekday, label }) => (
           <div key={key}>
-            <p className="mb-3 text-center text-sm font-bold capitalize text-darna">
+            <p className={`text-center text-sm font-bold capitalize text-darna ${compact ? "mb-2" : "mb-3"}`}>
               {label}
             </p>
             {/* Pas de gap horizontal → la bande de plage est continue. */}
@@ -254,7 +296,7 @@ export function BookingDatePicker({
                 return (
                   <div
                     key={iso}
-                    className={`group relative flex h-11 items-center justify-center ${band}`}
+                    className={`group relative flex items-center justify-center ${compact ? "h-10" : "h-11"} ${band}`}
                   >
                     {/* Badge « X nuits » sur la date de fin (réelle ou survolée). */}
                     {isEnd && hasRange ? (
@@ -269,7 +311,7 @@ export function BookingDatePicker({
                       onMouseEnter={() => setHovered(iso)}
                       aria-pressed={isEndpoint}
                       className={[
-                        "relative flex h-10 w-10 items-center justify-center rounded-full text-sm transition",
+                        `relative flex items-center justify-center rounded-full text-sm transition ${compact ? "h-9 w-9" : "h-10 w-10"}`,
                         isEndpoint
                           ? "z-10 bg-darna font-bold text-white shadow-sm"
                           : inRange
@@ -307,21 +349,23 @@ export function BookingDatePicker({
         ))}
       </div>
 
-      {/* Légende */}
-      <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-ink/60">
-        <span className="flex items-center gap-1.5">
-          <span className="inline-block h-3.5 w-3.5 rounded-full bg-darna" />
-          {fr.booking.selectionne}
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="inline-block h-3.5 w-3.5 rounded-full bg-darna/10 ring-1 ring-darna/15" />
-          {fr.property.jourLibre}
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="inline-block h-3.5 w-3.5 rounded bg-ink/5 ring-1 ring-ink/10" />
-          <span className="line-through decoration-ink/40">{fr.property.legende}</span>
-        </span>
-      </div>
+      {/* Légende (masquable : inutile dans le popover de recherche) */}
+      {showLegend ? (
+        <div className={`flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-ink/60 ${compact ? "mt-3" : "mt-5"}`}>
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block h-3.5 w-3.5 rounded-full bg-darna" />
+            {fr.booking.selectionne}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block h-3.5 w-3.5 rounded-full bg-darna/10 ring-1 ring-darna/15" />
+            {fr.property.jourLibre}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block h-3.5 w-3.5 rounded bg-ink/5 ring-1 ring-ink/10" />
+            <span className="line-through decoration-ink/40">{fr.property.legende}</span>
+          </span>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -196,6 +196,27 @@ export const ar: Dictionary = {
     toutesNotes: "كل التقييمات",
     noteMinPlus: (n: number) => `${n}★ فما فوق`,
   },
+  destination: {
+    chargement: "جاري تحميل الوجهة…",
+    logementsDispo: (n: number) =>
+      n <= 0
+        ? "ما فماش إقامات متوفرة"
+        : n === 1
+          ? "إقامة وحدة متوفرة"
+          : `${n} إقامات متوفرة`,
+    voirTout: (n: number) => (n === 1 ? "شوف الإعلان" : `شوف ${n} إقامات`),
+    recommandations: "اختياراتنا",
+    aucunIci: "ما فماش إقامة هنا للتو — اكتشف القريب:",
+    autreDestination: "ولا اكتشف وجهة أخرى",
+    destinationsPopulaires: "وجهات رائجة",
+    verifie: "مْأكّد",
+    meteoClear: "شمس",
+    meteoClouds: "غيوم",
+    meteoRain: "مطر",
+    meteoActuelle: "الطقس الحالي",
+    meteoSejour: "لإقامتك",
+    meteoMoyenneSaison: "معدل الموسم",
+  },
   property: {
     description: "الوصف",
     caracteristiques: "الخصائص",

@@ -27,12 +27,16 @@ export function CityAutocomplete({
   placeholder,
   inputClassName,
   dropdownClassName = "",
+  onValueChange,
 }: {
   name?: string;
   defaultValue?: string;
   placeholder?: string;
   inputClassName: string;
   dropdownClassName?: string;
+  /** Notifié à chaque changement de la valeur (saisie ou sélection). Optionnel,
+   *  n'affecte pas la soumission GET (input `name` classique conservé). */
+  onValueChange?: (value: string) => void;
 }) {
   const fr = useT();
   const [value, setValue] = useState(defaultValue);
@@ -41,6 +45,14 @@ export function CityAutocomplete({
   const containerRef = useRef<HTMLDivElement>(null);
   const activeRef = useRef<HTMLButtonElement>(null);
   const listboxId = useId();
+
+  // Remonte la valeur courante au parent (toujours la dernière callback, sans
+  // refaire tourner l'effet quand le parent passe une fonction inline).
+  const onValueChangeRef = useRef(onValueChange);
+  onValueChangeRef.current = onValueChange;
+  useEffect(() => {
+    onValueChangeRef.current?.(value);
+  }, [value]);
 
   // Liste affichée : toutes les villes si le champ est vide, sinon le filtre.
   const suggestions = useMemo<City[]>(

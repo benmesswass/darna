@@ -19,6 +19,8 @@ import { Pagination } from "@/components/search/Pagination";
 import { CityAutocomplete } from "@/components/search/CityAutocomplete";
 import { SearchDateRange } from "@/components/search/SearchDateRange";
 import { SectionHero } from "@/components/layout/SectionHero";
+import { getCityWeather, getCityForecast } from "@/lib/weather";
+import { WeatherBanner } from "@/components/search/WeatherBanner";
 import { SearchIcon, UsersIcon } from "@/components/icons";
 
 export const metadata: Metadata = {
@@ -40,6 +42,14 @@ export default async function SejoursPage({
     await searchSejours(params);
   const sessionUser = await getSessionUser();
   const favCtx = await getFavoriteContext(sessionUser?.id);
+  // Météo de la ville recherchée : actuelle + prévision sur la période demandée
+  // (live Open-Meteo si activé, sinon repli saisonnier — toujours une valeur).
+  const [weather, forecast] = resolvedCity
+    ? await Promise.all([
+        getCityWeather(resolvedCity),
+        params.arrivee ? getCityForecast(resolvedCity, params.arrivee, params.depart) : null,
+      ])
+    : [null, null];
 
   // CTA « devenir hôte » : un hôte/agence déjà connecté va droit au formulaire ;
   // sinon on passe par l'inscription avec le rôle Hôte pré-sélectionné, puis
@@ -146,6 +156,16 @@ export default async function SejoursPage({
           {fr.common.rechercher}
         </button>
       </form>
+
+      {resolvedCity && weather ? (
+        <WeatherBanner
+          city={resolvedCity}
+          current={weather}
+          forecast={forecast}
+          arrivee={params.arrivee}
+          depart={params.depart}
+        />
+      ) : null}
 
       <div className="mt-4 flex items-center gap-2 text-sm text-ink/60">
         <span className="font-semibold text-darna">
