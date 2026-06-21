@@ -38,7 +38,17 @@ export default async function SejoursPage({
   const params = await searchParams;
   const { results, resolvedCity, unknownCity, total, page, pageSize, suggestions } =
     await searchSejours(params);
-  const favCtx = await getFavoriteContext((await getSessionUser())?.id);
+  const sessionUser = await getSessionUser();
+  const favCtx = await getFavoriteContext(sessionUser?.id);
+
+  // CTA « devenir hôte » : un hôte/agence déjà connecté va droit au formulaire ;
+  // sinon on passe par l'inscription avec le rôle Hôte pré-sélectionné, puis
+  // retour au formulaire après connexion (callbackUrl).
+  const newListingPath = "/dashboard/annonces/nouvelle";
+  const canList = sessionUser?.role === "HOTE" || sessionUser?.role === "AGENCE";
+  const hostCtaHref = canList
+    ? newListingPath
+    : `/inscription?role=HOTE&callbackUrl=${encodeURIComponent(newListingPath)}`;
 
   // Dates recherchées propagées : nom de dossier par défaut = mois d'ARRIVÉE
   // (pas le mois courant), et transmission des dates au lien de la fiche détail.
@@ -154,7 +164,9 @@ export default async function SejoursPage({
         ) : showSuggestions && suggestions ? (
           <div className="space-y-5">
             {/* Bandeau d'élargissement : on transforme le cul-de-sac en rebond
-                en montrant directement des annonces proches. */}
+                en montrant directement des annonces proches. Le CTA hôte est
+                intégré ICI (haut de zone, visible sans scroller) plutôt qu'en
+                bas sous les cartes. */}
             <div className="rounded-2xl bg-darna/5 p-4 ring-1 ring-darna/10">
               <p className="text-base font-semibold text-darna">
                 {resolvedCity
@@ -177,6 +189,18 @@ export default async function SejoursPage({
                   </Link>
                 ))}
               </div>
+              {resolvedCity ? (
+                <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-darna/10 pt-3 text-sm">
+                  <span className="text-ink/70">{fr.search.hoteAbsentTitre(resolvedCity)}</span>
+                  <Link
+                    href={hostCtaHref}
+                    className="inline-flex items-center gap-1 font-semibold text-darna hover:underline"
+                  >
+                    {fr.search.hoteCtaBouton}
+                    <span aria-hidden>→</span>
+                  </Link>
+                </div>
+              ) : null}
             </div>
             <SplitView
               list={listingGrid(suggestionListings)}
@@ -184,7 +208,12 @@ export default async function SejoursPage({
             />
           </div>
         ) : (
-          <EmptyState unknownCity={unknownCity} query={params.ville} resolvedCity={resolvedCity} />
+          <EmptyState
+            unknownCity={unknownCity}
+            query={params.ville}
+            resolvedCity={resolvedCity}
+            hostCtaHref={hostCtaHref}
+          />
         )}
       </div>
 
@@ -205,10 +234,12 @@ async function EmptyState({
   unknownCity,
   query,
   resolvedCity,
+  hostCtaHref,
 }: {
   unknownCity: boolean;
   query?: string;
   resolvedCity: string | null;
+  hostCtaHref: string;
 }) {
   const fr = await getT();
   return (
@@ -218,9 +249,25 @@ async function EmptyState({
           ? fr.search.aucuneAnnonceVille(resolvedCity)
           : `${fr.search.aucunResultatTitre}${unknownCity && query ? ` — « ${query} »` : ""}`}
       </p>
-      <p className="mx-auto mt-2 max-w-md text-sm text-ink/60">
-        {fr.search.aucunResultatDesc}
-      </p>
+      {resolvedCity ? (
+        <>
+          {/* Ville connue mais vide partout : pas de cartes à montrer, donc
+              l'amorçage de l'offre devient l'action principale, bien visible. */}
+          <p className="mx-auto mt-2 max-w-md text-sm text-ink/60">
+            {fr.search.hoteAbsentDesc(resolvedCity)}
+          </p>
+          <Link
+            href={hostCtaHref}
+            className="mt-4 inline-flex items-center justify-center rounded-xl bg-darna px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-darna-light"
+          >
+            {fr.search.hoteCtaBouton}
+          </Link>
+        </>
+      ) : (
+        <p className="mx-auto mt-2 max-w-md text-sm text-ink/60">
+          {fr.search.aucunResultatDesc}
+        </p>
+      )}
     </div>
   );
 }

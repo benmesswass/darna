@@ -166,6 +166,11 @@ export const en: Dictionary = {
     elargiProximiteIntro: "Here are stays in the closest cities:",
     voirToutVille: (ville: string, n: number) =>
       `${ville} · see ${n === 1 ? "1 listing" : `all ${n} listings`}`,
+    hoteAbsentTitre: (ville: string) =>
+      `Got a place in ${ville}? Travelers are already searching for one.`,
+    hoteAbsentDesc: (ville: string) =>
+      `Travelers are already looking for a stay in ${ville}. Become the destination's first host and publish your first listing in minutes.`,
+    hoteCtaBouton: "Become a host",
     voirListe: "List",
     voirCarte: "Map",
     chargementCarte: "Loading map…",

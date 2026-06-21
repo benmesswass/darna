@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { signIn, signOut } from "@/lib/auth";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { logAudit } from "@/lib/audit";
+import { safeCallbackUrl } from "@/lib/redirect";
 
 export type AuthFormState = { error?: string; success?: string } | undefined;
 
@@ -109,11 +110,15 @@ export async function loginAction(
   });
   if (!parsed.success) return { error: fr.auth.identifiantsInvalides };
 
+  // Retour à la page voulue (ex. formulaire « devenir hôte ») après connexion,
+  // validé contre l'open redirect ; défaut = /dashboard.
+  const redirectTo = safeCallbackUrl(formData.get("callbackUrl") as string | null);
+
   try {
     await signIn("credentials", {
       email: parsed.data.email,
       password: parsed.data.password,
-      redirectTo: "/dashboard",
+      redirectTo,
     });
   } catch (error) {
     if (error instanceof AuthError) {
