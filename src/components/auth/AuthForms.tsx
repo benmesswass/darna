@@ -44,13 +44,19 @@ function Feedback({ state }: { state: AuthFormState }) {
   return null;
 }
 
-export function LoginForm() {
+export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
   const fr = useT();
   const [state, action, pending] = useActionState(loginAction, undefined);
+  // On propage le callbackUrl vers l'inscription pour ne pas perdre la cible
+  // (ex. « devenir hôte ») si l'utilisateur n'a pas encore de compte.
+  const inscriptionHref = callbackUrl
+    ? `/inscription?callbackUrl=${encodeURIComponent(callbackUrl)}`
+    : "/inscription";
 
   return (
     <form action={action} className="space-y-4">
       <Feedback state={state} />
+      {callbackUrl ? <input type="hidden" name="callbackUrl" value={callbackUrl} /> : null}
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold text-ink/70">{fr.auth.email}</span>
         <input name="email" type="email" required autoComplete="email" className={inputClass} />
@@ -68,7 +74,7 @@ export function LoginForm() {
       <SubmitButton label={fr.auth.seConnecter} pending={pending} />
       <p className="text-center text-sm text-ink/60">
         {fr.auth.pasDeCompte}{" "}
-        <Link href="/inscription" className="font-semibold text-darna underline">
+        <Link href={inscriptionHref} className="font-semibold text-darna underline">
           {fr.auth.sInscrire}
         </Link>
       </p>
@@ -76,9 +82,20 @@ export function LoginForm() {
   );
 }
 
-export function RegisterForm() {
+export function RegisterForm({
+  defaultRole = "VOYAGEUR",
+  callbackUrl,
+}: {
+  defaultRole?: string;
+  callbackUrl?: string;
+}) {
   const fr = useT();
   const [state, action, pending] = useActionState(registerAction, undefined);
+  // Après inscription, le compte n'est pas connecté automatiquement : on dirige
+  // vers la connexion en conservant la cible (callbackUrl) pour y revenir.
+  const connexionHref = callbackUrl
+    ? `/connexion?callbackUrl=${encodeURIComponent(callbackUrl)}`
+    : "/connexion";
 
   return (
     <form action={action} className="space-y-4">
@@ -114,7 +131,7 @@ export function RegisterForm() {
       </label>
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold text-ink/70">{fr.auth.role}</span>
-        <select name="role" required defaultValue="VOYAGEUR" className={inputClass}>
+        <select name="role" required defaultValue={defaultRole} className={inputClass}>
           <option value="VOYAGEUR">{fr.auth.roleVoyageur}</option>
           <option value="HOTE">{fr.auth.roleHote}</option>
           <option value="AGENCE">{fr.auth.roleAgence}</option>
@@ -123,7 +140,7 @@ export function RegisterForm() {
       <SubmitButton label={fr.auth.sInscrire} pending={pending} />
       <p className="text-center text-sm text-ink/60">
         {fr.auth.dejaCompte}{" "}
-        <Link href="/connexion" className="font-semibold text-darna underline">
+        <Link href={connexionHref} className="font-semibold text-darna underline">
           {fr.auth.seConnecter}
         </Link>
       </p>
