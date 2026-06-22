@@ -72,6 +72,7 @@ export async function ListingDetail({
 }) {
   const fr = await getT();
 
+  const isPending = property.status === "EN_ATTENTE_VALIDATION";
   const isActive =
     property.status === "ACTIVE" && property.expiresAt.getTime() > Date.now();
   const amenities = property.amenities ? property.amenities.split("|") : [];
@@ -86,7 +87,11 @@ export async function ListingDetail({
       <JsonLd data={buildPropertyJsonLd(property)} />
       {/* Garde la nav + l'accent sur la bonne verticale (route hors-section). */}
       <ActiveSection name={activeSection} />
-      {!isActive ? (
+      {isPending ? (
+        <div className="mb-6 rounded-2xl bg-amber-50 border border-amber-200 px-5 py-4 text-sm font-medium text-amber-800">
+          {fr.property.annonceEnAttente}
+        </div>
+      ) : !isActive ? (
         <div className="mb-6 rounded-2xl bg-ink px-5 py-4 text-sm font-medium text-white">
           {fr.property.annonceIndisponible}
         </div>
@@ -97,7 +102,13 @@ export async function ListingDetail({
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <TypeBadge type={property.type} />
-            {property.verified ? <VerifiedBadge /> : null}
+            {property.verified ? (
+              <VerifiedBadge
+                level={property.verificationLevel}
+                verifierName={property.verifiedBy?.name}
+                verifiedAt={property.verifiedAt}
+              />
+            ) : null}
             <StatusBadge status={property.status} />
             <FreshnessBadge publishedAt={property.publishedAt} />
           </div>
@@ -148,6 +159,58 @@ export async function ListingDetail({
           caption: photo.caption,
         }))}
       />
+
+      {/* ── Bloc confiance ─────────────────────────────────────────────── */}
+      {property.verificationLevel ? (
+        <div
+          className={`mt-6 rounded-2xl border-2 p-5 ${
+            property.verificationLevel === "ON_SITE"
+              ? "border-amber-300 bg-amber-50"
+              : "border-blue-200 bg-blue-50"
+          }`}
+        >
+          <div className="flex items-start gap-3">
+            <span className="text-2xl leading-none">
+              {property.verificationLevel === "ON_SITE" ? "🏅" : "🛡️"}
+            </span>
+            <div className="flex-1">
+              <p className="font-bold text-ink">
+                {property.verificationLevel === "ON_SITE"
+                  ? fr.badges.verifieOnSite
+                  : fr.badges.verifieRemote}
+              </p>
+              <p className="mt-0.5 text-xs font-medium text-ink/50">
+                {property.verificationLevel === "ON_SITE"
+                  ? fr.property.verifieOnSiteCriteres
+                  : fr.property.verifieRemoteCriteres}
+              </p>
+              {property.verifiedBy && property.verifiedAt ? (
+                <p className="mt-0.5 text-xs text-ink/50">
+                  {fr.property.verifiePar(property.verifiedBy.name)} ·{" "}
+                  {property.verifiedAt.toLocaleDateString("fr-TN", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </p>
+              ) : null}
+              <p className="mt-2 text-sm text-ink/70">
+                {property.verificationLevel === "ON_SITE"
+                  ? fr.property.verifieOnSiteBloc
+                  : fr.property.verifieRemoteBloc}
+              </p>
+              <a
+                href="/devenir-wakil"
+                className="mt-2 inline-block text-xs font-semibold underline underline-offset-2 text-ink/50 hover:text-darna"
+              >
+                {property.verificationLevel === "ON_SITE"
+                  ? fr.property.enSavoirPlusWakil
+                  : fr.property.enSavoirPlusDarna}
+              </a>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
         <div className="space-y-10">

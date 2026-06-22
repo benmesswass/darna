@@ -15,6 +15,11 @@ const propertyIdSchema = z.object({
   propertyId: z.string().cuid(),
 });
 
+const verifyPropertySchema = z.object({
+  propertyId: z.string().cuid(),
+  verificationLevel: z.enum(["REMOTE", "ON_SITE"]),
+});
+
 /**
  * Marque une annonce comme vérifiée (badge « Vérifié Darna »).
  * Règle métier : REFUSE si le propriétaire n'est pas vérifié (VERIFIE ou DEMO_VERIFIE).
@@ -27,7 +32,10 @@ export async function verifyPropertyAction(
   const fr = await getT();
   const actor = await requireWakilOrAdmin();
 
-  const parsed = propertyIdSchema.safeParse({ propertyId: formData.get("propertyId") });
+  const parsed = verifyPropertySchema.safeParse({
+    propertyId: formData.get("propertyId"),
+    verificationLevel: formData.get("verificationLevel"),
+  });
   if (!parsed.success) return { error: fr.common.champsRequis };
 
   const property = await prisma.property.findUnique({
@@ -52,7 +60,9 @@ export async function verifyPropertyAction(
   await prisma.property.update({
     where: { id: property.id },
     data: {
+      status: "ACTIVE",
       verified: true,
+      verificationLevel: parsed.data.verificationLevel,
       verifiedAt: new Date(),
       verifiedById: actor.id,
     },
@@ -92,6 +102,7 @@ export async function unverifyPropertyAction(
     where: { id: property.id },
     data: {
       verified: false,
+      verificationLevel: null,
       verifiedAt: null,
       verifiedById: null,
     },

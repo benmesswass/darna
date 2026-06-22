@@ -130,7 +130,8 @@ function PropertyTable({
                       <div className="flex flex-col items-end gap-1">
                         <VerifyPropertyButton
                           propertyId={p.id}
-                          label={fr.admin.verifier}
+                          labelRemote={fr.admin.verifierRemote}
+                          labelOnSite={fr.admin.verifierOnSite}
                           disabled={!ownerOk}
                           disabledTitle={fr.admin.proprietaireNonVerifie}
                         />
@@ -165,7 +166,7 @@ export default async function AdminAnnoncesPage() {
   const [pending, verified] = await Promise.all([
     // File de modération : annonces actives NON vérifiées
     prisma.property.findMany({
-      where: { status: "ACTIVE", verified: false },
+      where: { status: "EN_ATTENTE_VALIDATION" },
       orderBy: { createdAt: "asc" },
       select: propertySelect,
       take: 100,

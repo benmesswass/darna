@@ -121,12 +121,15 @@ export const ar: Dictionary = {
   },
   badges: {
     verifie: "موثّق دارنا",
+    verifieRemote: "موثّق من دارنا",
+    verifieOnSite: "مصادق عليه من الوكيل",
     nonVerifie: "موش موثّق",
     publieAujourdhui: "تنشر اليوم",
     publieHier: "تنشر البارح",
     publieIlYa: (jours: number) =>
       jours === 2 ? "تنشر عندو يومين" : `تنشر عندو ${jours} أيام`,
     expiree: "إعلان منتهي",
+    enAttenteValidation: "في انتظار المراجعة",
     loue: "تكرى",
     vendu: "تباع",
     sejour: "إقامة",
@@ -249,12 +252,27 @@ export const ar: Dictionary = {
     fraisServiceInfo: "معلوم خدمة شفّاف محسوب في الخلاص",
     verifieTooltip:
       "العقار هذا زارو وتثبّت منو وكيل دارنا: موجود، والصور تطابقو.",
+    verifieRemoteTooltip:
+      "فريق دارنا تثبّت من الصور وهويّة المالك وعمل مكالمة فيديو.",
+    verifieOnSiteTooltip:
+      "وكيل دارنا زار العقار شخصيًا. تثبّت أنه موجود والصور تطابق الواقع.",
+    verifieRemoteCriteres: "صور · هويّة · مكالمة فيديو",
+    verifieOnSiteCriteres: "زيارة ميدانية · صور · هويّة",
+    verifieRemoteBloc:
+      "فريق دارنا راجع الصور ومعلومات الإعلان (مكالمة فيديو أو تثبّت وثائقي مع المالك).",
+    verifieOnSiteBloc:
+      "وكيل دارنا زار العقار شخصيًا. تثبّت أنه موجود، الصور تطابق الواقع، والمالك يمكن الاتصال به.",
+    verifiePar: (nom: string) => `بواسطة ${nom}`,
+    enSavoirPlusWakil: "اعرف أكثر على شبكة الوكلاء",
+    enSavoirPlusDarna: "اعرف أكثر على مراجعاتنا",
     nonVerifieTooltip:
       "العقار هذا مازال ما تثبّتناش منو في عين المكان. ما تخلّص حتى تسبقة خارج دارنا.",
     proprietaire: "المالك",
     agence: "وكالة",
     annonceIndisponible:
       "الإعلان هذا ما عادش نشيط. محفوظ كأرشيف فقط.",
+    annonceEnAttente:
+      "الإعلان في انتظار مراجعة فريق دارنا. باش يظهر للعامة بعد المصادقة.",
     legende: "موش متوفّر",
     jourLibre: "متوفّر",
     publierAvis: "خلّي تقييم",
@@ -461,7 +479,7 @@ export const ar: Dictionary = {
     statutEnAttente: "التوثيق جاري",
     statutVerifie: "الهوية موثّقة",
     cin: "رقم بطاقة التعريف (8 أرقام)",
-    telephone: "الهاتف الجوّال",
+    telephone: "الهاتف الجوّال (+216…)",
     indicatifPays: "مفتاح الدولة",
     telephonePlaceholder: "22 345 678",
     envoyerOtp: "ابعثلي رمز التثبّت",
@@ -507,6 +525,8 @@ export const ar: Dictionary = {
     verifiee: "موثّق",
     nonVerifiee: "مش موثّق",
     verifier: "وثّق",
+    verifierRemote: "موثّق دارنا (صور/فيديو)",
+    verifierOnSite: "مصادق وكيل (ميداني)",
     retirerVerification: "حذف",
     verifiePar: (nom: string) => `وثّقه ${nom}`,
     annonceMiseAVerifiee: "تمّ توثيق الإعلان.",

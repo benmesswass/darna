@@ -3,41 +3,60 @@
 import { useActionState, useTransition } from "react";
 import { verifyPropertyAction, unverifyPropertyAction } from "@/actions/admin";
 
-// ── Bouton de vérification ──────────────────────────────────────────────────
-
 type VerifyProps = {
   propertyId: string;
-  label: string;
+  labelRemote: string;
+  labelOnSite: string;
   disabled?: boolean;
   disabledTitle?: string;
 };
 
-export function VerifyPropertyButton({ propertyId, label, disabled, disabledTitle }: VerifyProps) {
+export function VerifyPropertyButton({
+  propertyId,
+  labelRemote,
+  labelOnSite,
+  disabled,
+  disabledTitle,
+}: VerifyProps) {
   const [state, action] = useActionState(verifyPropertyAction, undefined);
   const [isPending, startTransition] = useTransition();
 
   return (
-    <form
-      action={(fd) => startTransition(() => action(fd))}
-      className="inline"
-    >
-      <input type="hidden" name="propertyId" value={propertyId} />
+    <div className="flex flex-col items-end gap-1.5">
       {state?.error ? (
-        <span className="me-2 text-xs text-red-600">{state.error}</span>
+        <span className="text-xs text-red-600">{state.error}</span>
       ) : null}
-      <button
-        type="submit"
-        disabled={disabled || isPending}
-        title={disabled ? disabledTitle : undefined}
-        className="rounded-lg bg-darna px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-darna/90 disabled:cursor-not-allowed disabled:opacity-40"
-      >
-        {isPending ? "…" : label}
-      </button>
-    </form>
+
+      {/* Vérifié Darna — REMOTE */}
+      <form action={(fd) => startTransition(() => action(fd))} className="inline">
+        <input type="hidden" name="propertyId" value={propertyId} />
+        <input type="hidden" name="verificationLevel" value="REMOTE" />
+        <button
+          type="submit"
+          disabled={disabled || isPending}
+          title={disabled ? disabledTitle : undefined}
+          className="inline-flex items-center gap-1.5 rounded-lg border-2 border-blue-300 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-800 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          🛡️ {isPending ? "…" : labelRemote}
+        </button>
+      </form>
+
+      {/* Certifié Wakil — ON_SITE */}
+      <form action={(fd) => startTransition(() => action(fd))} className="inline">
+        <input type="hidden" name="propertyId" value={propertyId} />
+        <input type="hidden" name="verificationLevel" value="ON_SITE" />
+        <button
+          type="submit"
+          disabled={disabled || isPending}
+          title={disabled ? disabledTitle : undefined}
+          className="inline-flex items-center gap-1.5 rounded-lg border-2 border-amber-400 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-800 shadow-sm transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          🏅 {isPending ? "…" : labelOnSite}
+        </button>
+      </form>
+    </div>
   );
 }
-
-// ── Bouton de retrait de vérification ─────────────────────────────────────────
 
 type UnverifyProps = {
   propertyId: string;
@@ -49,10 +68,7 @@ export function UnverifyPropertyButton({ propertyId, label }: UnverifyProps) {
   const [isPending, startTransition] = useTransition();
 
   return (
-    <form
-      action={(fd) => startTransition(() => action(fd))}
-      className="inline"
-    >
+    <form action={(fd) => startTransition(() => action(fd))} className="inline">
       <input type="hidden" name="propertyId" value={propertyId} />
       {state?.error ? (
         <span className="me-2 text-xs text-red-600">{state.error}</span>

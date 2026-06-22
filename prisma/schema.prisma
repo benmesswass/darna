@@ -91,8 +91,9 @@ model Property {
   // Distincte de `type` : permet le gating par verticale et un futur split
   // physique. Cf. src/lib/constants.ts (verticalOfType) et src/lib/modes.ts.
   vertical    String // STAY | IMMO
-  status      String   @default("ACTIVE") // ACTIVE | LOUE | VENDU | EXPIREE
+  status      String   @default("EN_ATTENTE_VALIDATION") // EN_ATTENTE_VALIDATION | ACTIVE | LOUE | VENDU | EXPIREE
   verified    Boolean  @default(false)
+  verificationLevel String? // null | "REMOTE" | "ON_SITE"
   // PR1 — vérification admin/wakil : date et auteur de la vérification.
   verifiedAt   DateTime?
   verifiedById String?

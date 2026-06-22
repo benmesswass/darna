@@ -22,8 +22,68 @@ export async function FeaturedBadge({ small = false }: { small?: boolean }) {
   );
 }
 
-export async function VerifiedBadge({ small = false }: { small?: boolean }) {
+export async function VerifiedBadge({
+  small = false,
+  level = null,
+  verifierName,
+  verifiedAt,
+}: {
+  small?: boolean;
+  level?: string | null;
+  verifierName?: string | null;
+  verifiedAt?: Date | null;
+}) {
   const fr = await getT();
+
+  if (level === "ON_SITE") {
+    const dateStr = verifiedAt
+      ? verifiedAt.toLocaleDateString("fr-TN", { day: "numeric", month: "long", year: "numeric" })
+      : null;
+    return (
+      <span
+        title={fr.property.verifieOnSiteTooltip}
+        className={`inline-flex items-center gap-1.5 rounded-full border-2 border-amber-400 bg-amber-50 font-bold text-amber-800 shadow-md ${
+          small ? "px-2 py-0.5 text-[11px]" : "px-3 py-1 text-xs"
+        }`}
+      >
+        <span className={small ? "text-[11px]" : "text-sm"}>🏅</span>
+        <span>
+          {fr.badges.verifieOnSite}
+          {!small && verifierName && dateStr ? (
+            <span className="ms-1 font-normal opacity-70">
+              · {fr.property.verifiePar(verifierName)} · {dateStr}
+            </span>
+          ) : null}
+        </span>
+      </span>
+    );
+  }
+
+  if (level === "REMOTE") {
+    const dateStr = verifiedAt
+      ? verifiedAt.toLocaleDateString("fr-TN", { day: "numeric", month: "long", year: "numeric" })
+      : null;
+    return (
+      <span
+        title={fr.property.verifieRemoteTooltip}
+        className={`inline-flex items-center gap-1.5 rounded-full border-2 border-blue-300 bg-blue-50 font-semibold text-blue-800 shadow-sm ${
+          small ? "px-2 py-0.5 text-[11px]" : "px-3 py-1 text-xs"
+        }`}
+      >
+        <span className={small ? "text-[11px]" : "text-sm"}>🛡️</span>
+        <span>
+          {fr.badges.verifieRemote}
+          {!small && verifierName && dateStr ? (
+            <span className="ms-1 font-normal opacity-70">
+              · {fr.property.verifiePar(verifierName)} · {dateStr}
+            </span>
+          ) : null}
+        </span>
+      </span>
+    );
+  }
+
+  // Fallback : ancien badge générique (vérification sans niveau)
   return (
     <span
       title={fr.property.verifieTooltip}
@@ -69,12 +129,19 @@ export async function TypeBadge({ type }: { type: string }) {
 
 export async function StatusBadge({ status }: { status: string }) {
   const fr = await getT();
+  if (status === "ACTIVE") return null;
+  if (status === "EN_ATTENTE_VALIDATION") {
+    return (
+      <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold text-amber-800">
+        {fr.badges.enAttenteValidation}
+      </span>
+    );
+  }
   const STATUS_LABELS: Record<string, string> = {
     LOUE: fr.badges.loue,
     VENDU: fr.badges.vendu,
     EXPIREE: fr.badges.expiree,
   };
-  if (status === "ACTIVE") return null;
   return (
     <span className="inline-flex items-center rounded-full bg-ink px-2.5 py-1 text-[11px] font-semibold text-white">
       {STATUS_LABELS[status] ?? status}

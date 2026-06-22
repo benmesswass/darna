@@ -2,11 +2,34 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  BuildingIcon,
+  CalendarIcon,
+  HeartIcon,
+  ShieldIcon,
+  SparklesIcon,
+  StarIcon,
+  UserIcon,
+  UsersIcon,
+} from "@/components/icons";
 
-type NavItem = {
+const ICONS = {
+  BuildingIcon,
+  CalendarIcon,
+  HeartIcon,
+  ShieldIcon,
+  SparklesIcon,
+  StarIcon,
+  UserIcon,
+  UsersIcon,
+} as const;
+
+export type IconName = keyof typeof ICONS;
+
+export type NavItem = {
   href: string;
   label: string;
-  icon: React.FC<{ width: number; height: number }>;
+  icon: IconName;
   badge?: number;
 };
 
@@ -15,7 +38,8 @@ export function DashboardNav({ links }: { links: NavItem[] }) {
 
   return (
     <>
-      {links.map(({ href, label, icon: Icon, badge }) => {
+      {links.map(({ href, label, icon, badge }) => {
+        const Icon = ICONS[icon];
         const active = pathname === href || pathname.startsWith(href + "/");
         return (
           <Link

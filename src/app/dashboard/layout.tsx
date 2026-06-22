@@ -5,18 +5,8 @@ import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { logoutAction } from "@/actions/auth";
-import { DashboardNav } from "@/components/dashboard/DashboardNav";
-import {
-  BuildingIcon,
-  CalendarIcon,
-  CheckIcon,
-  HeartIcon,
-  ShieldIcon,
-  SparklesIcon,
-  UserIcon,
-  UsersIcon,
-  StarIcon,
-} from "@/components/icons";
+import { DashboardNav, type IconName } from "@/components/dashboard/DashboardNav";
+import { CheckIcon } from "@/components/icons";
 
 /** Initiales (1 à 2 lettres) pour l'avatar par défaut de l'en-tête. */
 function initials(name: string): string {
@@ -43,35 +33,35 @@ export default async function DashboardLayout({
   let pendingWakils = 0;
   if (isAdminOrWakil) {
     [pendingAnnonces, pendingWakils] = await Promise.all([
-      prisma.property.count({ where: { status: "ACTIVE", verified: false } }),
+      prisma.property.count({ where: { status: "EN_ATTENTE_VALIDATION" } }),
       user.role === "ADMIN"
         ? prisma.wakilApplication.count({ where: { status: "RECUE", deletedAt: null } })
         : Promise.resolve(0),
     ]);
   }
 
-  const links: { href: string; label: string; icon: React.FC<{ width: number; height: number }>; badge?: number }[] = [
+  const links: { href: string; label: string; icon: IconName; badge?: number }[] = [
     ...(isLister
       ? [
-          { href: "/dashboard/annonces", label: fr.dashboard.mesAnnonces, icon: BuildingIcon },
-          { href: "/dashboard/demandes", label: fr.dashboard.demandesRecues, icon: UsersIcon },
-          { href: "/dashboard/yield", label: fr.dashboard.yieldAdvisor, icon: SparklesIcon },
+          { href: "/dashboard/annonces", label: fr.dashboard.mesAnnonces, icon: "BuildingIcon" as IconName },
+          { href: "/dashboard/demandes", label: fr.dashboard.demandesRecues, icon: "UsersIcon" as IconName },
+          { href: "/dashboard/yield", label: fr.dashboard.yieldAdvisor, icon: "SparklesIcon" as IconName },
         ]
       : []),
     {
       href: "/dashboard/reservations",
       label: isLister ? fr.dashboard.mesVoyageurs : fr.dashboard.mesReservations,
-      icon: CalendarIcon,
+      icon: "CalendarIcon" as IconName,
     },
-    { href: "/dashboard/favoris", label: fr.dashboard.favoris, icon: HeartIcon },
-    { href: "/dashboard/profil", label: fr.dashboard.monProfil, icon: UserIcon },
-    { href: "/dashboard/kyc", label: fr.dashboard.kyc, icon: ShieldIcon },
+    { href: "/dashboard/favoris", label: fr.dashboard.favoris, icon: "HeartIcon" as IconName },
+    { href: "/dashboard/profil", label: fr.dashboard.monProfil, icon: "UserIcon" as IconName },
+    { href: "/dashboard/kyc", label: fr.dashboard.kyc, icon: "ShieldIcon" as IconName },
     ...(isAdminOrWakil
       ? [
           {
             href: "/dashboard/admin/annonces",
             label: fr.admin.navAnnonces,
-            icon: StarIcon,
+            icon: "StarIcon" as IconName,
             badge: pendingAnnonces > 0 ? pendingAnnonces : undefined,
           },
           ...(user.role === "ADMIN"
@@ -79,7 +69,7 @@ export default async function DashboardLayout({
                 {
                   href: "/dashboard/admin/wakils",
                   label: fr.admin.navWakils,
-                  icon: UsersIcon,
+                  icon: "UsersIcon" as IconName,
                   badge: pendingWakils > 0 ? pendingWakils : undefined,
                 },
               ]

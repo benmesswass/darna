@@ -119,11 +119,14 @@ export const fr = {
   },
   badges: {
     verifie: "Vérifié Darna",
+    verifieRemote: "Vérifié par Darna",
+    verifieOnSite: "Certifié Wakil",
     nonVerifie: "Non vérifié",
     publieAujourdhui: "Publié aujourd'hui",
     publieHier: "Publié hier",
     publieIlYa: (jours: number) => `Publié il y a ${jours} jours`,
     expiree: "Annonce expirée",
+    enAttenteValidation: "En attente de validation",
     loue: "Loué",
     vendu: "Vendu",
     sejour: "Séjour",
@@ -229,12 +232,27 @@ export const fr = {
     fraisServiceInfo: "Frais de service transparents inclus au paiement",
     verifieTooltip:
       "Ce bien a été visité et vérifié par un Wakil Darna : il existe, et les photos correspondent.",
+    verifieRemoteTooltip:
+      "L'équipe Darna a contrôlé les photos, l'identité du propriétaire et effectué un appel vidéo.",
+    verifieOnSiteTooltip:
+      "Un agent Wakil s'est rendu physiquement sur place. Le bien existe, les photos sont conformes à la réalité.",
+    verifieRemoteCriteres: "Photos · Identité · Appel vidéo",
+    verifieOnSiteCriteres: "Visite · Photos · Identité",
+    verifieRemoteBloc:
+      "L'équipe Darna a contrôlé les photos et les informations de cette annonce (appel vidéo ou vérification documentaire avec le propriétaire).",
+    verifieOnSiteBloc:
+      "Un agent Wakil s'est rendu sur place. Il a confirmé que le bien existe, que les photos sont conformes à la réalité et que le propriétaire est joignable.",
+    verifiePar: (nom: string) => `par ${nom}`,
+    enSavoirPlusWakil: "En savoir plus sur le réseau Wakil",
+    enSavoirPlusDarna: "En savoir plus sur nos contrôles",
     nonVerifieTooltip:
       "Ce bien n'a pas encore été vérifié sur le terrain. Ne versez jamais d'acompte hors de Darna.",
     proprietaire: "Propriétaire",
     agence: "Agence",
     annonceIndisponible:
       "Cette annonce n'est plus active. Elle est conservée à titre d'archive.",
+    annonceEnAttente:
+      "Cette annonce est en cours de vérification par l'équipe Darna. Elle sera visible dès validation.",
     legende: "Indisponible",
     jourLibre: "Libre",
     publierAvis: "Laisser un avis",
@@ -444,7 +462,7 @@ export const fr = {
     statutEnAttente: "Vérification en cours",
     statutVerifie: "Identité vérifiée",
     cin: "Numéro de CIN (8 chiffres)",
-    telephone: "Téléphone mobile",
+    telephone: "Téléphone mobile (+216…)",
     indicatifPays: "Indicatif pays",
     telephonePlaceholder: "22 345 678",
     envoyerOtp: "Recevoir le code de vérification",
@@ -491,6 +509,8 @@ export const fr = {
     verifiee: "Vérifiée",
     nonVerifiee: "Non vérifiée",
     verifier: "Vérifier",
+    verifierRemote: "Vérifié Darna (photos/vidéo)",
+    verifierOnSite: "Certifié Wakil (sur place)",
     retirerVerification: "Retirer",
     verifiePar: (nom: string) => `Vérifié par ${nom}`,
     annonceMiseAVerifiee: "Annonce marquée comme vérifiée.",
