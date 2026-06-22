@@ -507,7 +507,7 @@ export const fr = {
     supprimerCandidatureConfirm: "Supprimer définitivement cette candidature ?",
     candidatureSupprimee: "Candidature supprimée.",
     candidatureDefinitivementSupprimee: "Candidature supprimée définitivement.",
-    wakilsSupprimees: "Candidatures supprimées",
+    wakilsSupprimees: "Candidatures archivées",
     wakilsSupprimeeesDesc: "Ces candidatures ont été archivées. Vous pouvez les supprimer définitivement.",
     supprimerDefinitivement: "Supprimer définitivement",
     aucuneCandidatureSupprimee: "Aucune candidature archivée.",
