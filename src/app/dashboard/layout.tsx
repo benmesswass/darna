@@ -5,6 +5,7 @@ import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { logoutAction } from "@/actions/auth";
+import { DashboardNav } from "@/components/dashboard/DashboardNav";
 import {
   BuildingIcon,
   CalendarIcon,
@@ -139,21 +140,7 @@ export default async function DashboardLayout({
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[230px_minmax(0,1fr)]">
         <nav className="flex gap-1.5 overflow-x-auto lg:flex-col">
-          {links.map(({ href, label, icon: Icon, badge }) => (
-            <Link
-              key={href}
-              href={href}
-              className="flex shrink-0 items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm font-medium text-ink/70 transition hover:bg-white hover:text-darna hover:shadow-sm"
-            >
-              <Icon width={17} height={17} />
-              {label}
-              {badge ? (
-                <span className="ms-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-darna px-1.5 text-[10px] font-bold text-white">
-                  {badge}
-                </span>
-              ) : null}
-            </Link>
-          ))}
+          <DashboardNav links={links} />
           {isLister ? (
             <Link
               href="/dashboard/annonces/nouvelle"
