@@ -110,15 +110,26 @@ function PropertyTable({
               )}
               <td className="px-4 py-3 text-end">
                 {showVerify ? (
-                  <VerifyPropertyButton
-                    propertyId={p.id}
-                    label={fr.admin.verifier}
-                    disabled={
-                      p.owner.kycStatus !== "VERIFIE" &&
-                      p.owner.kycStatus !== "DEMO_VERIFIE"
-                    }
-                    disabledTitle={fr.admin.proprietaireNonVerifie}
-                  />
+                  (() => {
+                    const ownerOk =
+                      p.owner.kycStatus === "VERIFIE" ||
+                      p.owner.kycStatus === "DEMO_VERIFIE";
+                    return (
+                      <div className="flex flex-col items-end gap-1">
+                        <VerifyPropertyButton
+                          propertyId={p.id}
+                          label={fr.admin.verifier}
+                          disabled={!ownerOk}
+                          disabledTitle={fr.admin.proprietaireNonVerifie}
+                        />
+                        {!ownerOk && (
+                          <p className="max-w-[200px] text-end text-[11px] leading-tight text-amber-700">
+                            {fr.admin.kycBloque}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()
                 ) : (
                   <UnverifyPropertyButton
                     propertyId={p.id}
