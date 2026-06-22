@@ -670,6 +670,10 @@ export const fr = {
     placeholderPrix:
       "Choisissez vos dates sur le calendrier pour voir le prix total — sans aucun frais caché.",
     selectionnezDates: "Sélectionnez vos dates",
+    holdTimer: (time: string) => `Dates retenues · ${time} restantes`,
+    holdExpire:
+      "Le délai de paiement a expiré. Ces dates sont de nouveau disponibles.",
+    annulerRetenue: "Annuler et libérer les dates",
   },
   alaUne: {
     titre: "Mettez votre annonce à la une",

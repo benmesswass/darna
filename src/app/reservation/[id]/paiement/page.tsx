@@ -10,6 +10,7 @@ import { confirmPaymentAction } from "@/actions/bookings";
 import { settleKonnectBooking } from "@/lib/payments";
 import { isKonnectEnabled } from "@/lib/konnect";
 import { KonnectPayButton } from "@/components/booking/KonnectPayButton";
+import { BookingCountdown } from "@/components/booking/BookingCountdown";
 import { ActiveSection } from "@/components/layout/ActiveSection";
 import { formatDateFr } from "@/lib/format";
 import { Price } from "@/components/currency/Price";
@@ -46,7 +47,8 @@ export default async function PaiementPage({
       checkOut: true,
       serviceFee: true,
       totalPrice: true,
-      property: { select: { title: true, city: true } },
+      expiresAt: true,
+      property: { select: { title: true, city: true, slug: true } },
     },
   });
   // Autorisation : la réservation appartient au voyageur connecté.
@@ -68,7 +70,8 @@ export default async function PaiementPage({
         checkOut: true,
         serviceFee: true,
         totalPrice: true,
-        property: { select: { title: true, city: true } },
+        expiresAt: true,
+        property: { select: { title: true, city: true, slug: true } },
       },
     });
     if (!booking) notFound();
@@ -156,6 +159,15 @@ export default async function PaiementPage({
         </div>
       ) : (
         <div className="rounded-3xl bg-white p-8 ring-1 ring-darna/10">
+          {/* Compte à rebours du hold — visible uniquement si l'expiration est définie */}
+          {booking.expiresAt && (
+            <BookingCountdown
+              bookingId={booking.id}
+              expiresAt={booking.expiresAt.toISOString()}
+              propertySlug={booking.property.slug}
+            />
+          )}
+
           <h1 className="flex items-center gap-2 text-2xl font-bold text-darna">
             <ShieldIcon width={24} height={24} className="text-sand" />
             {fr.booking.paiementTitre}

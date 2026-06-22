@@ -311,6 +311,44 @@ export async function quoteBookingAction(input: {
 
 const confirmSchema = z.string().cuid();
 
+/**
+ * Annulation volontaire d'un hold EN_ATTENTE par le voyageur (bouton « Libérer
+ * les dates » sur la page paiement). Redirige vers l'annonce pour permettre une
+ * nouvelle réservation.
+ */
+export async function cancelBookingAction(formData: FormData): Promise<never> {
+  const user = await requireUser();
+  const parsed = confirmSchema.safeParse(formData.get("bookingId"));
+  if (!parsed.success) redirect("/");
+
+  const booking = await prisma.booking.findUnique({
+    where: { id: parsed.data },
+    select: {
+      guestId: true,
+      status: true,
+      property: { select: { slug: true } },
+    },
+  });
+
+  if (!booking || booking.guestId !== user.id) redirect("/");
+
+  if (booking.status === "EN_ATTENTE") {
+    await prisma.booking.update({
+      where: { id: parsed.data },
+      data: { status: "ANNULEE" },
+    });
+
+    await logAudit({
+      action: "BOOKING_CANCELLED",
+      userId: user.id,
+      success: true,
+      metadata: { bookingId: parsed.data, reason: "user_cancelled_hold" },
+    });
+  }
+
+  redirect(`/annonce/${booking.property.slug}`);
+}
+
 /** Paiement simulé : passe la réservation en séquestre Darna. */
 export async function confirmPaymentAction(formData: FormData): Promise<void> {
   // Garde : si Konnect est actif, seul le flux réel (startKonnectPaymentAction

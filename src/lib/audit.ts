@@ -7,6 +7,7 @@ export type AuditAction =
   | "REGISTER"
   | "LOGOUT"
   | "BOOKING_CREATED"
+  | "BOOKING_CANCELLED"
   | "BOOKING_EXPIRED"
   | "PAYMENT_INITIATED"
   | "PAYMENT_CONFIRMED"

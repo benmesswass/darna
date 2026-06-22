@@ -686,6 +686,9 @@ export const ar: Dictionary = {
     moisSuivant: "الشهور الجايين",
     placeholderPrix: "اختار التواريخ متاعك في الروزنامة باش تشوف السوم الكامل — بلا حتى مليم مخبّي.",
     selectionnezDates: "اختار التواريخ متاعك",
+    holdTimer: (time: string) => `التواريخ محجوزة · باقي ${time}`,
+    holdExpire: "وقت الدفع انتهى. التواريخ هاذي رجعت متاحة.",
+    annulerRetenue: "إلغاء وتحرير التواريخ",
   },
   alaUne: {
     titre: "حطّ إعلانك في الواجهة",

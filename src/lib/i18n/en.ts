@@ -665,6 +665,10 @@ export const en: Dictionary = {
     placeholderPrix:
       "Pick your dates on the calendar to see the total price — with no hidden fees.",
     selectionnezDates: "Select your dates",
+    holdTimer: (time: string) => `Dates held · ${time} remaining`,
+    holdExpire:
+      "Your payment window has expired. These dates are available again.",
+    annulerRetenue: "Cancel and release dates",
   },
   alaUne: {
     titre: "Feature your listing",
