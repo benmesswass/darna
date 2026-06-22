@@ -72,6 +72,7 @@ export async function ListingDetail({
 }) {
   const fr = await getT();
 
+  const isPending = property.status === "EN_ATTENTE_VALIDATION";
   const isActive =
     property.status === "ACTIVE" && property.expiresAt.getTime() > Date.now();
   const amenities = property.amenities ? property.amenities.split("|") : [];
@@ -86,7 +87,11 @@ export async function ListingDetail({
       <JsonLd data={buildPropertyJsonLd(property)} />
       {/* Garde la nav + l'accent sur la bonne verticale (route hors-section). */}
       <ActiveSection name={activeSection} />
-      {!isActive ? (
+      {isPending ? (
+        <div className="mb-6 rounded-2xl bg-amber-50 border border-amber-200 px-5 py-4 text-sm font-medium text-amber-800">
+          {fr.property.annonceEnAttente}
+        </div>
+      ) : !isActive ? (
         <div className="mb-6 rounded-2xl bg-ink px-5 py-4 text-sm font-medium text-white">
           {fr.property.annonceIndisponible}
         </div>

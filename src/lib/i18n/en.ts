@@ -235,6 +235,8 @@ export const en: Dictionary = {
     agence: "Agency",
     annonceIndisponible:
       "This listing is no longer active. It is kept for archive purposes only.",
+    annonceEnAttente:
+      "This listing is being reviewed by the Darna team. It will be visible once validated.",
     legende: "Unavailable",
     jourLibre: "Available",
     publierAvis: "Leave a review",

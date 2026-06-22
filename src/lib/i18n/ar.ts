@@ -256,6 +256,8 @@ export const ar: Dictionary = {
     agence: "وكالة",
     annonceIndisponible:
       "الإعلان هذا ما عادش نشيط. محفوظ كأرشيف فقط.",
+    annonceEnAttente:
+      "الإعلان في انتظار مراجعة فريق دارنا. باش يظهر للعامة بعد المصادقة.",
     legende: "موش متوفّر",
     jourLibre: "متوفّر",
     publierAvis: "خلّي تقييم",

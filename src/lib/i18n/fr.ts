@@ -236,6 +236,8 @@ export const fr = {
     agence: "Agence",
     annonceIndisponible:
       "Cette annonce n'est plus active. Elle est conservée à titre d'archive.",
+    annonceEnAttente:
+      "Cette annonce est en cours de vérification par l'équipe Darna. Elle sera visible dès validation.",
     legende: "Indisponible",
     jourLibre: "Libre",
     publierAvis: "Laisser un avis",
