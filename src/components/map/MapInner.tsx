@@ -50,6 +50,27 @@ function AutoResize({
   return null;
 }
 
+/**
+ * Les boutons de zoom Leaflet sont des `<a href="#">`. Au clic ils prennent le
+ * focus ; le navigateur fait alors défiler la page pour amener le lien fraîchement
+ * focalisé dans la vue → toute la page « saute » légèrement vers le bas. On annule
+ * le focus pris à la souris (`mousedown`) sans toucher au focus clavier (Tab),
+ * ce qui supprime le défilement parasite tout en gardant l'accessibilité.
+ */
+function ZoomFocusFix() {
+  const map = useMap();
+  useEffect(() => {
+    const links = map
+      .getContainer()
+      .querySelectorAll<HTMLAnchorElement>(".leaflet-control-zoom a");
+    const onMouseDown = (e: MouseEvent) => e.preventDefault();
+    links.forEach((link) => link.addEventListener("mousedown", onMouseDown));
+    return () =>
+      links.forEach((link) => link.removeEventListener("mousedown", onMouseDown));
+  }, [map]);
+  return null;
+}
+
 function escapeHtml(text: string): string {
   return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
@@ -169,6 +190,7 @@ export default function MapInner({ markers }: { markers: MapMarker[] }) {
       className="h-full w-full"
     >
       <AutoResize bounds={bounds} center={center} zoom={zoom} />
+      <ZoomFocusFix />
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -179,8 +201,7 @@ export default function MapInner({ markers }: { markers: MapMarker[] }) {
           position={[marker.latitude, marker.longitude]}
           icon={priceIcon(marker.priceLabel, marker.verified)}
           eventHandlers={{
-            // Survol : popup interactif (atteignable à la souris). autoPan
-            // désactivé pour ne pas déplacer la carte à chaque survol.
+            // Survol : popup interactif (atteignable à la souris).
             mouseover: (e) => {
               cancelClose();
               openLayer.current = e.target as L.Marker;
@@ -193,7 +214,11 @@ export default function MapInner({ markers }: { markers: MapMarker[] }) {
         >
           <Popup
             closeButton={false}
-            autoPan={false}
+            // autoPan recadre la carte uniquement quand la fiche dépasserait
+            // du cadre (marqueur près d'un bord), sinon elle resterait coupée.
+            // Padding pour garder une marge confortable autour de la fiche.
+            autoPan
+            autoPanPadding={[24, 24]}
             offset={[0, -22]}
             className="darna-map-pop"
           >
