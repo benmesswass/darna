@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
@@ -8,6 +9,7 @@ export const metadata = { title: "Modération des annonces — Admin Darna" };
 
 const propertySelect = {
   id: true,
+  slug: true,
   title: true,
   city: true,
   verified: true,
@@ -45,6 +47,7 @@ function KycBadge({ kycStatus }: { kycStatus: string }) {
 
 type Property = {
   id: string;
+  slug: string;
   title: string;
   city: string;
   verified: boolean;
@@ -84,7 +87,16 @@ function PropertyTable({
           {properties.map((p) => (
             <tr key={p.id} className="transition hover:bg-sand/40">
               <td className="px-4 py-3">
-                <div className="line-clamp-1 font-semibold text-darna-dark">{p.title}</div>
+                <Link
+                  href={`/annonce/${p.slug}`}
+                  target="_blank"
+                  className="group inline-flex items-center gap-1"
+                >
+                  <span className="line-clamp-1 font-semibold text-darna-dark underline-offset-2 group-hover:underline">
+                    {p.title}
+                  </span>
+                  <span className="shrink-0 text-[10px] text-ink/30 group-hover:text-darna">↗</span>
+                </Link>
                 <div className="text-xs text-ink/50">{p.city}</div>
               </td>
               <td className="px-4 py-3">
