@@ -134,7 +134,7 @@ export default async function AdminWakilsPage() {
                   <SoftDeleteWakilButton
                     applicationId={app.id}
                     label={fr.admin.supprimerCandidature}
-                    confirmLabel={fr.admin.supprimerCandidatureConfirm}
+                    confirmLabel={fr.admin.archiverCandidatureConfirm}
                   />
                 </div>
               </div>
