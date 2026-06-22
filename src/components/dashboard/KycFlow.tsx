@@ -8,6 +8,7 @@ import {
 } from "@/actions/kyc";
 import { useT } from "@/components/i18n/LocaleProvider";
 import { CheckIcon, ShieldIcon } from "@/components/icons";
+import { PHONE_COUNTRIES, DEFAULT_PHONE_COUNTRY } from "@/lib/constants";
 
 const inputClass =
   "w-full rounded-xl border border-darna/15 bg-cream px-3.5 py-2.5 text-sm outline-none focus:border-darna";
@@ -110,7 +111,29 @@ export function KycFlow({ initialStatus }: { initialStatus: string }) {
           </label>
           <label className="block space-y-1.5">
             <span className="text-sm font-semibold text-ink/70">{fr.kyc.telephone}</span>
-            <input name="phone" type="tel" required className={inputClass} />
+            <div className="flex gap-2">
+              <select
+                name="phoneCountry"
+                defaultValue={DEFAULT_PHONE_COUNTRY}
+                aria-label={fr.kyc.indicatifPays}
+                className={`${inputClass} w-auto shrink-0`}
+              >
+                {PHONE_COUNTRIES.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.flag} +{c.code}
+                  </option>
+                ))}
+              </select>
+              <input
+                name="phone"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel-national"
+                required
+                placeholder={fr.kyc.telephonePlaceholder}
+                className={inputClass}
+              />
+            </div>
           </label>
         </div>
         <button

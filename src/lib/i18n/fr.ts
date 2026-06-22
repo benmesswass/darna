@@ -444,7 +444,9 @@ export const fr = {
     statutEnAttente: "Vérification en cours",
     statutVerifie: "Identité vérifiée",
     cin: "Numéro de CIN (8 chiffres)",
-    telephone: "Téléphone mobile (+216…)",
+    telephone: "Téléphone mobile",
+    indicatifPays: "Indicatif pays",
+    telephonePlaceholder: "22 345 678",
     envoyerOtp: "Recevoir le code de vérification",
     otpMockInfo:
       "Mode démonstration : aucun SMS réel n'est envoyé. Votre code s'affiche ci-dessous.",
@@ -460,7 +462,13 @@ export const fr = {
     verifieDemoBravo:
       "Vérification effectuée en mode démonstration. En production, un SMS réel sera requis pour obtenir le vrai badge vérifié.",
     kycRequis:
-      "Votre identité doit être vérifiée avant de publier une annonce. Rendez-vous dans « Vérification d'identité ».",
+      "Votre identité doit être vérifiée avant de publier une annonce.",
+    gateRequiseTitre: "Vérifiez votre identité pour publier",
+    gateRequiseDesc:
+      "Pour garantir la confiance sur Darna, seuls les propriétaires vérifiés peuvent publier une annonce. La vérification prend moins de deux minutes.",
+    gateRequiseCta: "Vérifier mon identité",
+    otpEnvoiEchoue:
+      "Impossible d'envoyer le code de vérification pour le moment. Merci de réessayer dans quelques instants.",
   },
   // PR1 + PR2 — Section administration
   admin: {

@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { issueOtp, verifyOtp } from "@/lib/otp";
-import { sendOtp } from "@/lib/otp-channel";
+import { composeE164, sendOtp } from "@/lib/otp-channel";
 import { encryptSensitive } from "@/lib/crypto";
 import { kycMode } from "@/lib/modes";
 import { logAudit } from "@/lib/audit";
@@ -23,8 +23,13 @@ function isAlreadyVerified(status: string): boolean {
 
 const requestSchema = z.object({
   cin: z.string().trim().regex(/^[0-9]{8}$/),
-  phone: z.string().trim().regex(/^\+?[0-9\s]{8,16}$/),
+  // Indicatif pays (chiffres, éventuellement préfixé +) + numéro national.
+  phoneCountry: z.string().trim().regex(/^\+?[0-9]{1,4}$/),
+  phone: z.string().trim().regex(/^[0-9\s().\-]{6,18}$/),
 });
+
+/** Forme E.164 attendue : +<indicatif><national>, 8 à 15 chiffres au total. */
+const E164_RE = /^\+[1-9]\d{7,14}$/;
 
 export async function requestKycOtpAction(
   _prev: KycFormState,
@@ -42,23 +47,37 @@ export async function requestKycOtpAction(
 
   const parsed = requestSchema.safeParse({
     cin: formData.get("cin"),
+    phoneCountry: formData.get("phoneCountry"),
     phone: formData.get("phone"),
   });
   if (!parsed.success) return { error: fr.common.champsRequis };
+
+  // Numéro recomposé au format international E.164 (lève l'ambiguïté d'un
+  // numéro national à zéro de tête) et revalidé strictement côté serveur.
+  const phoneE164 = composeE164(parsed.data.phoneCountry, parsed.data.phone);
+  if (!E164_RE.test(phoneE164)) return { error: fr.common.champsRequis };
 
   // CIN chiffrée au repos si KYC_ENC_KEY est défini (sinon clair, cf. crypto.ts).
   await prisma.user.update({
     where: { id: user.id },
     data: {
       cin: encryptSensitive(parsed.data.cin),
-      phone: parsed.data.phone,
+      phone: phoneE164,
       kycStatus: "EN_ATTENTE",
     },
   });
 
   const code = await issueOtp(user.id, "KYC");
-  // PR4 : délègue à sendOtp (SMS ou WhatsApp selon OTP_PROVIDER).
-  const sent = await sendOtp(parsed.data.phone, code);
+  // PR4 : délègue à sendOtp (SMS ou WhatsApp selon OTP_PROVIDER). Un échec du
+  // provider (API WhatsApp/SMS indisponible) ne doit pas casser la page : on
+  // renvoie une erreur lisible plutôt qu'une 500.
+  let sent: boolean;
+  try {
+    sent = await sendOtp(phoneE164, code);
+  } catch {
+    await logAudit({ action: "KYC_OTP_REQUESTED", userId: user.id, success: false });
+    return { error: fr.kyc.otpEnvoiEchoue };
+  }
 
   await logAudit({ action: "KYC_OTP_REQUESTED", userId: user.id, success: true });
   revalidatePath("/dashboard/kyc");

@@ -3,7 +3,12 @@
  * Aiguillé par OTP_PROVIDER (cf. src/lib/modes.ts) :
  *
  *  • `sms` (défaut) : délègue à src/lib/sms.ts (comportement historique).
- *  • `meta-whatsapp` : envoie via WhatsApp Cloud API (META_WHATSAPP_PHONE_ID requis).
+ *  • `meta-whatsapp` : envoie via WhatsApp Cloud API. Token + phone id requis,
+ *    sous les noms historiques (META_WHATSAPP_ACCESS_TOKEN / META_WHATSAPP_PHONE_ID)
+ *    ou les alias de la checklist Meta (META_WABA_TOKEN / META_WABA_PHONE_NUMBER_ID).
+ *    Template configurable via META_WA_TEMPLATE_NAME / META_WA_TEMPLATE_LANG.
+ *    Version d'API via META_GRAPH_API_VERSION (défaut v21.0). Le numéro est
+ *    normalisé (toWhatsAppNumber) avant l'appel.
  *
  * Module SERVEUR uniquement.
  */
@@ -13,6 +18,34 @@ import { getOtpProvider } from "@/lib/modes";
 import { sendSms } from "@/lib/sms";
 
 export type OtpChannel = "sms" | "meta-whatsapp";
+
+/** Version de l'API Graph (override possible via META_GRAPH_API_VERSION). */
+const DEFAULT_GRAPH_API_VERSION = "v21.0";
+
+/**
+ * Normalise un numéro au format attendu par WhatsApp Cloud API :
+ * indicatif pays + numéro, SANS « + », espaces, tirets ni préfixe « 00 ».
+ * Ex. : "+216 22 345 678" → "21622345678" ; "0033650031666" → "33650031666".
+ * Exporté comme fonction pure pour les tests.
+ */
+export function toWhatsAppNumber(phone: string): string {
+  const compact = phone.replace(/[^\d+]/g, ""); // garde chiffres et un éventuel +
+  return compact.replace(/^\+/, "").replace(/^00/, "");
+}
+
+/**
+ * Compose un numéro E.164 (`+<indicatif><national>`) à partir d'un indicatif
+ * pays et d'un numéro national saisi par l'utilisateur. Retire les espaces et
+ * le(s) « 0 » de tête du national (format local) — ce qui lève l'ambiguïté
+ * qu'un simple numéro national ne permettait pas de résoudre.
+ * Ex. : ("33", "06 50 03 16 66") → "+33650031666".
+ * Exporté comme fonction pure pour les tests.
+ */
+export function composeE164(countryCode: string, national: string): string {
+  const cc = countryCode.replace(/\D/g, "");
+  const nat = national.replace(/\D/g, "").replace(/^0+/, "");
+  return `+${cc}${nat}`;
+}
 
 /** Masque l'e-mail dans les logs (ne jamais journaliser en clair). */
 export function maskEmail(email: string): string {
@@ -35,16 +68,23 @@ export function buildAuthHeader(bearerToken: string): Record<string, string> {
 
 /**
  * Construit le corps de la requête d'authentification WhatsApp (template auth).
+ * `templateName` / `templateLang` sont configurables (défauts : "authentication"
+ * / "fr") via META_WA_TEMPLATE_NAME / META_WA_TEMPLATE_LANG.
  * Exporté comme fonction pure pour les tests.
  */
-export function buildMetaTemplateBody(to: string, code: string): Record<string, unknown> {
+export function buildMetaTemplateBody(
+  to: string,
+  code: string,
+  templateName = "authentication",
+  templateLang = "fr"
+): Record<string, unknown> {
   return {
     messaging_product: "whatsapp",
     to,
     type: "template",
     template: {
-      name: "authentication",
-      language: { code: "fr" },
+      name: templateName,
+      language: { code: templateLang },
       components: [
         {
           type: "body",
@@ -81,8 +121,12 @@ export async function sendOtp(phone: string, code: string): Promise<boolean> {
  * absent), journalise et retourne false → l'appelant affiche le code à l'écran.
  */
 export async function sendMetaWhatsApp(phone: string, code: string): Promise<boolean> {
-  const accessToken = process.env.META_WHATSAPP_ACCESS_TOKEN;
-  const phoneId = process.env.META_WHATSAPP_PHONE_ID;
+  // Deux jeux de noms acceptés : historiques (META_WHATSAPP_*) et alias
+  // documentés dans la checklist Meta (META_WABA_*).
+  const accessToken =
+    process.env.META_WHATSAPP_ACCESS_TOKEN || process.env.META_WABA_TOKEN;
+  const phoneId =
+    process.env.META_WHATSAPP_PHONE_ID || process.env.META_WABA_PHONE_NUMBER_ID;
 
   if (!accessToken || !phoneId) {
     // Mode démo : pas de clé → journalisation sans fuite du code
@@ -93,8 +137,14 @@ export async function sendMetaWhatsApp(phone: string, code: string): Promise<boo
     return false;
   }
 
-  const url = `https://graph.facebook.com/v18.0/${phoneId}/messages`;
-  const body = buildMetaTemplateBody(phone, code);
+  const apiVersion = process.env.META_GRAPH_API_VERSION || DEFAULT_GRAPH_API_VERSION;
+  const url = `https://graph.facebook.com/${apiVersion}/${phoneId}/messages`;
+  const body = buildMetaTemplateBody(
+    toWhatsAppNumber(phone),
+    code,
+    process.env.META_WA_TEMPLATE_NAME || undefined,
+    process.env.META_WA_TEMPLATE_LANG || undefined
+  );
   const headers = buildAuthHeader(accessToken);
 
   try {

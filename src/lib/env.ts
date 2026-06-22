@@ -62,9 +62,18 @@ const envSchema = z
 
     // PR4 — Canal OTP : "sms" (défaut) | "meta-whatsapp".
     OTP_PROVIDER: z.enum(["sms", "meta-whatsapp"]).optional(),
-    // Requis si OTP_PROVIDER=meta-whatsapp.
+    // Requis si OTP_PROVIDER=meta-whatsapp. Deux jeux de noms acceptés :
+    // les noms historiques (META_WHATSAPP_*) et les alias documentés
+    // dans la checklist Meta (META_WABA_*). L'un OU l'autre suffit.
     META_WHATSAPP_ACCESS_TOKEN: z.string().optional(),
     META_WHATSAPP_PHONE_ID: z.string().optional(),
+    META_WABA_TOKEN: z.string().optional(),
+    META_WABA_PHONE_NUMBER_ID: z.string().optional(),
+    // Template WhatsApp (défauts : "authentication" / "fr"). Optionnels.
+    META_WA_TEMPLATE_NAME: z.string().optional(),
+    META_WA_TEMPLATE_LANG: z.string().optional(),
+    // Version de l'API Graph (défaut "v21.0"). Optionnel — pour migrer sans déployer.
+    META_GRAPH_API_VERSION: z.string().regex(/^v\d+\.\d+$/).optional(),
 
     // PR5 — Provider e-mail : absent/"demo" (aucun envoi) | "resend".
     EMAIL_PROVIDER: z.enum(["demo", "resend"]).optional(),
@@ -132,14 +141,13 @@ const envSchema = z
     }
 
     // PR4 — WhatsApp : tokens Meta obligatoires si OTP_PROVIDER=meta-whatsapp.
-    if (
-      e.OTP_PROVIDER === "meta-whatsapp" &&
-      !(e.META_WHATSAPP_ACCESS_TOKEN && e.META_WHATSAPP_PHONE_ID)
-    ) {
+    const hasWaToken = Boolean(e.META_WHATSAPP_ACCESS_TOKEN || e.META_WABA_TOKEN);
+    const hasWaPhoneId = Boolean(e.META_WHATSAPP_PHONE_ID || e.META_WABA_PHONE_NUMBER_ID);
+    if (e.OTP_PROVIDER === "meta-whatsapp" && !(hasWaToken && hasWaPhoneId)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message:
-          "OTP_PROVIDER=meta-whatsapp requiert META_WHATSAPP_ACCESS_TOKEN et META_WHATSAPP_PHONE_ID.",
+          "OTP_PROVIDER=meta-whatsapp requiert un token (META_WHATSAPP_ACCESS_TOKEN ou META_WABA_TOKEN) et un phone id (META_WHATSAPP_PHONE_ID ou META_WABA_PHONE_NUMBER_ID).",
       });
     }
 

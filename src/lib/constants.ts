@@ -20,6 +20,24 @@ export const PROPERTY_TYPES = ["SEJOUR", "LOCATION", "VENTE"] as const;
 export type PropertyType = (typeof PROPERTY_TYPES)[number];
 
 /**
+ * Indicatifs téléphoniques proposés au KYC (Tunisie + diaspora ciblée).
+ * Tunisie en tête (propriétaire = souvent sur place) ; France ensuite (cible
+ * diaspora prioritaire). Données de référentiel — libellés en français, comme
+ * geo.ts. Le code est ce qui compte (composition E.164 côté serveur).
+ */
+export const PHONE_COUNTRIES = [
+  { code: "216", label: "Tunisie", flag: "🇹🇳" },
+  { code: "33", label: "France", flag: "🇫🇷" },
+  { code: "32", label: "Belgique", flag: "🇧🇪" },
+  { code: "49", label: "Allemagne", flag: "🇩🇪" },
+  { code: "41", label: "Suisse", flag: "🇨🇭" },
+  { code: "39", label: "Italie", flag: "🇮🇹" },
+  { code: "44", label: "Royaume-Uni", flag: "🇬🇧" },
+  { code: "1", label: "USA / Canada", flag: "🇺🇸" },
+] as const;
+export const DEFAULT_PHONE_COUNTRY = "216";
+
+/**
  * Verticales du produit — frontière de module ET de feature-flag (cf.
  * src/modules/README.md). DISTINCT du `type` d'annonce : STAY ⊃ {SEJOUR} ;
  * IMMO ⊃ {LOCATION, VENTE}. L'activation/désactivation par config vit dans
