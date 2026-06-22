@@ -95,6 +95,7 @@ describe("verifyPropertyAction", () => {
 
     const fd = new FormData();
     fd.set("propertyId", PROP_ID);
+    fd.set("verificationLevel", "REMOTE");
     const result = await verifyPropertyAction(undefined, fd);
 
     expect(result?.success).toBeDefined();
@@ -117,6 +118,7 @@ describe("verifyPropertyAction", () => {
 
     const fd = new FormData();
     fd.set("propertyId", PROP_ID_2);
+    fd.set("verificationLevel", "ON_SITE");
     const result = await verifyPropertyAction(undefined, fd);
 
     expect(result?.success).toBeDefined();
