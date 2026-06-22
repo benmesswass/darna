@@ -324,8 +324,11 @@ model WakilApplication {
   reviewedAt    DateTime?
   reviewedById  String?
   reviewedBy    User?    @relation("WakilApplicationReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  interviewAt   DateTime?
+  deletedAt     DateTime?
 
   @@index([userId])
+  @@index([deletedAt])
 }
 
 /**

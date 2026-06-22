@@ -4,6 +4,7 @@ import { z } from "zod";
 import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { assertRateLimit } from "@/lib/rate-limit";
+import { notifyAdmins } from "@/lib/admin-notify";
 
 export type WakilFormState = { error?: string; success?: string } | undefined;
 
@@ -34,6 +35,13 @@ export async function applyWakilAction(
   if (!parsed.success) return { error: fr.common.champsRequis };
 
   await prisma.wakilApplication.create({ data: parsed.data });
+
+  // Fire-and-forget
+  void notifyAdmins("NEW_WAKIL_APPLICATION", {
+    name: parsed.data.name,
+    email: parsed.data.email,
+    city: parsed.data.city,
+  });
 
   return { success: fr.wakil.candidatureEnvoyee };
 }

@@ -112,11 +112,13 @@ export async function unverifyPropertyAction(
 const reviewWakilSchema = z.object({
   applicationId: z.string().cuid(),
   decision: z.enum(["ACCEPTEE", "REFUSEE", "ENTRETIEN"]),
+  interviewAt: z.string().optional(),
 });
 
 /**
  * Revoit une candidature Wakil (ACCEPTEE / REFUSEE / ENTRETIEN).
  * Si ACCEPTEE, promeut le compte utilisateur lié (isWakil = true).
+ * Si ENTRETIEN, accepte une date/heure optionnelle (ISO string).
  * Garde : admin uniquement.
  */
 export async function reviewWakilApplicationAction(
@@ -129,10 +131,11 @@ export async function reviewWakilApplicationAction(
   const parsed = reviewWakilSchema.safeParse({
     applicationId: formData.get("applicationId"),
     decision: formData.get("decision"),
+    interviewAt: formData.get("interviewAt") || undefined,
   });
   if (!parsed.success) return { error: fr.common.champsRequis };
 
-  const { applicationId, decision } = parsed.data;
+  const { applicationId, decision, interviewAt } = parsed.data;
 
   const application = await prisma.wakilApplication.findUnique({
     where: { id: applicationId },
@@ -140,12 +143,21 @@ export async function reviewWakilApplicationAction(
   });
   if (!application) return { error: fr.common.erreurInconnue };
 
+  let interviewDate: Date | null | undefined = undefined;
+  if (decision === "ENTRETIEN" && interviewAt) {
+    const parsed = new Date(interviewAt);
+    if (!isNaN(parsed.getTime())) interviewDate = parsed;
+  } else if (decision !== "ENTRETIEN") {
+    interviewDate = null; // clear if not entretien
+  }
+
   await prisma.wakilApplication.update({
     where: { id: applicationId },
     data: {
       status: decision,
       reviewedAt: new Date(),
       reviewedById: actor.id,
+      ...(interviewDate !== undefined ? { interviewAt: interviewDate } : {}),
     },
   });
 
@@ -170,4 +182,75 @@ export async function reviewWakilApplicationAction(
 
   revalidatePath("/dashboard/admin/wakils");
   return { success: fr.admin.candidatureRevue };
+}
+
+const appIdSchema = z.object({ applicationId: z.string().cuid() });
+
+/**
+ * Soft-delete : archive une candidature (deletedAt = now).
+ * Garde : admin uniquement.
+ */
+export async function softDeleteWakilApplicationAction(
+  _prev: AdminActionState,
+  formData: FormData
+): Promise<AdminActionState> {
+  const fr = await getT();
+  const actor = await requireAdmin();
+
+  const parsed = appIdSchema.safeParse({ applicationId: formData.get("applicationId") });
+  if (!parsed.success) return { error: fr.common.champsRequis };
+
+  const application = await prisma.wakilApplication.findUnique({
+    where: { id: parsed.data.applicationId },
+    select: { id: true, email: true, deletedAt: true },
+  });
+  if (!application || application.deletedAt) return { error: fr.common.erreurInconnue };
+
+  await prisma.wakilApplication.update({
+    where: { id: parsed.data.applicationId },
+    data: { deletedAt: new Date() },
+  });
+
+  await logAudit({
+    action: "WAKIL_STATUS_CHANGED",
+    userId: actor.id,
+    metadata: { applicationId: parsed.data.applicationId, decision: "ARCHIVED", candidateEmail: application.email },
+  });
+
+  revalidatePath("/dashboard/admin/wakils");
+  return { success: fr.admin.candidatureSupprimee };
+}
+
+/**
+ * Hard-delete : supprime définitivement une candidature archivée.
+ * Garde : admin uniquement.
+ */
+export async function hardDeleteWakilApplicationAction(
+  _prev: AdminActionState,
+  formData: FormData
+): Promise<AdminActionState> {
+  const fr = await getT();
+  const actor = await requireAdmin();
+
+  const parsed = appIdSchema.safeParse({ applicationId: formData.get("applicationId") });
+  if (!parsed.success) return { error: fr.common.champsRequis };
+
+  const application = await prisma.wakilApplication.findUnique({
+    where: { id: parsed.data.applicationId },
+    select: { id: true, email: true, deletedAt: true },
+  });
+  if (!application || !application.deletedAt) return { error: fr.common.erreurInconnue };
+
+  await prisma.wakilApplication.delete({
+    where: { id: parsed.data.applicationId },
+  });
+
+  await logAudit({
+    action: "WAKIL_STATUS_CHANGED",
+    userId: actor.id,
+    metadata: { applicationId: parsed.data.applicationId, decision: "HARD_DELETED", candidateEmail: application.email },
+  });
+
+  revalidatePath("/dashboard/admin/wakils");
+  return { success: fr.admin.candidatureDefinitivementSupprimee };
 }

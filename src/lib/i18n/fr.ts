@@ -467,6 +467,8 @@ export const fr = {
     badge: "Admin",
     titre: "Administration Darna",
     annonces: "Annonces",
+    navAnnonces: "Vérif. annonces",
+    navWakils: "Vérif. Wakils",
     wakils: "Wakils",
     fileModeration: "File de modération des annonces",
     fileModerationDesc:
@@ -496,8 +498,19 @@ export const fr = {
     accepter: "Accepter",
     refuser: "Refuser",
     planifierEntretien: "Entretien",
+    entretienLabel: "Date d'entretien",
+    entretienPlaceholder: "JJ/MM/AAAA HH:MM",
+    entretienPlanifie: (date: string) => `Entretien prévu le ${date}`,
     candidatureRevue: "Candidature mise à jour.",
     revuePar: (nom: string) => `Revue par ${nom}`,
+    supprimerCandidature: "Supprimer",
+    supprimerCandidatureConfirm: "Supprimer définitivement cette candidature ?",
+    candidatureSupprimee: "Candidature supprimée.",
+    candidatureDefinitivementSupprimee: "Candidature supprimée définitivement.",
+    wakilsSupprimees: "Candidatures supprimées",
+    wakilsSupprimeeesDesc: "Ces candidatures ont été archivées. Vous pouvez les supprimer définitivement.",
+    supprimerDefinitivement: "Supprimer définitivement",
+    aucuneCandidatureSupprimee: "Aucune candidature archivée.",
   },
   // PR5 — Vérification e-mail
   email: {

@@ -18,6 +18,7 @@ import {
   deleteUploadedImage,
   saveUploadedImage,
 } from "@/lib/uploads";
+import { notifyAdmins } from "@/lib/admin-notify";
 
 export type PropertyFormState = { error?: string } | undefined;
 
@@ -152,6 +153,14 @@ export async function createPropertyAction(
     userId: user.id,
     success: true,
     metadata: { propertyId: property.id, type: data.type, city: cityRef.name },
+  });
+
+  // Fire-and-forget — ne bloque pas la redirection
+  void notifyAdmins("NEW_PROPERTY", {
+    title: data.title,
+    city: cityRef.name,
+    ownerName: user.name,
+    ownerEmail: user.email,
   });
 
   revalidatePath("/dashboard/annonces");
