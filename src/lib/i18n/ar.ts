@@ -479,9 +479,7 @@ export const ar: Dictionary = {
     statutEnAttente: "التوثيق جاري",
     statutVerifie: "الهوية موثّقة",
     cin: "رقم بطاقة التعريف (8 أرقام)",
-    telephone: "الهاتف الجوّال",
-    indicatifPays: "مفتاح الدولة",
-    telephonePlaceholder: "22 345 678",
+    telephone: "الهاتف الجوّال (+216…)",
     envoyerOtp: "ابعثلي رمز التثبّت",
     otpMockInfo:
       "وضع تجريبي: حتى SMS حقيقي ما يتبعث. الرمز متاعك يظهر لوطا.",
@@ -497,13 +495,7 @@ export const ar: Dictionary = {
     verifieDemoBravo:
       "التثبّت تمّ في الوضع التجريبي. في الإنتاج، يلزم SMS حقيقي باش تاخذ علامة التوثيق الحقيقية.",
     kycRequis:
-      "يلزمك توثيق هويتك قبل نشر إعلان.",
-    gateRequiseTitre: "وثّق هويتك باش تنشر",
-    gateRequiseDesc:
-      "باش نحافظو على الثقة في دارنا، الإعلان ينشرو كان الملاّك الموثّقين. التوثيق ياخذ أقل من دقيقتين.",
-    gateRequiseCta: "وثّق هويتي",
-    otpEnvoiEchoue:
-      "ما نجمناش نبعثو كود التثبّت توا. عاود المحاولة بعد شويّة.",
+      "يلزمك توثيق هويتك قبل نشر إعلان. روح لقسم «توثيق الهوية».",
   },
   admin: {
     badge: "أدمين",
@@ -548,13 +540,13 @@ export const ar: Dictionary = {
     candidatureRevue: "تمّ تحديث الطلب.",
     revuePar: (nom: string) => `راجعه ${nom}`,
     supprimerCandidature: "أرشفة",
-    archiverCandidatureConfirm: "أرشفة هذا الطلب؟",
-    supprimerCandidatureConfirm: "حذف هذا الطلب نهائياً؟",
+    supprimerCandidatureConfirm: "أرشفة هذا الطلب؟",
+    supprimerDefinitivementConfirm: "حذف هذا الطلب نهائياً؟",
     candidatureSupprimee: "تمّت أرشفة الطلب.",
     candidatureDefinitivementSupprimee: "تمّ حذف الطلب نهائياً.",
     wakilsSupprimees: "الطلبات المؤرشفة",
     wakilsSupprimeeesDesc: "هذه الطلبات تمّت أرشفتها. يمكنك حذفها نهائياً.",
-    supprimerDefinitivement: "حذف",
+    supprimerDefinitivement: "حذف نهائي",
     aucuneCandidatureSupprimee: "لا توجد طلبات مؤرشفة.",
   },
   email: {
