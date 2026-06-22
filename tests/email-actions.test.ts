@@ -49,6 +49,8 @@ vi.mock("@/lib/i18n/server", () => ({
   getT: vi.fn().mockResolvedValue({
     email: {
       otpInvalide: "Code incorrect.",
+      mailSujet: "Darna — vérifiez votre adresse e-mail",
+      mailCorpsHtml: (code: string) => `<p>Code : ${code}</p>`,
     },
     common: {
       tropDeTentatives: "Trop de tentatives.",

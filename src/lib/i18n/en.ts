@@ -552,6 +552,10 @@ export const en: Dictionary = {
     otpInvalide: "Incorrect code. Please try again.",
     verifieBravo: "Your email address is verified.",
     dejaVerifie: "Your email address is already verified.",
+    mailSujet: "Darna — verify your email address",
+    mailCorpsHtml: (code: string) =>
+      `<p>Your Darna verification code: <strong>${code}</strong></p>` +
+      `<p>This code expires in 10 minutes.</p>`,
   },
   profil: {
     titre: "My details",

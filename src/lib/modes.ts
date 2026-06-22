@@ -32,11 +32,21 @@ export function paymentMode(): PaymentMode {
 
 /**
  * Mode KYC. Défaut : `demo` (OTP affiché à l'écran, statut DEMO_VERIFIE). En
- * `production` : SMS réel obligatoire, aucun code retourné au client, statut
+ * `production` : envoi réel obligatoire, aucun code retourné au client, statut
  * VERIFIE réservé au workflow réel (cf. src/actions/kyc.ts).
+ *
+ * DÉRIVÉ DU CANAL OTP : un canal réel (tout `OTP_PROVIDER` ≠ `sms`, p. ex.
+ * `meta-whatsapp`) implique forcément un envoi réel → on bascule en
+ * `production` même si `KYC_MODE` n'est pas posé. Cela supprime le piège « OTP
+ * vraiment envoyé sur WhatsApp mais utilisateur seulement DEMO_VERIFIE ». Le
+ * canal `sms` reste le seul à dégradation démo possible (cf. src/lib/sms.ts),
+ * d'où le besoin de `KYC_MODE=production` explicite pour le forcer. Rétro-compat :
+ * `KYC_MODE=production` force toujours `production`.
  */
 export function kycMode(): KycMode {
-  return process.env.KYC_MODE === "production" ? "production" : "demo";
+  if (process.env.KYC_MODE === "production") return "production";
+  if (getOtpProvider() !== "sms") return "production";
+  return "demo";
 }
 
 /**

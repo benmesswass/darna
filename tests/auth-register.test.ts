@@ -39,6 +39,10 @@ vi.mock("@/lib/i18n/server", () => ({
   getT: vi.fn().mockResolvedValue({
     auth: { inscriptionReussie: "Compte créé !" },
     common: { champsRequis: "Champs requis.", tropDeTentatives: "Trop de tentatives." },
+    email: {
+      mailSujet: "Darna — vérifiez votre adresse e-mail",
+      mailCorpsHtml: (code: string) => `<p>Code : ${code}</p>`,
+    },
   }),
 }));
 

@@ -99,11 +99,8 @@ export async function registerAction(
     const code = await issueOtp(user.id, "EMAIL");
     await sendEmail({
       to: user.email,
-      subject: "Darna — vérifiez votre adresse e-mail",
-      html: `
-    <p>Votre code de vérification Darna : <strong>${code}</strong></p>
-    <p>Ce code expire dans 10 minutes.</p>
-  `,
+      subject: fr.email.mailSujet,
+      html: fr.email.mailCorpsHtml(code),
     });
     await logAudit({ action: "EMAIL_OTP_REQUESTED", userId: user.id, success: true });
   } catch {
