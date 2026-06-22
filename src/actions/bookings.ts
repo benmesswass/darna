@@ -6,7 +6,7 @@ import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireUser, getSessionUser } from "@/lib/session";
 import { SERVICE_FEE_RATE, SITE_URL } from "@/lib/config";
 import { BOOKING_EXPIRY_MS } from "@/lib/constants";
 import { logAudit, logStructured } from "@/lib/audit";
@@ -38,14 +38,13 @@ class BookingConflictError extends Error {
  * alors que le calendrier les propose librement (la page reserver filtre déjà
  * `expiresAt > now`). C'est exactement le même critère, gardé cohérent ici.
  */
-function blockingBookingOverlap(checkIn: Date, checkOut: Date) {
+function blockingBookingOverlap(checkIn: Date, checkOut: Date, excludeGuestId?: string) {
+  const enAttente: Record<string, unknown> = { status: "EN_ATTENTE", expiresAt: { gt: new Date() } };
+  if (excludeGuestId) enAttente.guestId = { not: excludeGuestId };
   return {
     checkIn: { lt: checkOut },
     checkOut: { gt: checkIn },
-    OR: [
-      { status: "CONFIRMEE" },
-      { status: "EN_ATTENTE", expiresAt: { gt: new Date() } },
-    ],
+    OR: [{ status: "CONFIRMEE" }, enAttente],
   };
 }
 
@@ -142,13 +141,24 @@ export async function createBookingAction(
         data: { status: "ANNULEE" },
       });
 
+      // 1b. Annuler les holds EN_ATTENTE encore valides du même utilisateur sur ce
+      //     logement : permet de re-réserver après un retour arrière sans conflit.
+      await tx.booking.updateMany({
+        where: {
+          propertyId: property.id,
+          guestId: user.id,
+          status: "EN_ATTENTE",
+        },
+        data: { status: "ANNULEE" },
+      });
+
       // 2. Vérification de disponibilité DANS la transaction
       //    (TOCTOU impossible : lecture et écriture sont atomiques)
       const conflict = await tx.property.findFirst({
         where: {
           id: property.id,
           OR: [
-            { bookings: { some: blockingBookingOverlap(checkIn, checkOut) } },
+            { bookings: { some: blockingBookingOverlap(checkIn, checkOut, user.id) } },
             {
               availabilities: {
                 some: { startDate: { lt: checkOut }, endDate: { gt: checkIn } },
@@ -235,6 +245,9 @@ export async function quoteBookingAction(input: {
   voyageurs: number;
 }): Promise<BookingQuote> {
   const fr = await getT();
+  // Optionnel : exclure les holds EN_ATTENTE de l'utilisateur courant pour qu'il
+  // puisse re-réserver après un retour arrière sans voir une fausse erreur.
+  const sessionUser = await getSessionUser();
   const parsed = quoteSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: fr.booking.datesInvalides };
 
@@ -273,11 +286,13 @@ export async function quoteBookingAction(input: {
   }
 
   // Conflit de disponibilité : réservations actives + blocages hôte.
+  // Les holds EN_ATTENTE du visiteur courant sont ignorés : il peut re-réserver
+  // après un retour arrière (createBookingAction annulera l'ancien hold).
   const conflict = await prisma.property.findFirst({
     where: {
       id: property.id,
       OR: [
-        { bookings: { some: blockingBookingOverlap(checkIn, checkOut) } },
+        { bookings: { some: blockingBookingOverlap(checkIn, checkOut, sessionUser?.id) } },
         {
           availabilities: {
             some: { startDate: { lt: checkOut }, endDate: { gt: checkIn } },

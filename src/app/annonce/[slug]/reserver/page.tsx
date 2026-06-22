@@ -19,8 +19,7 @@ export default async function ReserverPage({
   searchParams: Promise<{ arrivee?: string; depart?: string; voyageurs?: string }>;
 }) {
   const fr = await getT();
-  const { slug } = await params;
-  const sp = await searchParams;
+  const [{ slug }, sp, user] = await Promise.all([params, searchParams, getSessionUser()]);
 
   const property = await prisma.property.findUnique({
     where: { slug },
@@ -38,12 +37,18 @@ export default async function ReserverPage({
       ownerId: true,
       // Disponibilités temps réel : nuits confirmées + holds en attente non
       // expirés + blocages hôte → affichées directement sur le calendrier.
+      // Les holds EN_ATTENTE de l'utilisateur courant sont exclus : il doit
+      // pouvoir re-sélectionner ses dates après un retour arrière.
       bookings: {
         where: {
           checkOut: { gte: new Date() },
           OR: [
             { status: "CONFIRMEE" },
-            { status: "EN_ATTENTE", expiresAt: { gt: new Date() } },
+            {
+              status: "EN_ATTENTE",
+              expiresAt: { gt: new Date() },
+              ...(user ? { guestId: { not: user.id } } : {}),
+            },
           ],
         },
         select: { checkIn: true, checkOut: true },
@@ -57,8 +62,6 @@ export default async function ReserverPage({
   if (property.status !== "ACTIVE" || property.expiresAt.getTime() < Date.now()) {
     redirect(`/annonce/${slug}`);
   }
-
-  const user = await getSessionUser();
 
   // Un hôte ne peut pas réserver son propre logement : on l'explique d'emblée
   // plutôt que de laisser le formulaire échouer après affichage du prix.

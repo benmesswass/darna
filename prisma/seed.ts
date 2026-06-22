@@ -12,6 +12,7 @@ const prisma = new PrismaClient();
 
 const DAY = 24 * 60 * 60 * 1000;
 const now = new Date();
+now.setUTCHours(0, 0, 0, 0); // Align to midnight UTC — consistent with booking dates (T00:00:00.000Z)
 const daysAgo = (n: number) => new Date(now.getTime() - n * DAY);
 const daysFromNow = (n: number) => new Date(now.getTime() + n * DAY);
 
