@@ -93,6 +93,7 @@ model Property {
   vertical    String // STAY | IMMO
   status      String   @default("EN_ATTENTE_VALIDATION") // EN_ATTENTE_VALIDATION | ACTIVE | LOUE | VENDU | EXPIREE
   verified    Boolean  @default(false)
+  verificationLevel String? // null | "REMOTE" | "ON_SITE"
   // PR1 — vérification admin/wakil : date et auteur de la vérification.
   verifiedAt   DateTime?
   verifiedById String?

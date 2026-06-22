@@ -119,6 +119,8 @@ export const fr = {
   },
   badges: {
     verifie: "Vérifié Darna",
+    verifieRemote: "Vérifié par Darna",
+    verifieOnSite: "Certifié Wakil",
     nonVerifie: "Non vérifié",
     publieAujourdhui: "Publié aujourd'hui",
     publieHier: "Publié hier",
@@ -230,6 +232,19 @@ export const fr = {
     fraisServiceInfo: "Frais de service transparents inclus au paiement",
     verifieTooltip:
       "Ce bien a été visité et vérifié par un Wakil Darna : il existe, et les photos correspondent.",
+    verifieRemoteTooltip:
+      "L'équipe Darna a contrôlé les photos, l'identité du propriétaire et effectué un appel vidéo.",
+    verifieOnSiteTooltip:
+      "Un agent Wakil s'est rendu physiquement sur place. Le bien existe, les photos sont conformes à la réalité.",
+    verifieRemoteCriteres: "Photos · Identité · Appel vidéo",
+    verifieOnSiteCriteres: "Visite · Photos · Identité",
+    verifieRemoteBloc:
+      "L'équipe Darna a contrôlé les photos et les informations de cette annonce (appel vidéo ou vérification documentaire avec le propriétaire).",
+    verifieOnSiteBloc:
+      "Un agent Wakil s'est rendu sur place. Il a confirmé que le bien existe, que les photos sont conformes à la réalité et que le propriétaire est joignable.",
+    verifiePar: (nom: string) => `par ${nom}`,
+    enSavoirPlusWakil: "En savoir plus sur le réseau Wakil",
+    enSavoirPlusDarna: "En savoir plus sur nos contrôles",
     nonVerifieTooltip:
       "Ce bien n'a pas encore été vérifié sur le terrain. Ne versez jamais d'acompte hors de Darna.",
     proprietaire: "Propriétaire",
@@ -494,6 +509,8 @@ export const fr = {
     verifiee: "Vérifiée",
     nonVerifiee: "Non vérifiée",
     verifier: "Vérifier",
+    verifierRemote: "Vérifié Darna (photos/vidéo)",
+    verifierOnSite: "Certifié Wakil (sur place)",
     retirerVerification: "Retirer",
     verifiePar: (nom: string) => `Vérifié par ${nom}`,
     annonceMiseAVerifiee: "Annonce marquée comme vérifiée.",

@@ -337,6 +337,7 @@ export async function getPropertyBySlug(slug: string) {
           createdAt: true,
         },
       },
+      verifiedBy: { select: { name: true } },
       reviews: {
         orderBy: { createdAt: "desc" },
         include: { author: { select: { name: true } } },

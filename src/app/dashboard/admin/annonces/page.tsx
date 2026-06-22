@@ -130,7 +130,8 @@ function PropertyTable({
                       <div className="flex flex-col items-end gap-1">
                         <VerifyPropertyButton
                           propertyId={p.id}
-                          label={fr.admin.verifier}
+                          labelRemote={fr.admin.verifierRemote}
+                          labelOnSite={fr.admin.verifierOnSite}
                           disabled={!ownerOk}
                           disabledTitle={fr.admin.proprietaireNonVerifie}
                         />

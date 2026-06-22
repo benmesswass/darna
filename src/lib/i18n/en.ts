@@ -118,6 +118,8 @@ export const en: Dictionary = {
   },
   badges: {
     verifie: "Darna Verified",
+    verifieRemote: "Verified by Darna",
+    verifieOnSite: "Wakil Certified",
     nonVerifie: "Not verified",
     publieAujourdhui: "Posted today",
     publieHier: "Posted yesterday",
@@ -229,6 +231,19 @@ export const en: Dictionary = {
     fraisServiceInfo: "Transparent service fee included at checkout",
     verifieTooltip:
       "This property has been visited and verified by a Darna Wakil: it exists, and the photos match.",
+    verifieRemoteTooltip:
+      "The Darna team checked the photos, the owner's identity and conducted a video call.",
+    verifieOnSiteTooltip:
+      "A Wakil agent physically visited the property. It exists and the photos match reality.",
+    verifieRemoteCriteres: "Photos · Identity · Video call",
+    verifieOnSiteCriteres: "On-site visit · Photos · Identity",
+    verifieRemoteBloc:
+      "The Darna team reviewed the photos and information for this listing (video call or document verification with the owner).",
+    verifieOnSiteBloc:
+      "A Wakil agent visited the property in person. They confirmed the property exists, the photos match reality and the owner is reachable.",
+    verifiePar: (nom: string) => `by ${nom}`,
+    enSavoirPlusWakil: "Learn more about the Wakil network",
+    enSavoirPlusDarna: "Learn more about our checks",
     nonVerifieTooltip:
       "This property has not been verified on the ground yet. Never pay a deposit outside Darna.",
     proprietaire: "Owner",
@@ -492,6 +507,8 @@ export const en: Dictionary = {
     verifiee: "Verified",
     nonVerifiee: "Not verified",
     verifier: "Verify",
+    verifierRemote: "Darna Verified (photos/video)",
+    verifierOnSite: "Wakil Certified (on-site)",
     retirerVerification: "Remove",
     verifiePar: (nom: string) => `Verified by ${nom}`,
     annonceMiseAVerifiee: "Listing marked as verified.",
