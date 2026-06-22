@@ -486,6 +486,7 @@ export const fr = {
     proprietaireNonVerifie:
       "Le propriétaire doit être vérifié (KYC) pour que l'annonce reçoive le badge.",
     aucuneAnnonce: "Aucune annonce active pour le moment.",
+    annoncesDejVerifiees: "Annonces déjà vérifiées",
     candidaturesWakil: "Candidatures Wakil",
     candidaturesWakilDesc:
       "Traitez les candidatures Wakil reçues. Accepter une candidature promeut automatiquement le compte lié.",

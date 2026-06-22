@@ -502,6 +502,7 @@ export const ar: Dictionary = {
     proprietaireNonVerifie:
       "يلزم يكون المالك موثّق (KYC) باش يتوثّق الإعلان.",
     aucuneAnnonce: "حتى إعلان نشط في الوقت الحالي.",
+    annoncesDejVerifiees: "الإعلانات الموثّقة مسبقاً",
     candidaturesWakil: "طلبات الوكلاء",
     candidaturesWakilDesc:
       "عالج طلبات الوكلاء الواصلة. القبول يرقّي الحساب المربوط تلقائياً.",

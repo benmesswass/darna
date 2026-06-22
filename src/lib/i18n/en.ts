@@ -484,6 +484,7 @@ export const en: Dictionary = {
     proprietaireNonVerifie:
       "The owner must be KYC-verified for the listing to receive the badge.",
     aucuneAnnonce: "No active listings at the moment.",
+    annoncesDejVerifiees: "Already verified listings",
     candidaturesWakil: "Wakil applications",
     candidaturesWakilDesc:
       "Process received Wakil applications. Accepting an application automatically promotes the linked account.",
