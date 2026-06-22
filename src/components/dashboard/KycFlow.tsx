@@ -10,8 +10,9 @@ import { useT } from "@/components/i18n/LocaleProvider";
 import { CheckIcon, ShieldIcon } from "@/components/icons";
 import { PHONE_COUNTRIES, DEFAULT_PHONE_COUNTRY } from "@/lib/constants";
 
-const inputClass =
-  "w-full rounded-xl border border-darna/15 bg-cream px-3.5 py-2.5 text-sm outline-none focus:border-darna";
+const fieldBase =
+  "rounded-xl border border-darna/15 bg-cream px-3.5 py-2.5 text-sm outline-none focus:border-darna";
+const inputClass = `${fieldBase} w-full`;
 
 export function KycFlow({ initialStatus }: { initialStatus: string }) {
   const fr = useT();
@@ -116,7 +117,7 @@ export function KycFlow({ initialStatus }: { initialStatus: string }) {
                 name="phoneCountry"
                 defaultValue={DEFAULT_PHONE_COUNTRY}
                 aria-label={fr.kyc.indicatifPays}
-                className={`${inputClass} w-auto shrink-0`}
+                className={`${fieldBase} shrink-0`}
               >
                 {PHONE_COUNTRIES.map((c) => (
                   <option key={c.code} value={c.code}>
@@ -131,7 +132,7 @@ export function KycFlow({ initialStatus }: { initialStatus: string }) {
                 autoComplete="tel-national"
                 required
                 placeholder={fr.kyc.telephonePlaceholder}
-                className={inputClass}
+                className={`${fieldBase} min-w-0 flex-1`}
               />
             </div>
           </label>
