@@ -201,8 +201,7 @@ export default function MapInner({ markers }: { markers: MapMarker[] }) {
           position={[marker.latitude, marker.longitude]}
           icon={priceIcon(marker.priceLabel, marker.verified)}
           eventHandlers={{
-            // Survol : popup interactif (atteignable à la souris). autoPan
-            // désactivé pour ne pas déplacer la carte à chaque survol.
+            // Survol : popup interactif (atteignable à la souris).
             mouseover: (e) => {
               cancelClose();
               openLayer.current = e.target as L.Marker;
@@ -215,7 +214,11 @@ export default function MapInner({ markers }: { markers: MapMarker[] }) {
         >
           <Popup
             closeButton={false}
-            autoPan={false}
+            // autoPan recadre la carte uniquement quand la fiche dépasserait
+            // du cadre (marqueur près d'un bord), sinon elle resterait coupée.
+            // Padding pour garder une marge confortable autour de la fiche.
+            autoPan
+            autoPanPadding={[24, 24]}
             offset={[0, -22]}
             className="darna-map-pop"
           >
