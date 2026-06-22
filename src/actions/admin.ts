@@ -52,6 +52,7 @@ export async function verifyPropertyAction(
   await prisma.property.update({
     where: { id: property.id },
     data: {
+      status: "ACTIVE",
       verified: true,
       verifiedAt: new Date(),
       verifiedById: actor.id,

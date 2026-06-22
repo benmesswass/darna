@@ -299,7 +299,10 @@ export async function republishPropertyAction(formData: FormData): Promise<void>
   await prisma.property.update({
     where: { id: property.id },
     data: {
-      status: "ACTIVE",
+      status: "EN_ATTENTE_VALIDATION",
+      verified: false,
+      verifiedAt: null,
+      verifiedById: null,
       publishedAt: new Date(),
       expiresAt: new Date(Date.now() + LISTING_LIFETIME_DAYS * 24 * 60 * 60 * 1000),
     },

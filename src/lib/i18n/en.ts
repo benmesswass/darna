@@ -123,6 +123,7 @@ export const en: Dictionary = {
     publieHier: "Posted yesterday",
     publieIlYa: (jours: number) => `Posted ${jours} days ago`,
     expiree: "Expired listing",
+    enAttenteValidation: "Pending validation",
     loue: "Rented",
     vendu: "Sold",
     sejour: "Stay",

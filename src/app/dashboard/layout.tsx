@@ -33,7 +33,7 @@ export default async function DashboardLayout({
   let pendingWakils = 0;
   if (isAdminOrWakil) {
     [pendingAnnonces, pendingWakils] = await Promise.all([
-      prisma.property.count({ where: { status: "ACTIVE", verified: false } }),
+      prisma.property.count({ where: { status: "EN_ATTENTE_VALIDATION" } }),
       user.role === "ADMIN"
         ? prisma.wakilApplication.count({ where: { status: "RECUE", deletedAt: null } })
         : Promise.resolve(0),

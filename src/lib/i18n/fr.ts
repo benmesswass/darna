@@ -124,6 +124,7 @@ export const fr = {
     publieHier: "Publié hier",
     publieIlYa: (jours: number) => `Publié il y a ${jours} jours`,
     expiree: "Annonce expirée",
+    enAttenteValidation: "En attente de validation",
     loue: "Loué",
     vendu: "Vendu",
     sejour: "Séjour",

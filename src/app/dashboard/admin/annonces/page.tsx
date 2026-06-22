@@ -165,7 +165,7 @@ export default async function AdminAnnoncesPage() {
   const [pending, verified] = await Promise.all([
     // File de modération : annonces actives NON vérifiées
     prisma.property.findMany({
-      where: { status: "ACTIVE", verified: false },
+      where: { status: "EN_ATTENTE_VALIDATION" },
       orderBy: { createdAt: "asc" },
       select: propertySelect,
       take: 100,

@@ -69,12 +69,19 @@ export async function TypeBadge({ type }: { type: string }) {
 
 export async function StatusBadge({ status }: { status: string }) {
   const fr = await getT();
+  if (status === "ACTIVE") return null;
+  if (status === "EN_ATTENTE_VALIDATION") {
+    return (
+      <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold text-amber-800">
+        {fr.badges.enAttenteValidation}
+      </span>
+    );
+  }
   const STATUS_LABELS: Record<string, string> = {
     LOUE: fr.badges.loue,
     VENDU: fr.badges.vendu,
     EXPIREE: fr.badges.expiree,
   };
-  if (status === "ACTIVE") return null;
   return (
     <span className="inline-flex items-center rounded-full bg-ink px-2.5 py-1 text-[11px] font-semibold text-white">
       {STATUS_LABELS[status] ?? status}

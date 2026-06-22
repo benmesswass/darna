@@ -93,13 +93,14 @@ export default async function MesAnnoncesPage({
         <ul className="mt-5 space-y-4">
           {properties.map((p) => {
             const isExpired = p.expiresAt.getTime() < nowMs;
+            const isPending = p.status === "EN_ATTENTE_VALIDATION";
             const effectiveExpired = isExpired && p.status === "ACTIVE";
             const daysLeft = Math.ceil(
               (p.expiresAt.getTime() - nowMs) / (24 * 60 * 60 * 1000)
             );
             const canClose =
               p.status === "ACTIVE" && (p.type === "LOCATION" || p.type === "VENTE");
-            const canRepublish = p.status !== "ACTIVE" || isExpired;
+            const canRepublish = (p.status !== "ACTIVE" && !isPending) || isExpired;
             const featured = isListingFeatured(p.featuredUntil);
             const canFeature = p.status === "ACTIVE" && !isExpired;
 

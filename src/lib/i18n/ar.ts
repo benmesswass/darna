@@ -127,6 +127,7 @@ export const ar: Dictionary = {
     publieIlYa: (jours: number) =>
       jours === 2 ? "تنشر عندو يومين" : `تنشر عندو ${jours} أيام`,
     expiree: "إعلان منتهي",
+    enAttenteValidation: "في انتظار المراجعة",
     loue: "تكرى",
     vendu: "تباع",
     sejour: "إقامة",
