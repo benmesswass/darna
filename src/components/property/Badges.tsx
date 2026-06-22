@@ -1,24 +1,28 @@
 import { getT } from "@/lib/i18n/server";
-import { CheckIcon, StarIcon } from "@/components/icons";
+import { CheckIcon, ShieldIcon, StarIcon } from "@/components/icons";
 import { daysSincePublication } from "@/lib/listings";
+import { BadgeTooltip } from "./BadgeTooltip";
 
-/** Badge « À la une » — mise en avant payante, distincte du badge Vérifié. */
 export async function FeaturedBadge({ small = false }: { small?: boolean }) {
   const fr = await getT();
   return (
-    <span
-      title={fr.badges.alaUneTooltip}
-      className={`inline-flex items-center gap-1 rounded-full bg-amber-400 font-bold text-darna-dark shadow-sm ${
-        small ? "px-2 py-0.5 text-[11px]" : "px-2.5 py-1 text-xs"
-      }`}
+    <BadgeTooltip
+      label={fr.badges.alaUne}
+      description={fr.badges.alaUneTooltip}
     >
-      <StarIcon
-        width={small ? 11 : 13}
-        height={small ? 11 : 13}
-        className="fill-current"
-      />
-      {fr.badges.alaUne}
-    </span>
+      <span
+        className={`inline-flex items-center gap-1 rounded-full bg-amber-400 font-bold text-darna-dark shadow-sm ${
+          small ? "px-2 py-0.5 text-[11px]" : "px-2.5 py-1 text-xs"
+        }`}
+      >
+        <StarIcon
+          width={small ? 11 : 13}
+          height={small ? 11 : 13}
+          className="fill-current"
+        />
+        {fr.badges.alaUne}
+      </span>
+    </BadgeTooltip>
   );
 }
 
@@ -40,22 +44,32 @@ export async function VerifiedBadge({
       ? verifiedAt.toLocaleDateString("fr-TN", { day: "numeric", month: "long", year: "numeric" })
       : null;
     return (
-      <span
-        title={fr.property.verifieOnSiteTooltip}
-        className={`inline-flex items-center gap-1.5 rounded-full border-2 border-amber-400 bg-amber-50 font-bold text-amber-800 shadow-md ${
-          small ? "px-2 py-0.5 text-[11px]" : "px-3 py-1 text-xs"
-        }`}
+      <BadgeTooltip
+        label={fr.badges.verifieOnSite}
+        description={fr.property.verifieOnSiteTooltip}
+        criteria={fr.property.verifieOnSiteCriteres}
       >
-        <span className={small ? "text-[11px]" : "text-sm"}>🏅</span>
-        <span>
-          {fr.badges.verifieOnSite}
-          {!small && verifierName && dateStr ? (
-            <span className="ms-1 font-normal opacity-70">
-              · {fr.property.verifiePar(verifierName)} · {dateStr}
-            </span>
-          ) : null}
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 font-bold text-white shadow-md ${
+            small ? "px-2 py-0.5 text-[11px]" : "px-3 py-1 text-xs"
+          }`}
+        >
+          <ShieldIcon
+            width={small ? 11 : 14}
+            height={small ? 11 : 14}
+            strokeWidth={2.5}
+            className="flex-shrink-0"
+          />
+          <span>
+            {fr.badges.verifieOnSite}
+            {!small && verifierName && dateStr ? (
+              <span className="ms-1 font-normal opacity-80">
+                · {fr.property.verifiePar(verifierName)} · {dateStr}
+              </span>
+            ) : null}
+          </span>
         </span>
-      </span>
+      </BadgeTooltip>
     );
   }
 
@@ -64,36 +78,50 @@ export async function VerifiedBadge({
       ? verifiedAt.toLocaleDateString("fr-TN", { day: "numeric", month: "long", year: "numeric" })
       : null;
     return (
-      <span
-        title={fr.property.verifieRemoteTooltip}
-        className={`inline-flex items-center gap-1.5 rounded-full border-2 border-blue-300 bg-blue-50 font-semibold text-blue-800 shadow-sm ${
-          small ? "px-2 py-0.5 text-[11px]" : "px-3 py-1 text-xs"
-        }`}
+      <BadgeTooltip
+        label={fr.badges.verifieRemote}
+        description={fr.property.verifieRemoteTooltip}
+        criteria={fr.property.verifieRemoteCriteres}
       >
-        <span className={small ? "text-[11px]" : "text-sm"}>🛡️</span>
-        <span>
-          {fr.badges.verifieRemote}
-          {!small && verifierName && dateStr ? (
-            <span className="ms-1 font-normal opacity-70">
-              · {fr.property.verifiePar(verifierName)} · {dateStr}
-            </span>
-          ) : null}
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full bg-darna font-semibold text-white shadow-sm ${
+            small ? "px-2 py-0.5 text-[11px]" : "px-3 py-1 text-xs"
+          }`}
+        >
+          <ShieldIcon
+            width={small ? 11 : 14}
+            height={small ? 11 : 14}
+            strokeWidth={2.5}
+            className="flex-shrink-0"
+          />
+          <span>
+            {fr.badges.verifieRemote}
+            {!small && verifierName && dateStr ? (
+              <span className="ms-1 font-normal opacity-80">
+                · {fr.property.verifiePar(verifierName)} · {dateStr}
+              </span>
+            ) : null}
+          </span>
         </span>
-      </span>
+      </BadgeTooltip>
     );
   }
 
-  // Fallback : ancien badge générique (vérification sans niveau)
+  // Fallback : badge générique (vérification sans niveau précis)
   return (
-    <span
-      title={fr.property.verifieTooltip}
-      className={`inline-flex items-center gap-1 rounded-full bg-sand font-semibold text-darna-dark ${
-        small ? "px-2 py-0.5 text-[11px]" : "px-2.5 py-1 text-xs"
-      }`}
+    <BadgeTooltip
+      label={fr.badges.verifie}
+      description={fr.property.verifieTooltip}
     >
-      <CheckIcon width={small ? 11 : 13} height={small ? 11 : 13} strokeWidth={3} />
-      {fr.badges.verifie}
-    </span>
+      <span
+        className={`inline-flex items-center gap-1 rounded-full bg-darna/10 font-medium text-darna ring-1 ring-darna/20 ${
+          small ? "px-2 py-0.5 text-[11px]" : "px-2.5 py-1 text-xs"
+        }`}
+      >
+        <CheckIcon width={small ? 11 : 13} height={small ? 11 : 13} strokeWidth={3} />
+        {fr.badges.verifie}
+      </span>
+    </BadgeTooltip>
   );
 }
 
