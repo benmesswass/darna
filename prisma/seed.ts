@@ -733,6 +733,35 @@ async function main() {
     }),
   ]);
 
+  // PR1 — Compte admin Darna
+  const admin = await prisma.user.create({
+    data: {
+      email: "admin@darna.tn",
+      passwordHash,
+      name: "Admin Darna",
+      phone: "+216 71 000 000",
+      role: "ADMIN",
+      kycStatus: "DEMO_VERIFIE",
+      phoneVerified: true,
+    },
+  });
+  console.log("Admin créé :", admin.email);
+
+  // PR2 — Compte Wakil démo
+  const wakil = await prisma.user.create({
+    data: {
+      email: "wakil@darna.tn",
+      passwordHash,
+      name: "Kaïs Wakil Demo",
+      phone: "+216 22 111 222",
+      role: "HOTE",
+      kycStatus: "DEMO_VERIFIE",
+      phoneVerified: true,
+      isWakil: true,
+    },
+  });
+  console.log("Wakil créé :", wakil.email);
+
   const owners = { hote, agence, hote2 } as const;
 
   console.log("Création des annonces…");

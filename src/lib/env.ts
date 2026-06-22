@@ -56,6 +56,23 @@ const envSchema = z
     // Provider SMS réel (Twilio, passerelle TN…). Requis dès KYC_MODE=production.
     SMS_PROVIDER: z.string().optional(),
 
+    // PR3 — Gating KYC sur la création d'annonces.
+    // "on" = seuls les utilisateurs vérifiés peuvent publier.
+    KYC_GATING: z.enum(["on", "off"]).optional(),
+
+    // PR4 — Canal OTP : "sms" (défaut) | "meta-whatsapp".
+    OTP_PROVIDER: z.enum(["sms", "meta-whatsapp"]).optional(),
+    // Requis si OTP_PROVIDER=meta-whatsapp.
+    META_WHATSAPP_ACCESS_TOKEN: z.string().optional(),
+    META_WHATSAPP_PHONE_ID: z.string().optional(),
+
+    // PR5 — Provider e-mail : absent/"demo" (aucun envoi) | "resend".
+    EMAIL_PROVIDER: z.enum(["demo", "resend"]).optional(),
+    // Requis si EMAIL_PROVIDER=resend.
+    RESEND_API_KEY: z.string().optional(),
+    // Adresse expéditeur (ex. "Darna <noreply@darna.tn>").
+    EMAIL_FROM: z.string().optional(),
+
     // Observabilité erreurs : POST opt-in des exceptions (cf. src/lib/observability.ts).
     OBSERVABILITY_WEBHOOK_URL: z.string().url().optional(),
   })
@@ -114,6 +131,26 @@ const envSchema = z
       });
     }
 
+    // PR4 — WhatsApp : tokens Meta obligatoires si OTP_PROVIDER=meta-whatsapp.
+    if (
+      e.OTP_PROVIDER === "meta-whatsapp" &&
+      !(e.META_WHATSAPP_ACCESS_TOKEN && e.META_WHATSAPP_PHONE_ID)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "OTP_PROVIDER=meta-whatsapp requiert META_WHATSAPP_ACCESS_TOKEN et META_WHATSAPP_PHONE_ID.",
+      });
+    }
+
+    // PR5 — Resend : clé API obligatoire si EMAIL_PROVIDER=resend.
+    if (e.EMAIL_PROVIDER === "resend" && !e.RESEND_API_KEY) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "EMAIL_PROVIDER=resend requiert RESEND_API_KEY.",
+      });
+    }
+
     // B1 — production RÉELLE (au moins un mode réel actif) : un proxy de confiance
     // est obligatoire, sinon le rate limiting par IP retombe sur un bucket global
     // « untrusted » (lockout de toute la plateforme / DoS trivial). Une DÉMO en
@@ -166,3 +203,13 @@ if (env.NODE_ENV === "production") {
     );
   }
 }
+
+// ── Log des modes opt-in actifs au boot (info, pas d'erreur) ──────────────────
+console.info(
+  "[env] modes opt-in :",
+  JSON.stringify({
+    KYC_GATING: env.KYC_GATING ?? "off",
+    OTP_PROVIDER: env.OTP_PROVIDER ?? "sms",
+    EMAIL_PROVIDER: env.EMAIL_PROVIDER ?? "demo",
+  })
+);

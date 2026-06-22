@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { issueOtp, verifyOtp } from "@/lib/otp";
-import { sendSms } from "@/lib/sms";
+import { sendOtp } from "@/lib/otp-channel";
 import { encryptSensitive } from "@/lib/crypto";
 import { kycMode } from "@/lib/modes";
 import { logAudit } from "@/lib/audit";
@@ -56,18 +56,16 @@ export async function requestKycOtpAction(
     },
   });
 
-  const code = await issueOtp(user.id);
-  const sent = await sendSms(
-    parsed.data.phone,
-    `Darna : votre code de vérification est ${code}`
-  );
+  const code = await issueOtp(user.id, "KYC");
+  // PR4 : délègue à sendOtp (SMS ou WhatsApp selon OTP_PROVIDER).
+  const sent = await sendOtp(parsed.data.phone, code);
 
   await logAudit({ action: "KYC_OTP_REQUESTED", userId: user.id, success: true });
   revalidatePath("/dashboard/kyc");
 
-  // Le code n'est renvoyé au client QU'EN MODE DÉMO (sendSms n'a rien envoyé).
-  // En production, sendSms a réellement envoyé le SMS (ou levé) → on ne renvoie
-  // JAMAIS le code, on signale seulement `sent`.
+  // Le code n'est renvoyé au client QU'EN MODE DÉMO (sendOtp n'a rien envoyé).
+  // En production, sendOtp a réellement envoyé le message (ou levé) → on ne
+  // renvoie JAMAIS le code, on signale seulement `sent`.
   return kycMode() === "demo" && !sent ? { sent: true, otp: code } : { sent: true };
 }
 

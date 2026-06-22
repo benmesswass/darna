@@ -459,6 +459,57 @@ export const fr = {
     statutVerifieDemo: "Identité vérifiée (démo)",
     verifieDemoBravo:
       "Vérification effectuée en mode démonstration. En production, un SMS réel sera requis pour obtenir le vrai badge vérifié.",
+    kycRequis:
+      "Votre identité doit être vérifiée avant de publier une annonce. Rendez-vous dans « Vérification d'identité ».",
+  },
+  // PR1 + PR2 — Section administration
+  admin: {
+    badge: "Admin",
+    titre: "Administration Darna",
+    annonces: "Annonces",
+    wakils: "Wakils",
+    fileModeration: "File de modération des annonces",
+    fileModerationDesc:
+      "Vérifiez les annonces actives dont le propriétaire est identifié. Le badge « Vérifié Darna » ne peut être accordé qu'aux propriétaires dont le KYC est validé.",
+    annonce: "Annonce",
+    proprietaire: "Propriétaire",
+    kycStatut: "KYC propriétaire",
+    statut: "Statut",
+    actions: "Actions",
+    verifiee: "Vérifiée",
+    nonVerifiee: "Non vérifiée",
+    verifier: "Vérifier",
+    retirerVerification: "Retirer",
+    verifiePar: (nom: string) => `Vérifié par ${nom}`,
+    annonceMiseAVerifiee: "Annonce marquée comme vérifiée.",
+    annonceMiseANonVerifiee: "Badge de vérification retiré.",
+    proprietaireNonVerifie:
+      "Le propriétaire doit être vérifié (KYC) pour que l'annonce reçoive le badge.",
+    aucuneAnnonce: "Aucune annonce active pour le moment.",
+    candidaturesWakil: "Candidatures Wakil",
+    candidaturesWakilDesc:
+      "Traitez les candidatures Wakil reçues. Accepter une candidature promeut automatiquement le compte lié.",
+    aucuneCandidature: "Aucune candidature pour le moment.",
+    accepter: "Accepter",
+    refuser: "Refuser",
+    planifierEntretien: "Entretien",
+    candidatureRevue: "Candidature mise à jour.",
+    revuePar: (nom: string) => `Revue par ${nom}`,
+  },
+  // PR5 — Vérification e-mail
+  email: {
+    titre: "Vérification de votre e-mail",
+    sousTitre:
+      "Confirmez votre adresse e-mail pour sécuriser votre compte et recevoir les notifications importantes.",
+    description: "Cliquez ci-dessous pour recevoir un code de vérification par e-mail.",
+    envoyerCode: "Recevoir le code",
+    codeEnvoye: "Un code de vérification vous a été envoyé par e-mail.",
+    modeDemoCode: "Mode démo — code :",
+    saisirCode: "Saisissez le code reçu",
+    valider: "Valider",
+    otpInvalide: "Code incorrect. Merci de réessayer.",
+    verifieBravo: "Votre adresse e-mail est vérifiée.",
+    dejaVerifie: "Votre adresse e-mail est déjà vérifiée.",
   },
   profil: {
     titre: "Mes informations",
