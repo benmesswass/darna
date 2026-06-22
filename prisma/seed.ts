@@ -666,6 +666,39 @@ const PROPERTIES: SeedProperty[] = [
     owner: "hote_en_attente",
   },
 
+  // ── Annonces EN_ATTENTE_VALIDATION — file de modération admin
+  {
+    title: "Villa avec piscine à Hammamet — en attente de validation",
+    type: "SEJOUR",
+    city: "Hammamet",
+    price: 350,
+    surface: 280,
+    rooms: 5,
+    maxGuests: 10,
+    verified: false,
+    status: "EN_ATTENTE_VALIDATION",
+    publishedDaysAgo: 0,
+    amenities: ["Piscine", "Wifi", "Climatisation", "Parking", "Barbecue"],
+    description: "Grande villa avec piscine privée à Hammamet. Propriétaire vérifié KYC — test validation REMOTE ou ON_SITE.",
+    jitter: [0.012, -0.008],
+    owner: "hote",
+  },
+  {
+    title: "Appartement vue mer Sousse — en attente de validation",
+    type: "LOCATION",
+    city: "Sousse",
+    price: 900,
+    surface: 85,
+    rooms: 3,
+    verified: false,
+    status: "EN_ATTENTE_VALIDATION",
+    publishedDaysAgo: 1,
+    amenities: ["Wifi", "Climatisation", "Vue mer", "Parking"],
+    description: "Appartement S+2 avec vue mer à Sousse. Test validation niveau Wakil (ON_SITE).",
+    jitter: [-0.015, 0.022],
+    owner: "agence",
+  },
+
   // ── Annonce EXPIRÉE (ne doit PAS apparaître dans la file de modération)
   {
     title: "Villa expirée — ne doit pas apparaître en modération",
