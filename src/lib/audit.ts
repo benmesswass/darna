@@ -28,7 +28,13 @@ export type AuditAction =
   | "AVATAR_UPDATED"
   | "CONTACT_REQUEST"
   | "WAKIL_APPLY"
-  | "FAVORITE_TOGGLE";
+  | "WAKIL_STATUS_CHANGED"
+  | "WAKIL_PROMOTED"
+  | "FAVORITE_TOGGLE"
+  | "PROPERTY_VERIFIED"
+  | "PROPERTY_UNVERIFIED"
+  | "EMAIL_OTP_REQUESTED"
+  | "EMAIL_VERIFIED";
 
 /**
  * Audit trail — chaque événement sensible est enregistré avec userId, IP et

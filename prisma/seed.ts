@@ -57,7 +57,7 @@ type SeedProperty = {
   description: string;
   /** Décalage GPS pour ne pas empiler les marqueurs d'une même ville. */
   jitter: [number, number];
-  owner: "hote" | "agence" | "hote2";
+  owner: "hote" | "agence" | "hote2" | "hote3" | "hote_en_attente";
 };
 
 const PROPERTIES: SeedProperty[] = [
@@ -565,6 +565,124 @@ const PROPERTIES: SeedProperty[] = [
     jitter: [-0.018, -0.012],
     owner: "agence",
   },
+
+  // ────────────────────────────────────────────────────────────────
+  // ANNONCES DE TEST — couvrent tous les cas admin / KYC / statuts
+  // ────────────────────────────────────────────────────────────────
+
+  // ── Propriétaire DEMO_VERIFIE, annonces non vérifiées → bouton "Vérifier" ACTIF
+  {
+    title: "Appartement neuf vue piscine — à vérifier",
+    type: "SEJOUR",
+    city: "Sousse",
+    price: 150,
+    surface: 70,
+    rooms: 2,
+    maxGuests: 4,
+    verified: false,
+    publishedDaysAgo: 2,
+    amenities: ["Piscine", "Climatisation", "Wifi", "Parking"],
+    description: "Appartement de standing dans résidence fermée avec piscine, à 800 m de la plage Boujaafar. Propriétaire identifié (démo) — test du bouton Vérifier.",
+    jitter: [0.022, 0.011],
+    owner: "hote3",
+  },
+  {
+    title: "Studio Nabeul bord de mer — à vérifier",
+    type: "SEJOUR",
+    city: "Nabeul",
+    price: 90,
+    surface: 35,
+    rooms: 1,
+    maxGuests: 2,
+    verified: false,
+    publishedDaysAgo: 5,
+    amenities: ["Climatisation", "Wifi", "Proche plage"],
+    description: "Studio entièrement rénové à 100 m de la plage de Nabeul. Propriétaire DEMO_VERIFIE — test bouton Vérifier actif.",
+    jitter: [-0.022, 0.014],
+    owner: "hote3",
+  },
+
+  // ── Propriétaire VERIFIE, annonces non vérifiées → bouton "Vérifier" ACTIF
+  {
+    title: "Villa familiale à Hammamet Nord — à vérifier",
+    type: "SEJOUR",
+    city: "Hammamet",
+    price: 290,
+    surface: 180,
+    rooms: 4,
+    maxGuests: 8,
+    verified: false,
+    publishedDaysAgo: 4,
+    address: "Zone touristique Nord",
+    amenities: ["Piscine", "Jardin", "Parking", "Barbecue", "Climatisation"],
+    description: "Grande villa 4 chambres avec piscine privée. Propriétaire vérifié (VERIFIE) — annonce non encore vérifiée pour tester le badge admin.",
+    jitter: [0.031, -0.009],
+    owner: "hote",
+  },
+  {
+    title: "S+1 La Marsa, propriétaire vérifié — à vérifier",
+    type: "LOCATION",
+    city: "La Marsa",
+    price: 900,
+    surface: 55,
+    rooms: 2,
+    verified: false,
+    publishedDaysAgo: 3,
+    address: "Corniche La Marsa",
+    amenities: ["Climatisation", "Wifi", "Parking", "Meublé"],
+    description: "Appartement S+1 meublé et équipé, disponible de suite. Propriétaire VERIFIE — test du bouton Vérifier actif (location).",
+    jitter: [0.008, -0.014],
+    owner: "hote",
+  },
+  {
+    title: "Terrain 500 m² Nabeul, propriétaire vérifié — à vérifier",
+    type: "VENTE",
+    city: "Nabeul",
+    price: 85000,
+    surface: 500,
+    verified: false,
+    publishedDaysAgo: 6,
+    address: "Zone résidentielle Nabeul",
+    amenities: ["Titre bleu", "Constructible"],
+    description: "Terrain constructible titre bleu, viabilisé eau + électricité. Propriétaire agence VERIFIE — test vérification annonce de vente.",
+    jitter: [-0.031, -0.022],
+    owner: "agence",
+  },
+
+  // ── Propriétaire KYC EN_ATTENTE → bouton grisé (identité en cours)
+  {
+    title: "Chambre privée Tunis centre — propriétaire en attente KYC",
+    type: "SEJOUR",
+    city: "Tunis",
+    price: 65,
+    surface: 20,
+    rooms: 1,
+    maxGuests: 1,
+    verified: false,
+    publishedDaysAgo: 8,
+    amenities: ["Wifi", "Climatisation", "Proche métro"],
+    description: "Chambre privée dans appartement partagé, centre de Tunis. Propriétaire EN_ATTENTE KYC — bouton Vérifier grisé avec statut 'EN ATTENTE'.",
+    jitter: [0.009, 0.018],
+    owner: "hote_en_attente",
+  },
+
+  // ── Annonce EXPIRÉE (ne doit PAS apparaître dans la file de modération)
+  {
+    title: "Villa expirée — ne doit pas apparaître en modération",
+    type: "SEJOUR",
+    city: "Djerba",
+    price: 200,
+    surface: 100,
+    rooms: 3,
+    maxGuests: 6,
+    verified: false,
+    status: "EXPIREE",
+    publishedDaysAgo: 45,
+    amenities: ["Piscine", "Climatisation"],
+    description: "Annonce expirée (status=EXPIREE) — ne doit pas apparaître dans la file de modération admin.",
+    jitter: [0.041, -0.028],
+    owner: "hote3",
+  },
 ];
 
 async function main() {
@@ -733,7 +851,94 @@ async function main() {
     }),
   ]);
 
-  const owners = { hote, agence, hote2 } as const;
+  // PR1 — Compte admin Darna
+  const admin = await prisma.user.create({
+    data: {
+      email: "admin@darna.tn",
+      passwordHash,
+      name: "Admin Darna",
+      phone: "+216 71 000 000",
+      role: "ADMIN",
+      kycStatus: "DEMO_VERIFIE",
+      phoneVerified: true,
+    },
+  });
+  console.log("Admin créé :", admin.email);
+
+  // PR2 — Compte Wakil démo
+  const wakil = await prisma.user.create({
+    data: {
+      email: "wakil@darna.tn",
+      passwordHash,
+      name: "Kaïs Wakil Demo",
+      phone: "+216 22 111 222",
+      role: "HOTE",
+      kycStatus: "DEMO_VERIFIE",
+      phoneVerified: true,
+      isWakil: true,
+    },
+  });
+  console.log("Wakil créé :", wakil.email);
+
+  // ── Utilisateurs de test supplémentaires ─────────────────────────────────────
+  // hote3 : DEMO_VERIFIE → bouton Vérifier actif en admin
+  const hote3 = await prisma.user.create({
+    data: {
+      email: "yasmine@darna.tn",
+      passwordHash,
+      name: "Yasmine Karray",
+      phone: "+216 97 334 556",
+      role: "HOTE",
+      phoneVerified: true,
+      kycStatus: "DEMO_VERIFIE",
+      cin: "09876543",
+    },
+  });
+  // hote_en_attente : EN_ATTENTE → bouton Vérifier grisé avec statut distinct
+  const hote_en_attente = await prisma.user.create({
+    data: {
+      email: "tarek@darna.tn",
+      passwordHash,
+      name: "Tarek Meddeb",
+      phone: "+216 53 221 447",
+      role: "HOTE",
+      kycStatus: "EN_ATTENTE",
+    },
+  });
+  console.log("Utilisateurs de test créés :", hote3.email, hote_en_attente.email);
+
+  // Candidatures Wakil supplémentaires pour tester tous les statuts
+  await prisma.wakilApplication.createMany({
+    data: [
+      {
+        name: "Omar Sfax",
+        email: "omar.sfax@example.tn",
+        phone: "+216 74 221 338",
+        city: "Sfax",
+        motivation: "Courtier indépendant depuis 8 ans à Sfax. Je couvre le Grand Sfax et je suis disponible immédiatement.",
+        status: "ENTRETIEN",
+      },
+      {
+        name: "Salma Monastir",
+        email: "salma.monastir@example.tn",
+        phone: "+216 73 441 229",
+        city: "Monastir",
+        motivation: "Responsable commerciale dans l'immobilier à Monastir. Je souhaite rejoindre le réseau Wakil pour sécuriser le marché local.",
+        status: "ACCEPTEE",
+        userId: hote3.id,
+      },
+      {
+        name: "Bilel Bizerte",
+        email: "bilel.bizerte@example.tn",
+        phone: "+216 72 331 558",
+        city: "Bizerte",
+        motivation: "Je suis notaire assistant à Bizerte. Je peux vérifier les titres fonciers directement.",
+        status: "REFUSEE",
+      },
+    ],
+  });
+
+  const owners = { hote, agence, hote2, hote3, hote_en_attente } as const;
 
   console.log("Création des annonces…");
   const created: { id: string; type: string; title: string; price: number }[] = [];

@@ -4,6 +4,14 @@
 
 Projet **personnel** de Wassim. Tout commit, push et opération GitHub se fait avec `benmesswass@gmail.com` / compte GitHub `benmesswass` — **jamais** l'identité DiliTrust (`wassim.ben-messaoud@dilitrust.com` / `dt-wassim-ben-messaoud`). Avant tout push : vérifier `git config user.email` et `gh auth status`. Ne pas « simplifier » l'URL du remote (`https://benmesswass@github.com/...`) : le `~/.netrc` de la machine contient un token du compte pro qu'elle neutralise.
 
+## Workflow PR (règle absolue)
+
+1. **Jamais de push direct sur `main`** — toujours travailler sur une branche feature.
+2. **Après chaque push de branche** : ouvrir une Pull Request via `mcp__github__create_pull_request`.
+3. **Surveiller la CI** : attendre que tous les checks GitHub Actions soient verts avant de merger.
+4. **Merger en squash** via `mcp__github__merge_pull_request` (merge_method: "squash") une fois la CI verte.
+5. **Contexte remote** : Claude Code tourne dans un conteneur cloud — il ne peut PAS écrire directement dans le projet PyCharm local de Wassim. Les changements arrivent sur la machine via `git pull` après merge sur `main`.
+
 ## Stack et contraintes
 
 - Next.js 15 App Router + TypeScript strict + Tailwind 4 + Prisma/**PostgreSQL** + NextAuth credentials + zod.

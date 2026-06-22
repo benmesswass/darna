@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getT } from "@/lib/i18n/server";
+import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { logoutAction } from "@/actions/auth";
 import {
@@ -13,6 +14,7 @@ import {
   SparklesIcon,
   UserIcon,
   UsersIcon,
+  StarIcon,
 } from "@/components/icons";
 
 /** Initiales (1 à 2 lettres) pour l'avatar par défaut de l'en-tête. */
@@ -33,8 +35,21 @@ export default async function DashboardLayout({
   if (!user) redirect("/connexion");
 
   const isLister = user.role === "HOTE" || user.role === "AGENCE";
+  const isAdminOrWakil = user.role === "ADMIN" || user.isWakil;
 
-  const links = [
+  // Fetch pending counts for admin/wakil nav badges (skip for regular users)
+  let pendingAnnonces = 0;
+  let pendingWakils = 0;
+  if (isAdminOrWakil) {
+    [pendingAnnonces, pendingWakils] = await Promise.all([
+      prisma.property.count({ where: { status: "ACTIVE", verified: false } }),
+      user.role === "ADMIN"
+        ? prisma.wakilApplication.count({ where: { status: "RECUE", deletedAt: null } })
+        : Promise.resolve(0),
+    ]);
+  }
+
+  const links: { href: string; label: string; icon: React.FC<{ width: number; height: number }>; badge?: number }[] = [
     ...(isLister
       ? [
           { href: "/dashboard/annonces", label: fr.dashboard.mesAnnonces, icon: BuildingIcon },
@@ -50,6 +65,26 @@ export default async function DashboardLayout({
     { href: "/dashboard/favoris", label: fr.dashboard.favoris, icon: HeartIcon },
     { href: "/dashboard/profil", label: fr.dashboard.monProfil, icon: UserIcon },
     { href: "/dashboard/kyc", label: fr.dashboard.kyc, icon: ShieldIcon },
+    ...(isAdminOrWakil
+      ? [
+          {
+            href: "/dashboard/admin/annonces",
+            label: fr.admin.navAnnonces,
+            icon: StarIcon,
+            badge: pendingAnnonces > 0 ? pendingAnnonces : undefined,
+          },
+          ...(user.role === "ADMIN"
+            ? [
+                {
+                  href: "/dashboard/admin/wakils",
+                  label: fr.admin.navWakils,
+                  icon: UsersIcon,
+                  badge: pendingWakils > 0 ? pendingWakils : undefined,
+                },
+              ]
+            : []),
+        ]
+      : []),
   ];
 
   return (
@@ -104,7 +139,7 @@ export default async function DashboardLayout({
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[230px_minmax(0,1fr)]">
         <nav className="flex gap-1.5 overflow-x-auto lg:flex-col">
-          {links.map(({ href, label, icon: Icon }) => (
+          {links.map(({ href, label, icon: Icon, badge }) => (
             <Link
               key={href}
               href={href}
@@ -112,6 +147,11 @@ export default async function DashboardLayout({
             >
               <Icon width={17} height={17} />
               {label}
+              {badge ? (
+                <span className="ms-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-darna px-1.5 text-[10px] font-bold text-white">
+                  {badge}
+                </span>
+              ) : null}
             </Link>
           ))}
           {isLister ? (

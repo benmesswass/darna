@@ -69,3 +69,23 @@ export function immoEnabled(): boolean {
 export function verticalEnabled(vertical: Vertical): boolean {
   return vertical === "STAY" ? stayEnabled() : immoEnabled();
 }
+
+/**
+ * PR3 — Gating KYC sur la création d'annonces. Défaut : `false` (démo, pas de
+ * blocage). `KYC_GATING=on` exige que le propriétaire soit vérifié (VERIFIE ou
+ * DEMO_VERIFIE) pour publier une annonce.
+ */
+export function kycGatingEnabled(): boolean {
+  return process.env.KYC_GATING === "on";
+}
+
+/**
+ * PR4 — Provider OTP. Détermine le canal d'envoi OTP :
+ *  • `sms` (défaut) — SMS via SMS_PROVIDER (comportement historique).
+ *  • `meta-whatsapp` — WhatsApp Business API (META_WHATSAPP_PHONE_ID requis).
+ */
+export type OtpProvider = "sms" | "meta-whatsapp";
+
+export function getOtpProvider(): OtpProvider {
+  return process.env.OTP_PROVIDER === "meta-whatsapp" ? "meta-whatsapp" : "sms";
+}

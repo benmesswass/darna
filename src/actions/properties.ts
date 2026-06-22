@@ -10,7 +10,7 @@ import { requireLister, requireUser } from "@/lib/session";
 import { resolveCity, getCity } from "@/lib/geo";
 import { buildPropertySlug } from "@/lib/slug";
 import { AMENITIES, PROPERTY_TYPES, verticalOfType } from "@/lib/constants";
-import { verticalEnabled } from "@/lib/modes";
+import { verticalEnabled, kycGatingEnabled } from "@/lib/modes";
 import { FEATURED_DURATION_DAYS, LISTING_LIFETIME_DAYS } from "@/lib/config";
 import { logAudit } from "@/lib/audit";
 import {
@@ -18,6 +18,7 @@ import {
   deleteUploadedImage,
   saveUploadedImage,
 } from "@/lib/uploads";
+import { notifyAdmins } from "@/lib/admin-notify";
 
 export type PropertyFormState = { error?: string } | undefined;
 
@@ -70,6 +71,15 @@ export async function createPropertyAction(
   // client — l'UI masque déjà l'option, mais la garde réelle est ici).
   if (!verticalEnabled(verticalOfType(data.type))) {
     return { error: fr.common.erreurInconnue };
+  }
+
+  // PR3 — Gating KYC : si activé, le propriétaire doit être vérifié.
+  if (kycGatingEnabled()) {
+    const isVerified =
+      user.kycStatus === "VERIFIE" || user.kycStatus === "DEMO_VERIFIE";
+    if (!isVerified) {
+      return { error: fr.kyc.kycRequis };
+    }
   }
 
   // La ville doit appartenir au référentiel (gouvernorat dérivé côté serveur).
@@ -143,6 +153,14 @@ export async function createPropertyAction(
     userId: user.id,
     success: true,
     metadata: { propertyId: property.id, type: data.type, city: cityRef.name },
+  });
+
+  // Fire-and-forget — ne bloque pas la redirection
+  void notifyAdmins("NEW_PROPERTY", {
+    title: data.title,
+    city: cityRef.name,
+    ownerName: user.name,
+    ownerEmail: user.email,
   });
 
   revalidatePath("/dashboard/annonces");

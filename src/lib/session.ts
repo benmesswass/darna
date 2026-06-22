@@ -11,6 +11,8 @@ export type SessionUser = {
   role: string;
   kycStatus: string;
   phoneVerified: boolean;
+  emailVerified: boolean;
+  isWakil: boolean;
 };
 
 /**
@@ -33,6 +35,8 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
       role: true,
       kycStatus: true,
       phoneVerified: true,
+      emailVerified: true,
+      isWakil: true,
     },
   });
   return user;
@@ -58,6 +62,15 @@ export async function requireLister(): Promise<SessionUser> {
 export async function requireAdmin(): Promise<SessionUser> {
   const user = await requireUser();
   if (user.role !== "ADMIN") {
+    throw new Error("ROLE_INSUFFISANT");
+  }
+  return user;
+}
+
+/** Garde serveur : réservé aux Wakils ET aux administrateurs. */
+export async function requireWakilOrAdmin(): Promise<SessionUser> {
+  const user = await requireUser();
+  if (user.role !== "ADMIN" && !user.isWakil) {
     throw new Error("ROLE_INSUFFISANT");
   }
   return user;
