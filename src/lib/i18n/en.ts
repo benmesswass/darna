@@ -462,6 +462,8 @@ export const en: Dictionary = {
     statutVerifie: "Identity verified",
     cin: "CIN number (8 digits)",
     telephone: "Mobile phone (+216…)",
+    indicatifPays: "Country code",
+    telephonePlaceholder: "22 345 678",
     envoyerOtp: "Receive the verification code",
     otpMockInfo:
       "Demo mode: no real SMS is sent. Your code is displayed below.",
@@ -477,7 +479,13 @@ export const en: Dictionary = {
     verifieDemoBravo:
       "Verification completed in demo mode. In production, a real SMS will be required to earn the genuine verified badge.",
     kycRequis:
-      "Your identity must be verified before publishing a listing. Go to \"Identity verification\".",
+      "Your identity must be verified before publishing a listing.",
+    gateRequiseTitre: "Verify your identity to publish",
+    gateRequiseDesc:
+      "To keep trust high on Darna, only verified owners can publish a listing. Verification takes less than two minutes.",
+    gateRequiseCta: "Verify my identity",
+    otpEnvoiEchoue:
+      "Unable to send the verification code right now. Please try again in a moment.",
   },
   admin: {
     badge: "Admin",
@@ -522,13 +530,13 @@ export const en: Dictionary = {
     candidatureRevue: "Application updated.",
     revuePar: (nom: string) => `Reviewed by ${nom}`,
     supprimerCandidature: "Archive",
-    supprimerCandidatureConfirm: "Archive this application?",
-    supprimerDefinitivementConfirm: "Permanently delete this application?",
+    archiverCandidatureConfirm: "Archive this application?",
+    supprimerCandidatureConfirm: "Permanently delete this application?",
     candidatureSupprimee: "Application archived.",
     candidatureDefinitivementSupprimee: "Application permanently deleted.",
     wakilsSupprimees: "Archived applications",
     wakilsSupprimeeesDesc: "These applications have been archived. You can permanently delete them.",
-    supprimerDefinitivement: "Delete permanently",
+    supprimerDefinitivement: "Delete",
     aucuneCandidatureSupprimee: "No archived applications.",
   },
   email: {

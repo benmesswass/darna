@@ -134,7 +134,7 @@ export default async function AdminWakilsPage() {
                   <SoftDeleteWakilButton
                     applicationId={app.id}
                     label={fr.admin.supprimerCandidature}
-                    confirmLabel={fr.admin.supprimerCandidatureConfirm}
+                    confirmLabel={fr.admin.archiverCandidatureConfirm}
                   />
                 </div>
               </div>
@@ -181,7 +181,7 @@ export default async function AdminWakilsPage() {
                   <HardDeleteWakilButton
                     applicationId={app.id}
                     label={fr.admin.supprimerDefinitivement}
-                    confirmLabel={fr.admin.supprimerDefinitivementConfirm}
+                    confirmLabel={fr.admin.supprimerCandidatureConfirm}
                   />
                 </div>
               </div>
