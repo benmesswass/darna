@@ -134,7 +134,7 @@ export function SoftDeleteWakilButton({ applicationId, label, confirmLabel }: De
             type="button"
             onClick={submit}
             disabled={isPending}
-            className="rounded-lg bg-red-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-40"
+            className="rounded-lg bg-ink/70 px-2.5 py-1 text-xs font-semibold text-white hover:bg-ink disabled:opacity-40"
           >
             {label}
           </button>
@@ -150,7 +150,7 @@ export function SoftDeleteWakilButton({ applicationId, label, confirmLabel }: De
         <button
           type="button"
           onClick={() => setConfirming(true)}
-          className="text-xs text-ink/40 underline-offset-2 hover:text-red-600 hover:underline"
+          className="text-xs text-ink/40 underline-offset-2 hover:text-ink hover:underline"
         >
           {label}
         </button>
