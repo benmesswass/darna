@@ -9,6 +9,8 @@ import { signIn, signOut } from "@/lib/auth";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { logAudit } from "@/lib/audit";
 import { safeCallbackUrl } from "@/lib/redirect";
+import { issueOtp } from "@/lib/otp";
+import { sendEmail } from "@/lib/mailer";
 
 export type AuthFormState = { error?: string; success?: string } | undefined;
 
@@ -88,6 +90,25 @@ export async function registerAction(
     success: true,
     metadata: { role },
   });
+
+  // Vérification d'email : on émet et envoie le code dès l'inscription. En mode
+  // démo (EMAIL_PROVIDER absent/mock), rien n'est réellement envoyé — la page
+  // /dashboard/email réaffichera le code. Un échec d'envoi ne doit JAMAIS casser
+  // l'inscription (cohérence démo + filet en prod), d'où le try/catch silencieux.
+  try {
+    const code = await issueOtp(user.id, "EMAIL");
+    await sendEmail({
+      to: user.email,
+      subject: "Darna — vérifiez votre adresse e-mail",
+      html: `
+    <p>Votre code de vérification Darna : <strong>${code}</strong></p>
+    <p>Ce code expire dans 10 minutes.</p>
+  `,
+    });
+    await logAudit({ action: "EMAIL_OTP_REQUESTED", userId: user.id, success: true });
+  } catch {
+    await logAudit({ action: "EMAIL_OTP_REQUESTED", userId: user.id, success: false });
+  }
 
   return { success: fr.auth.inscriptionReussie };
 }
