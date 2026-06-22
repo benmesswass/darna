@@ -36,36 +36,48 @@ model User {
   image         String?  // Photo de profil — URL locale /uploads (cf. src/lib/uploads.ts)
   role          String   @default("VOYAGEUR") // VOYAGEUR | HOTE | AGENCE | ADMIN
   phoneVerified Boolean  @default(false)
+  // PR5 — vérification e-mail distincte du KYC téléphonique.
+  emailVerified Boolean  @default(false)
   kycStatus     String   @default("NON_VERIFIE") // NON_VERIFIE | EN_ATTENTE | VERIFIE | DEMO_VERIFIE
   // CIN saisie au KYC. Chiffrée au repos (AES-256-GCM) dès KYC_ENC_KEY défini ;
   // OBLIGATOIRE en KYC_MODE=production (boot fail-fast). Cf. src/lib/crypto.ts.
   cin           String?
+  // PR2 — Wakil : agent vérifié sur le terrain.
+  isWakil       Boolean  @default(false)
   createdAt     DateTime @default(now())
 
-  properties      Property[]
-  bookings        Booking[]
-  reviews         Review[]
-  contactRequests ContactRequest[]
-  favorites       Favorite[]
-  favoriteFolders FavoriteFolder[]
-  auditLogs       AuditLog[]
-  otpChallenges   OtpChallenge[]
+  properties         Property[]
+  bookings           Booking[]
+  reviews            Review[]
+  contactRequests    ContactRequest[]
+  favorites          Favorite[]
+  favoriteFolders    FavoriteFolder[]
+  auditLogs          AuditLog[]
+  otpChallenges      OtpChallenge[]
+  // PR1 — back-relation : annonces vérifiées par cet utilisateur (admin/wakil).
+  verifiedProperties   Property[]          @relation("PropertyVerifiedBy")
+  // PR2 — candidatures Wakil liées à ce compte.
+  wakilApplications    WakilApplication[]
+  // PR2 — candidatures Wakil revues par cet admin.
+  reviewedApplications WakilApplication[]  @relation("WakilApplicationReviewer")
 }
 
-// Défi OTP de vérification KYC : code haché (jamais en clair) + TTL + compteur
-// de tentatives. Une seule challenge active par utilisateur (les anciennes sont
-// purgées à l'émission). Cf. src/lib/otp.ts.
+// Défi OTP de vérification KYC ou email : code haché (jamais en clair) + TTL +
+// compteur de tentatives. Une seule challenge active par (userId, purpose).
+// Cf. src/lib/otp.ts.
 model OtpChallenge {
   id        String   @id @default(cuid())
   codeHash  String
   expiresAt DateTime
   attempts  Int      @default(0)
+  // PR5 — "KYC" (vérification téléphone) | "EMAIL" (vérification e-mail)
+  purpose   String   @default("KYC")
   createdAt DateTime @default(now())
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
+  @@index([userId, purpose])
 }
 
 model Property {
@@ -81,6 +93,10 @@ model Property {
   vertical    String // STAY | IMMO
   status      String   @default("ACTIVE") // ACTIVE | LOUE | VENDU | EXPIREE
   verified    Boolean  @default(false)
+  // PR1 — vérification admin/wakil : date et auteur de la vérification.
+  verifiedAt   DateTime?
+  verifiedById String?
+  verifiedBy   User?     @relation("PropertyVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
   // Prix en TND : nuitée (SEJOUR), loyer mensuel (LOCATION), prix total (VENTE)
   price       Int
   surface     Int?
@@ -301,6 +317,15 @@ model WakilApplication {
   motivation String
   status     String   @default("RECUE") // RECUE | ENTRETIEN | ACCEPTEE | REFUSEE
   createdAt  DateTime @default(now())
+  // PR2 — lien vers le compte utilisateur (null si candidature anonyme).
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  // PR2 — revue par un admin.
+  reviewedAt    DateTime?
+  reviewedById  String?
+  reviewedBy    User?    @relation("WakilApplicationReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([userId])
 }
 
 /**
