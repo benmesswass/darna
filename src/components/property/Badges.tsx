@@ -1,5 +1,5 @@
 import { getT } from "@/lib/i18n/server";
-import { CheckIcon, StarIcon } from "@/components/icons";
+import { StarIcon } from "@/components/icons";
 import { daysSincePublication } from "@/lib/listings";
 import { BadgeTooltip } from "./BadgeTooltip";
 
@@ -98,19 +98,20 @@ export async function VerifiedBadge({
     );
   }
 
-  // Fallback : ancien badge générique (vérification sans niveau)
+  // Fallback : pas de niveau précis → même affichage que REMOTE
   return (
     <BadgeTooltip
-      label={fr.badges.verifie}
-      description={fr.property.verifieTooltip}
+      label={fr.badges.verifieRemote}
+      description={fr.property.verifieRemoteTooltip}
+      criteria={fr.property.verifieRemoteCriteres}
     >
       <span
-        className={`inline-flex items-center gap-1 rounded-full bg-sand font-semibold text-darna-dark ${
-          small ? "px-2 py-0.5 text-[11px]" : "px-2.5 py-1 text-xs"
+        className={`inline-flex items-center gap-1.5 rounded-full border-2 border-blue-300 bg-blue-50 font-semibold text-blue-800 shadow-sm ${
+          small ? "px-2 py-0.5 text-[11px]" : "px-3 py-1 text-xs"
         }`}
       >
-        <CheckIcon width={small ? 11 : 13} height={small ? 11 : 13} strokeWidth={3} />
-        {fr.badges.verifie}
+        <span className={small ? "text-[11px]" : "text-sm"}>🛡️</span>
+        {fr.badges.verifieRemote}
       </span>
     </BadgeTooltip>
   );
