@@ -13,6 +13,7 @@ import {
   SparklesIcon,
   UserIcon,
   UsersIcon,
+  StarIcon,
 } from "@/components/icons";
 
 /** Initiales (1 à 2 lettres) pour l'avatar par défaut de l'en-tête. */
@@ -33,6 +34,7 @@ export default async function DashboardLayout({
   if (!user) redirect("/connexion");
 
   const isLister = user.role === "HOTE" || user.role === "AGENCE";
+  const isAdminOrWakil = user.role === "ADMIN" || user.isWakil;
 
   const links = [
     ...(isLister
@@ -50,6 +52,9 @@ export default async function DashboardLayout({
     { href: "/dashboard/favoris", label: fr.dashboard.favoris, icon: HeartIcon },
     { href: "/dashboard/profil", label: fr.dashboard.monProfil, icon: UserIcon },
     { href: "/dashboard/kyc", label: fr.dashboard.kyc, icon: ShieldIcon },
+    ...(isAdminOrWakil
+      ? [{ href: "/dashboard/admin/annonces", label: fr.admin.badge, icon: StarIcon }]
+      : []),
   ];
 
   return (
