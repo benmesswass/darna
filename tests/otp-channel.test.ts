@@ -1,12 +1,21 @@
 /**
  * Tests PR4 — otp-channel.ts (fonctions pures + aiguillage)
  */
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+// Mock du canal SMS : on vérifie quand le repli WhatsApp→SMS le déclenche, sans
+// dépendre d'un vrai provider (sendSms réel lève en mode production).
+vi.mock("@/lib/sms", () => ({
+  sendSms: vi.fn().mockResolvedValue(true),
+}));
+
+import { sendSms } from "@/lib/sms";
 import {
   buildAuthHeader,
   buildMetaTemplateBody,
   composeE164,
   maskEmail,
+  sendOtp,
   toWhatsAppNumber,
 } from "@/lib/otp-channel";
 
@@ -79,6 +88,56 @@ describe("composeE164", () => {
 
   it("gère un national déjà sans 0 de tête", () => {
     expect(composeE164("216", "22345678")).toBe("+21622345678");
+  });
+});
+
+describe("sendOtp — repli automatique WhatsApp→SMS", () => {
+  const sendSmsMock = vi.mocked(sendSms);
+
+  beforeEach(() => {
+    vi.stubEnv("OTP_PROVIDER", "meta-whatsapp");
+    vi.stubEnv("META_WHATSAPP_ACCESS_TOKEN", "tok");
+    vi.stubEnv("META_WHATSAPP_PHONE_ID", "123");
+    sendSmsMock.mockClear();
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
+  it("bascule sur SMS quand l'envoi WhatsApp lève une erreur réelle", async () => {
+    // API Meta en erreur → sendMetaWhatsApp throw → repli SMS.
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: false, status: 500, text: async () => "boom" })
+    );
+
+    const result = await sendOtp("+21622345678", "123456");
+
+    expect(sendSmsMock).toHaveBeenCalledTimes(1);
+    expect(sendSmsMock).toHaveBeenCalledWith("+21622345678", expect.stringContaining("123456"));
+    expect(result).toBe(true);
+  });
+
+  it("ne bascule PAS sur SMS quand WhatsApp réussit", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true }));
+
+    const result = await sendOtp("+21622345678", "123456");
+
+    expect(sendSmsMock).not.toHaveBeenCalled();
+    expect(result).toBe(true);
+  });
+
+  it("ne bascule PAS sur SMS pour le no-op démo (aucune clé Meta)", async () => {
+    // Sans token : sendMetaWhatsApp retourne false SANS erreur → pas de repli.
+    vi.stubEnv("META_WHATSAPP_ACCESS_TOKEN", "");
+    vi.stubEnv("META_WHATSAPP_PHONE_ID", "");
+
+    const result = await sendOtp("+21622345678", "123456");
+
+    expect(sendSmsMock).not.toHaveBeenCalled();
+    expect(result).toBe(false);
   });
 });
 
