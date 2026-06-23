@@ -1031,6 +1031,18 @@ async function main() {
     const expiresAt = new Date(publishedAt.getTime() + 30 * DAY);
     const suffix = String(100 + i);
 
+    // Niveau de vérification (badge « Certifié ») pour les annonces vérifiées :
+    // SEJOUR et 1 sur 2 des autres → ON_SITE (terrain, vérifié par un Wakil) ;
+    // le reste → REMOTE (à distance, vérifié par l'admin). Sinon : aucun niveau.
+    const isOnSite = p.type === "SEJOUR" || i % 2 === 0;
+    const verif = p.verified
+      ? {
+          verificationLevel: isOnSite ? "ON_SITE" : "REMOTE",
+          verifiedAt: daysAgo(3 + (i % 20)),
+          verifiedById: isOnSite ? wakil.id : admin.id,
+        }
+      : { verificationLevel: null, verifiedAt: null, verifiedById: null };
+
     const property = await prisma.property.create({
       data: {
         slug: buildPropertySlug(p.title, p.city, suffix),
@@ -1040,6 +1052,7 @@ async function main() {
         vertical: verticalOfType(p.type),
         status: p.status ?? "ACTIVE",
         verified: p.verified,
+        ...verif,
         price: p.price,
         surface: p.surface ?? null,
         rooms: p.rooms ?? null,
