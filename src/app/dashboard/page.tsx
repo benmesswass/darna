@@ -1,9 +1,23 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { getSessionUser } from "@/lib/session";
+import { VERIF_SKIP_COOKIE } from "@/lib/constants";
 
 export default async function DashboardPage() {
   const user = await getSessionUser();
   if (!user) redirect("/connexion");
+
+  // Mise en avant des vérifications à la connexion : tant que l'utilisateur
+  // n'a pas tout vérifié ET n'a pas cliqué « Passer pour l'instant », on l'amène
+  // sur l'assistant. Non bloquant (le cookie de report le libère ensuite).
+  // Hôte/agence : e-mail + téléphone + CIN. Voyageur : e-mail + téléphone.
+  const isLister = user.role === "HOTE" || user.role === "AGENCE";
+  const cinOk = user.kycStatus === "VERIFIE" || user.kycStatus === "DEMO_VERIFIE";
+  const fullyVerified = user.emailVerified && user.phoneVerified && (!isLister || cinOk);
+  const skipped = (await cookies()).get(VERIF_SKIP_COOKIE);
+  if (!skipped && !fullyVerified) {
+    redirect("/dashboard/verifications?welcome=1");
+  }
 
   if (user.role === "HOTE" || user.role === "AGENCE") {
     redirect("/dashboard/annonces");

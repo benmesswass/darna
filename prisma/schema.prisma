@@ -42,6 +42,9 @@ model User {
   // CIN saisie au KYC. Chiffrée au repos (AES-256-GCM) dès KYC_ENC_KEY défini ;
   // OBLIGATOIRE en KYC_MODE=production (boot fail-fast). Cf. src/lib/crypto.ts.
   cin           String?
+  // Empreinte déterministe de la CIN (hashCin) — index UNIQUE : interdit deux
+  // comptes avec la même CIN, sans exposer le numéro. Cf. src/lib/crypto.ts.
+  cinHash       String?  @unique
   // PR2 — Wakil : agent vérifié sur le terrain.
   isWakil       Boolean  @default(false)
   createdAt     DateTime @default(now())

@@ -103,6 +103,7 @@ export default async function ReserverPage({
           defaultDepart={sp.depart ?? ""}
           defaultVoyageurs={voyageurs}
           isLoggedIn={Boolean(user)}
+          verified={Boolean(user?.emailVerified && user?.phoneVerified)}
         />
       )}
     </div>

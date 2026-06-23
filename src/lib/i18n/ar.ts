@@ -344,6 +344,7 @@ export const ar: Dictionary = {
     demandesRecues: "الطلبات الواردة",
     yieldAdvisor: "مستشار المردودية",
     kyc: "توثيق الهوية",
+    email: "تثبّت الإيميل",
     monProfil: "معلوماتي",
     favoris: "المفضّلة",
     favorisSansDossier: "بلا مجلّد",
@@ -504,6 +505,14 @@ export const ar: Dictionary = {
     gateRequiseCta: "وثّق هويتي",
     otpEnvoiEchoue:
       "ما نجمناش نبعثو كود التثبّت توا. عاود المحاولة بعد شويّة.",
+    telephoneIntro: "توصلك رمز عبر SMS ولا WhatsApp باش تأكّد نمرتك.",
+    telephoneVerifie: "التيليفون اتثبّت.",
+    telephoneRequis: "ثبّت التيليفون متاعك الأول.",
+    cinIntro:
+      "اكتب رقم بطاقة التعريف متاعك. يبقى سرّي وما ينجّمش يتربط كان بحساب واحد في دارنا.",
+    validerCin: "ثبّت بطاقة التعريف",
+    cinDejaUtilisee:
+      "بطاقة التعريف هذي مربوطة بحساب آخر. وثيقة هوية ما تنجّمش تتستعمل كان لحساب واحد في دارنا.",
   },
   admin: {
     badge: "أدمين",
@@ -570,10 +579,35 @@ export const ar: Dictionary = {
     otpInvalide: "الرمز غالط. عاود جرّب.",
     verifieBravo: "الإيميل متاعك اتثبّت.",
     dejaVerifie: "الإيميل متاعك موثّق من قبل.",
+    badgeVerifie: "إيميل موثّق",
     mailSujet: "Darna — ثبّت عنوان الإيميل متاعك",
     mailCorpsHtml: (code: string) =>
       `<p>رمز التثبّت متاعك في Darna: <strong>${code}</strong></p>` +
       `<p>الرمز هذا يفنى بعد 10 دقايق.</p>`,
+  },
+  verifications: {
+    navLabel: "التثبّت",
+    bienvenue: "مرحبا بيك في دارنا 👋",
+    titre: "نثبّتو حسابك",
+    sousTitre: "زوز خطوات سراع باش تدخل لمجتمع الثقة متاع دارنا.",
+    pourquoiTitre: "علاش التثبّت؟",
+    pourquoi1:
+      "الثقة هي المنتوج متاعنا: مضيّفين ومسافرين موثّقين، يعني راحة بال للجميع.",
+    pourquoi2: "إيميل مؤكّد يأمّن حسابك وإشعارات الحجز متاعك.",
+    pourquoi3: "هوية موثّقة تحلّ نشر الإعلانات وتطمّن اللي يحجزو عندك.",
+    etape: (n: number, total: number) => `الخطوة ${n} / ${total}`,
+    etapeEmail: "ثبّت الإيميل متاعك",
+    etapeTelephone: "ثبّت التيليفون متاعك",
+    etapeCin: "ثبّت هويتك (CIN)",
+    etapeIdentite: "ثبّت هويتك",
+    suivant: "الخطوة الجاية",
+    precedent: "ارجع",
+    passer: "عدّي للوقت هذا",
+    terminerPlusTard: "تنجّم تكمّل من بعد من علامة « التثبّت ».",
+    tousVerifies: "حسابك موثّق بالكامل 🎉",
+    tousVerifiesSous: "يعيشك! ولّيت تستمتع بثقة دارنا الكاملة.",
+    badgeFait: "تمّ",
+    badgeAFaire: "يتسنّى",
   },
   profil: {
     titre: "معلوماتي",
@@ -658,6 +692,11 @@ export const ar: Dictionary = {
     capaciteDepassee: (max: number) =>
       `الدار هاذي تسع ${max} مسافرين كحد أقصى.`,
     connexionRequise: "ادخل لحسابك باش تحجز.",
+    verifRequise: "ثبّت حسابك (إيميل + تيليفون) قبل ما تحجز.",
+    verifRequiseTitre: "ثبّت حسابك باش تحجز",
+    verifRequiseDesc:
+      "باش تكون الثقة بين الكل في دارنا، كان الحسابات الموثّقة (إيميل + تيليفون) تنجّم تحجز. ياخذلك أقلّ من دقيقتين.",
+    verifRequiseCta: "ثبّت حسابي",
     paiementTitre: "خلاص مؤمّن — ضمان دارنا",
     sequestreExplication:
       "فلوسك محميّة: تقعد في الضمان عند دارنا وما توصل للمضيف كان بعد 24 ساعة من الوصول. كان صار مشكل عند الوصول، ترجعلك فلوسك الكل.",

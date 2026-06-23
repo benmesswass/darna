@@ -78,3 +78,16 @@ export function hashOtp(code: string): string {
     .update(`${code}:${process.env.AUTH_SECRET ?? "darna"}`)
     .digest("hex");
 }
+
+/**
+ * Empreinte DÉTERMINISTE d'une CIN — sert l'index unique `User.cinHash` pour
+ * empêcher deux comptes de partager le même numéro, sans jamais stocker la CIN
+ * en clair dans l'index. Déterministe (contrairement au chiffrement AES-GCM
+ * randomisé) : même CIN ⇒ même hash. Poivré par KYC_ENC_KEY (ou AUTH_SECRET en
+ * démo). La CIN est normalisée (chiffres uniquement) avant hachage.
+ */
+export function hashCin(cin: string): string {
+  const normalized = cin.replace(/\D/g, "");
+  const pepper = process.env.KYC_ENC_KEY ?? process.env.AUTH_SECRET ?? "darna";
+  return createHash("sha256").update(`cin:${normalized}:${pepper}`).digest("hex");
+}

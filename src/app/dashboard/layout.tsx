@@ -28,6 +28,14 @@ export default async function DashboardLayout({
   const isLister = user.role === "HOTE" || user.role === "AGENCE";
   const isAdminOrWakil = user.role === "ADMIN" || user.isWakil;
 
+  // Compteur d'étapes de vérification restantes : e-mail + téléphone pour tous,
+  // + CIN (identité) uniquement pour les annonceurs (hôte / agence).
+  const kycVerified = user.kycStatus === "VERIFIE" || user.kycStatus === "DEMO_VERIFIE";
+  const verifsRestantes =
+    (user.emailVerified ? 0 : 1) +
+    (user.phoneVerified ? 0 : 1) +
+    (isLister && !kycVerified ? 1 : 0);
+
   // Fetch pending counts for admin/wakil nav badges (skip for regular users)
   let pendingAnnonces = 0;
   let pendingWakils = 0;
@@ -55,7 +63,12 @@ export default async function DashboardLayout({
     },
     { href: "/dashboard/favoris", label: fr.dashboard.favoris, icon: "HeartIcon" as IconName },
     { href: "/dashboard/profil", label: fr.dashboard.monProfil, icon: "UserIcon" as IconName },
-    { href: "/dashboard/kyc", label: fr.dashboard.kyc, icon: "ShieldIcon" as IconName },
+    {
+      href: "/dashboard/verifications",
+      label: fr.verifications.navLabel,
+      icon: "ShieldIcon" as IconName,
+      badge: verifsRestantes > 0 ? verifsRestantes : undefined,
+    },
     ...(isAdminOrWakil
       ? [
           {
@@ -113,6 +126,12 @@ export default async function DashboardLayout({
                   {user.kycStatus === "DEMO_VERIFIE"
                     ? fr.kyc.statutVerifieDemo
                     : fr.kyc.statutVerifie}
+                </span>
+              ) : null}
+              {user.emailVerified ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-sand px-2 py-0.5 text-[11px] font-semibold text-darna-dark">
+                  <CheckIcon width={11} height={11} strokeWidth={3} />
+                  {fr.email.badgeVerifie}
                 </span>
               ) : null}
             </p>

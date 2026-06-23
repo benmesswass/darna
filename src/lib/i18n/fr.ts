@@ -324,6 +324,7 @@ export const fr = {
     demandesRecues: "Demandes reçues",
     yieldAdvisor: "Yield Advisor",
     kyc: "Vérification d'identité",
+    email: "Vérification e-mail",
     monProfil: "Mes informations",
     favoris: "Mes favoris",
     favorisSansDossier: "Sans dossier",
@@ -487,6 +488,15 @@ export const fr = {
     gateRequiseCta: "Vérifier mon identité",
     otpEnvoiEchoue:
       "Impossible d'envoyer le code de vérification pour le moment. Merci de réessayer dans quelques instants.",
+    telephoneIntro:
+      "Recevez un code par SMS ou WhatsApp pour confirmer votre numéro.",
+    telephoneVerifie: "Téléphone vérifié.",
+    telephoneRequis: "Vérifiez d'abord votre téléphone.",
+    cinIntro:
+      "Saisissez votre numéro de CIN. Il reste confidentiel et ne peut être associé qu'à un seul compte Darna.",
+    validerCin: "Valider ma CIN",
+    cinDejaUtilisee:
+      "Cette CIN est déjà associée à un compte. Une pièce d'identité ne peut servir qu'à un seul compte Darna.",
   },
   // PR1 + PR2 — Section administration
   admin: {
@@ -555,10 +565,39 @@ export const fr = {
     otpInvalide: "Code incorrect. Merci de réessayer.",
     verifieBravo: "Votre adresse e-mail est vérifiée.",
     dejaVerifie: "Votre adresse e-mail est déjà vérifiée.",
+    badgeVerifie: "E-mail vérifié",
     mailSujet: "Darna — vérifiez votre adresse e-mail",
     mailCorpsHtml: (code: string) =>
       `<p>Votre code de vérification Darna : <strong>${code}</strong></p>` +
       `<p>Ce code expire dans 10 minutes.</p>`,
+  },
+  verifications: {
+    navLabel: "Vérifications",
+    bienvenue: "Bienvenue sur Darna 👋",
+    titre: "Vérifions votre compte",
+    sousTitre:
+      "Deux étapes rapides pour rejoindre la communauté de confiance Darna.",
+    pourquoiTitre: "Pourquoi vérifier ?",
+    pourquoi1:
+      "La confiance est notre produit : hôtes et voyageurs vérifiés, c'est plus de sérénité pour tout le monde.",
+    pourquoi2:
+      "Un e-mail confirmé sécurise votre compte et vos notifications de réservation.",
+    pourquoi3:
+      "Une identité vérifiée débloque la publication d'annonces et rassure ceux qui réservent chez vous.",
+    etape: (n: number, total: number) => `Étape ${n} / ${total}`,
+    etapeEmail: "Vérifiez votre e-mail",
+    etapeTelephone: "Vérifiez votre téléphone",
+    etapeCin: "Vérifiez votre identité (CIN)",
+    etapeIdentite: "Vérifiez votre identité",
+    suivant: "Étape suivante",
+    precedent: "Précédent",
+    passer: "Passer pour l'instant",
+    terminerPlusTard:
+      "Vous pourrez finir plus tard depuis l'onglet « Vérifications ».",
+    tousVerifies: "Votre compte est entièrement vérifié 🎉",
+    tousVerifiesSous: "Merci ! Vous profitez pleinement de la confiance Darna.",
+    badgeFait: "Fait",
+    badgeAFaire: "À faire",
   },
   profil: {
     titre: "Mes informations",
@@ -639,6 +678,11 @@ export const fr = {
     capaciteDepassee: (max: number) =>
       `Ce logement accueille au maximum ${max} voyageurs.`,
     connexionRequise: "Connectez-vous pour réserver.",
+    verifRequise: "Vérifiez votre compte (e-mail + téléphone) avant de réserver.",
+    verifRequiseTitre: "Vérifiez votre compte pour réserver",
+    verifRequiseDesc:
+      "Pour la confiance de tous sur Darna, seuls les comptes vérifiés (e-mail + téléphone) peuvent réserver. Cela prend moins de deux minutes.",
+    verifRequiseCta: "Vérifier mon compte",
     paiementTitre: "Paiement sécurisé — séquestre Darna",
     sequestreExplication:
       "Votre argent est protégé : il est conservé sous séquestre par Darna et versé à l'hôte 24 h après le check-in. En cas de problème à l'arrivée, vous êtes intégralement remboursé.",

@@ -1,16 +1,24 @@
 "use client";
 
-import { useActionState, useTransition, startTransition } from "react";
+import { useActionState, useTransition, useEffect, startTransition } from "react";
 import { requestEmailOtpAction, verifyEmailOtpAction } from "@/actions/email";
 import { useT } from "@/components/i18n/LocaleProvider";
 
-export function EmailVerifyFlow() {
+export function EmailVerifyFlow({
+  initialVerified = false,
+  onVerified,
+}: { initialVerified?: boolean; onVerified?: () => void } = {}) {
   const fr = useT();
   const [requestState, requestAction] = useActionState(requestEmailOtpAction, undefined);
   const [verifyState, verifyAction] = useActionState(verifyEmailOtpAction, undefined);
   const [isPending, startT] = useTransition();
 
-  const isVerified = requestState?.verified || verifyState?.verified;
+  const isVerified = initialVerified || requestState?.verified || verifyState?.verified;
+
+  // Auto-avance : prévient l'assistant dès que l'e-mail est vérifié.
+  useEffect(() => {
+    if (isVerified) onVerified?.();
+  }, [isVerified, onVerified]);
   const hasSent = requestState?.sent;
   const demoCode = requestState?.otp;
 

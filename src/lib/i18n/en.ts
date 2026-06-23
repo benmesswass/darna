@@ -323,6 +323,7 @@ export const en: Dictionary = {
     demandesRecues: "Received requests",
     yieldAdvisor: "Yield Advisor",
     kyc: "Identity verification",
+    email: "Email verification",
     monProfil: "My details",
     favoris: "My favourites",
     favorisSansDossier: "No folder",
@@ -486,6 +487,14 @@ export const en: Dictionary = {
     gateRequiseCta: "Verify my identity",
     otpEnvoiEchoue:
       "Unable to send the verification code right now. Please try again in a moment.",
+    telephoneIntro: "Receive a code by SMS or WhatsApp to confirm your number.",
+    telephoneVerifie: "Phone verified.",
+    telephoneRequis: "Please verify your phone first.",
+    cinIntro:
+      "Enter your ID (CIN) number. It stays confidential and can only be linked to a single Darna account.",
+    validerCin: "Verify my ID",
+    cinDejaUtilisee:
+      "This ID is already linked to an account. An ID document can only be used for one Darna account.",
   },
   admin: {
     badge: "Admin",
@@ -552,10 +561,37 @@ export const en: Dictionary = {
     otpInvalide: "Incorrect code. Please try again.",
     verifieBravo: "Your email address is verified.",
     dejaVerifie: "Your email address is already verified.",
+    badgeVerifie: "Email verified",
     mailSujet: "Darna — verify your email address",
     mailCorpsHtml: (code: string) =>
       `<p>Your Darna verification code: <strong>${code}</strong></p>` +
       `<p>This code expires in 10 minutes.</p>`,
+  },
+  verifications: {
+    navLabel: "Verification",
+    bienvenue: "Welcome to Darna 👋",
+    titre: "Let's verify your account",
+    sousTitre: "Two quick steps to join Darna's circle of trust.",
+    pourquoiTitre: "Why verify?",
+    pourquoi1:
+      "Trust is our product: verified hosts and guests mean more peace of mind for everyone.",
+    pourquoi2:
+      "A confirmed email secures your account and your booking notifications.",
+    pourquoi3:
+      "A verified identity unlocks listing publication and reassures the people who book with you.",
+    etape: (n: number, total: number) => `Step ${n} / ${total}`,
+    etapeEmail: "Verify your email",
+    etapeTelephone: "Verify your phone",
+    etapeCin: "Verify your ID (CIN)",
+    etapeIdentite: "Verify your identity",
+    suivant: "Next step",
+    precedent: "Back",
+    passer: "Skip for now",
+    terminerPlusTard: "You can finish later from the “Verification” tab.",
+    tousVerifies: "Your account is fully verified 🎉",
+    tousVerifiesSous: "Thank you! You now enjoy the full Darna trust experience.",
+    badgeFait: "Done",
+    badgeAFaire: "To do",
   },
   profil: {
     titre: "My details",
@@ -636,6 +672,11 @@ export const en: Dictionary = {
     capaciteDepassee: (max: number) =>
       `This accommodation hosts a maximum of ${max} guests.`,
     connexionRequise: "Sign in to book.",
+    verifRequise: "Verify your account (email + phone) before booking.",
+    verifRequiseTitre: "Verify your account to book",
+    verifRequiseDesc:
+      "For everyone's trust on Darna, only verified accounts (email + phone) can book. It takes less than two minutes.",
+    verifRequiseCta: "Verify my account",
     paiementTitre: "Secure payment — Darna escrow",
     sequestreExplication:
       "Your money is protected: it is held in escrow by Darna and released to the host 24 hours after check-in. If there is a problem on arrival, you are fully refunded.",
