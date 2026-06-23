@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getT } from "@/lib/i18n/server";
 import { fr as frMeta } from "@/lib/i18n/fr";
 import { getSessionUser } from "@/lib/session";
 import { safeCallbackUrl } from "@/lib/redirect";
+import { isCaptchaEnabled, turnstileSiteKey } from "@/lib/turnstile";
 import { LoginForm } from "@/components/auth/AuthForms";
 
 export const metadata: Metadata = { title: frMeta.auth.connexionTitre };
@@ -22,6 +24,12 @@ export default async function ConnexionPage({
   // Pré-remplissage e-mail + bannière après une inscription réussie.
   const defaultEmail = typeof email === "string" ? email.slice(0, 200) : "";
 
+  // CAPTCHA (dual-mode) : clé publique + nonce CSP transmis au widget si actif.
+  const captchaSiteKey = isCaptchaEnabled() ? turnstileSiteKey() : "";
+  const captchaNonce = captchaSiteKey
+    ? (await headers()).get("x-nonce") ?? undefined
+    : undefined;
+
   return (
     <div className="mx-auto max-w-md px-4 py-16 sm:px-6">
       <h1 className="text-center text-3xl font-bold text-darna">
@@ -32,6 +40,8 @@ export default async function ConnexionPage({
           callbackUrl={callbackUrl ? cb : undefined}
           registered={registered === "1"}
           defaultEmail={defaultEmail}
+          captchaSiteKey={captchaSiteKey}
+          captchaNonce={captchaNonce}
         />
       </div>
     </div>

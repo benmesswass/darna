@@ -339,6 +339,7 @@ export const ar: Dictionary = {
     compteCreeConnectezVous: "الحساب تعمل! أدخل باش تكمّل.",
     afficherMotDePasse: "أظهر كلمة السر",
     masquerMotDePasse: "أخفي كلمة السر",
+    captchaEchec: "فشل التحقق ضد الروبوتات. عاود من فضلك.",
   },
   dashboard: {
     titre: "حسابي",

@@ -26,6 +26,11 @@ vi.mock("next-auth", () => ({ AuthError: class AuthError extends Error {} }));
 
 vi.mock("@/lib/rate-limit", () => ({
   assertRateLimit: vi.fn().mockResolvedValue(true),
+  clientIp: vi.fn().mockResolvedValue("dev-local"),
+}));
+
+vi.mock("@/lib/turnstile", () => ({
+  verifyTurnstile: vi.fn().mockResolvedValue(true),
 }));
 
 vi.mock("@/lib/audit", () => ({ logAudit: vi.fn() }));
@@ -41,6 +46,7 @@ vi.mock("@/lib/i18n/server", () => ({
       inscriptionReussie: "Compte créé !",
       motDePasseNonIdentiques: "Les mots de passe ne sont pas identiques.",
       emailDejaUtilise: "Un compte existe déjà avec cet e-mail. Connectez-vous.",
+      captchaEchec: "Vérification anti-robot échouée. Veuillez réessayer.",
     },
     common: { champsRequis: "Champs requis.", tropDeTentatives: "Trop de tentatives." },
     email: {
@@ -54,6 +60,7 @@ import { registerAction } from "@/actions/auth";
 import { prisma } from "@/lib/prisma";
 import { issueOtp } from "@/lib/otp";
 import { sendEmail } from "@/lib/mailer";
+import { verifyTurnstile } from "@/lib/turnstile";
 
 function formData(): FormData {
   const fd = new FormData();
@@ -72,6 +79,7 @@ beforeEach(() => {
   (prisma.user.create as unknown as Mock).mockResolvedValue({ id: "u-1", email: "new@test.tn" });
   (prisma.auditLog.create as unknown as Mock).mockResolvedValue({});
   (issueOtp as unknown as Mock).mockResolvedValue("123456");
+  (verifyTurnstile as unknown as Mock).mockResolvedValue(true);
 });
 
 describe("registerAction — vérification d'email à l'inscription", () => {
@@ -130,6 +138,19 @@ describe("registerAction — vérification d'email à l'inscription", () => {
       values: { name: "Wassim", email: "new@test.tn", phone: "", role: "HOTE" },
     });
     expect(JSON.stringify(res)).not.toContain("azerty12");
+    expect(prisma.user.create).not.toHaveBeenCalled();
+    expect(issueOtp).not.toHaveBeenCalled();
+  });
+
+  it("refuse l'inscription si le CAPTCHA échoue (avant toute écriture)", async () => {
+    (verifyTurnstile as unknown as Mock).mockResolvedValue(false);
+
+    const res = await registerAction(undefined, formData());
+
+    expect(res).toEqual({
+      error: "Vérification anti-robot échouée. Veuillez réessayer.",
+      values: { name: "Wassim", email: "new@test.tn", phone: "", role: "HOTE" },
+    });
     expect(prisma.user.create).not.toHaveBeenCalled();
     expect(issueOtp).not.toHaveBeenCalled();
   });

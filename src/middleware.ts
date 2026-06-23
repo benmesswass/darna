@@ -18,16 +18,25 @@ export function middleware(request: NextRequest) {
 
   const isProd = process.env.NODE_ENV === "production";
 
+  // CAPTCHA Cloudflare Turnstile (cf. src/lib/turnstile.ts) : on n'élargit la CSP
+  // aux domaines challenges.cloudflare.com QUE lorsque le mode est actif — la CSP
+  // reste donc stricte en démo. Le widget charge un script (autorisé par
+  // strict-dynamic via le nonce), pose une iframe (frame-src) et appelle
+  // Cloudflare (connect-src).
+  const captchaOn = process.env.CAPTCHA_MODE === "turnstile";
+  const cf = "https://challenges.cloudflare.com";
+
   const csp = [
     "default-src 'self'",
     // 'strict-dynamic' + nonce : les navigateurs modernes ignorent 'unsafe-inline'
     // quand strict-dynamic est présent. Rétrocompatibilité IE : 'unsafe-inline' est
     // conservé en fallback pour les navigateurs qui ne supportent pas les nonces.
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'unsafe-inline'`,
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'unsafe-inline'${captchaOn ? ` ${cf}` : ""}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https://*.tile.openstreetmap.org",
     "font-src 'self' data:",
-    "connect-src 'self' https://*.tile.openstreetmap.org",
+    `connect-src 'self' https://*.tile.openstreetmap.org${captchaOn ? ` ${cf}` : ""}`,
+    ...(captchaOn ? [`frame-src 'self' ${cf}`] : []),
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

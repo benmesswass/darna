@@ -318,6 +318,7 @@ export const en: Dictionary = {
     compteCreeConnectezVous: "Account created! Sign in to continue.",
     afficherMotDePasse: "Show password",
     masquerMotDePasse: "Hide password",
+    captchaEchec: "Anti-bot check failed. Please try again.",
   },
   dashboard: {
     titre: "My account",

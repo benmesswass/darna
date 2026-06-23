@@ -84,6 +84,12 @@ const envSchema = z
 
     // Observabilité erreurs : POST opt-in des exceptions (cf. src/lib/observability.ts).
     OBSERVABILITY_WEBHOOK_URL: z.string().url().optional(),
+
+    // CAPTCHA anti-robot : absent/"off" (aucun, défaut) | "turnstile" (Cloudflare).
+    CAPTCHA_MODE: z.enum(["off", "turnstile"]).optional(),
+    // Requis si CAPTCHA_MODE=turnstile (cf. superRefine). La site key est publique.
+    TURNSTILE_SECRET_KEY: z.string().optional(),
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().optional(),
   })
   .superRefine((e, ctx) => {
     // Au moins une verticale doit rester active : un site sans Séjours NI Immo
@@ -156,6 +162,19 @@ const envSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "EMAIL_PROVIDER=resend requiert RESEND_API_KEY.",
+      });
+    }
+
+    // CAPTCHA réel : les deux clés Turnstile sont exigées (sinon widget côté
+    // client OU vérification serveur inopérants → fail-closed silencieux).
+    if (
+      e.CAPTCHA_MODE === "turnstile" &&
+      !(e.TURNSTILE_SECRET_KEY && e.NEXT_PUBLIC_TURNSTILE_SITE_KEY)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "CAPTCHA_MODE=turnstile requiert TURNSTILE_SECRET_KEY et NEXT_PUBLIC_TURNSTILE_SITE_KEY.",
       });
     }
 

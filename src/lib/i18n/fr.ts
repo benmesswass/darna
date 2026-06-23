@@ -319,6 +319,7 @@ export const fr = {
     compteCreeConnectezVous: "Compte créé ! Connectez-vous pour continuer.",
     afficherMotDePasse: "Afficher le mot de passe",
     masquerMotDePasse: "Masquer le mot de passe",
+    captchaEchec: "Vérification anti-robot échouée. Veuillez réessayer.",
   },
   dashboard: {
     titre: "Mon espace",
