@@ -55,6 +55,11 @@ const envSchema = z
     KYC_ENC_KEY: z.string().min(16).optional(),
     // Provider SMS réel (Twilio, passerelle TN…). Requis dès KYC_MODE=production.
     SMS_PROVIDER: z.string().optional(),
+    // Identifiants Twilio. Requis (boot fail-fast) si SMS_PROVIDER=twilio.
+    // TWILIO_FROM : numéro expéditeur E.164 OU Messaging Service SID (préfixe "MG").
+    TWILIO_ACCOUNT_SID: z.string().optional(),
+    TWILIO_AUTH_TOKEN: z.string().optional(),
+    TWILIO_FROM: z.string().optional(),
 
     // PR3 — Gating KYC sur la création d'annonces.
     // "on" = seuls les utilisateurs vérifiés peuvent publier.
@@ -125,6 +130,19 @@ const envSchema = z
         code: z.ZodIssueCode.custom,
         message:
           "KYC_MODE=production requiert SMS_PROVIDER (envoi SMS réel ; le code OTP ne doit jamais être renvoyé au client).",
+      });
+    }
+
+    // B2b — provider Twilio : identifiants complets exigés (sinon l'envoi réel
+    // planterait au runtime). Couvre aussi le repli WhatsApp→SMS (otp-channel.ts).
+    if (
+      e.SMS_PROVIDER === "twilio" &&
+      !(e.TWILIO_ACCOUNT_SID && e.TWILIO_AUTH_TOKEN && e.TWILIO_FROM)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "SMS_PROVIDER=twilio requiert TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN et TWILIO_FROM (numéro E.164 ou Messaging Service SID).",
       });
     }
 
