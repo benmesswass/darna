@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   BuildingIcon,
   CalendarIcon,
+  ChartIcon,
   HeartIcon,
   MailIcon,
   ShieldIcon,
@@ -17,6 +18,7 @@ import {
 const ICONS = {
   BuildingIcon,
   CalendarIcon,
+  ChartIcon,
   HeartIcon,
   MailIcon,
   ShieldIcon,

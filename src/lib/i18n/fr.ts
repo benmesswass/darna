@@ -505,6 +505,7 @@ export const fr = {
     annonces: "Annonces",
     navAnnonces: "Vérif. annonces",
     navWakils: "Vérif. Wakils",
+    navAnalytics: "Tableau de bord",
     wakils: "Wakils",
     fileModeration: "File de modération des annonces",
     fileModerationDesc:
@@ -550,6 +551,88 @@ export const fr = {
     wakilsSupprimeeesDesc: "Ces candidatures ont été archivées. Vous pouvez les supprimer définitivement.",
     supprimerDefinitivement: "Supprimer",
     aucuneCandidatureSupprimee: "Aucune candidature archivée.",
+  },
+  // Tableau de bord founder — suivi d'adoption (ADMIN uniquement)
+  analytics: {
+    titre: "Tableau de bord",
+    sousTitre:
+      "Suivi de l'adoption de la plateforme : acquisition, activation, réservations et rétention. Données calculées en direct.",
+    genereLe: (date: string) => `À jour le ${date}`,
+    pourcent: (v: number) => `${Math.round(v * 100)} %`,
+    rolesLabel: {
+      VOYAGEUR: "Voyageurs",
+      HOTE: "Hôtes",
+      AGENCE: "Agences",
+      ADMIN: "Admins",
+    } as Record<string, string>,
+
+    // North-star
+    sectionNorthStar: "Vue d'ensemble",
+    annoncesVerifieesActives: "Annonces vérifiées actives",
+    annoncesVerifieesActivesDesc: "North-star produit",
+    annoncesActives: "Annonces actives",
+    tauxVerification: "Taux de vérification",
+    gmv: "Volume réservé (GMV)",
+    gmvDesc: "Réservations payées, démo incluse",
+    gmvReelle: "dont réel (hors démo)",
+    reservationsConfirmees: "Réservations confirmées",
+    utilisateursTotal: "Comptes créés",
+
+    // Acquisition & activation
+    sectionAcquisition: "Acquisition & activation",
+    inscriptions7j: "Inscriptions (7 j)",
+    inscriptions30j: "Inscriptions (30 j)",
+    inscriptionsParJour: "Inscriptions / jour — 30 derniers jours",
+    repartitionRoles: "Répartition par rôle",
+    tauxEmailVerifie: "E-mails vérifiés",
+    tauxKyc: "Identité vérifiée (annonceurs)",
+    annonceursActifs: "Annonceurs avec annonce",
+    annonceursActifsDesc: "Part des hôtes/agences ayant publié",
+
+    // Funnel
+    sectionFunnel: "Funnel de réservation",
+    funnelDesc:
+      "De la réservation créée au paiement confirmé. Les paliers reflètent la table des réservations.",
+    funnelCreees: "Créées",
+    funnelInitiees: "Paiement initié",
+    funnelConfirmees: "Confirmées",
+    funnelAnnulees: "Annulées",
+    funnelExpirees: "Expirées (15 min)",
+    funnelEnAttente: "En attente",
+    tauxConversion: "Taux de conversion",
+    tauxAbandon: "Taux d'abandon",
+
+    // Rétention / churn
+    sectionRetention: "Rétention & churn",
+    retentionDesc:
+      "Quand les voyageurs arrêtent de réserver. Segmentation sur la date de dernière réservation.",
+    voyageursAyantReserve: "Voyageurs ayant réservé",
+    actifs30j: "Actifs (≤ 30 j)",
+    aRisque: "À risque (30–90 j)",
+    perdus: "Perdus (> 90 j)",
+    cohortes: "Cohortes d'activation",
+    cohortesDesc:
+      "Par mois d'inscription : part des comptes ayant réservé au moins une fois.",
+    moisInscription: "Mois",
+    inscrits: "Inscrits",
+    actives: "Activés",
+    tauxActivation: "Activation",
+
+    // Wakil
+    sectionWakil: "Réseau Wakil",
+    candidaturesParStatut: "Candidatures par statut",
+    verificationsSurPlace: "Vérifications sur place",
+    topWakils: "Top Wakils (vérifications)",
+
+    // Flux d'événements
+    sectionEvenements: "Activité récente",
+    evenementsDesc: "Derniers événements de l'audit trail.",
+    evenement: "Événement",
+    utilisateur: "Utilisateur",
+    quand: "Quand",
+    systeme: "Système",
+    echec: "échec",
+    aucuneDonnee: "Aucune donnée pour le moment.",
   },
   // PR5 — Vérification e-mail
   email: {
