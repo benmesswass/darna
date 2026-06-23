@@ -101,19 +101,41 @@ export function buildMetaTemplateBody(
   };
 }
 
+/** Corps du SMS d'OTP (factorisé : canal SMS direct ET repli WhatsApp→SMS). */
+function otpSmsText(code: string): string {
+  return `Darna : votre code de vérification est ${code}`;
+}
+
 /**
  * Envoie le code OTP via le canal configuré (SMS ou WhatsApp).
+ *
+ * Repli automatique WhatsApp→SMS : si le canal actif est WhatsApp et que
+ * l'envoi lève une erreur RÉELLE (clé Meta présente + API qui plante), on
+ * bascule sur le SMS pour ne pas bloquer la vérification. Le no-op démo
+ * (`sendMetaWhatsApp` retourne `false` sans erreur quand aucune clé n'est
+ * configurée) ne passe PAS par ce repli : il garde son comportement historique
+ * (affichage du code à l'écran par l'appelant).
+ *
  * @returns `true` si délégué à un provider réel (jamais `false` en production).
  */
 export async function sendOtp(phone: string, code: string): Promise<boolean> {
   const provider = getOtpProvider();
 
   if (provider === "meta-whatsapp") {
-    return sendMetaWhatsApp(phone, code);
+    try {
+      return await sendMetaWhatsApp(phone, code);
+    } catch (err) {
+      // Échec réel d'envoi WhatsApp : repli SMS automatique.
+      logStructured("warn", "otp.whatsapp_fallback_sms", {
+        phone: phone.replace(/\d(?=\d{2})/g, "•"),
+        error: String(err),
+      });
+      return sendSms(phone, otpSmsText(code));
+    }
   }
 
   // Défaut : SMS (comportement historique)
-  return sendSms(phone, `Darna : votre code de vérification est ${code}`);
+  return sendSms(phone, otpSmsText(code));
 }
 
 /**
