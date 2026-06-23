@@ -559,6 +559,30 @@ export const en: Dictionary = {
       `<p>Your Darna verification code: <strong>${code}</strong></p>` +
       `<p>This code expires in 10 minutes.</p>`,
   },
+  verifications: {
+    navLabel: "Verification",
+    bienvenue: "Welcome to Darna 👋",
+    titre: "Let's verify your account",
+    sousTitre: "Two quick steps to join Darna's circle of trust.",
+    pourquoiTitre: "Why verify?",
+    pourquoi1:
+      "Trust is our product: verified hosts and guests mean more peace of mind for everyone.",
+    pourquoi2:
+      "A confirmed email secures your account and your booking notifications.",
+    pourquoi3:
+      "A verified identity unlocks listing publication and reassures the people who book with you.",
+    etape: (n: number, total: number) => `Step ${n} / ${total}`,
+    etapeEmail: "Verify your email",
+    etapeIdentite: "Verify your identity",
+    suivant: "Next step",
+    precedent: "Back",
+    passer: "Skip for now",
+    terminerPlusTard: "You can finish later from the “Verification” tab.",
+    tousVerifies: "Your account is fully verified 🎉",
+    tousVerifiesSous: "Thank you! You now enjoy the full Darna trust experience.",
+    badgeFait: "Done",
+    badgeAFaire: "To do",
+  },
   profil: {
     titre: "My details",
     sousTitre:

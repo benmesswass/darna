@@ -562,6 +562,32 @@ export const fr = {
       `<p>Votre code de vérification Darna : <strong>${code}</strong></p>` +
       `<p>Ce code expire dans 10 minutes.</p>`,
   },
+  verifications: {
+    navLabel: "Vérifications",
+    bienvenue: "Bienvenue sur Darna 👋",
+    titre: "Vérifions votre compte",
+    sousTitre:
+      "Deux étapes rapides pour rejoindre la communauté de confiance Darna.",
+    pourquoiTitre: "Pourquoi vérifier ?",
+    pourquoi1:
+      "La confiance est notre produit : hôtes et voyageurs vérifiés, c'est plus de sérénité pour tout le monde.",
+    pourquoi2:
+      "Un e-mail confirmé sécurise votre compte et vos notifications de réservation.",
+    pourquoi3:
+      "Une identité vérifiée débloque la publication d'annonces et rassure ceux qui réservent chez vous.",
+    etape: (n: number, total: number) => `Étape ${n} / ${total}`,
+    etapeEmail: "Vérifiez votre e-mail",
+    etapeIdentite: "Vérifiez votre identité",
+    suivant: "Étape suivante",
+    precedent: "Précédent",
+    passer: "Passer pour l'instant",
+    terminerPlusTard:
+      "Vous pourrez finir plus tard depuis l'onglet « Vérifications ».",
+    tousVerifies: "Votre compte est entièrement vérifié 🎉",
+    tousVerifiesSous: "Merci ! Vous profitez pleinement de la confiance Darna.",
+    badgeFait: "Fait",
+    badgeAFaire: "À faire",
+  },
   profil: {
     titre: "Mes informations",
     sousTitre:

@@ -577,6 +577,28 @@ export const ar: Dictionary = {
       `<p>رمز التثبّت متاعك في Darna: <strong>${code}</strong></p>` +
       `<p>الرمز هذا يفنى بعد 10 دقايق.</p>`,
   },
+  verifications: {
+    navLabel: "التثبّت",
+    bienvenue: "مرحبا بيك في دارنا 👋",
+    titre: "نثبّتو حسابك",
+    sousTitre: "زوز خطوات سراع باش تدخل لمجتمع الثقة متاع دارنا.",
+    pourquoiTitre: "علاش التثبّت؟",
+    pourquoi1:
+      "الثقة هي المنتوج متاعنا: مضيّفين ومسافرين موثّقين، يعني راحة بال للجميع.",
+    pourquoi2: "إيميل مؤكّد يأمّن حسابك وإشعارات الحجز متاعك.",
+    pourquoi3: "هوية موثّقة تحلّ نشر الإعلانات وتطمّن اللي يحجزو عندك.",
+    etape: (n: number, total: number) => `الخطوة ${n} / ${total}`,
+    etapeEmail: "ثبّت الإيميل متاعك",
+    etapeIdentite: "ثبّت هويتك",
+    suivant: "الخطوة الجاية",
+    precedent: "ارجع",
+    passer: "عدّي للوقت هذا",
+    terminerPlusTard: "تنجّم تكمّل من بعد من علامة « التثبّت ».",
+    tousVerifies: "حسابك موثّق بالكامل 🎉",
+    tousVerifiesSous: "يعيشك! ولّيت تستمتع بثقة دارنا الكاملة.",
+    badgeFait: "تمّ",
+    badgeAFaire: "يتسنّى",
+  },
   profil: {
     titre: "معلوماتي",
     sousTitre: "سيّر معلوماتك الشخصية، صورة حسابك وكلمة السرّ متاعك.",

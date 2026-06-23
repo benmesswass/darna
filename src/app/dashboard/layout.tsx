@@ -28,6 +28,10 @@ export default async function DashboardLayout({
   const isLister = user.role === "HOTE" || user.role === "AGENCE";
   const isAdminOrWakil = user.role === "ADMIN" || user.isWakil;
 
+  // Compteur d'étapes de vérification restantes (e-mail + identité).
+  const kycVerified = user.kycStatus === "VERIFIE" || user.kycStatus === "DEMO_VERIFIE";
+  const verifsRestantes = (user.emailVerified ? 0 : 1) + (kycVerified ? 0 : 1);
+
   // Fetch pending counts for admin/wakil nav badges (skip for regular users)
   let pendingAnnonces = 0;
   let pendingWakils = 0;
@@ -55,8 +59,12 @@ export default async function DashboardLayout({
     },
     { href: "/dashboard/favoris", label: fr.dashboard.favoris, icon: "HeartIcon" as IconName },
     { href: "/dashboard/profil", label: fr.dashboard.monProfil, icon: "UserIcon" as IconName },
-    { href: "/dashboard/kyc", label: fr.dashboard.kyc, icon: "ShieldIcon" as IconName },
-    { href: "/dashboard/email", label: fr.dashboard.email, icon: "MailIcon" as IconName },
+    {
+      href: "/dashboard/verifications",
+      label: fr.verifications.navLabel,
+      icon: "ShieldIcon" as IconName,
+      badge: verifsRestantes > 0 ? verifsRestantes : undefined,
+    },
     ...(isAdminOrWakil
       ? [
           {
