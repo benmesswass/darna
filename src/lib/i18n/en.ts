@@ -672,6 +672,11 @@ export const en: Dictionary = {
     capaciteDepassee: (max: number) =>
       `This accommodation hosts a maximum of ${max} guests.`,
     connexionRequise: "Sign in to book.",
+    verifRequise: "Verify your account (email + phone) before booking.",
+    verifRequiseTitre: "Verify your account to book",
+    verifRequiseDesc:
+      "For everyone's trust on Darna, only verified accounts (email + phone) can book. It takes less than two minutes.",
+    verifRequiseCta: "Verify my account",
     paiementTitre: "Secure payment — Darna escrow",
     sequestreExplication:
       "Your money is protected: it is held in escrow by Darna and released to the host 24 hours after check-in. If there is a problem on arrival, you are fully refunded.",

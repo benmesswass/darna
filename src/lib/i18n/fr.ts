@@ -678,6 +678,11 @@ export const fr = {
     capaciteDepassee: (max: number) =>
       `Ce logement accueille au maximum ${max} voyageurs.`,
     connexionRequise: "Connectez-vous pour réserver.",
+    verifRequise: "Vérifiez votre compte (e-mail + téléphone) avant de réserver.",
+    verifRequiseTitre: "Vérifiez votre compte pour réserver",
+    verifRequiseDesc:
+      "Pour la confiance de tous sur Darna, seuls les comptes vérifiés (e-mail + téléphone) peuvent réserver. Cela prend moins de deux minutes.",
+    verifRequiseCta: "Vérifier mon compte",
     paiementTitre: "Paiement sécurisé — séquestre Darna",
     sequestreExplication:
       "Votre argent est protégé : il est conservé sous séquestre par Darna et versé à l'hôte 24 h après le check-in. En cas de problème à l'arrivée, vous êtes intégralement remboursé.",

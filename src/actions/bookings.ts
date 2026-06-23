@@ -56,6 +56,13 @@ export async function createBookingAction(
   const fr = await getT();
   const user = await requireUser();
 
+  // Gate de confiance : réserver exige un compte vérifié (e-mail + téléphone).
+  // Backstop serveur — l'UI propose déjà la vérif, mais on ne fait jamais
+  // confiance au client. La CIN n'est PAS requise pour réserver (côté voyageur).
+  if (!user.emailVerified || !user.phoneVerified) {
+    return { error: fr.booking.verifRequise };
+  }
+
   const parsed = createSchema.safeParse({
     slug: formData.get("slug"),
     arrivee: formData.get("arrivee"),

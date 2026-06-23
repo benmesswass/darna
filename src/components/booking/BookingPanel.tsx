@@ -30,6 +30,7 @@ export function BookingPanel({
   defaultDepart,
   defaultVoyageurs,
   isLoggedIn,
+  verified,
 }: {
   slug: string;
   unavailable: string[];
@@ -38,6 +39,8 @@ export function BookingPanel({
   defaultDepart: string;
   defaultVoyageurs: number;
   isLoggedIn: boolean;
+  /** Compte vérifié (e-mail + téléphone) : requis pour réserver. */
+  verified: boolean;
 }) {
   const fr = useT();
   const locale = useLocale();
@@ -211,20 +214,34 @@ export function BookingPanel({
 
           {/* CTA */}
           {complete && q ? (
-            isLoggedIn ? (
-              <BookingSubmit
-                slug={slug}
-                arrivee={checkIn ?? ""}
-                depart={checkOut ?? ""}
-                voyageurs={voyageurs}
-              />
-            ) : (
+            !isLoggedIn ? (
               <Link
                 href="/connexion"
                 className="mt-5 block rounded-2xl bg-darna px-6 py-3.5 text-center text-base font-bold text-white transition hover:bg-darna-light"
               >
                 {fr.booking.connexionRequise}
               </Link>
+            ) : !verified ? (
+              <div className="mt-5 rounded-2xl border border-sand bg-sand/10 p-4">
+                <p className="flex items-center gap-2 font-bold text-darna">
+                  <ShieldIcon width={16} height={16} />
+                  {fr.booking.verifRequiseTitre}
+                </p>
+                <p className="mt-1 text-sm text-ink/70">{fr.booking.verifRequiseDesc}</p>
+                <Link
+                  href="/dashboard/verifications"
+                  className="mt-3 block rounded-xl bg-darna px-6 py-3 text-center text-sm font-bold text-white transition hover:bg-darna-light"
+                >
+                  {fr.booking.verifRequiseCta}
+                </Link>
+              </div>
+            ) : (
+              <BookingSubmit
+                slug={slug}
+                arrivee={checkIn ?? ""}
+                depart={checkOut ?? ""}
+                voyageurs={voyageurs}
+              />
             )
           ) : (
             <button

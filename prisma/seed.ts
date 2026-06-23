@@ -994,6 +994,14 @@ async function main() {
   });
   console.log("Utilisateurs de test créés :", hote3.email, hote_en_attente.email);
 
+  // Voyageurs démo « prêts à réserver » : le gate de réservation exige un compte
+  // vérifié (e-mail + téléphone). On garde donc la démo « book » fonctionnelle.
+  // (Pour tester le gate : créez un nouveau compte — il démarre non vérifié.)
+  await prisma.user.updateMany({
+    where: { role: "VOYAGEUR" },
+    data: { emailVerified: true, phoneVerified: true },
+  });
+
   // Candidatures Wakil supplémentaires pour tester tous les statuts
   await prisma.wakilApplication.createMany({
     data: [
