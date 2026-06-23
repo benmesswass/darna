@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -12,6 +12,84 @@ import { useT } from "@/components/i18n/LocaleProvider";
 
 const inputClass =
   "w-full rounded-xl border border-darna/15 bg-cream px-3.5 py-2.5 text-sm outline-none focus:border-darna";
+
+function EyeIcon() {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function EyeOffIcon() {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c6.5 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+      <path d="M6.61 6.61A13.5 13.5 0 0 0 2 12s3.5 7 10 7a9.12 9.12 0 0 0 5.39-1.61" />
+      <line x1="2" y1="2" x2="22" y2="22" />
+    </svg>
+  );
+}
+
+/**
+ * Champ mot de passe avec bouton œil afficher/masquer. Reste non contrôlé
+ * (name + reset de formulaire React) : volontairement sans defaultValue pour
+ * que les mots de passe se vident à chaque soumission (sécurité + UX demandée).
+ */
+function PasswordInput({
+  name,
+  autoComplete,
+  minLength,
+}: {
+  name: string;
+  autoComplete: string;
+  minLength?: number;
+}) {
+  const fr = useT();
+  const [show, setShow] = useState(false);
+  return (
+    <div className="relative">
+      <input
+        name={name}
+        type={show ? "text" : "password"}
+        required
+        minLength={minLength}
+        autoComplete={autoComplete}
+        className={`${inputClass} pe-11`}
+      />
+      <button
+        type="button"
+        onClick={() => setShow((v) => !v)}
+        aria-label={show ? fr.auth.masquerMotDePasse : fr.auth.afficherMotDePasse}
+        aria-pressed={show}
+        className="absolute end-2.5 top-1/2 -translate-y-1/2 text-ink/45 transition hover:text-darna"
+      >
+        {show ? <EyeOffIcon /> : <EyeIcon />}
+      </button>
+    </div>
+  );
+}
 
 function SubmitButton({ label, pending }: { label: string; pending: boolean }) {
   const fr = useT();
@@ -85,13 +163,7 @@ export function LoginForm({
       </label>
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold text-ink/70">{fr.auth.motDePasse}</span>
-        <input
-          name="password"
-          type="password"
-          required
-          autoComplete="current-password"
-          className={inputClass}
-        />
+        <PasswordInput name="password" autoComplete="current-password" />
       </label>
       <SubmitButton label={fr.auth.seConnecter} pending={pending} />
       <p className="text-center text-sm text-ink/60">
@@ -130,52 +202,67 @@ export function RegisterForm({
     router.replace(`/connexion?${params.toString()}`);
   }, [state, callbackUrl, router]);
 
+  // En cas d'erreur, on repeuple les champs non sensibles renvoyés par l'action
+  // (le reset de formulaire React reprend ces defaultValue) ; les mots de passe,
+  // eux, n'ont pas de defaultValue → ils se vident, comme demandé.
+  const values = state?.values;
+
   return (
     <form action={action} className="space-y-4">
       <Feedback state={state} />
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold text-ink/70">{fr.auth.nom}</span>
-        <input name="name" type="text" required minLength={2} className={inputClass} />
+        <input
+          name="name"
+          type="text"
+          required
+          minLength={2}
+          defaultValue={values?.name ?? ""}
+          className={inputClass}
+        />
       </label>
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold text-ink/70">{fr.auth.email}</span>
-        <input name="email" type="email" required autoComplete="email" className={inputClass} />
+        <input
+          name="email"
+          type="email"
+          required
+          autoComplete="email"
+          defaultValue={values?.email ?? ""}
+          className={inputClass}
+        />
       </label>
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold text-ink/70">
           {fr.auth.motDePasse}{" "}
           <span className="font-normal text-ink/40">({fr.auth.motDePasseRegle})</span>
         </span>
-        <input
-          name="password"
-          type="password"
-          required
-          minLength={8}
-          autoComplete="new-password"
-          className={inputClass}
-        />
+        <PasswordInput name="password" autoComplete="new-password" minLength={8} />
       </label>
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold text-ink/70">{fr.auth.confirmerMotDePasse}</span>
-        <input
-          name="confirmPassword"
-          type="password"
-          required
-          minLength={8}
-          autoComplete="new-password"
-          className={inputClass}
-        />
+        <PasswordInput name="confirmPassword" autoComplete="new-password" minLength={8} />
       </label>
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold text-ink/70">
           {fr.auth.telephone}{" "}
           <span className="font-normal text-ink/40">({fr.common.optionnel})</span>
         </span>
-        <input name="phone" type="tel" className={inputClass} />
+        <input
+          name="phone"
+          type="tel"
+          defaultValue={values?.phone ?? ""}
+          className={inputClass}
+        />
       </label>
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold text-ink/70">{fr.auth.role}</span>
-        <select name="role" required defaultValue={defaultRole} className={inputClass}>
+        <select
+          name="role"
+          required
+          defaultValue={values?.role || defaultRole}
+          className={inputClass}
+        >
           <option value="VOYAGEUR">{fr.auth.roleVoyageur}</option>
           <option value="HOTE">{fr.auth.roleHote}</option>
           <option value="AGENCE">{fr.auth.roleAgence}</option>

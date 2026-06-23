@@ -40,6 +40,7 @@ vi.mock("@/lib/i18n/server", () => ({
     auth: {
       inscriptionReussie: "Compte créé !",
       motDePasseNonIdentiques: "Les mots de passe ne sont pas identiques.",
+      emailDejaUtilise: "Un compte existe déjà avec cet e-mail. Connectez-vous.",
     },
     common: { champsRequis: "Champs requis.", tropDeTentatives: "Trop de tentatives." },
     email: {
@@ -102,13 +103,15 @@ describe("registerAction — vérification d'email à l'inscription", () => {
     expect(issueOtp).toHaveBeenCalledWith("u-1", "EMAIL");
   });
 
-  it("ne déclenche aucun envoi si l'email existe déjà (anti-énumération)", async () => {
+  it("indique explicitement que l'e-mail est déjà utilisé (sans rien créer)", async () => {
     (prisma.user.findUnique as unknown as Mock).mockResolvedValue({ id: "existing" });
 
     const res = await registerAction(undefined, formData());
 
-    // Réponse identique à une vraie création (email inclus) → pas de fuite.
-    expect(res).toEqual({ success: "Compte créé !", email: "new@test.tn" });
+    expect(res).toEqual({
+      error: "Un compte existe déjà avec cet e-mail. Connectez-vous.",
+      values: { name: "Wassim", email: "new@test.tn", phone: "", role: "HOTE" },
+    });
     expect(prisma.user.create).not.toHaveBeenCalled();
     expect(issueOtp).not.toHaveBeenCalled();
     expect(sendEmail).not.toHaveBeenCalled();
@@ -120,7 +123,13 @@ describe("registerAction — vérification d'email à l'inscription", () => {
 
     const res = await registerAction(undefined, fd);
 
-    expect(res).toEqual({ error: "Les mots de passe ne sont pas identiques." });
+    // L'erreur repeuple les champs non sensibles ; les mots de passe ne sont
+    // jamais renvoyés.
+    expect(res).toEqual({
+      error: "Les mots de passe ne sont pas identiques.",
+      values: { name: "Wassim", email: "new@test.tn", phone: "", role: "HOTE" },
+    });
+    expect(JSON.stringify(res)).not.toContain("azerty12");
     expect(prisma.user.create).not.toHaveBeenCalled();
     expect(issueOtp).not.toHaveBeenCalled();
   });

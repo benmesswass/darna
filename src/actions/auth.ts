@@ -13,7 +13,14 @@ import { issueOtp } from "@/lib/otp";
 import { sendEmail } from "@/lib/mailer";
 
 export type AuthFormState =
-  | { error?: string; success?: string; email?: string }
+  | {
+      error?: string;
+      success?: string;
+      email?: string;
+      // Valeurs non sensibles renvoyées pour repeupler le formulaire après une
+      // erreur (jamais les mots de passe).
+      values?: { name: string; email: string; phone: string; role: string };
+    }
   | undefined;
 
 /**
@@ -61,6 +68,15 @@ export async function registerAction(
     return { error: fr.common.tropDeTentatives };
   }
 
+  // Valeurs brutes renvoyées en cas d'erreur pour repeupler le formulaire
+  // (sans jamais inclure les mots de passe).
+  const values = {
+    name: String(formData.get("name") ?? ""),
+    email: String(formData.get("email") ?? ""),
+    phone: String(formData.get("phone") ?? ""),
+    role: String(formData.get("role") ?? ""),
+  };
+
   const parsed = registerSchema.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),
@@ -73,29 +89,28 @@ export async function registerAction(
     const mismatch = parsed.error.issues.some(
       (i) => i.message === "PASSWORD_MISMATCH"
     );
-    return { error: mismatch ? fr.auth.motDePasseNonIdentiques : fr.common.champsRequis };
+    return {
+      error: mismatch ? fr.auth.motDePasseNonIdentiques : fr.common.champsRequis,
+      values,
+    };
   }
 
   const { name, email, password, phone, role } = parsed.data;
 
   const existing = await prisma.user.findUnique({ where: { email } });
 
-  // Message générique : ne révèle PAS qu'un compte existe déjà pour cet email.
-  // (Anti account-enumeration — OWASP Authentication Cheat Sheet)
-  // Le comportement correct en production est d'envoyer un email "compte déjà existant"
-  // à l'adresse concernée, et d'afficher le même message succès dans tous les cas.
-  // TODO : brancher un provider email (Resend / Mailgun) pour ce flow.
+  // Choix produit (validé par Wassim) : on indique explicitement que l'e-mail
+  // est déjà utilisé, à la manière des grands sites grand public — le lien
+  // « se connecter » est juste sous le formulaire. Le risque d'énumération de
+  // comptes est mitigé par le rate limiting de l'inscription (assertRateLimit
+  // ci-dessus). La page de connexion, elle, garde un message générique.
   if (existing) {
     await logAudit({
       action: "REGISTER",
       success: false,
       metadata: { reason: "email_already_exists", email },
     });
-    // Délai artificiel pour aligner le timing avec une vraie insertion (anti-timing)
-    await new Promise((r) => setTimeout(r, 200 + Math.random() * 100));
-    // Même réponse que la création réelle (email inclus) : la redirection vers
-    // la connexion est identique dans les deux cas → aucune fuite d'énumération.
-    return { success: fr.auth.inscriptionReussie, email };
+    return { error: fr.auth.emailDejaUtilise, values };
   }
 
   const passwordHash = await bcrypt.hash(password, 12);
