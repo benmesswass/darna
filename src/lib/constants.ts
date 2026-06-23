@@ -6,6 +6,9 @@ export type Role = (typeof ROLES)[number];
 /** Durée de vie d'une réservation EN_ATTENTE avant expiration automatique. */
 export const BOOKING_EXPIRY_MS = 15 * 60 * 1000; // 15 minutes
 
+/** Cookie de report de l'onboarding « Vérifications » (« Passer pour l'instant »). */
+export const VERIF_SKIP_COOKIE = "darna-verif-skip";
+
 // DEMO_VERIFIE : vérifié en MODE DÉMO (OTP affiché à l'écran). Distinct de VERIFIE
 // (vérification réelle par SMS) pour ne jamais confondre confiance réelle et démo.
 export const KYC_STATUSES = [

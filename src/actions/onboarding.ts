@@ -1,6 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { VERIF_SKIP_COOKIE } from "@/lib/constants";
 
 /**
  * Onboarding « vérifications » : le filet anti-relance.
@@ -8,8 +9,10 @@ import { cookies } from "next/headers";
  * l'assistant (cf. src/app/dashboard/page.tsx). « Passer pour l'instant » pose
  * ce cookie pour ne plus forcer l'assistant — l'utilisateur garde l'accès à la
  * page « Vérifications » quand il le souhaite. Non bloquant par construction.
+ *
+ * NB : la constante VERIF_SKIP_COOKIE vit dans src/lib/constants.ts — un fichier
+ * "use server" ne peut exporter que des fonctions async.
  */
-export const VERIF_SKIP_COOKIE = "darna-verif-skip";
 
 /** Pose le cookie de report et laisse le client naviguer vers le dashboard. */
 export async function skipVerificationOnboardingAction(): Promise<void> {

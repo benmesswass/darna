@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { getSessionUser } from "@/lib/session";
-import { VERIF_SKIP_COOKIE } from "@/actions/onboarding";
+import { VERIF_SKIP_COOKIE } from "@/lib/constants";
 
 export default async function DashboardPage() {
   const user = await getSessionUser();
