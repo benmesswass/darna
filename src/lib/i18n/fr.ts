@@ -488,6 +488,15 @@ export const fr = {
     gateRequiseCta: "Vérifier mon identité",
     otpEnvoiEchoue:
       "Impossible d'envoyer le code de vérification pour le moment. Merci de réessayer dans quelques instants.",
+    telephoneIntro:
+      "Recevez un code par SMS ou WhatsApp pour confirmer votre numéro.",
+    telephoneVerifie: "Téléphone vérifié.",
+    telephoneRequis: "Vérifiez d'abord votre téléphone.",
+    cinIntro:
+      "Saisissez votre numéro de CIN. Il reste confidentiel et ne peut être associé qu'à un seul compte Darna.",
+    validerCin: "Valider ma CIN",
+    cinDejaUtilisee:
+      "Cette CIN est déjà associée à un compte. Une pièce d'identité ne peut servir qu'à un seul compte Darna.",
   },
   // PR1 + PR2 — Section administration
   admin: {
@@ -577,6 +586,8 @@ export const fr = {
       "Une identité vérifiée débloque la publication d'annonces et rassure ceux qui réservent chez vous.",
     etape: (n: number, total: number) => `Étape ${n} / ${total}`,
     etapeEmail: "Vérifiez votre e-mail",
+    etapeTelephone: "Vérifiez votre téléphone",
+    etapeCin: "Vérifiez votre identité (CIN)",
     etapeIdentite: "Vérifiez votre identité",
     suivant: "Étape suivante",
     precedent: "Précédent",

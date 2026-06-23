@@ -28,9 +28,13 @@ export default async function DashboardLayout({
   const isLister = user.role === "HOTE" || user.role === "AGENCE";
   const isAdminOrWakil = user.role === "ADMIN" || user.isWakil;
 
-  // Compteur d'étapes de vérification restantes (e-mail + identité).
+  // Compteur d'étapes de vérification restantes : e-mail + téléphone pour tous,
+  // + CIN (identité) uniquement pour les annonceurs (hôte / agence).
   const kycVerified = user.kycStatus === "VERIFIE" || user.kycStatus === "DEMO_VERIFIE";
-  const verifsRestantes = (user.emailVerified ? 0 : 1) + (kycVerified ? 0 : 1);
+  const verifsRestantes =
+    (user.emailVerified ? 0 : 1) +
+    (user.phoneVerified ? 0 : 1) +
+    (isLister && !kycVerified ? 1 : 0);
 
   // Fetch pending counts for admin/wakil nav badges (skip for regular users)
   let pendingAnnonces = 0;

@@ -17,7 +17,9 @@ export default async function VerificationsPage({
   return (
     <VerificationsAssistant
       emailVerified={user.emailVerified}
+      phoneVerified={user.phoneVerified}
       kycStatus={user.kycStatus}
+      role={user.role}
       welcome={welcome === "1"}
     />
   );

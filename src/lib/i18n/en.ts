@@ -487,6 +487,14 @@ export const en: Dictionary = {
     gateRequiseCta: "Verify my identity",
     otpEnvoiEchoue:
       "Unable to send the verification code right now. Please try again in a moment.",
+    telephoneIntro: "Receive a code by SMS or WhatsApp to confirm your number.",
+    telephoneVerifie: "Phone verified.",
+    telephoneRequis: "Please verify your phone first.",
+    cinIntro:
+      "Enter your ID (CIN) number. It stays confidential and can only be linked to a single Darna account.",
+    validerCin: "Verify my ID",
+    cinDejaUtilisee:
+      "This ID is already linked to an account. An ID document can only be used for one Darna account.",
   },
   admin: {
     badge: "Admin",
@@ -573,6 +581,8 @@ export const en: Dictionary = {
       "A verified identity unlocks listing publication and reassures the people who book with you.",
     etape: (n: number, total: number) => `Step ${n} / ${total}`,
     etapeEmail: "Verify your email",
+    etapeTelephone: "Verify your phone",
+    etapeCin: "Verify your ID (CIN)",
     etapeIdentite: "Verify your identity",
     suivant: "Next step",
     precedent: "Back",

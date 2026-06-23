@@ -10,10 +10,12 @@ export default async function DashboardPage() {
   // Mise en avant des vérifications à la connexion : tant que l'utilisateur
   // n'a pas tout vérifié ET n'a pas cliqué « Passer pour l'instant », on l'amène
   // sur l'assistant. Non bloquant (le cookie de report le libère ensuite).
-  const emailOk = user.emailVerified;
-  const idOk = user.kycStatus === "VERIFIE" || user.kycStatus === "DEMO_VERIFIE";
+  // Hôte/agence : e-mail + téléphone + CIN. Voyageur : e-mail + téléphone.
+  const isLister = user.role === "HOTE" || user.role === "AGENCE";
+  const cinOk = user.kycStatus === "VERIFIE" || user.kycStatus === "DEMO_VERIFIE";
+  const fullyVerified = user.emailVerified && user.phoneVerified && (!isLister || cinOk);
   const skipped = (await cookies()).get(VERIF_SKIP_COOKIE);
-  if (!skipped && (!emailOk || !idOk)) {
+  if (!skipped && !fullyVerified) {
     redirect("/dashboard/verifications?welcome=1");
   }
 

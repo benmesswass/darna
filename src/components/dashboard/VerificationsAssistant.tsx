@@ -1,17 +1,22 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useCallback, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useT } from "@/components/i18n/LocaleProvider";
 import { CheckIcon, ShieldIcon, MailIcon } from "@/components/icons";
 import { EmailVerifyFlow } from "@/components/dashboard/EmailVerifyFlow";
-import { KycFlow } from "@/components/dashboard/KycFlow";
+import { PhoneVerifyFlow } from "@/components/dashboard/PhoneVerifyFlow";
+import { CinVerifyFlow } from "@/components/dashboard/CinVerifyFlow";
 import { skipVerificationOnboardingAction } from "@/actions/onboarding";
+
+type StepKey = "email" | "phone" | "cin";
 
 type Props = {
   emailVerified: boolean;
+  phoneVerified: boolean;
   kycStatus: string;
-  /** Mode « 1re connexion » : affiche le titre de bienvenue + « Passer pour l'instant ». */
+  role: string;
+  /** Mode « 1re connexion » : titre de bienvenue + « Passer pour l'instant ». */
   welcome?: boolean;
 };
 
@@ -19,23 +24,56 @@ function isKycVerified(status: string): boolean {
   return status === "VERIFIE" || status === "DEMO_VERIFIE";
 }
 
-export function VerificationsAssistant({ emailVerified, kycStatus, welcome }: Props) {
+export function VerificationsAssistant({
+  emailVerified,
+  phoneVerified,
+  kycStatus,
+  role,
+  welcome,
+}: Props) {
   const fr = useT();
   const router = useRouter();
   const [skipPending, startSkip] = useTransition();
 
-  const emailDone = emailVerified;
-  const kycDone = isKycVerified(kycStatus);
-  const allDone = emailDone && kycDone;
+  // Un hôte/agence doit vérifier les 3 (e-mail + téléphone + CIN). Un voyageur
+  // n'a pas besoin de la CIN — l'étape ne lui est pas proposée.
+  const isLister = role === "HOTE" || role === "AGENCE";
 
   const steps = [
-    { key: "email", label: fr.verifications.etapeEmail, done: emailDone },
-    { key: "identite", label: fr.verifications.etapeIdentite, done: kycDone },
-  ] as const;
+    { key: "email" as StepKey, label: fr.verifications.etapeEmail, initialDone: emailVerified },
+    { key: "phone" as StepKey, label: fr.verifications.etapeTelephone, initialDone: phoneVerified },
+    ...(isLister
+      ? [{ key: "cin" as StepKey, label: fr.verifications.etapeCin, initialDone: isKycVerified(kycStatus) }]
+      : []),
+  ];
 
-  // Démarre sur la 1re étape non faite (ou la dernière si tout est fait).
-  const firstTodo = steps.findIndex((s) => !s.done);
-  const [step, setStep] = useState(firstTodo === -1 ? steps.length - 1 : firstTodo);
+  // Complétion vivante (sans rechargement) : les étapes franchies pendant la
+  // session s'ajoutent ici, ce qui fait avancer automatiquement l'assistant.
+  const [completed, setCompleted] = useState<Set<StepKey>>(
+    () => new Set(steps.filter((s) => s.initialDone).map((s) => s.key))
+  );
+  const [manualStep, setManualStep] = useState<number | null>(null);
+
+  const done = (i: number) => steps[i].initialDone || completed.has(steps[i].key);
+  const firstTodo = steps.findIndex((_, i) => !done(i));
+  const activeStep = manualStep ?? (firstTodo === -1 ? steps.length - 1 : firstTodo);
+  const allDone = steps.every((_, i) => done(i));
+
+  // Auto-avance : marque l'étape faite et laisse activeStep glisser vers la
+  // suivante non faite. Stable (useCallback) pour ne pas reboucler les effects.
+  const handleVerified = useCallback((key: StepKey) => {
+    setCompleted((prev) => {
+      if (prev.has(key)) return prev;
+      const next = new Set(prev);
+      next.add(key);
+      return next;
+    });
+    setManualStep(null);
+  }, []);
+
+  const onEmail = useCallback(() => handleVerified("email"), [handleVerified]);
+  const onPhone = useCallback(() => handleVerified("phone"), [handleVerified]);
+  const onCin = useCallback(() => handleVerified("cin"), [handleVerified]);
 
   function handleSkip() {
     startSkip(async () => {
@@ -45,10 +83,10 @@ export function VerificationsAssistant({ emailVerified, kycStatus, welcome }: Pr
   }
 
   const why = [fr.verifications.pourquoi1, fr.verifications.pourquoi2, fr.verifications.pourquoi3];
+  const active = steps[activeStep];
 
   return (
     <div className="max-w-2xl">
-      {/* En-tête */}
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-darna">
           {welcome ? fr.verifications.bienvenue : fr.verifications.titre}
@@ -79,39 +117,38 @@ export function VerificationsAssistant({ emailVerified, kycStatus, welcome }: Pr
           <span className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white">
             <CheckIcon width={28} height={28} strokeWidth={2.5} />
           </span>
-          <p className="mt-4 text-lg font-bold text-emerald-800">
-            {fr.verifications.tousVerifies}
-          </p>
+          <p className="mt-4 text-lg font-bold text-emerald-800">{fr.verifications.tousVerifies}</p>
           <p className="mt-1 text-sm text-emerald-700/80">{fr.verifications.tousVerifiesSous}</p>
         </div>
       ) : (
         <>
           {/* Indicateur d'étapes */}
-          <ol className="mb-5 flex items-center gap-3">
+          <ol className="mb-5 flex flex-wrap items-center gap-2">
             {steps.map((s, i) => {
-              const active = i === step;
+              const isActive = i === activeStep;
+              const stepDone = done(i);
               const Icon = s.key === "email" ? MailIcon : ShieldIcon;
               return (
-                <li key={s.key} className="flex flex-1 items-center gap-2">
+                <li key={s.key} className="flex flex-1 items-center">
                   <button
                     type="button"
-                    onClick={() => setStep(i)}
+                    onClick={() => setManualStep(i)}
                     className={`flex w-full items-center gap-2.5 rounded-xl border px-3 py-2.5 text-start transition ${
-                      active
+                      isActive
                         ? "border-darna bg-darna text-white"
                         : "border-darna/15 bg-white text-ink/70 hover:border-darna/30"
                     }`}
                   >
                     <span
                       className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
-                        s.done
+                        stepDone
                           ? "bg-emerald-500 text-white"
-                          : active
+                          : isActive
                             ? "bg-white/20 text-white"
                             : "bg-sand/40 text-darna-dark"
                       }`}
                     >
-                      {s.done ? (
+                      {stepDone ? (
                         <CheckIcon width={14} height={14} strokeWidth={3} />
                       ) : (
                         <Icon width={14} height={14} />
@@ -125,14 +162,14 @@ export function VerificationsAssistant({ emailVerified, kycStatus, welcome }: Pr
                     </span>
                     <span
                       className={`ms-auto shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                        s.done
+                        stepDone
                           ? "bg-emerald-100 text-emerald-700"
-                          : active
+                          : isActive
                             ? "bg-white/20 text-white"
                             : "bg-sand/30 text-darna-dark"
                       }`}
                     >
-                      {s.done ? fr.verifications.badgeFait : fr.verifications.badgeAFaire}
+                      {stepDone ? fr.verifications.badgeFait : fr.verifications.badgeAFaire}
                     </span>
                   </button>
                 </li>
@@ -140,46 +177,30 @@ export function VerificationsAssistant({ emailVerified, kycStatus, welcome }: Pr
             })}
           </ol>
 
-          {/* Contenu de l'étape active */}
+          {/* Étape active */}
           <div className="rounded-2xl border border-darna/10 bg-white p-5">
-            {step === 0 ? <EmailVerifyFlow /> : <KycFlow initialStatus={kycStatus} />}
+            {active.key === "email" ? (
+              <EmailVerifyFlow initialVerified={emailVerified} onVerified={onEmail} />
+            ) : active.key === "phone" ? (
+              <PhoneVerifyFlow initialVerified={phoneVerified} onVerified={onPhone} />
+            ) : (
+              <CinVerifyFlow initialStatus={kycStatus} onVerified={onCin} />
+            )}
           </div>
 
-          {/* Navigation entre étapes */}
-          <div className="mt-5 flex flex-wrap items-center gap-3">
-            {step > 0 ? (
+          {welcome ? (
+            <div className="mt-5 text-end">
               <button
                 type="button"
-                onClick={() => setStep((s) => s - 1)}
-                className="rounded-xl border border-darna/20 px-4 py-2 text-sm font-semibold text-darna transition hover:bg-darna/5"
+                onClick={handleSkip}
+                disabled={skipPending}
+                className="text-sm font-medium text-ink/50 underline-offset-2 hover:text-ink/80 hover:underline disabled:opacity-50"
               >
-                {fr.verifications.precedent}
+                {fr.verifications.passer}
               </button>
-            ) : null}
-            {step < steps.length - 1 ? (
-              <button
-                type="button"
-                onClick={() => setStep((s) => s + 1)}
-                className="rounded-xl bg-darna px-4 py-2 text-sm font-semibold text-white transition hover:bg-darna/90"
-              >
-                {fr.verifications.suivant}
-              </button>
-            ) : null}
-
-            {welcome ? (
-              <div className="ms-auto text-end">
-                <button
-                  type="button"
-                  onClick={handleSkip}
-                  disabled={skipPending}
-                  className="text-sm font-medium text-ink/50 underline-offset-2 hover:text-ink/80 hover:underline disabled:opacity-50"
-                >
-                  {fr.verifications.passer}
-                </button>
-                <p className="mt-1 text-[11px] text-ink/40">{fr.verifications.terminerPlusTard}</p>
-              </div>
-            ) : null}
-          </div>
+              <p className="mt-1 text-[11px] text-ink/40">{fr.verifications.terminerPlusTard}</p>
+            </div>
+          ) : null}
         </>
       )}
     </div>

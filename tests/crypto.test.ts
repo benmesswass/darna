@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 
-import { decryptSensitive, encryptSensitive, hashOtp } from "@/lib/crypto";
+import { decryptSensitive, encryptSensitive, hashOtp, hashCin } from "@/lib/crypto";
 
 describe("crypto — CIN au repos + hash OTP", () => {
   afterEach(() => {
@@ -30,5 +30,15 @@ describe("crypto — CIN au repos + hash OTP", () => {
     expect(hashOtp("123456")).toBe(hashOtp("123456"));
     expect(hashOtp("123456")).not.toContain("123456");
     expect(hashOtp("123456")).not.toBe(hashOtp("654321"));
+  });
+
+  it("hashCin est déterministe, normalise et ne révèle pas la CIN", () => {
+    // Même CIN ⇒ même hash (clé de l'unicité inter-comptes).
+    expect(hashCin("08123456")).toBe(hashCin("08123456"));
+    // Normalisation : espaces/ponctuation ignorés.
+    expect(hashCin("08 12 34 56")).toBe(hashCin("08123456"));
+    // CIN différentes ⇒ hash différents ; le numéro n'apparaît jamais en clair.
+    expect(hashCin("08123456")).not.toBe(hashCin("00112233"));
+    expect(hashCin("08123456")).not.toContain("08123456");
   });
 });

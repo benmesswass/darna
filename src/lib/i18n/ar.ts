@@ -505,6 +505,14 @@ export const ar: Dictionary = {
     gateRequiseCta: "وثّق هويتي",
     otpEnvoiEchoue:
       "ما نجمناش نبعثو كود التثبّت توا. عاود المحاولة بعد شويّة.",
+    telephoneIntro: "توصلك رمز عبر SMS ولا WhatsApp باش تأكّد نمرتك.",
+    telephoneVerifie: "التيليفون اتثبّت.",
+    telephoneRequis: "ثبّت التيليفون متاعك الأول.",
+    cinIntro:
+      "اكتب رقم بطاقة التعريف متاعك. يبقى سرّي وما ينجّمش يتربط كان بحساب واحد في دارنا.",
+    validerCin: "ثبّت بطاقة التعريف",
+    cinDejaUtilisee:
+      "بطاقة التعريف هذي مربوطة بحساب آخر. وثيقة هوية ما تنجّمش تتستعمل كان لحساب واحد في دارنا.",
   },
   admin: {
     badge: "أدمين",
@@ -589,6 +597,8 @@ export const ar: Dictionary = {
     pourquoi3: "هوية موثّقة تحلّ نشر الإعلانات وتطمّن اللي يحجزو عندك.",
     etape: (n: number, total: number) => `الخطوة ${n} / ${total}`,
     etapeEmail: "ثبّت الإيميل متاعك",
+    etapeTelephone: "ثبّت التيليفون متاعك",
+    etapeCin: "ثبّت هويتك (CIN)",
     etapeIdentite: "ثبّت هويتك",
     suivant: "الخطوة الجاية",
     precedent: "ارجع",

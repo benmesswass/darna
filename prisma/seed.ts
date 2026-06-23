@@ -7,6 +7,7 @@ import bcrypt from "bcryptjs";
 import { getCity } from "../src/lib/geo";
 import { buildPropertySlug } from "../src/lib/slug";
 import { verticalOfType } from "../src/lib/constants";
+import { hashCin } from "../src/lib/crypto";
 
 const prisma = new PrismaClient();
 
@@ -814,6 +815,7 @@ async function main() {
         phoneVerified: true,
         kycStatus: "VERIFIE",
         cin: "08123456",
+        cinHash: hashCin("08123456"),
       },
     }),
     prisma.user.create({
@@ -826,6 +828,7 @@ async function main() {
         phoneVerified: true,
         kycStatus: "VERIFIE",
         cin: "00112233",
+        cinHash: hashCin("00112233"),
       },
     }),
     prisma.user.create({
@@ -940,6 +943,8 @@ async function main() {
       role: "ADMIN",
       kycStatus: "DEMO_VERIFIE",
       phoneVerified: true,
+      cin: "10000001",
+      cinHash: hashCin("10000001"),
     },
   });
   console.log("Admin créé :", admin.email);
@@ -955,6 +960,8 @@ async function main() {
       kycStatus: "DEMO_VERIFIE",
       phoneVerified: true,
       isWakil: true,
+      cin: "10000002",
+      cinHash: hashCin("10000002"),
     },
   });
   console.log("Wakil créé :", wakil.email);
@@ -971,6 +978,7 @@ async function main() {
       phoneVerified: true,
       kycStatus: "DEMO_VERIFIE",
       cin: "09876543",
+      cinHash: hashCin("09876543"),
     },
   });
   // hote_en_attente : EN_ATTENTE → bouton Vérifier grisé avec statut distinct
