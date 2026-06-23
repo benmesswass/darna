@@ -313,6 +313,9 @@ export const en: Dictionary = {
     emailDejaUtilise: "Unable to create an account with this information.",
     inscriptionReussie: "Account created! You can now sign in.",
     motDePasseRegle: "8 characters minimum",
+    confirmerMotDePasse: "Confirm password",
+    motDePasseNonIdentiques: "Passwords do not match.",
+    compteCreeConnectezVous: "Account created! Sign in to continue.",
   },
   dashboard: {
     titre: "My account",

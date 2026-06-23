@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   loginAction,
   registerAction,
@@ -44,7 +45,15 @@ function Feedback({ state }: { state: AuthFormState }) {
   return null;
 }
 
-export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
+export function LoginForm({
+  callbackUrl,
+  registered = false,
+  defaultEmail = "",
+}: {
+  callbackUrl?: string;
+  registered?: boolean;
+  defaultEmail?: string;
+}) {
   const fr = useT();
   const [state, action, pending] = useActionState(loginAction, undefined);
   // On propage le callbackUrl vers l'inscription pour ne pas perdre la cible
@@ -56,10 +65,23 @@ export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
   return (
     <form action={action} className="space-y-4">
       <Feedback state={state} />
+      {/* Bannière affichée quand on arrive juste après une inscription réussie. */}
+      {registered && !state ? (
+        <p role="status" className="rounded-xl bg-emerald-50 px-4 py-2.5 text-sm font-medium text-emerald-700">
+          {fr.auth.compteCreeConnectezVous}
+        </p>
+      ) : null}
       {callbackUrl ? <input type="hidden" name="callbackUrl" value={callbackUrl} /> : null}
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold text-ink/70">{fr.auth.email}</span>
-        <input name="email" type="email" required autoComplete="email" className={inputClass} />
+        <input
+          name="email"
+          type="email"
+          required
+          autoComplete="email"
+          defaultValue={defaultEmail}
+          className={inputClass}
+        />
       </label>
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold text-ink/70">{fr.auth.motDePasse}</span>
@@ -90,12 +112,23 @@ export function RegisterForm({
   callbackUrl?: string;
 }) {
   const fr = useT();
+  const router = useRouter();
   const [state, action, pending] = useActionState(registerAction, undefined);
   // Après inscription, le compte n'est pas connecté automatiquement : on dirige
   // vers la connexion en conservant la cible (callbackUrl) pour y revenir.
   const connexionHref = callbackUrl
     ? `/connexion?callbackUrl=${encodeURIComponent(callbackUrl)}`
     : "/connexion";
+
+  // Inscription réussie → on ouvre directement la page de connexion, e-mail
+  // pré-rempli, pour que l'utilisateur se logue sans ressaisir son adresse.
+  useEffect(() => {
+    if (!state?.success) return;
+    const params = new URLSearchParams({ registered: "1" });
+    if (state.email) params.set("email", state.email);
+    if (callbackUrl) params.set("callbackUrl", callbackUrl);
+    router.replace(`/connexion?${params.toString()}`);
+  }, [state, callbackUrl, router]);
 
   return (
     <form action={action} className="space-y-4">
@@ -115,6 +148,17 @@ export function RegisterForm({
         </span>
         <input
           name="password"
+          type="password"
+          required
+          minLength={8}
+          autoComplete="new-password"
+          className={inputClass}
+        />
+      </label>
+      <label className="block space-y-1.5">
+        <span className="text-sm font-semibold text-ink/70">{fr.auth.confirmerMotDePasse}</span>
+        <input
+          name="confirmPassword"
           type="password"
           required
           minLength={8}

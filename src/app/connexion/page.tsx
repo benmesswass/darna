@@ -11,13 +11,16 @@ export const metadata: Metadata = { title: frMeta.auth.connexionTitre };
 export default async function ConnexionPage({
   searchParams,
 }: {
-  searchParams: Promise<{ callbackUrl?: string }>;
+  searchParams: Promise<{ callbackUrl?: string; registered?: string; email?: string }>;
 }) {
   const fr = await getT();
-  const { callbackUrl } = await searchParams;
+  const { callbackUrl, registered, email } = await searchParams;
   const cb = safeCallbackUrl(callbackUrl);
   const user = await getSessionUser();
   if (user) redirect(cb);
+
+  // Pré-remplissage e-mail + bannière après une inscription réussie.
+  const defaultEmail = typeof email === "string" ? email.slice(0, 200) : "";
 
   return (
     <div className="mx-auto max-w-md px-4 py-16 sm:px-6">
@@ -25,7 +28,11 @@ export default async function ConnexionPage({
         {fr.auth.connexionTitre}
       </h1>
       <div className="mt-8 rounded-3xl bg-white p-7 shadow-sm ring-1 ring-darna/10">
-        <LoginForm callbackUrl={callbackUrl ? cb : undefined} />
+        <LoginForm
+          callbackUrl={callbackUrl ? cb : undefined}
+          registered={registered === "1"}
+          defaultEmail={defaultEmail}
+        />
       </div>
     </div>
   );

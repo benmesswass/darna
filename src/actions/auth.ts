@@ -12,7 +12,9 @@ import { safeCallbackUrl } from "@/lib/redirect";
 import { issueOtp } from "@/lib/otp";
 import { sendEmail } from "@/lib/mailer";
 
-export type AuthFormState = { error?: string; success?: string } | undefined;
+export type AuthFormState =
+  | { error?: string; success?: string; email?: string }
+  | undefined;
 
 /**
  * Politique de mot de passe :
@@ -27,19 +29,28 @@ const passwordSchema = z
   .max(200)
   .regex(/[0-9]/, "Le mot de passe doit contenir au moins un chiffre");
 
-const registerSchema = z.object({
-  name: z.string().trim().min(2).max(100),
-  email: z.string().trim().toLowerCase().email().max(200),
-  password: passwordSchema,
-  phone: z
-    .string()
-    .trim()
-    .regex(/^\+?[0-9\s]{8,16}$/)
-    .optional()
-    .or(z.literal("")),
-  // ADMIN ne peut pas être choisi à l'inscription — assigné manuellement en DB
-  role: z.enum(["VOYAGEUR", "HOTE", "AGENCE"] as const),
-});
+const registerSchema = z
+  .object({
+    name: z.string().trim().min(2).max(100),
+    email: z.string().trim().toLowerCase().email().max(200),
+    password: passwordSchema,
+    // Confirmation saisie par l'utilisateur ; comparée au mot de passe ci-dessous.
+    confirmPassword: z.string().max(200),
+    phone: z
+      .string()
+      .trim()
+      .regex(/^\+?[0-9\s]{8,16}$/)
+      .optional()
+      .or(z.literal("")),
+    // ADMIN ne peut pas être choisi à l'inscription — assigné manuellement en DB
+    role: z.enum(["VOYAGEUR", "HOTE", "AGENCE"] as const),
+  })
+  // Marqueur dédié pour distinguer « mots de passe différents » des autres
+  // erreurs de validation et afficher un message précis côté formulaire.
+  .refine((d) => d.password === d.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "PASSWORD_MISMATCH",
+  });
 
 export async function registerAction(
   _prev: AuthFormState,
@@ -54,10 +65,16 @@ export async function registerAction(
     name: formData.get("name"),
     email: formData.get("email"),
     password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword"),
     phone: formData.get("phone"),
     role: formData.get("role"),
   });
-  if (!parsed.success) return { error: fr.common.champsRequis };
+  if (!parsed.success) {
+    const mismatch = parsed.error.issues.some(
+      (i) => i.message === "PASSWORD_MISMATCH"
+    );
+    return { error: mismatch ? fr.auth.motDePasseNonIdentiques : fr.common.champsRequis };
+  }
 
   const { name, email, password, phone, role } = parsed.data;
 
@@ -76,7 +93,9 @@ export async function registerAction(
     });
     // Délai artificiel pour aligner le timing avec une vraie insertion (anti-timing)
     await new Promise((r) => setTimeout(r, 200 + Math.random() * 100));
-    return { success: fr.auth.inscriptionReussie };
+    // Même réponse que la création réelle (email inclus) : la redirection vers
+    // la connexion est identique dans les deux cas → aucune fuite d'énumération.
+    return { success: fr.auth.inscriptionReussie, email };
   }
 
   const passwordHash = await bcrypt.hash(password, 12);
@@ -107,7 +126,7 @@ export async function registerAction(
     await logAudit({ action: "EMAIL_OTP_REQUESTED", userId: user.id, success: false });
   }
 
-  return { success: fr.auth.inscriptionReussie };
+  return { success: fr.auth.inscriptionReussie, email };
 }
 
 const loginSchema = z.object({

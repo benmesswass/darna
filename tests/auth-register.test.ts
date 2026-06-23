@@ -37,7 +37,10 @@ vi.mock("@/lib/mailer", () => ({ sendEmail: vi.fn() }));
 
 vi.mock("@/lib/i18n/server", () => ({
   getT: vi.fn().mockResolvedValue({
-    auth: { inscriptionReussie: "Compte créé !" },
+    auth: {
+      inscriptionReussie: "Compte créé !",
+      motDePasseNonIdentiques: "Les mots de passe ne sont pas identiques.",
+    },
     common: { champsRequis: "Champs requis.", tropDeTentatives: "Trop de tentatives." },
     email: {
       mailSujet: "Darna — vérifiez votre adresse e-mail",
@@ -56,6 +59,7 @@ function formData(): FormData {
   fd.set("name", "Wassim");
   fd.set("email", "new@test.tn");
   fd.set("password", "azerty12");
+  fd.set("confirmPassword", "azerty12");
   fd.set("phone", "");
   fd.set("role", "HOTE");
   return fd;
@@ -75,7 +79,7 @@ describe("registerAction — vérification d'email à l'inscription", () => {
 
     const res = await registerAction(undefined, formData());
 
-    expect(res).toEqual({ success: "Compte créé !" });
+    expect(res).toEqual({ success: "Compte créé !", email: "new@test.tn" });
     expect(issueOtp).toHaveBeenCalledWith("u-1", "EMAIL");
     expect(sendEmail).toHaveBeenCalledTimes(1);
     expect((sendEmail as unknown as Mock).mock.calls[0][0]).toMatchObject({
@@ -94,7 +98,7 @@ describe("registerAction — vérification d'email à l'inscription", () => {
 
     const res = await registerAction(undefined, formData());
 
-    expect(res).toEqual({ success: "Compte créé !" });
+    expect(res).toEqual({ success: "Compte créé !", email: "new@test.tn" });
     expect(issueOtp).toHaveBeenCalledWith("u-1", "EMAIL");
   });
 
@@ -103,9 +107,21 @@ describe("registerAction — vérification d'email à l'inscription", () => {
 
     const res = await registerAction(undefined, formData());
 
-    expect(res).toEqual({ success: "Compte créé !" });
+    // Réponse identique à une vraie création (email inclus) → pas de fuite.
+    expect(res).toEqual({ success: "Compte créé !", email: "new@test.tn" });
     expect(prisma.user.create).not.toHaveBeenCalled();
     expect(issueOtp).not.toHaveBeenCalled();
     expect(sendEmail).not.toHaveBeenCalled();
+  });
+
+  it("refuse l'inscription si la confirmation ne correspond pas au mot de passe", async () => {
+    const fd = formData();
+    fd.set("confirmPassword", "different9");
+
+    const res = await registerAction(undefined, fd);
+
+    expect(res).toEqual({ error: "Les mots de passe ne sont pas identiques." });
+    expect(prisma.user.create).not.toHaveBeenCalled();
+    expect(issueOtp).not.toHaveBeenCalled();
   });
 });

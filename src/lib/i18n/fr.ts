@@ -314,6 +314,9 @@ export const fr = {
     emailDejaUtilise: "Impossible de créer le compte avec ces informations.",
     inscriptionReussie: "Compte créé ! Vous pouvez vous connecter.",
     motDePasseRegle: "8 caractères minimum",
+    confirmerMotDePasse: "Confirmer le mot de passe",
+    motDePasseNonIdentiques: "Les mots de passe ne sont pas identiques.",
+    compteCreeConnectezVous: "Compte créé ! Connectez-vous pour continuer.",
   },
   dashboard: {
     titre: "Mon espace",

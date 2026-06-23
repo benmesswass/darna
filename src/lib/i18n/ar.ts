@@ -334,6 +334,9 @@ export const ar: Dictionary = {
     emailDejaUtilise: "ما نجمناش ننشئو الحساب بالمعطيات هاذي.",
     inscriptionReussie: "الحساب تعمل! تنجم تدخل توا.",
     motDePasseRegle: "8 أحرف كحد أدنى",
+    confirmerMotDePasse: "أكّد كلمة السر",
+    motDePasseNonIdentiques: "كلمات السر ما متطابقاش.",
+    compteCreeConnectezVous: "الحساب تعمل! أدخل باش تكمّل.",
   },
   dashboard: {
     titre: "حسابي",
