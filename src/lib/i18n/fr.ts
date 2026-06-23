@@ -324,6 +324,7 @@ export const fr = {
     demandesRecues: "Demandes reçues",
     yieldAdvisor: "Yield Advisor",
     kyc: "Vérification d'identité",
+    email: "Vérification e-mail",
     monProfil: "Mes informations",
     favoris: "Mes favoris",
     favorisSansDossier: "Sans dossier",
@@ -555,6 +556,7 @@ export const fr = {
     otpInvalide: "Code incorrect. Merci de réessayer.",
     verifieBravo: "Votre adresse e-mail est vérifiée.",
     dejaVerifie: "Votre adresse e-mail est déjà vérifiée.",
+    badgeVerifie: "E-mail vérifié",
     mailSujet: "Darna — vérifiez votre adresse e-mail",
     mailCorpsHtml: (code: string) =>
       `<p>Votre code de vérification Darna : <strong>${code}</strong></p>` +

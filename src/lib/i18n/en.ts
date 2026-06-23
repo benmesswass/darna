@@ -323,6 +323,7 @@ export const en: Dictionary = {
     demandesRecues: "Received requests",
     yieldAdvisor: "Yield Advisor",
     kyc: "Identity verification",
+    email: "Email verification",
     monProfil: "My details",
     favoris: "My favourites",
     favorisSansDossier: "No folder",
@@ -552,6 +553,7 @@ export const en: Dictionary = {
     otpInvalide: "Incorrect code. Please try again.",
     verifieBravo: "Your email address is verified.",
     dejaVerifie: "Your email address is already verified.",
+    badgeVerifie: "Email verified",
     mailSujet: "Darna — verify your email address",
     mailCorpsHtml: (code: string) =>
       `<p>Your Darna verification code: <strong>${code}</strong></p>` +

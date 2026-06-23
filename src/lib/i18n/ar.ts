@@ -344,6 +344,7 @@ export const ar: Dictionary = {
     demandesRecues: "الطلبات الواردة",
     yieldAdvisor: "مستشار المردودية",
     kyc: "توثيق الهوية",
+    email: "تثبّت الإيميل",
     monProfil: "معلوماتي",
     favoris: "المفضّلة",
     favorisSansDossier: "بلا مجلّد",
@@ -570,6 +571,7 @@ export const ar: Dictionary = {
     otpInvalide: "الرمز غالط. عاود جرّب.",
     verifieBravo: "الإيميل متاعك اتثبّت.",
     dejaVerifie: "الإيميل متاعك موثّق من قبل.",
+    badgeVerifie: "إيميل موثّق",
     mailSujet: "Darna — ثبّت عنوان الإيميل متاعك",
     mailCorpsHtml: (code: string) =>
       `<p>رمز التثبّت متاعك في Darna: <strong>${code}</strong></p>` +

@@ -56,6 +56,7 @@ export default async function DashboardLayout({
     { href: "/dashboard/favoris", label: fr.dashboard.favoris, icon: "HeartIcon" as IconName },
     { href: "/dashboard/profil", label: fr.dashboard.monProfil, icon: "UserIcon" as IconName },
     { href: "/dashboard/kyc", label: fr.dashboard.kyc, icon: "ShieldIcon" as IconName },
+    { href: "/dashboard/email", label: fr.dashboard.email, icon: "MailIcon" as IconName },
     ...(isAdminOrWakil
       ? [
           {
@@ -113,6 +114,12 @@ export default async function DashboardLayout({
                   {user.kycStatus === "DEMO_VERIFIE"
                     ? fr.kyc.statutVerifieDemo
                     : fr.kyc.statutVerifie}
+                </span>
+              ) : null}
+              {user.emailVerified ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-sand px-2 py-0.5 text-[11px] font-semibold text-darna-dark">
+                  <CheckIcon width={11} height={11} strokeWidth={3} />
+                  {fr.email.badgeVerifie}
                 </span>
               ) : null}
             </p>
