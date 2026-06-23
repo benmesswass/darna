@@ -1,0 +1,501 @@
+# Darna — QA, Security & Release Roadmap
+
+> **Permanent reference.** This document is the single source of truth for what
+> quality, security and reliability controls protect Darna **today (Demo)**, and
+> what must be added **before Beta** and **before Production**.
+>
+> Guiding principle: _we optimize for speed today, but we document everything
+> that must be added later so that no important quality or security control is
+> forgotten before public launch._
+>
+> **Maintenance rule:** when a test/control listed here as `❌`/`⚠️` is
+> implemented, move it to `✅` and note the file. When a feature is added, add
+> its rows here **before** merging. A PR that introduces a sensitive surface
+> (auth, payment, KYC, upload, permission) without updating this file should be
+> blocked in review.
+
+- **Stack:** Next.js 15 (App Router, Server Actions) · TypeScript strict · Prisma/PostgreSQL · NextAuth (credentials, JWT) · zod · Vitest · Redis (ioredis) · Konnect (escrow, optional).
+- **Phases:** `Demo` (current, mocks assumed) → `Beta` (real payments/KYC, invited users) → `Production` (public, untrusted traffic, regulated payments).
+- **Legend:** `✅` implemented & tested · `⚠️` implemented but not (fully) tested · `❌` not implemented/tested · Priority `P0` (blocker) `P1` (high) `P2` (medium) `P3` (low).
+
+---
+
+## 0. Table of contents
+
+1. [Current state snapshot](#1-current-state-snapshot)
+2. [Phase definitions & coverage targets](#2-phase-definitions--coverage-targets)
+3. [Demo-critical tests (implement now)](#3-demo-critical-tests-implement-now)
+4. [Master test matrix (per feature × test type × phase)](#4-master-test-matrix)
+5. [Security test matrix (OWASP Top 10 / CWE Top 25)](#5-security-test-matrix-owasp--cwe)
+6. [Payment test suite (bank-grade)](#6-payment-test-suite-bank-grade)
+7. [Auth test suite](#7-auth-test-suite)
+8. [API / endpoint test checklist](#8-api--endpoint-test-checklist)
+9. [Database test suite](#9-database-test-suite)
+10. [CI/CD quality gates & thresholds](#10-cicd-quality-gates--thresholds)
+11. [Code review checklist](#11-code-review-checklist)
+12. [Release checklist](#12-release-checklist)
+13. [Risks if omitted](#13-risks-if-omitted)
+14. [Execution roadmap (prioritized)](#14-execution-roadmap-prioritized)
+
+---
+
+## 1. Current state snapshot
+
+Darna already ships with a **security-conscious architecture and a real test
+suite**. This is not a greenfield "demo" — many production controls already
+exist. The roadmap below is therefore **gap-driven**, not a rewrite.
+
+**Already implemented & tested (`✅`):**
+
+| Area | Control | Code | Test |
+|------|---------|------|------|
+| Auth | bcrypt cost=12, timing-attack-resistant compare, generic errors (anti-enumeration) | `src/lib/auth.ts`, `src/actions/auth.ts` | `auth-register.test.ts` |
+| Auth | Rate limiting 5/15min/IP, Redis + in-memory fallback | `src/lib/rate-limit.ts` | `rate-limit*.test.ts` |
+| Reservations | Double-booking guard: `$transaction` SERIALIZABLE + atomic conflict check | `src/actions/bookings.ts:140-187` | ⚠️ state transitions only |
+| Payments | Idempotent settlement via `updateMany({where:{status:"EN_ATTENTE"}})` | `src/lib/payments.ts:106-114` | `payments.test.ts` |
+| Payments | Server-side amount re-verification (reject underpayment) | `src/lib/payments.ts:77-84` | `payments.test.ts` |
+| Payments | Expiry guard (cancel if paid after deadline) | `src/lib/payments.ts:91-100` | `payments.test.ts` |
+| KYC | CIN encrypted at rest (AES-256-GCM), mandatory in prod | `src/lib/crypto.ts` | `crypto.test.ts` |
+| KYC | CIN uniqueness via deterministic hash + DB unique index | `src/lib/crypto.ts`, schema `User.cinHash` | `kyc-actions.test.ts` |
+| KYC | OTP: hashed storage, 10-min TTL, 5-attempt cap, purpose isolation | `src/lib/otp.ts` | `otp.test.ts`, `otp-channel.test.ts` |
+| Uploads | MIME + size + **magic-byte signature** validation | `src/lib/storage.ts:34-72` | `storage.test.ts` |
+| Headers | CSP per-request nonce, HSTS, X-Frame-Options DENY, nosniff | `src/middleware.ts`, `next.config.ts` | ❌ |
+| Audit | Audit trail on every sensitive action (user, IP, metadata) | `src/lib/audit.ts` | indirectly |
+| Config | Boot-time `env.ts` fail-fast (prod requires enc key, SMS, trusted proxy, S3) | `src/lib/env.ts` | `modes.test.ts`, `kyc-gating.test.ts` |
+
+**Existing test files (21):** `admin`, `auth-register`, `booking-gate`,
+`bookings`, `cache`, `crypto`, `email-actions`, `konnect`, `kyc-actions`,
+`kyc-gating`, `mailer`, `modes`, `observability`, `otp`, `otp-channel`,
+`payments`, `rate-limit`, `rate-limit-keyed`, `rate-limit-redis`, `storage`,
+`verticals`.
+
+**Confirmed gaps (the focus of this roadmap):**
+
+- ⚠️ **No concurrency test** proving two overlapping bookings → exactly one wins.
+- ⚠️ **No IDOR/negative-authorization tests** (user A acting on user B's booking/property/profile).
+- ❌ **No webhook signature verification** on the Konnect endpoint (relies on `payment_ref` opacity + rate limiting).
+- ❌ **No E2E tests** (no browser-level journeys for signup → KYC → booking → payment).
+- ❌ **No session lifecycle tests** (expiration, invalidation on password change).
+- ❌ **No CSRF / SSRF / mass-assignment / open-redirect regression tests** (some controls exist in code, none asserted).
+- ❌ **No DB migration/rollback/integrity tests** beyond `migrate deploy` in CI.
+- ❌ **No coverage gate** in CI (suite runs but coverage is not measured/enforced).
+
+---
+
+## 2. Phase definitions & coverage targets
+
+| Dimension | **Demo** (now) | **Beta** | **Production** |
+|-----------|----------------|----------|----------------|
+| Audience | Internal / invited, mock money | Invited users, **real** Konnect sandbox + real OTP | Public, untrusted traffic, real funds |
+| Unit tests | Critical paths green (no hard %) | **≥70%** lines/branches on `src/lib` + `src/actions` | **≥85%** on critical modules, **≥80%** global |
+| Integration | Optional | All server actions: happy + auth-fail + ownership-fail | All actions + edge/error paths, against ephemeral PG |
+| E2E | None (or 1 smoke) | 5–8 critical journeys (Playwright) | Full role matrix + cross-browser + mobile |
+| Security tests | Unit-level guards that exist | OWASP A01/A02/A03/A05/A07 automated + headers regression | Full OWASP Top 10 + CWE Top 25 + annual pentest/DAST |
+| Payment tests | Idempotency/amount/expiry (✅) | + webhook signature, replay, reconciliation | + bank-grade fraud/replay/race suite, chargeback flow |
+| Load/concurrency | None | Booking-conflict concurrency test | Sustained load + soak + chaos |
+| CI gates | build, lint, tsc, test, migrate, audit-high | + coverage gate, SAST, secret scan, E2E smoke, branch protection | + DAST, container/SBOM scan, load gate, migration safety, canary |
+| DB | `migrate deploy` validates drift | + rollback test, referential-integrity test | + backup/restore drill, PITR, data-corruption detection |
+| Observability | structured logs + optional webhook | error budget defined, alerts on auth/payment failures | full SLOs, tracing, on-call, runbooks |
+
+---
+
+## 3. Demo-critical tests (implement now)
+
+These are the **only** new tests worth adding for the demo. Everything else in
+the existing suite already protects the demo and must simply **stay green**.
+Rationale: the demo's promise is "verified listings + safe booking + a payment
+that never double-charges." The guards exist in code; the demo gap is that the
+**failure paths are unproven**.
+
+| # | Test | Priority | Risk covered | Why needed now |
+|---|------|----------|--------------|----------------|
+| D1 | **Booking conflict**: two overlapping bookings on the same property → exactly one `CONFIRMEE`, the other rejected (`BookingConflictError`) | **P0** | Double-booking / money taken for an unavailable property | The SERIALIZABLE transaction (`bookings.ts:140-187`) is the single most fragile invariant; a refactor could silently break it. Untested = unprotected. |
+| D2 | **Booking IDOR**: user B cannot `confirmPaymentAction`/`startKonnectPaymentAction`/`submitReviewAction` on user A's booking | **P0** | Horizontal privilege escalation; payment/review on someone else's reservation | Authorization is in demo scope; the `guestId === user.id` check (`bookings.ts:323`) must be proven. |
+| D3 | **Property IDOR**: user B cannot edit / delete / add photos / block dates on user A's property | **P0** | Tampering with other hosts' listings | `requireOwnProperty()` is relied upon across ~10 mutations; one missing call = full IDOR. |
+| D4 | **Role gate negatives**: `requireUser/requireLister/requireAdmin/requireWakilOrAdmin` reject the wrong role | **P0** | Vertical privilege escalation (a VOYAGEUR reaching admin/listing actions) | Cheap, high-value; guards live in one file (`src/lib/session.ts`). |
+| D5 | **Mock payment exclusivity**: `confirmPaymentAction` (demo escrow) refuses to run when Konnect is enabled | **P1** | A real booking being "confirmed" without real money | Prevents demo/real mode confusion (`bookings.ts:311`). |
+| D6 | **Price integrity**: server ignores any client-supplied price; total is recomputed from `nights × nightlyPrice + serviceFee` | **P1** | Amount manipulation at booking time | Confirms the "prices always recalculated server-side" invariant. |
+| D7 | **Upload rejection E2E-lite**: a polyglot/oversized/wrong-magic file is rejected by the action (not only the lib) | **P2** | Malicious upload reaching disk/S3 | `storage.test.ts` covers the lib; this proves the action wires it. |
+
+> **Scope discipline:** do **not** add CSRF/SSRF/E2E/load tests for the demo —
+> they are documented in §5/§4 for Beta/Production. Adding them now violates
+> "don't overload the project with hundreds of tests at this stage."
+
+---
+
+## 4. Master test matrix
+
+Per feature × test type. `Status` reflects today. `Phase` = when the missing
+work is due.
+
+### 4.1 Authentication
+| Test | Type | Status | Phase | Prio | Risk covered |
+|------|------|--------|-------|------|--------------|
+| Register: OTP issued, code never leaked, anti-enumeration | unit | ✅ | Demo | P0 | Account enumeration, OTP leak |
+| Login: bcrypt compare, timing-resistant, generic error | unit | ✅ | Demo | P0 | Credential stuffing, user enumeration |
+| Login rate limiting 5/15min/IP | unit | ✅ | Demo | P0 | Brute force |
+| Password policy (≥8, ≥1 digit), reuse prevention on change | unit | ✅ | Demo | P1 | Weak/recycled passwords |
+| Login/logout E2E (browser, cookie set/cleared) | E2E | ❌ | Beta | P1 | Broken auth flow regressions |
+| Reset-password flow (token TTL, single-use, invalidates sessions) | unit+integration | ❌ (feature not built) | Beta | P0 | Account takeover via reset |
+| Lockout/backoff after N failures (beyond fixed window) | unit | ❌ | Beta | P2 | Distributed brute force |
+
+### 4.2 Sessions
+| Test | Type | Status | Phase | Prio | Risk covered |
+|------|------|--------|-------|------|--------------|
+| Session user fetched fresh from DB each request | unit | ⚠️ (code: `session.ts:22-42`) | Demo | P1 | Stale role/KYC after change |
+| Session expiration (JWT maxAge) enforced | integration | ❌ | Beta | P1 | Indefinite sessions |
+| Session invalidation on password change | integration | ❌ | Beta | P0 | Hijacked session survives reset |
+| Cookie flags: HttpOnly, Secure, SameSite | integration | ❌ | Beta | P0 | Session theft via XSS/CSRF |
+| Concurrent-session / device revocation | integration | ❌ | Production | P2 | Stolen-device persistence |
+
+### 4.3 User management
+| Test | Type | Status | Phase | Prio | Risk covered |
+|------|------|--------|-------|------|--------------|
+| Profile update validation (name, phone E.164) | unit | ⚠️ | Demo | P2 | Bad data |
+| Phone change resets `phoneVerified` | unit | ⚠️ (code: `profile.ts:48`) | Demo | P1 | Trust badge without re-verify |
+| Avatar upload validated (MIME/size/magic) | unit | ⚠️ | Demo | P2 | Malicious avatar |
+| Mass-assignment: `role`/`kycStatus`/`isWakil` not settable via profile form | integration | ❌ | Beta | P0 | Privilege escalation via form fields |
+| Account deletion / RGPD export | integration | ❌ (feature) | Production | P1 | GDPR non-compliance |
+
+### 4.4 KYC
+| Test | Type | Status | Phase | Prio | Risk covered |
+|------|------|--------|-------|------|--------------|
+| Phone OTP verify sets `phoneVerified`; bad code = no change | unit | ✅ | Demo | P0 | Fake verification |
+| CIN requires verified phone first | unit | ✅ | Demo | P1 | Out-of-order verification |
+| CIN uniqueness across accounts (hash) | unit | ✅ | Demo | P0 | Identity duplication/fraud |
+| CIN encrypted at rest; plaintext only in demo | unit | ✅ | Demo | P0 | PII exposure at rest |
+| KYC mode cannot be "demo" with a real OTP channel | unit | ✅ | Demo | P0 | Fake verification with real channel |
+| KYC gating blocks unverified hosts from listing (when on) | integration | ❌ | Beta | P1 | Unvetted listers |
+| CIN format / liveness / document-check (real KYC provider) | integration | ❌ | Production | P0 | Synthetic identity |
+
+### 4.5 Reservations
+| Test | Type | Status | Phase | Prio | Risk covered |
+|------|------|--------|-------|------|--------------|
+| Booking gate: requires verified email **and** phone | unit | ✅ | Demo | P0 | Anonymous/unverified booking |
+| **Double-booking conflict → one winner** (concurrency) | unit/integration | ⚠️→ **D1** | **Demo** | **P0** | Double-booking |
+| Stale EN_ATTENTE expires (15 min) and frees the slot | unit | ⚠️ | Demo | P1 | Inventory locked by abandoned holds |
+| Guest count ≤ maxGuests; dates ≥ today; 1–90 nights | unit | ⚠️ | Demo | P1 | Invalid reservations |
+| Booking IDOR (confirm/pay/review on other's booking) | unit → **D2** | ⚠️→ **D2** | **Demo** | **P0** | Horizontal escalation |
+| State machine CONFIRMEE→TERMINEE, escrow lifecycle | unit | ✅ | Demo | P1 | Wrong financial state |
+| Self-booking (host books own property) policy | unit | ❌ | Beta | P2 | Review/ranking gaming |
+| Cancellation/refund policy | integration | ❌ (feature) | Beta | P1 | Refund disputes |
+
+### 4.6 Payments → see [§6](#6-payment-test-suite-bank-grade)
+
+### 4.7 Uploads
+| Test | Type | Status | Phase | Prio | Risk covered |
+|------|------|--------|-------|------|--------------|
+| MIME + size + magic-byte validation | unit | ✅ | Demo | P0 | Malicious/oversized files |
+| Random filename (no user input → no traversal) | unit | ⚠️ (code: `storage.ts:75`) | Demo | P0 | Path traversal |
+| Delete path guard (`/uploads/` regex) | unit | ⚠️ | Demo | P1 | Arbitrary file delete |
+| Action wires validation (D7) | integration | ❌→ **D7** | Demo | P2 | Bypass at action layer |
+| Max photos per property enforced | integration | ⚠️ | Beta | P2 | Storage abuse |
+| S3 SigV4 signing + private ACL + content-type pinning | integration | ❌ | Production | P0 | Public/overwritten objects |
+| Image re-encode/strip EXIF (anti-polyglot, anti-geotag) | unit | ❌ | Production | P1 | Polyglot exec / PII leak via EXIF |
+
+### 4.8 Messaging
+> Darna has **no real messaging yet** — only `ContactRequest` (public contact form).
+| Test | Type | Status | Phase | Prio | Risk covered |
+|------|------|--------|-------|------|--------------|
+| Contact form: valid active non-SEJOUR property, rate-limited | unit | ⚠️ | Demo | P2 | Spam, contact on invalid listing |
+| Stored-XSS in message body (output encoding) | integration | ❌ | Beta | P0 | Stored XSS to host |
+| Real inbox: authz (only participants), abuse reporting | E2E | ❌ (feature) | Production | P1 | Cross-user message access |
+
+### 4.9 Administration
+| Test | Type | Status | Phase | Prio | Risk covered |
+|------|------|--------|-------|------|--------------|
+| `verifyPropertyAction` requires wakil/admin + owner KYC verified | unit | ✅ | Demo | P0 | Unverified listing gets badge |
+| Wakil review requires admin; promotion atomic | unit | ✅ | Demo | P0 | Self-promotion to Wakil/Admin |
+| Soft/hard delete requires admin | unit | ⚠️ | Demo | P1 | Unauthorized deletion |
+| Admin actions fully audited | integration | ⚠️ | Beta | P1 | No forensic trail |
+| Admin UI authz (server-enforced, not just hidden nav) | E2E | ❌ | Beta | P0 | Hidden-but-reachable admin routes |
+
+### 4.10 API (Server Actions + `/api/*`) → see [§8](#8-api--endpoint-test-checklist)
+
+### 4.11 Permissions
+| Test | Type | Status | Phase | Prio | Risk covered |
+|------|------|--------|-------|------|--------------|
+| Role gate negatives (D4) | unit → **D4** | ⚠️→ **D4** | **Demo** | **P0** | Vertical escalation |
+| Ownership gate negatives (D2/D3) | unit → **D2/D3** | ⚠️ | **Demo** | **P0** | Horizontal escalation (IDOR) |
+| Feature-flag gating (vertical disabled → action refused) | unit | ✅ (`verticals.test.ts`) | Demo | P1 | Bypassing disabled module |
+| Permission matrix regression (every role × every action) | integration | ❌ | Beta | P1 | Permission drift over time |
+
+### 4.12 Role management
+| Test | Type | Status | Phase | Prio | Risk covered |
+|------|------|--------|-------|------|--------------|
+| Role assignment is server-only / manual (no public escalation) | integration | ⚠️ | Beta | P0 | Self-escalation |
+| `isWakil` promotion only via admin review | unit | ✅ | Demo | P0 | Unauthorized trust role |
+| Role change re-evaluated on next request (fresh session) | integration | ❌ | Beta | P1 | Stale elevated session |
+
+---
+
+## 5. Security test matrix (OWASP & CWE)
+
+For each: **attack scenario** → **tests to create** → **protections to verify** (in code today).
+
+| Vuln (OWASP/CWE) | Attack scenario | Tests to create | Protection to verify | Status | Phase |
+|------------------|-----------------|-----------------|----------------------|--------|-------|
+| **Broken Access Control** (A01 / CWE-284, 639) | User B confirms/pays/edits user A's booking/property via crafted ID | D2, D3, D4 + permission matrix | `requireOwnProperty`, `guestId===user.id`, role gates (`session.ts`) | ⚠️ | Demo→Beta |
+| **IDOR** (CWE-639) | Enumerate cuid/slug to act on others' resources | Negative authz tests per action | Server-side ownership check on every mutation | ⚠️ | Demo |
+| **Auth failures** (A07 / CWE-287, 307) | Brute force, credential stuffing, enumeration | login lockout, timing, rate-limit (✅) | bcrypt+dummy compare, generic errors, rate-limit | ✅/⚠️ | Demo→Beta |
+| **Session hijacking** (CWE-384) | Steal/replay cookie; session survives password reset | cookie flags, expiry, invalidation tests | NextAuth JWT config, fresh DB session | ❌ | Beta |
+| **Privilege escalation** (CWE-269) | VOYAGEUR reaches admin/listing actions; self-set role | D4 + mass-assignment test | role gates, no role field in mutable schemas | ⚠️ | Demo→Beta |
+| **Injection / SQLi** (A03 / CWE-89) | Malicious input in search/filters | param/edge tests; assert Prisma params (no raw SQL) | Prisma parameterized queries; **invariant: no raw SQL** | ⚠️ | Beta |
+| **XSS** (A03 / CWE-79) | Stored script in title/description/review/message | output-encoding tests; CSP regression | React auto-escaping, CSP nonce, single `dangerouslySetInnerHTML` (`JsonLd.tsx`) | ❌ | Beta |
+| **CSRF** (CWE-352) | Cross-site POST to a server action | CSRF/Origin tests; SameSite cookie test | Next server-action origin checks, SameSite cookies | ❌ | Beta |
+| **SSRF** (A10 / CWE-918) | Outbound to Konnect/Resend/Meta/geocode coerced to internal host | URL allowlist tests | pin base URLs; no user-controlled outbound host | ❌ | Beta |
+| **Mass assignment** (CWE-915) | Extra form fields set `role`/`kycStatus`/`verified` | zod-strict / extra-field tests | zod schemas pick explicit fields | ⚠️ | Beta |
+| **Open redirect** (CWE-601) | `callbackUrl` to attacker domain | redirect allowlist tests | `safeCallbackUrl` (`auth.ts:123-132`) | ⚠️ | Beta |
+| **File upload attacks** (CWE-434) | Polyglot, SVG-with-script, oversized | D7 + EXIF/re-encode tests | magic-byte validation, MIME allowlist, size cap, SVG CSP sandbox | ⚠️ | Demo→Prod |
+| **Path traversal** (CWE-22) | `../` in upload/delete path | traversal tests | random filenames, `/uploads/` delete regex | ⚠️ | Beta |
+| **Secret exposure** (CWE-798, 200) | Keys in logs/bundle/`NEXT_PUBLIC_` | secret-scan in CI; bundle assertion | server-only libs, `env.ts`, never `NEXT_PUBLIC_` for keys | ⚠️ | Beta |
+| **Rate-limit bypass** (CWE-770) | Rotate IP / spoof `x-forwarded-for` | proxy-trust tests | trusted-proxy IP extraction, prod fail-closed | ⚠️ | Beta |
+| **Brute-force login** (CWE-307) | Password spray | covered by rate-limit (✅) + lockout test | rate-limit per IP+action | ✅/⚠️ | Demo→Beta |
+| **Business-logic abuse** | Book→cancel→rebook to lock inventory; review without stay | expiry test, review-FK test | 15-min expiry, `Review.bookingId` FK | ⚠️ | Beta |
+| **Payment abuse** | Underpay, tamper amount, double-confirm | covered (✅) + see §6 | server amount recompute, idempotent settle | ✅ | Demo |
+| **Replay attacks** (CWE-294) | Replay Konnect webhook | webhook signature + idempotency-key test | idempotent `updateMany`, per-ref rate-limit; **signature missing** | ❌ | Beta |
+| **Race conditions** (CWE-362) | Concurrent booking / settlement | D1 + settlement-race test (⚠️ partial) | SERIALIZABLE tx, `updateMany` gate | ⚠️ | Demo |
+
+---
+
+## 6. Payment test suite (bank-grade)
+
+Target: **near-banking** confidence. Konnect escrow has two modes (simulated by
+default; real via `KONNECT_*`). Settlement lives in `src/lib/payments.ts`
+(`settleKonnectBooking`, intentionally **not** a `"use server"`).
+
+| Scenario | Test to create | Expected guarantee | Status | Phase |
+|----------|----------------|--------------------|--------|-------|
+| Double payment | Two settle calls, same ref | Only first mutates; second is a no-op | ✅ `payments.test.ts` | Demo |
+| Webhook replay | Same webhook GET twice | Idempotent; no double-confirm, no double-audit | ⚠️ (idempotent yes, **signature no**) | Beta |
+| Payment cancelled | Settle on `ANNULEE` booking | Returns `ANNULEE`, no funds moved | ✅ | Demo |
+| Payment expired | Pay after `expiresAt` | Auto-cancel, no confirm | ✅ (`payments.ts:91-100`) | Demo |
+| Confirmed multiple times | Concurrent webhook + return page | Single `CONFIRMEE`, single audit | ✅ (race test) | Demo |
+| Simultaneous reservation | Two guests pay overlapping dates | One CONFIRMEE; other refunded/cancelled | ⚠️ (needs D1 + payment-race) | Beta |
+| User fraud (amount tamper) | `reachedAmount < expected` | Reject (no confirm) | ✅ | Demo |
+| Amount manipulation (client) | Client posts lower total | Server recomputes; client value ignored | ⚠️ (D6) | Demo |
+| Access others' reservation | Pay/confirm someone else's booking | Rejected (ownership) | ⚠️ (D2) | Demo |
+| **Webhook authenticity** | Forged webhook with guessed ref | Reject without valid signature/HMAC | ❌ **(must add)** | Beta |
+| Currency precision | TND→millimes rounding | No truncation/over-charge | ✅ `konnect.test.ts` | Demo |
+| Reconciliation | Konnect status vs local state mismatch | Detect & alert; never silent loss | ❌ | Production |
+| Chargeback / dispute | Dispute opened post-settlement | State + audit + escrow handling | ❌ (feature) | Production |
+| Escrow release safety | Release only on TERMINEE & EN_SEQUESTRE | No early/duplicate release | ✅ `bookings.test.ts` | Demo |
+| Partial/failed refund | Refund fails mid-way | Idempotent retry, consistent state | ❌ | Production |
+
+**Production payment invariants to enforce & test:**
+1. No state transition without server-side amount verification.
+2. Every settlement is idempotent on `paymentRef` (DB-unique).
+3. Webhook authenticity verified (signature/HMAC) **before** any DB read.
+4. All money events audited (immutable trail, 90-day+ retention).
+5. EUR display is UI-only; the charged amount is always TND.
+
+---
+
+## 7. Auth test suite
+
+| Case | Normal path | Abnormal path | Status | Phase |
+|------|-------------|---------------|--------|-------|
+| Login | Valid creds → session | Wrong pw, unknown user (generic error, timing-stable), rate-limited | ✅/⚠️ | Demo |
+| Logout | Clears cookie/session | Logout when not logged in (no error leak) | ❌ E2E | Beta |
+| Reset password | Token issued, single-use, TTL | Reused/expired/forged token; invalidates active sessions | ❌ (feature) | Beta |
+| OTP (phone/email) | 6-digit, 10-min, consumed on success | Wrong code (attempt++), expired, exhausted (5), purpose-cross | ✅ | Demo |
+| KYC | Phone→CIN order, unique CIN, encrypted | Out-of-order, duplicate CIN, demo/real mode confusion | ✅ | Demo |
+| Session expiration | Expires at maxAge | Expired token rejected | ❌ | Beta |
+| Session invalidation | Invalidated on pw change/logout | Old session refused after invalidation | ❌ | Beta |
+| JWT | Signed, role/userId claims fresh-checked | Tampered/none-alg/expired JWT rejected | ⚠️ | Beta |
+| User roles | VOYAGEUR/HOTE/AGENCE gates | Wrong role refused (D4) | ⚠️ | Demo |
+| Admin roles | ADMIN/isWakil gates | Non-admin refused; no self-promotion | ✅/⚠️ | Demo |
+
+---
+
+## 8. API / endpoint test checklist
+
+Darna uses **Server Actions** (not REST) + two routes: `/api/auth/[...nextauth]`
+and `/api/payments/konnect/webhook`. For **every action/route**, the contract:
+
+| Check | What to assert | Status | Phase |
+|-------|----------------|--------|-------|
+| Authentication | Unauthenticated call refused where required (`requireUser`) | ⚠️ | Demo |
+| Authorization | Wrong role/owner refused (D2/D3/D4) | ⚠️ | Demo |
+| Input validation | zod schema present; invalid shape rejected | ⚠️ | Beta |
+| Invalid payload | Wrong types/enums rejected with safe error | ⚠️ | Beta |
+| Missing payload | Required fields missing → 4xx-equivalent, no crash | ❌ | Beta |
+| Excessive payload | Oversized strings/arrays (e.g. 10 000-char fields, huge arrays) bounded | ❌ | Beta |
+| Rate limiting | Sensitive actions rate-limited | ✅ (most) | Demo |
+| Server errors | DB/provider down → safe generic error, audited, no stack leak | ⚠️ | Beta |
+| Webhook | Signature verified, idempotent, always 200, rate-limited | ⚠️ (no signature) | Beta |
+
+**Action inventory to cover:** `auth`, `bookings`, `kyc`, `email`, `onboarding`,
+`admin`, `properties`, `profile`, `contact`, `wakil`, `destination`, `geocode`.
+
+---
+
+## 9. Database test suite
+
+| Area | Test to create | Status | Phase |
+|------|----------------|--------|-------|
+| Migrations | `prisma migrate deploy` applies cleanly from scratch (drift check) | ✅ (CI) | Demo |
+| Rollback | Down-migration / restore to previous schema works | ❌ | Beta |
+| Referential integrity | FK cascades (`onDelete: Cascade`/`SetNull`) behave (e.g. delete user → bookings cascade) | ❌ | Beta |
+| Unique constraints | `User.email`, `User.cinHash`, `Property.slug`, `Booking.paymentRef`, `Review.bookingId`, `Favorite[userId,propertyId]` reject duplicates | ⚠️ (cinHash via kyc test) | Beta |
+| Concurrency | Overlapping booking under SERIALIZABLE (D1) | ⚠️ | Demo |
+| Transactions | Multi-step writes are atomic (booking create, photo reorder) | ⚠️ | Beta |
+| Race conditions | Settlement race / favorite double-insert | ⚠️ | Beta |
+| Data corruption | Detect orphaned escrow / booking without property; integrity sweep | ❌ | Production |
+| Retention | AuditLog purge ≥90 days (RGPD) | ❌ | Production |
+| Backup/restore | Restore drill + PITR verified | ❌ | Production |
+
+---
+
+## 10. CI/CD quality gates & thresholds
+
+**A PR must never merge if:** build fails · lint fails · TypeScript fails ·
+tests fail · a **critical/high** vulnerability is detected · coverage drops
+below the phase threshold.
+
+### Current CI (`.github/workflows/ci.yml`) — already satisfies the Demo bar ✅
+```
+checkout → setup-node 22 → npm ci → prisma generate → prisma migrate deploy
+→ lint → tsc --noEmit → npm test → next build → npm audit --audit-level=high
+```
+> The demo asked for "build + lint + typescript + critical tests, nothing more."
+> The existing pipeline already does that **plus** migration-drift and a high/
+> critical dependency audit. **Keep it as-is for the demo.** Do not regress it.
+
+### Gate matrix by phase
+| Gate | Demo | Beta | Production |
+|------|:----:|:----:|:----------:|
+| Build (`next build`) | ✅ | ✅ | ✅ |
+| Lint (`eslint`) | ✅ | ✅ | ✅ |
+| Typecheck (`tsc --noEmit`) | ✅ | ✅ | ✅ |
+| Unit tests (`vitest run`) | ✅ | ✅ | ✅ |
+| Migration drift (`migrate deploy`) | ✅ | ✅ | ✅ |
+| Dependency audit (`npm audit --high`) | ✅ | ✅ (block high+critical) | ✅ (block + SBOM) |
+| **Coverage gate** (`vitest --coverage`) | ⬜ optional | ✅ ≥70% lib+actions | ✅ ≥85% critical / 80% global |
+| **Integration tests** (ephemeral PG) | ⬜ | ✅ | ✅ |
+| **E2E smoke** (Playwright) | ⬜ | ✅ 5–8 journeys | ✅ full matrix |
+| **SAST** (CodeQL / Semgrep) | ⬜ | ✅ | ✅ |
+| **Secret scanning** (gitleaks) | ⬜ recommended | ✅ | ✅ |
+| **Branch protection** (required checks + 1 review) | ⬜ | ✅ | ✅ (2 reviews on sensitive paths) |
+| **DAST** (ZAP baseline) | ⬜ | ⬜ | ✅ |
+| **Container/image scan** (Trivy) | ⬜ | ⬜ | ✅ |
+| **Migration safety** (no destructive without approval) | ⬜ | ⬜ | ✅ |
+| **Load/concurrency gate** | ⬜ | ⬜ | ✅ |
+
+### Suggested thresholds
+- **Unit:** Demo — no hard %, keep green. Beta — **≥70%** lines & branches on `src/lib` + `src/actions`. Production — **≥85%** on critical modules (`payments`, `bookings`, `auth`, `crypto`, `otp`, `rate-limit`, `storage`, `session`), **≥80%** global.
+- **Integration:** Beta — every action: happy + auth-fail + ownership-fail. Production — + invalid/missing/excessive payload + provider-down.
+- **E2E:** Beta — 5–8 critical journeys (signup→verify→book→pay, host listing, admin verify). Production — full role matrix + cross-browser + mobile + RTL (arabic).
+- **Security:** Beta — OWASP A01/A02/A03/A05/A07 automated + headers regression. Production — full Top 10 + CWE Top 25 coverage + annual pentest + DAST in pipeline.
+
+---
+
+## 11. Code review checklist
+
+> Every reviewer ticks these before approving. Bold = blocking on sensitive paths
+> (auth, payment, KYC, upload, permission).
+
+**Security**
+- [ ] **No secret in diff** (key, token, password, `.env` value); no key under `NEXT_PUBLIC_`.
+- [ ] **Every mutation has server-side authorization** (role gate + ownership check; never trust client).
+- [ ] **zod validation** on every server action input; fields picked explicitly (no mass assignment).
+- [ ] **No injection surface**: no raw SQL, no string-built queries, no unsanitized `dangerouslySetInnerHTML`.
+- [ ] Prices/amounts/state recomputed server-side; client values never trusted.
+- [ ] Rate limiting on any new sensitive/abuse-prone action.
+- [ ] New sensitive action emits an **audit log**.
+- [ ] Generic error messages on auth/payment (no enumeration / no stack leak).
+- [ ] New outbound HTTP uses a pinned base URL (no user-controlled host → SSRF).
+
+**Quality**
+- [ ] Cyclomatic complexity reasonable; functions single-purpose.
+- [ ] No copy-paste duplication of a guard/validation (extract & reuse).
+- [ ] Naming/idiom matches surrounding code; i18n keys added in **all three** dictionaries.
+- [ ] Tests added/updated for the changed behavior; **QA_ROADMAP.md updated** if a sensitive surface changed.
+
+**Performance**
+- [ ] No **N+1** (use `include`/`select`, batch); list queries hit an index.
+- [ ] DB queries are indexed (check `@@index` for new filters/sorts).
+- [ ] Caching used where appropriate, with correct invalidation.
+
+**Architecture**
+- [ ] Respects module boundaries (`core`/`stay`/`immo`); no payment field in `ImmoDetails`.
+- [ ] Server Action vs API route choice consistent with conventions.
+- [ ] Tech debt flagged with a `TODO-BETA`/`TODO-PRODUCTION` reference (see TODO files).
+
+---
+
+## 12. Release checklist
+
+> Run before every deploy. Blocking items must be green.
+
+**Tests & quality**
+- [ ] All CI gates green on the release commit (build, lint, tsc, tests, audit, coverage for the phase).
+- [ ] E2E smoke passed against staging (Beta+).
+
+**Security**
+- [ ] No new high/critical dependency vuln; secret scan clean.
+- [ ] New env vars validated by `env.ts` fail-fast; secrets set in the target environment (not in repo).
+- [ ] Prod mode invariants set: `KYC_ENC_KEY`, real `SMS_PROVIDER`, `TRUSTED_PROXY=true`, S3 config, Konnect keys.
+
+**Data**
+- [ ] **Backup taken** immediately before migration.
+- [ ] Migration reviewed for destructive ops; **rollback plan** documented.
+- [ ] `prisma migrate deploy` dry-run/staging-verified.
+
+**Operations**
+- [ ] Monitoring/alerting live for auth failures, payment failures, 5xx rate.
+- [ ] Observability webhook configured (`OBSERVABILITY_WEBHOOK_URL`).
+- [ ] **Rollback procedure** tested and one-command ready (previous image + DB plan).
+- [ ] On-call/runbook updated; feature flags default-safe.
+- [ ] Post-deploy smoke: login, booking, payment (sandbox), KYC OTP.
+
+---
+
+## 13. Risks if omitted
+
+| If we skip… | Concrete risk | Blast radius |
+|-------------|---------------|--------------|
+| D1 booking-conflict test | A refactor silently breaks the SERIALIZABLE guard → two guests pay for the same dates | **Refunds, trust loss, payment-partner scrutiny** |
+| D2/D3/D4 authz tests | A missing `requireOwnProperty`/role gate ships → IDOR / privilege escalation | **Full data breach of users' bookings/listings** |
+| Webhook signature | Forged webhook confirms an unpaid booking | **Direct financial loss / fraud** |
+| Session invalidation | Reset password doesn't kill stolen session → persistent account takeover | **Account takeover at scale** |
+| Mass-assignment test | Profile form sets `role=ADMIN` | **Total compromise** |
+| XSS regression | Stored script in a listing/review executes in hosts' browsers | **Session theft, defacement** |
+| Coverage gate | Critical modules silently lose coverage over time | **Regressions reach prod undetected** |
+| DB rollback/backup drill | Bad migration with no tested restore | **Irreversible data loss** |
+| Rate-limit proxy trust | `x-forwarded-for` spoofing bypasses limits | **Brute force, OTP exhaustion** |
+| EXIF strip / re-encode | Geotagged photos leak host home location; polyglot upload | **Privacy breach, RCE vector** |
+| Reconciliation | Konnect/local drift unnoticed | **Silent money loss, accounting gaps** |
+
+---
+
+## 14. Execution roadmap (prioritized)
+
+**Now (Demo) — P0/P1, ~7 small unit/integration tests, no new tooling:**
+1. D1 booking-conflict concurrency test.
+2. D2 booking IDOR + D3 property IDOR + D4 role-gate negatives.
+3. D5 mock-payment exclusivity, D6 price integrity, D7 upload-action wiring.
+4. Keep current CI green. _(Optional: add `vitest --coverage` non-blocking to start a baseline.)_
+
+**Before Beta — quality gates + first integration/E2E + security regression:**
+1. Add coverage gate (≥70% lib+actions) + Playwright E2E smoke (5–8 journeys) to CI.
+2. Add SAST (CodeQL/Semgrep) + secret scan (gitleaks) + branch protection.
+3. **Konnect webhook signature/HMAC verification** + replay test.
+4. Session lifecycle tests (expiry, invalidation on pw change, cookie flags).
+5. Mass-assignment, open-redirect, CSRF/SameSite, SSRF allowlist, XSS output-encoding regression tests.
+6. Integration tests per server action (happy + authz-fail) against ephemeral Postgres.
+7. DB tests: unique-constraint, FK cascade, rollback.
+8. Implement & test reset-password and cancellation/refund flows.
+
+**Before Production — full assurance:**
+1. Full OWASP Top 10 + CWE Top 25 coverage; DAST (ZAP) in pipeline; annual pentest.
+2. Bank-grade payment suite: reconciliation, chargeback, partial-refund idempotency.
+3. Load/concurrency/soak + chaos tests; load gate in CI.
+4. Real KYC provider (document + liveness) tests; RGPD export/delete + audit retention purge.
+5. Image re-encode/EXIF strip; S3 private ACL + content-type pinning tests.
+6. Backup/restore + PITR drill; migration-safety gate; container/SBOM scan.
+7. SLOs, tracing, alerting, on-call runbooks, canary + automated rollback.
+
+---
+
+_See `TODO-BETA.md` and `TODO-PRODUCTION.md` for the per-feature task registry._
