@@ -8,9 +8,10 @@ Projet **personnel** de Wassim. Tout commit, push et opération GitHub se fait a
 
 1. **Jamais de push direct sur `main`** — toujours travailler sur une branche feature.
 2. **Après chaque push de branche** : ouvrir une Pull Request via `mcp__github__create_pull_request`.
-3. **Surveiller la CI** : attendre que tous les checks GitHub Actions soient verts avant de merger.
-4. **Merger en squash** via `mcp__github__merge_pull_request` (merge_method: "squash") une fois la CI verte.
-5. **Contexte remote** : Claude Code tourne dans un conteneur cloud — il ne peut PAS écrire directement dans le projet PyCharm local de Wassim. Les changements arrivent sur la machine via `git pull` après merge sur `main`.
+3. **Surveiller la CI** : attendre que tous les checks GitHub Actions soient verts.
+4. **JAMAIS de merge dans `main` sans la validation explicite de Wassim — MÊME SI la CI est verte.** Claude ne merge jamais de lui-même : il pousse la branche, ouvre la PR, signale que la CI est verte, et **attend que Wassim dise explicitement « merge »**. Et **JAMAIS de merge même si Wassim approuve TANT QUE la CI n'est pas verte.** Les deux conditions sont obligatoires et cumulatives : (a) validation explicite de Wassim ET (b) CI verte. Merge en squash via `mcp__github__merge_pull_request` (merge_method: "squash") uniquement quand ces deux conditions sont réunies.
+5. **Améliorations sur une PR déjà ouverte** : si une PR existe déjà (ex. #40) et que Wassim demande des améliorations/corrections dessus, **ne PAS créer une nouvelle PR** — pousser les modifications sur la **même branche** (donc la même PR). On ne crée une nouvelle branche/PR que pour un chantier distinct.
+6. **Contexte remote** : Claude Code tourne dans un conteneur cloud — il ne peut PAS écrire directement dans le projet PyCharm local de Wassim. Les changements arrivent sur la machine via `git pull` après merge sur `main`.
 
 ## Stack et contraintes
 
