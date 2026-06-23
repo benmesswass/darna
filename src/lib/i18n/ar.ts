@@ -570,6 +570,10 @@ export const ar: Dictionary = {
     otpInvalide: "الرمز غالط. عاود جرّب.",
     verifieBravo: "الإيميل متاعك اتثبّت.",
     dejaVerifie: "الإيميل متاعك موثّق من قبل.",
+    mailSujet: "Darna — ثبّت عنوان الإيميل متاعك",
+    mailCorpsHtml: (code: string) =>
+      `<p>رمز التثبّت متاعك في Darna: <strong>${code}</strong></p>` +
+      `<p>الرمز هذا يفنى بعد 10 دقايق.</p>`,
   },
   profil: {
     titre: "معلوماتي",

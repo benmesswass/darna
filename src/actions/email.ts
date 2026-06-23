@@ -40,15 +40,10 @@ export async function requestEmailOtpAction(
   const code = await issueOtp(user.id, "EMAIL");
   const demo = getEmailProvider() === "demo";
 
-  const html = `
-    <p>Votre code de vérification Darna : <strong>${code}</strong></p>
-    <p>Ce code expire dans 10 minutes.</p>
-  `;
-
   const sent = await sendEmail({
     to: user.email,
-    subject: "Darna — vérifiez votre adresse e-mail",
-    html,
+    subject: fr.email.mailSujet,
+    html: fr.email.mailCorpsHtml(code),
   });
 
   await logAudit({

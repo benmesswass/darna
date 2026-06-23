@@ -555,6 +555,10 @@ export const fr = {
     otpInvalide: "Code incorrect. Merci de réessayer.",
     verifieBravo: "Votre adresse e-mail est vérifiée.",
     dejaVerifie: "Votre adresse e-mail est déjà vérifiée.",
+    mailSujet: "Darna — vérifiez votre adresse e-mail",
+    mailCorpsHtml: (code: string) =>
+      `<p>Votre code de vérification Darna : <strong>${code}</strong></p>` +
+      `<p>Ce code expire dans 10 minutes.</p>`,
   },
   profil: {
     titre: "Mes informations",
