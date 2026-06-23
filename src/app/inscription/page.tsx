@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { fr as frMeta } from "@/lib/i18n/fr";
 import { getT } from "@/lib/i18n/server";
@@ -24,11 +23,8 @@ export default async function InscriptionPage({
   // Rôle pré-sélectionné depuis le CTA « devenir hôte » (jamais ADMIN).
   const defaultRole = role === "HOTE" || role === "AGENCE" ? role : "VOYAGEUR";
 
-  // CAPTCHA (dual-mode) : clé publique + nonce CSP transmis au widget si actif.
+  // CAPTCHA (dual-mode) : clé publique transmise au widget si le mode est actif.
   const captchaSiteKey = isCaptchaEnabled() ? turnstileSiteKey() : "";
-  const captchaNonce = captchaSiteKey
-    ? (await headers()).get("x-nonce") ?? undefined
-    : undefined;
 
   return (
     <div className="mx-auto max-w-md px-4 py-16 sm:px-6">
@@ -40,7 +36,6 @@ export default async function InscriptionPage({
           defaultRole={defaultRole}
           callbackUrl={callbackUrl ? cb : undefined}
           captchaSiteKey={captchaSiteKey}
-          captchaNonce={captchaNonce}
         />
       </div>
     </div>

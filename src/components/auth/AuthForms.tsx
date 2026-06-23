@@ -84,7 +84,8 @@ function PasswordInput({
         onClick={() => setShow((v) => !v)}
         aria-label={show ? fr.auth.masquerMotDePasse : fr.auth.afficherMotDePasse}
         aria-pressed={show}
-        className="absolute end-2.5 top-1/2 -translate-y-1/2 text-ink/45 transition hover:text-darna"
+        tabIndex={-1}
+        className="absolute inset-y-0 end-0 flex items-center pe-3.5 text-ink/45 transition hover:text-darna focus:outline-none focus-visible:text-darna"
       >
         {show ? <EyeOffIcon /> : <EyeIcon />}
       </button>
@@ -129,13 +130,11 @@ export function LoginForm({
   registered = false,
   defaultEmail = "",
   captchaSiteKey = "",
-  captchaNonce,
 }: {
   callbackUrl?: string;
   registered?: boolean;
   defaultEmail?: string;
   captchaSiteKey?: string;
-  captchaNonce?: string;
 }) {
   const fr = useT();
   const [state, action, pending] = useActionState(loginAction, undefined);
@@ -170,7 +169,7 @@ export function LoginForm({
         <span className="text-sm font-semibold text-ink/70">{fr.auth.motDePasse}</span>
         <PasswordInput name="password" autoComplete="current-password" />
       </label>
-      <TurnstileWidget siteKey={captchaSiteKey} nonce={captchaNonce} />
+      <TurnstileWidget siteKey={captchaSiteKey} />
       <SubmitButton label={fr.auth.seConnecter} pending={pending} />
       <p className="text-center text-sm text-ink/60">
         {fr.auth.pasDeCompte}{" "}
@@ -186,12 +185,10 @@ export function RegisterForm({
   defaultRole = "VOYAGEUR",
   callbackUrl,
   captchaSiteKey = "",
-  captchaNonce,
 }: {
   defaultRole?: string;
   callbackUrl?: string;
   captchaSiteKey?: string;
-  captchaNonce?: string;
 }) {
   const fr = useT();
   const router = useRouter();
@@ -278,7 +275,7 @@ export function RegisterForm({
           <option value="AGENCE">{fr.auth.roleAgence}</option>
         </select>
       </label>
-      <TurnstileWidget siteKey={captchaSiteKey} nonce={captchaNonce} />
+      <TurnstileWidget siteKey={captchaSiteKey} />
       <SubmitButton label={fr.auth.sInscrire} pending={pending} />
       <p className="text-center text-sm text-ink/60">
         {fr.auth.dejaCompte}{" "}
