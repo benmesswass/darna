@@ -4,6 +4,14 @@
 
 Projet **personnel** de Wassim. Tout commit, push et opération GitHub se fait avec `benmesswass@gmail.com` / compte GitHub `benmesswass` — **jamais** l'identité DiliTrust (`wassim.ben-messaoud@dilitrust.com` / `dt-wassim-ben-messaoud`). Avant tout push : vérifier `git config user.email` et `gh auth status`. Ne pas « simplifier » l'URL du remote (`https://benmesswass@github.com/...`) : le `~/.netrc` de la machine contient un token du compte pro qu'elle neutralise.
 
+## Livraison & tests (règle absolue)
+
+À **chaque** modification ou nouveau code livré pour Darna, **TOUJOURS** finir la réponse par un bloc « Comment tester » qui contient les deux :
+1. **Les commandes exactes** à lancer (setup migrations/seed si le schéma change, `npm run dev`, `npx tsc --noEmit`, `npm test`, commande de test ciblée…).
+2. **Quoi tester visuellement** : le parcours pas-à-pas dans l'UI (URL de départ, clics, valeurs à saisir, comptes démo) ET le résultat attendu — y compris les cas limites / sécurité quand ils existent.
+
+Jamais livrer du code sans dire à Wassim comment le vérifier. Si une migration est ajoutée, donner aussi la commande de mise à jour de la base (et le `migrate reset` pour une base démo).
+
 ## Workflow PR (règle absolue)
 
 1. **Jamais de push direct sur `main`** — toujours travailler sur une branche feature.
