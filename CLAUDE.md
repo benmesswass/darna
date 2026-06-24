@@ -7,7 +7,7 @@ Projet **personnel** de Wassim. Tout commit, push et opération GitHub se fait a
 ## Livraison & tests (règle absolue)
 
 À **chaque** modification ou nouveau code livré pour Darna, **TOUJOURS** finir la réponse par un bloc « Comment tester » qui contient les deux :
-1. **Les commandes exactes** à lancer (setup migrations/seed si le schéma change, `npm run dev`, `npx tsc --noEmit`, `npm test`, commande de test ciblée…).
+1. **Les commandes exactes** à lancer (setup migrations/seed si le schéma change, `npm run dev`, `npx tsc --noEmit`, `npm test`, commande de test ciblée…). **Quand le code est sur une branche encore non mergée (PR ouverte), TOUJOURS commencer par récupérer CETTE branche** — `git fetch origin` puis `git checkout <nom-de-la-branche>` — **avant** tout `git pull` / `migrate reset` / `npm run dev`. Sinon Wassim teste `main` au lieu de la PR. Donner le nom exact de la branche dans les commandes.
 2. **Quoi tester visuellement** : le parcours pas-à-pas dans l'UI (URL de départ, clics, valeurs à saisir, comptes démo) ET le résultat attendu — y compris les cas limites / sécurité quand ils existent.
 
 Jamais livrer du code sans dire à Wassim comment le vérifier. Si une migration est ajoutée, donner aussi la commande de mise à jour de la base (et le `migrate reset` pour une base démo).
