@@ -314,6 +314,28 @@ export const fr = {
     emailDejaUtilise: "Impossible de créer le compte avec ces informations.",
     inscriptionReussie: "Compte créé ! Vous pouvez vous connecter.",
     motDePasseRegle: "8 caractères minimum",
+    motDePasseOublie: "Mot de passe oublié ?",
+    resetTitre: "Réinitialiser le mot de passe",
+    resetSousTitre:
+      "Saisissez l'adresse e-mail de votre compte : nous vous enverrons un lien de réinitialisation.",
+    resetEnvoyer: "Envoyer le lien",
+    resetEmailEnvoye:
+      "Si un compte existe pour cette adresse, un lien de réinitialisation vient d'être envoyé.",
+    resetModeDemo: "Mode démo — lien de réinitialisation :",
+    resetOuvrirLien: "Ouvrir le lien de réinitialisation",
+    resetNouveauMdp: "Nouveau mot de passe",
+    resetValider: "Réinitialiser le mot de passe",
+    resetReussi: "Mot de passe réinitialisé. Vous pouvez vous connecter.",
+    resetLienInvalide:
+      "Lien invalide ou expiré. Merci de refaire une demande de réinitialisation.",
+    resetMotDePasseInvalide:
+      "Le mot de passe doit faire au moins 8 caractères et contenir un chiffre.",
+    resetRetourConnexion: "Retour à la connexion",
+    resetMailSujet: "Darna — réinitialisation de votre mot de passe",
+    resetMailCorpsHtml: (url: string) =>
+      `<p>Vous avez demandé à réinitialiser votre mot de passe Darna.</p>` +
+      `<p><a href="${url}">Cliquez ici pour choisir un nouveau mot de passe</a>.</p>` +
+      `<p>Ce lien expire dans 30 minutes. Si vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail.</p>`,
   },
   dashboard: {
     titre: "Mon espace",

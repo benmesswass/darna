@@ -5,6 +5,8 @@ import Link from "next/link";
 import {
   loginAction,
   registerAction,
+  requestPasswordResetAction,
+  resetPasswordAction,
   type AuthFormState,
 } from "@/actions/auth";
 import { useT } from "@/components/i18n/LocaleProvider";
@@ -72,12 +74,100 @@ export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
         />
       </label>
       <SubmitButton label={fr.auth.seConnecter} pending={pending} />
+      <p className="text-center text-sm">
+        <Link
+          href="/mot-de-passe-oublie"
+          className="font-semibold text-darna underline underline-offset-2"
+        >
+          {fr.auth.motDePasseOublie}
+        </Link>
+      </p>
       <p className="text-center text-sm text-ink/60">
         {fr.auth.pasDeCompte}{" "}
         <Link href={inscriptionHref} className="font-semibold text-darna underline">
           {fr.auth.sInscrire}
         </Link>
       </p>
+    </form>
+  );
+}
+
+/** Demande de réinitialisation (saisie e-mail). En démo, affiche le lien renvoyé. */
+export function ForgotPasswordForm() {
+  const fr = useT();
+  const [state, action, pending] = useActionState(
+    requestPasswordResetAction,
+    undefined
+  );
+
+  return (
+    <form action={action} className="space-y-4">
+      <Feedback state={state} />
+      {/* Mode démo : aucun e-mail réel n'est envoyé → on affiche le lien. */}
+      {state?.resetUrl ? (
+        <div className="rounded-xl bg-sand-light/40 px-4 py-3 text-sm text-darna-dark">
+          <p className="font-semibold">{fr.auth.resetModeDemo}</p>
+          <Link
+            href={state.resetUrl}
+            className="mt-1 block break-all font-semibold text-darna underline"
+          >
+            {fr.auth.resetOuvrirLien}
+          </Link>
+        </div>
+      ) : null}
+      <p className="text-sm text-ink/70">{fr.auth.resetSousTitre}</p>
+      <label className="block space-y-1.5">
+        <span className="text-sm font-semibold text-ink/70">{fr.auth.email}</span>
+        <input name="email" type="email" required autoComplete="email" className={inputClass} />
+      </label>
+      <SubmitButton label={fr.auth.resetEnvoyer} pending={pending} />
+      <p className="text-center text-sm text-ink/60">
+        <Link href="/connexion" className="font-semibold text-darna underline">
+          {fr.auth.resetRetourConnexion}
+        </Link>
+      </p>
+    </form>
+  );
+}
+
+/** Choix d'un nouveau mot de passe à partir du jeton (lien reçu / affiché). */
+export function ResetPasswordForm({ token }: { token: string }) {
+  const fr = useT();
+  const [state, action, pending] = useActionState(resetPasswordAction, undefined);
+  const done = Boolean(state?.success);
+
+  return (
+    <form action={action} className="space-y-4">
+      <Feedback state={state} />
+      {done ? (
+        <p className="text-center text-sm">
+          <Link
+            href="/connexion"
+            className="font-semibold text-darna underline underline-offset-2"
+          >
+            {fr.auth.seConnecter}
+          </Link>
+        </p>
+      ) : (
+        <>
+          <input type="hidden" name="token" value={token} />
+          <label className="block space-y-1.5">
+            <span className="text-sm font-semibold text-ink/70">
+              {fr.auth.resetNouveauMdp}{" "}
+              <span className="font-normal text-ink/40">({fr.auth.motDePasseRegle})</span>
+            </span>
+            <input
+              name="password"
+              type="password"
+              required
+              minLength={8}
+              autoComplete="new-password"
+              className={inputClass}
+            />
+          </label>
+          <SubmitButton label={fr.auth.resetValider} pending={pending} />
+        </>
+      )}
     </form>
   );
 }

@@ -80,6 +80,18 @@ export function hashOtp(code: string): string {
 }
 
 /**
+ * Hache un jeton de réinitialisation de mot de passe (avec poivre AUTH_SECRET)
+ * — seul le hash est stocké, jamais le jeton en clair. Le jeton est aléatoire
+ * (32 octets), donc un simple SHA-256 poivré suffit (pas de force brute
+ * possible sur l'espace des jetons). Cf. src/lib/reset-token.ts.
+ */
+export function hashResetToken(token: string): string {
+  return createHash("sha256")
+    .update(`reset:${token}:${process.env.AUTH_SECRET ?? "darna"}`)
+    .digest("hex");
+}
+
+/**
  * Empreinte DÉTERMINISTE d'une CIN — sert l'index unique `User.cinHash` pour
  * empêcher deux comptes de partager le même numéro, sans jamais stocker la CIN
  * en clair dans l'index. Déterministe (contrairement au chiffrement AES-GCM

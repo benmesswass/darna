@@ -57,6 +57,7 @@ model User {
   favoriteFolders    FavoriteFolder[]
   auditLogs          AuditLog[]
   otpChallenges      OtpChallenge[]
+  passwordResetTokens PasswordResetToken[]
   // PR1 — back-relation : annonces vérifiées par cet utilisateur (admin/wakil).
   verifiedProperties   Property[]          @relation("PropertyVerifiedBy")
   // PR2 — candidatures Wakil liées à ce compte.
@@ -81,6 +82,24 @@ model OtpChallenge {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, purpose])
+}
+
+// Jeton de réinitialisation de mot de passe : token aléatoire haché (jamais en
+// clair), TTL court, usage unique (supprimé à la consommation). Une seule
+// demande active par utilisateur (les précédentes sont purgées à l'émission).
+// Flux 100 % démo-compatible : sans provider e-mail réel, le lien est affiché
+// à l'écran (cf. src/actions/auth.ts) ; bascule prod = EMAIL_PROVIDER=resend.
+// Cf. src/lib/reset-token.ts.
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Property {

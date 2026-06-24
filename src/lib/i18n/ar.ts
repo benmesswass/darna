@@ -334,6 +334,28 @@ export const ar: Dictionary = {
     emailDejaUtilise: "ما نجمناش ننشئو الحساب بالمعطيات هاذي.",
     inscriptionReussie: "الحساب تعمل! تنجم تدخل توا.",
     motDePasseRegle: "8 أحرف كحد أدنى",
+    motDePasseOublie: "نسيت كلمة السر؟",
+    resetTitre: "إعادة تعيين كلمة السر",
+    resetSousTitre:
+      "أدخل البريد الإلكتروني لحسابك وسنرسل لك رابط إعادة التعيين.",
+    resetEnvoyer: "إرسال الرابط",
+    resetEmailEnvoye:
+      "إذا كان هناك حساب بهذا العنوان، فقد تم إرسال رابط إعادة التعيين للتو.",
+    resetModeDemo: "وضع التجربة — رابط إعادة التعيين:",
+    resetOuvrirLien: "فتح رابط إعادة التعيين",
+    resetNouveauMdp: "كلمة سر جديدة",
+    resetValider: "إعادة تعيين كلمة السر",
+    resetReussi: "تم إعادة تعيين كلمة السر. يمكنك الآن تسجيل الدخول.",
+    resetLienInvalide:
+      "رابط غير صالح أو منتهي الصلاحية. يرجى طلب إعادة تعيين جديدة.",
+    resetMotDePasseInvalide:
+      "يجب أن تتكوّن كلمة السر من 8 أحرف على الأقل وأن تحتوي على رقم.",
+    resetRetourConnexion: "العودة إلى تسجيل الدخول",
+    resetMailSujet: "Darna — إعادة تعيين كلمة السر",
+    resetMailCorpsHtml: (url: string) =>
+      `<p>لقد طلبت إعادة تعيين كلمة سر حسابك في Darna.</p>` +
+      `<p><a href="${url}">اضغط هنا لاختيار كلمة سر جديدة</a>.</p>` +
+      `<p>تنتهي صلاحية هذا الرابط خلال 30 دقيقة. إذا لم تكن صاحب الطلب، تجاهل هذا البريد.</p>`,
   },
   dashboard: {
     titre: "حسابي",

@@ -313,6 +313,28 @@ export const en: Dictionary = {
     emailDejaUtilise: "Unable to create an account with this information.",
     inscriptionReussie: "Account created! You can now sign in.",
     motDePasseRegle: "8 characters minimum",
+    motDePasseOublie: "Forgot your password?",
+    resetTitre: "Reset your password",
+    resetSousTitre:
+      "Enter your account email address and we'll send you a reset link.",
+    resetEnvoyer: "Send the link",
+    resetEmailEnvoye:
+      "If an account exists for this address, a reset link has just been sent.",
+    resetModeDemo: "Demo mode — reset link:",
+    resetOuvrirLien: "Open the reset link",
+    resetNouveauMdp: "New password",
+    resetValider: "Reset password",
+    resetReussi: "Password reset. You can now sign in.",
+    resetLienInvalide:
+      "Invalid or expired link. Please request a new reset.",
+    resetMotDePasseInvalide:
+      "The password must be at least 8 characters and contain a digit.",
+    resetRetourConnexion: "Back to sign in",
+    resetMailSujet: "Darna — reset your password",
+    resetMailCorpsHtml: (url: string) =>
+      `<p>You requested to reset your Darna password.</p>` +
+      `<p><a href="${url}">Click here to choose a new password</a>.</p>` +
+      `<p>This link expires in 30 minutes. If you didn't request this, ignore this email.</p>`,
   },
   dashboard: {
     titre: "My account",

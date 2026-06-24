@@ -10,9 +10,13 @@ import { assertRateLimit } from "@/lib/rate-limit";
 import { logAudit } from "@/lib/audit";
 import { safeCallbackUrl } from "@/lib/redirect";
 import { issueOtp } from "@/lib/otp";
-import { sendEmail } from "@/lib/mailer";
+import { issueResetToken, consumeResetToken } from "@/lib/reset-token";
+import { sendEmail, getEmailProvider } from "@/lib/mailer";
+import { SITE_URL } from "@/lib/config";
 
-export type AuthFormState = { error?: string; success?: string } | undefined;
+export type AuthFormState =
+  | { error?: string; success?: string; resetUrl?: string }
+  | undefined;
 
 /**
  * Politique de mot de passe :
@@ -149,4 +153,105 @@ export async function loginAction(
 
 export async function logoutAction(): Promise<void> {
   await signOut({ redirectTo: "/" });
+}
+
+// ── Réinitialisation de mot de passe ─────────────────────────────────────────
+
+const requestResetSchema = z.object({
+  email: z.string().trim().toLowerCase().email().max(200),
+});
+
+/**
+ * Demande de réinitialisation. Anti-énumération : on renvoie TOUJOURS le même
+ * message de succès, qu'un compte existe ou non pour l'adresse (OWASP). Si un
+ * compte existe, on émet un jeton à usage unique et on envoie le lien par
+ * e-mail. En mode démo (EMAIL_PROVIDER absent/mock), rien n'est envoyé → on
+ * renvoie le lien (`resetUrl`) pour l'afficher à l'écran, comme l'OTP démo.
+ */
+export async function requestPasswordResetAction(
+  _prev: AuthFormState,
+  formData: FormData
+): Promise<AuthFormState> {
+  const fr = await getT();
+  if (!(await assertRateLimit("reset-request"))) {
+    return { error: fr.common.tropDeTentatives };
+  }
+
+  const parsed = requestResetSchema.safeParse({ email: formData.get("email") });
+  if (!parsed.success) return { error: fr.common.champsRequis };
+
+  const user = await prisma.user.findUnique({
+    where: { email: parsed.data.email },
+    select: { id: true, email: true },
+  });
+
+  // Compte inconnu : message générique + délai aligné (anti-timing / anti-énumération).
+  if (!user) {
+    await logAudit({
+      action: "PASSWORD_RESET_REQUESTED",
+      success: false,
+      metadata: { reason: "unknown_email", email: parsed.data.email },
+    });
+    await new Promise((r) => setTimeout(r, 200 + Math.random() * 100));
+    return { success: fr.auth.resetEmailEnvoye };
+  }
+
+  const token = await issueResetToken(user.id);
+  const resetUrl = `${SITE_URL}/reinitialiser-mot-de-passe?token=${encodeURIComponent(token)}`;
+
+  // L'envoi ne doit jamais casser le flux (cohérence démo + filet en prod).
+  let sent = false;
+  try {
+    sent = await sendEmail({
+      to: user.email,
+      subject: fr.auth.resetMailSujet,
+      html: fr.auth.resetMailCorpsHtml(resetUrl),
+    });
+  } catch {
+    // Silencieux : on renvoie quand même le message générique.
+  }
+
+  await logAudit({ action: "PASSWORD_RESET_REQUESTED", userId: user.id, success: true });
+
+  // Démo (rien d'envoyé) : on surface le lien pour permettre de continuer.
+  return getEmailProvider() === "demo" && !sent
+    ? { success: fr.auth.resetEmailEnvoye, resetUrl }
+    : { success: fr.auth.resetEmailEnvoye };
+}
+
+const resetPasswordSchema = z.object({
+  token: z.string().trim().min(20).max(200),
+  password: passwordSchema,
+});
+
+/**
+ * Réinitialisation effective. Consomme le jeton (usage unique), pose le nouveau
+ * mot de passe (bcrypt coût 12). Jeton invalide/expiré ⇒ message générique.
+ *
+ * NB : la stratégie de session est JWT (stateless) — l'invalidation des sessions
+ * actives après reset nécessite un `tokenVersion` (cf. TODO-BETA, item dédié).
+ */
+export async function resetPasswordAction(
+  _prev: AuthFormState,
+  formData: FormData
+): Promise<AuthFormState> {
+  const fr = await getT();
+  if (!(await assertRateLimit("reset-confirm"))) {
+    return { error: fr.common.tropDeTentatives };
+  }
+
+  const parsed = resetPasswordSchema.safeParse({
+    token: formData.get("token"),
+    password: formData.get("password"),
+  });
+  if (!parsed.success) return { error: fr.auth.resetMotDePasseInvalide };
+
+  const userId = await consumeResetToken(parsed.data.token);
+  if (!userId) return { error: fr.auth.resetLienInvalide };
+
+  const passwordHash = await bcrypt.hash(parsed.data.password, 12);
+  await prisma.user.update({ where: { id: userId }, data: { passwordHash } });
+
+  await logAudit({ action: "PASSWORD_RESET", userId, success: true });
+  return { success: fr.auth.resetReussi };
 }
