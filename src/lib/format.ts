@@ -29,3 +29,15 @@ export function formatDateShortFr(date: Date): string {
     year: "numeric",
   }).format(date);
 }
+
+/**
+ * Formate un temps restant (en millisecondes) en `mm:ss` borné à zéro.
+ * Sert au compte à rebours du hold de réservation (HoldCountdown). Au-delà de
+ * 99 minutes on reste sur deux chiffres (cas non atteint : hold de 15 min).
+ */
+export function formatCountdown(ms: number): string {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}

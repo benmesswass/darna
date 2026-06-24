@@ -685,6 +685,11 @@ export const en: Dictionary = {
     total: "Total to pay",
     aucunFraisCache: "No other fee will ever be asked of you. Ever.",
     continuerPaiement: "Continue to payment",
+    holdLabel: "Spot held — pay within",
+    holdExpireTitre: "Payment window expired",
+    holdExpireDetail:
+      "Your booking wasn't confirmed in time: the dates have been released.",
+    holdExpireCta: "Start a new booking",
     datesInvalides: "Invalid dates — check-out must come after check-in.",
     datesIndisponibles:
       "These dates are no longer available. Please choose different ones.",

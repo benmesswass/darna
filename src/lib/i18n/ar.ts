@@ -705,6 +705,11 @@ export const ar: Dictionary = {
     total: "المبلغ الجملي",
     aucunFraisCache: "حتى معلوم آخر ما يتطلب منك. أبدًا.",
     continuerPaiement: "كمّل للخلاص",
+    holdLabel: "بلاصتك محجوزة — خلّص في ظرف",
+    holdExpireTitre: "وقت الخلاص فات",
+    holdExpireDetail:
+      "حجزك ما تأكّدش في الوقت: التواريخ ولّاو متاحة من جديد.",
+    holdExpireCta: "اعمل حجز جديد",
     datesInvalides: "التواريخ غالطة — تاريخ المغادرة لازم يجي بعد الوصول.",
     datesIndisponibles:
       "التواريخ هاذي ما عادتش متوفّرة. اختار غيرها من فضلك.",
