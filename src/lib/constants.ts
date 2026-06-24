@@ -41,6 +41,17 @@ export const PHONE_COUNTRIES = [
 export const DEFAULT_PHONE_COUNTRY = "216";
 
 /**
+ * Libellés de pays proposés à l'inscription (= référentiel PHONE_COUNTRIES).
+ * Stockés tels quels en base (libellés FR), comme les villes/équipements.
+ * Servent au pilotage diaspora dans le tableau de bord founder.
+ */
+export const COUNTRY_LABELS = PHONE_COUNTRIES.map((c) => c.label);
+export const DEFAULT_COUNTRY = "Tunisie";
+export function isValidCountry(value: string): boolean {
+  return (COUNTRY_LABELS as readonly string[]).includes(value);
+}
+
+/**
  * Verticales du produit — frontière de module ET de feature-flag (cf.
  * src/modules/README.md). DISTINCT du `type` d'annonce : STAY ⊃ {SEJOUR} ;
  * IMMO ⊃ {LOCATION, VENTE}. L'activation/désactivation par config vit dans

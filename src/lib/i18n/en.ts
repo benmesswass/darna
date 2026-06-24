@@ -301,6 +301,7 @@ export const en: Dictionary = {
     motDePasse: "Password",
     nom: "Full name",
     telephone: "Phone (+216…)",
+    pays: "Country of residence",
     role: "I am…",
     roleVoyageur: "Traveller / Tenant",
     roleHote: "Host / Owner",
@@ -563,6 +564,30 @@ export const en: Dictionary = {
       ADMIN: "Admins",
     } as Record<string, string>,
 
+    // Global period selector
+    periodeLabel: "Period",
+    periodes: { "7": "7d", "30": "30d", "90": "90d", all: "All" } as Record<
+      string,
+      string
+    >,
+    periodeNom: (p: number | null) =>
+      p === null ? "all time" : `the last ${p} days`,
+    surPeriode: (label: string) => `Over ${label}`,
+
+    // Vertical split
+    sectionVerticales: "By vertical — Stay vs Real estate",
+    verticalesDesc:
+      "Two models that should not be mixed: stays are transactional (escrowed payment), real estate is lead generation (no online payment).",
+    verticalLabel: { STAY: "Stay", IMMO: "Real estate" } as Record<string, string>,
+    vStayBadge: "Transactional",
+    vImmoBadge: "Lead generation",
+    vActives: "Active listings",
+    vVerifiees: "Verified active",
+    vTaux: "Verif. rate",
+    vReservations: "Paid bookings",
+    vGmv: "GMV",
+    vLeads: "Leads received",
+
     sectionNorthStar: "Overview",
     annoncesVerifieesActives: "Verified active listings",
     annoncesVerifieesActivesDesc: "Product north-star",
@@ -577,8 +602,11 @@ export const en: Dictionary = {
     sectionAcquisition: "Acquisition & activation",
     inscriptions7j: "Signups (7d)",
     inscriptions30j: "Signups (30d)",
-    inscriptionsParJour: "Signups / day — last 30 days",
+    inscriptionsParJour: (n: number) => `Signups / day — last ${n} days`,
     repartitionRoles: "Breakdown by role",
+    repartitionPays: "Breakdown by country",
+    repartitionPaysDesc: "Accounts by declared country — diaspora tracking.",
+    paysNonRenseigne: "Not provided",
     tauxEmailVerifie: "Verified emails",
     tauxKyc: "Verified identity (listers)",
     annonceursActifs: "Listers with a listing",

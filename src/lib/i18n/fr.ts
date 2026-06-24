@@ -302,6 +302,7 @@ export const fr = {
     motDePasse: "Mot de passe",
     nom: "Nom complet",
     telephone: "Téléphone (+216…)",
+    pays: "Pays de résidence",
     role: "Je suis…",
     roleVoyageur: "Voyageur / Locataire",
     roleHote: "Hôte / Propriétaire",
@@ -566,6 +567,30 @@ export const fr = {
       ADMIN: "Admins",
     } as Record<string, string>,
 
+    // Sélecteur de période global
+    periodeLabel: "Période",
+    periodes: { "7": "7 j", "30": "30 j", "90": "90 j", all: "Tout" } as Record<
+      string,
+      string
+    >,
+    periodeNom: (p: number | null) =>
+      p === null ? "depuis le début" : `les ${p} derniers jours`,
+    surPeriode: (label: string) => `Sur ${label}`,
+
+    // Split par verticale
+    sectionVerticales: "Par verticale — Séjour vs Immobilier",
+    verticalesDesc:
+      "Deux modèles à ne pas mélanger : le séjour est transactionnel (paiement sous séquestre), l'immobilier est de la mise en relation (leads, sans paiement en ligne).",
+    verticalLabel: { STAY: "Séjour", IMMO: "Immobilier" } as Record<string, string>,
+    vStayBadge: "Transactionnel",
+    vImmoBadge: "Mise en relation",
+    vActives: "Annonces actives",
+    vVerifiees: "Vérifiées actives",
+    vTaux: "Taux de vérif.",
+    vReservations: "Réservations payées",
+    vGmv: "GMV",
+    vLeads: "Leads reçus",
+
     // North-star
     sectionNorthStar: "Vue d'ensemble",
     annoncesVerifieesActives: "Annonces vérifiées actives",
@@ -582,8 +607,11 @@ export const fr = {
     sectionAcquisition: "Acquisition & activation",
     inscriptions7j: "Inscriptions (7 j)",
     inscriptions30j: "Inscriptions (30 j)",
-    inscriptionsParJour: "Inscriptions / jour — 30 derniers jours",
+    inscriptionsParJour: (n: number) => `Inscriptions / jour — ${n} derniers jours`,
     repartitionRoles: "Répartition par rôle",
+    repartitionPays: "Répartition par pays",
+    repartitionPaysDesc: "Comptes par pays déclaré — pilotage diaspora.",
+    paysNonRenseigne: "Non renseigné",
     tauxEmailVerifie: "E-mails vérifiés",
     tauxKyc: "Identité vérifiée (annonceurs)",
     annonceursActifs: "Annonceurs avec annonce",

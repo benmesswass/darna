@@ -11,6 +11,7 @@ import { logAudit } from "@/lib/audit";
 import { safeCallbackUrl } from "@/lib/redirect";
 import { issueOtp } from "@/lib/otp";
 import { sendEmail } from "@/lib/mailer";
+import { isValidCountry } from "@/lib/constants";
 
 export type AuthFormState = { error?: string; success?: string } | undefined;
 
@@ -37,6 +38,14 @@ const registerSchema = z.object({
     .regex(/^\+?[0-9\s]{8,16}$/)
     .optional()
     .or(z.literal("")),
+  // Pays de résidence (libellé FR du référentiel) — clé du pilotage diaspora.
+  // Optionnel et validé contre la liste : une valeur hors liste est ignorée.
+  country: z
+    .string()
+    .trim()
+    .refine((v) => v === "" || isValidCountry(v))
+    .optional()
+    .or(z.literal("")),
   // ADMIN ne peut pas être choisi à l'inscription — assigné manuellement en DB
   role: z.enum(["VOYAGEUR", "HOTE", "AGENCE"] as const),
 });
@@ -55,11 +64,12 @@ export async function registerAction(
     email: formData.get("email"),
     password: formData.get("password"),
     phone: formData.get("phone"),
+    country: formData.get("country") ?? undefined,
     role: formData.get("role"),
   });
   if (!parsed.success) return { error: fr.common.champsRequis };
 
-  const { name, email, password, phone, role } = parsed.data;
+  const { name, email, password, phone, country, role } = parsed.data;
 
   const existing = await prisma.user.findUnique({ where: { email } });
 
@@ -81,7 +91,14 @@ export async function registerAction(
 
   const passwordHash = await bcrypt.hash(password, 12);
   const user = await prisma.user.create({
-    data: { name, email, passwordHash, phone: phone || null, role },
+    data: {
+      name,
+      email,
+      passwordHash,
+      phone: phone || null,
+      country: country || null,
+      role,
+    },
   });
 
   await logAudit({

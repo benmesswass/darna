@@ -1,7 +1,15 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getT } from "@/lib/i18n/server";
 import { getSessionUser } from "@/lib/session";
-import { getFounderAnalytics, type Segment } from "@/lib/analytics";
+import {
+  getFounderAnalytics,
+  parsePeriod,
+  PERIOD_OPTIONS,
+  type PeriodDays,
+  type Segment,
+  type VerticalStats,
+} from "@/lib/analytics";
 
 export const metadata = { title: "Tableau de bord — Admin Darna" };
 
@@ -85,23 +93,33 @@ function SegmentBars({
   );
 }
 
-export default async function AdminAnalyticsPage() {
+export default async function AdminAnalyticsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ period?: string }>;
+}) {
   const fr = await getT();
   const user = await getSessionUser();
   // Founder-only : les Wakils n'accèdent pas aux métriques business.
   if (!user || user.role !== "ADMIN") redirect("/dashboard");
 
-  const a = await getFounderAnalytics();
+  const period = parsePeriod((await searchParams).period);
+  const a = await getFounderAnalytics(period);
   const t = fr.analytics;
 
   return (
     <div className="space-y-12">
       <header>
-        <h2 className="text-2xl font-bold text-darna">{t.titre}</h2>
-        <p className="mt-1 max-w-2xl text-sm text-ink/60">{t.sousTitre}</p>
-        <p className="mt-1 text-xs text-ink/40">
-          {t.genereLe(fmtDateTime(a.generatedAt))}
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-darna">{t.titre}</h2>
+            <p className="mt-1 max-w-2xl text-sm text-ink/60">{t.sousTitre}</p>
+            <p className="mt-1 text-xs text-ink/40">
+              {t.genereLe(fmtDateTime(a.generatedAt))}
+            </p>
+          </div>
+          <PeriodSelector current={period} label={t.periodeLabel} options={t.periodes} />
+        </div>
       </header>
 
       {/* ── Vue d'ensemble / North-star ─────────────────────────────── */}
@@ -138,6 +156,17 @@ export default async function AdminAnalyticsPage() {
         </div>
       </section>
 
+      {/* ── Split par verticale STAY vs IMMO ────────────────────────── */}
+      <section>
+        <SectionTitle>{t.sectionVerticales}</SectionTitle>
+        <p className="mb-5 max-w-2xl text-sm text-ink/60">{t.verticalesDesc}</p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {a.byVertical.map((v) => (
+            <VerticalCard key={v.vertical} v={v} t={t} period={period} />
+          ))}
+        </div>
+      </section>
+
       {/* ── Acquisition & activation ────────────────────────────────── */}
       <section>
         <SectionTitle>{t.sectionAcquisition}</SectionTitle>
@@ -158,18 +187,32 @@ export default async function AdminAnalyticsPage() {
           {/* Sparkline inscriptions / jour */}
           <div className="rounded-2xl border border-ink/10 bg-white p-5 shadow-sm">
             <div className="mb-4 text-sm font-semibold text-ink/70">
-              {t.inscriptionsParJour}
+              {t.inscriptionsParJour(a.acquisition.signupsWindowDays)}
             </div>
             <SignupBars points={a.acquisition.signupsByDay} />
           </div>
 
-          {/* Répartition par rôle + annonceurs actifs */}
+          {/* Répartition par rôle, par pays + annonceurs actifs */}
           <div className="space-y-6">
             <div className="rounded-2xl border border-ink/10 bg-white p-5 shadow-sm">
               <div className="mb-4 text-sm font-semibold text-ink/70">
                 {t.repartitionRoles}
               </div>
               <SegmentBars segments={a.acquisition.byRole} labelMap={t.rolesLabel} />
+            </div>
+            <div className="rounded-2xl border border-ink/10 bg-white p-5 shadow-sm">
+              <div className="mb-1 text-sm font-semibold text-ink/70">
+                {t.repartitionPays}
+              </div>
+              <p className="mb-4 text-xs text-ink/50">{t.repartitionPaysDesc}</p>
+              {a.acquisition.byCountry.length === 0 ? (
+                <p className="text-sm text-ink/40">{t.aucuneDonnee}</p>
+              ) : (
+                <SegmentBars
+                  segments={a.acquisition.byCountry}
+                  labelMap={{ "—": t.paysNonRenseigne }}
+                />
+              )}
             </div>
             <StatCard
               label={t.annonceursActifs}
@@ -183,7 +226,10 @@ export default async function AdminAnalyticsPage() {
       {/* ── Funnel de réservation ───────────────────────────────────── */}
       <section>
         <SectionTitle>{t.sectionFunnel}</SectionTitle>
-        <p className="mb-5 max-w-2xl text-sm text-ink/60">{t.funnelDesc}</p>
+        <p className="mb-2 max-w-2xl text-sm text-ink/60">{t.funnelDesc}</p>
+        <p className="mb-5 text-xs font-semibold uppercase tracking-wide text-darna/70">
+          {t.surPeriode(t.periodeNom(period))}
+        </p>
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
           <div className="rounded-2xl border border-ink/10 bg-white p-5 shadow-sm">
             <FunnelChart
@@ -328,6 +374,99 @@ export default async function AdminAnalyticsPage() {
           )}
         </div>
       </section>
+    </div>
+  );
+}
+
+/** Tranche du dictionnaire i18n dédiée au tableau de bord (typage des props). */
+type AnalyticsT = Awaited<ReturnType<typeof getT>>["analytics"];
+
+/** Sélecteur de période global (segmented control) — liens `?period=…`. */
+function PeriodSelector({
+  current,
+  label,
+  options,
+}: {
+  current: PeriodDays;
+  label: string;
+  options: Record<string, string>;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-xs font-semibold uppercase tracking-wide text-ink/50">
+        {label}
+      </span>
+      <div className="inline-flex rounded-xl border border-ink/10 bg-white p-1 shadow-sm">
+        {PERIOD_OPTIONS.map((opt) => {
+          const key = opt === null ? "all" : String(opt);
+          const active = opt === current;
+          return (
+            <Link
+              key={key}
+              href={`?period=${key}`}
+              scroll={false}
+              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                active ? "bg-darna text-white shadow-sm" : "text-ink/60 hover:text-darna"
+              }`}
+            >
+              {options[key]}
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/** Métrique compacte centrée (3 par ligne dans les cartes verticale). */
+function MiniStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div className="text-lg font-bold text-darna-dark">{value}</div>
+      <div className="mt-0.5 text-[11px] text-ink/50">{label}</div>
+    </div>
+  );
+}
+
+/** Carte d'une verticale : annonces (stock) + activité sur la période. */
+function VerticalCard({
+  v,
+  t,
+  period,
+}: {
+  v: VerticalStats;
+  t: AnalyticsT;
+  period: PeriodDays;
+}) {
+  const isStay = v.vertical === "STAY";
+  return (
+    <div className="rounded-2xl border border-ink/10 bg-white p-5 shadow-sm">
+      <div className="flex items-center justify-between">
+        <h4 className="text-base font-bold text-darna">{t.verticalLabel[v.vertical]}</h4>
+        <span className="rounded-full bg-darna/10 px-2.5 py-0.5 text-[11px] font-semibold text-darna">
+          {isStay ? t.vStayBadge : t.vImmoBadge}
+        </span>
+      </div>
+      <div className="mt-4 grid grid-cols-3 gap-3 text-center">
+        <MiniStat label={t.vActives} value={fmtInt(v.activeListings)} />
+        <MiniStat label={t.vVerifiees} value={fmtInt(v.verifiedActiveListings)} />
+        <MiniStat label={t.vTaux} value={t.pourcent(v.verificationRate)} />
+      </div>
+      <div className="mt-4 border-t border-ink/5 pt-4">
+        {isStay ? (
+          <div className="grid grid-cols-2 gap-3 text-center">
+            <MiniStat label={t.vReservations} value={fmtInt(v.paidBookings)} />
+            <MiniStat label={t.vGmv} value={fmtTnd(v.gmvTnd)} />
+          </div>
+        ) : (
+          <div className="text-center">
+            <MiniStat label={t.vLeads} value={fmtInt(v.leads)} />
+          </div>
+        )}
+        <p className="mt-2 text-center text-[11px] text-ink/40">
+          {t.surPeriode(t.periodeNom(period))}
+        </p>
+      </div>
     </div>
   );
 }

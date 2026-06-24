@@ -47,6 +47,10 @@ model User {
   cinHash       String?  @unique
   // PR2 — Wakil : agent vérifié sur le terrain.
   isWakil       Boolean  @default(false)
+  // Pays de résidence déclaré à l'inscription (libellé FR, cf. PHONE_COUNTRIES) —
+  // clé du pilotage diaspora (north-star marketing : cible France). Null tant
+  // que non renseigné (comptes historiques ou inscription sans choix).
+  country       String?
   createdAt     DateTime @default(now())
 
   properties         Property[]

@@ -322,6 +322,7 @@ export const ar: Dictionary = {
     motDePasse: "كلمة السر",
     nom: "الاسم الكامل",
     telephone: "الهاتف (+216…)",
+    pays: "بلد الإقامة",
     role: "أنا…",
     roleVoyageur: "مسافر / مستأجر",
     roleHote: "مضيف / مالك",
@@ -581,6 +582,30 @@ export const ar: Dictionary = {
       ADMIN: "المدراء",
     } as Record<string, string>,
 
+    // محدِّد الفترة العام
+    periodeLabel: "الفترة",
+    periodes: { "7": "7 أيام", "30": "30 يومًا", "90": "90 يومًا", all: "الكل" } as Record<
+      string,
+      string
+    >,
+    periodeNom: (p: number | null) =>
+      p === null ? "منذ البداية" : `آخر ${p} يومًا`,
+    surPeriode: (label: string) => `خلال ${label}`,
+
+    // التقسيم حسب القطاع
+    sectionVerticales: "حسب القطاع — إقامة مقابل عقارات",
+    verticalesDesc:
+      "نموذجان لا يُخلطان: الإقامة معاملاتية (دفع تحت الضمان)، والعقارات وساطة (عملاء محتملون، دون دفع إلكتروني).",
+    verticalLabel: { STAY: "إقامة", IMMO: "عقارات" } as Record<string, string>,
+    vStayBadge: "معاملاتي",
+    vImmoBadge: "وساطة",
+    vActives: "إعلانات نشطة",
+    vVerifiees: "موثّقة نشطة",
+    vTaux: "نسبة التوثيق",
+    vReservations: "حجوزات مدفوعة",
+    vGmv: "GMV",
+    vLeads: "عملاء محتملون",
+
     sectionNorthStar: "نظرة عامة",
     annoncesVerifieesActives: "إعلانات موثّقة نشطة",
     annoncesVerifieesActivesDesc: "النجم الشمالي للمنتج",
@@ -595,8 +620,11 @@ export const ar: Dictionary = {
     sectionAcquisition: "الاكتساب والتفعيل",
     inscriptions7j: "تسجيلات (7 أيام)",
     inscriptions30j: "تسجيلات (30 يومًا)",
-    inscriptionsParJour: "تسجيلات / يوم — آخر 30 يومًا",
+    inscriptionsParJour: (n: number) => `تسجيلات / يوم — آخر ${n} يومًا`,
     repartitionRoles: "التوزيع حسب الدور",
+    repartitionPays: "التوزيع حسب البلد",
+    repartitionPaysDesc: "الحسابات حسب البلد المُصرَّح — متابعة الجالية.",
+    paysNonRenseigne: "غير محدَّد",
     tauxEmailVerifie: "بريد موثّق",
     tauxKyc: "هوية موثّقة (المعلنون)",
     annonceursActifs: "معلنون لديهم إعلان",

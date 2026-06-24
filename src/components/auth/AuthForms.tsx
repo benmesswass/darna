@@ -8,6 +8,7 @@ import {
   type AuthFormState,
 } from "@/actions/auth";
 import { useT } from "@/components/i18n/LocaleProvider";
+import { PHONE_COUNTRIES, DEFAULT_COUNTRY } from "@/lib/constants";
 
 const inputClass =
   "w-full rounded-xl border border-darna/15 bg-cream px-3.5 py-2.5 text-sm outline-none focus:border-darna";
@@ -128,6 +129,16 @@ export function RegisterForm({
           <span className="font-normal text-ink/40">({fr.common.optionnel})</span>
         </span>
         <input name="phone" type="tel" className={inputClass} />
+      </label>
+      <label className="block space-y-1.5">
+        <span className="text-sm font-semibold text-ink/70">{fr.auth.pays}</span>
+        <select name="country" defaultValue={DEFAULT_COUNTRY} className={inputClass}>
+          {PHONE_COUNTRIES.map((c) => (
+            <option key={c.code} value={c.label}>
+              {c.flag} {c.label}
+            </option>
+          ))}
+        </select>
       </label>
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold text-ink/70">{fr.auth.role}</span>
