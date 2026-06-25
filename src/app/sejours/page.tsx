@@ -20,6 +20,8 @@ import { CityAutocomplete } from "@/components/search/CityAutocomplete";
 import { SearchDateRange } from "@/components/search/SearchDateRange";
 import { SortSelect } from "@/components/search/SortSelect";
 import { AutoSubmitCheckbox } from "@/components/search/AutoSubmitCheckbox";
+import { PriceRangeFilter } from "@/components/search/PriceRangeFilter";
+import { SERVICE_FEE_RATE } from "@/lib/config";
 import { SectionHero } from "@/components/layout/SectionHero";
 import { getCityWeather, getCityForecast } from "@/lib/weather";
 import { WeatherBanner } from "@/components/search/WeatherBanner";
@@ -173,33 +175,13 @@ export default async function SejoursPage({
 
         {/* Filtres avancés sur UNE ligne : prix (min–max fusionnés dans un seul
             champ) + cases de confiance (re-soumission auto au changement). */}
-        <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-3">
-          <div className="flex items-center gap-2 rounded-xl border border-darna/15 bg-cream px-3 py-2 focus-within:border-darna">
-            <span className="whitespace-nowrap text-xs font-semibold text-ink/50">
-              {fr.search.prix} {fr.common.parNuit} ({fr.common.tnd})
-            </span>
-            <input
-              type="number"
-              name="prixMin"
-              min={0}
-              step={10}
-              defaultValue={params.prixMin ?? ""}
-              placeholder={fr.search.min}
-              aria-label={`${fr.search.prixMin} (${fr.common.tnd})`}
-              className="w-16 bg-transparent text-sm outline-none placeholder:text-ink/30"
-            />
-            <span aria-hidden className="text-ink/30">–</span>
-            <input
-              type="number"
-              name="prixMax"
-              min={0}
-              step={10}
-              defaultValue={params.prixMax ?? ""}
-              placeholder={fr.search.max}
-              aria-label={`${fr.search.prixMax} (${fr.common.tnd})`}
-              className="w-16 bg-transparent text-sm outline-none placeholder:text-ink/30"
-            />
-          </div>
+        <div className="mt-3 flex flex-wrap items-start gap-x-5 gap-y-3">
+          <PriceRangeFilter
+            defaultMin={params.prixMin}
+            defaultMax={params.prixMax}
+            nights={nightsSearched}
+            feeRate={SERVICE_FEE_RATE}
+          />
           <AutoSubmitCheckbox
             name="verifie"
             label={fr.badges.verifieRemote}

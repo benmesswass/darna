@@ -155,6 +155,7 @@ export const en: Dictionary = {
     min: "min",
     max: "max",
     totalSejour: (n: number) => `total · ${n === 1 ? "1 night" : `${n} nights`}`,
+    equivSejour: (n: number) => `That's for ${n === 1 ? "1 night" : `${n} nights`}:`,
     surfaceMin: "Min area (m²)",
     piecesMin: "Min rooms",
     indifferent: "Any",

@@ -156,6 +156,7 @@ export const fr = {
     min: "min",
     max: "max",
     totalSejour: (n: number) => `au total · ${n === 1 ? "1 nuit" : `${n} nuits`}`,
+    equivSejour: (n: number) => `Soit pour ${n === 1 ? "1 nuit" : `${n} nuits`} :`,
     surfaceMin: "Surface min (m²)",
     piecesMin: "Pièces min",
     indifferent: "Indifférent",
