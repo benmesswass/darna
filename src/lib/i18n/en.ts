@@ -154,6 +154,7 @@ export const en: Dictionary = {
     prixMax: "Max price",
     min: "min",
     max: "max",
+    totalSejour: (n: number) => `total · ${n === 1 ? "1 night" : `${n} nights`}`,
     surfaceMin: "Min area (m²)",
     piecesMin: "Min rooms",
     indifferent: "Any",

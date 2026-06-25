@@ -158,6 +158,8 @@ export const ar: Dictionary = {
     prixMax: "أقصى سوم",
     min: "أدنى",
     max: "أقصى",
+    totalSejour: (n: number) =>
+      `الإجمالي · ${n === 1 ? "ليلة" : n === 2 ? "ليلتين" : n <= 10 ? `${n} ليالي` : `${n} ليلة`}`,
     surfaceMin: "أدنى مساحة (م²)",
     piecesMin: "أدنى عدد بيوت",
     indifferent: "الكل",

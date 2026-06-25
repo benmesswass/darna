@@ -74,6 +74,16 @@ export default async function SejoursPage({
 
   const markers = toMapMarkers(results);
 
+  // Nombre de nuits recherché (dates valides) → affiché en coût total par carte.
+  const nightsSearched = (() => {
+    if (!params.arrivee || !params.depart) return 0;
+    const ci = Date.parse(`${params.arrivee}T00:00:00.000Z`);
+    const co = Date.parse(`${params.depart}T00:00:00.000Z`);
+    if (Number.isNaN(ci) || Number.isNaN(co)) return 0;
+    const n = Math.round((co - ci) / 86_400_000);
+    return n > 0 ? n : 0;
+  })();
+
   // Élargissement : annonces des villes proches/populaires à afficher quand la
   // ville cherchée est vide (suggestions non-null ⇒ il y a toujours ≥1 annonce).
   const suggestionListings = results.length === 0 && suggestions ? suggestions.listings : [];
@@ -98,6 +108,7 @@ export default async function SejoursPage({
           property={p}
           favorite={favoritePropFor(favCtx, p.id, params.arrivee)}
           query={dateQuery}
+          nights={nightsSearched || undefined}
         />
       ))}
     </div>

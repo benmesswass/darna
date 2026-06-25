@@ -155,6 +155,7 @@ export const fr = {
     prixMax: "Prix max",
     min: "min",
     max: "max",
+    totalSejour: (n: number) => `au total · ${n === 1 ? "1 nuit" : `${n} nuits`}`,
     surfaceMin: "Surface min (m²)",
     piecesMin: "Pièces min",
     indifferent: "Indifférent",
