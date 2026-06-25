@@ -198,6 +198,11 @@ export const ar: Dictionary = {
     noteMinimale: "أدنى تقييم",
     toutesNotes: "كل التقييمات",
     noteMinPlus: (n: number) => `${n}★ فما فوق`,
+    trier: "ترتيب",
+    triRecommande: "مقترح",
+    triPrixAsc: "السوم من الأرخص للأغلى",
+    triPrixDesc: "السوم من الأغلى للأرخص",
+    triRecent: "الأحدث",
   },
   destination: {
     chargement: "جاري تحميل الوجهة…",

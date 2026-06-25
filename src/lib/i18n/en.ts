@@ -186,6 +186,11 @@ export const en: Dictionary = {
     noteMinimale: "Minimum rating",
     toutesNotes: "All ratings",
     noteMinPlus: (n: number) => `${n}★ & up`,
+    trier: "Sort",
+    triRecommande: "Recommended",
+    triPrixAsc: "Price: low to high",
+    triPrixDesc: "Price: high to low",
+    triRecent: "Most recent",
   },
   destination: {
     chargement: "Loading destination…",

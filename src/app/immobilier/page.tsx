@@ -15,6 +15,7 @@ import { PropertyCard } from "@/components/property/PropertyCard";
 import { PropertyMap } from "@/components/map/PropertyMap";
 import { SplitView } from "@/components/search/SplitView";
 import { Pagination } from "@/components/search/Pagination";
+import { SortSelect } from "@/components/search/SortSelect";
 import { SectionHero } from "@/components/layout/SectionHero";
 import { GouvernoratAutocomplete } from "@/components/search/GouvernoratAutocomplete";
 import { SearchIcon } from "@/components/icons";
@@ -34,7 +35,7 @@ export default async function ImmobilierPage({
 
   const fr = await getT();
   const params = await searchParams;
-  const { results, transaction, total, page, pageSize } =
+  const { results, transaction, total, page, pageSize, sort } =
     await searchImmobilier(params);
   const favCtx = await getFavoriteContext((await getSessionUser())?.id);
 
@@ -168,8 +169,13 @@ export default async function ImmobilierPage({
         </div>
       </form>
 
-      <div className="mt-4 text-sm font-semibold text-darna">
-        {fr.search.resultats(total)}
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+        <span className="text-sm font-semibold text-darna">
+          {fr.search.resultats(total)}
+        </span>
+        {results.length > 0 ? (
+          <SortSelect basePath="/immobilier" params={params} value={sort} />
+        ) : null}
       </div>
 
       <div className="mt-4">

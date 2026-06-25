@@ -187,6 +187,11 @@ export const fr = {
     noteMinimale: "Note minimale",
     toutesNotes: "Toutes les notes",
     noteMinPlus: (n: number) => `${n}★ et +`,
+    trier: "Trier",
+    triRecommande: "Recommandé",
+    triPrixAsc: "Prix croissant",
+    triPrixDesc: "Prix décroissant",
+    triRecent: "Plus récent",
   },
   destination: {
     chargement: "Chargement de la destination…",

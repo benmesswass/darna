@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { resolveCity, nearbyCities } from "@/lib/geo";
 import { markerPriceLabel } from "@/lib/format";
+import { parseSortKey, type SortKey } from "@/lib/constants";
 import type { MapMarker } from "@/components/map/types";
 
 /** Taille de page pour les listings (protection DoS + UX). */
@@ -45,6 +46,25 @@ const listingOrderBy: Prisma.PropertyOrderByWithRelationInput[] = [
   { publishedAt: "desc" },
 ];
 
+/**
+ * `orderBy` Prisma pour un tri utilisateur. `recommande` (défaut) conserve la
+ * logique de mise en avant (listingOrderBy). Les tris explicites par prix /
+ * récence priment sur la mise en avant — quand l'utilisateur choisit un ordre,
+ * on le respecte (avec un tiebreak stable). Voir SEARCH_SORTS (constants.ts).
+ */
+function orderByForSort(sort: SortKey): Prisma.PropertyOrderByWithRelationInput[] {
+  switch (sort) {
+    case "prix-asc":
+      return [{ price: "asc" }, { publishedAt: "desc" }];
+    case "prix-desc":
+      return [{ price: "desc" }, { publishedAt: "desc" }];
+    case "recent":
+      return [{ publishedAt: "desc" }];
+    default:
+      return listingOrderBy;
+  }
+}
+
 export const listingCardInclude = {
   photos: { orderBy: { position: "asc" as const }, take: 1 },
   // Capacité séjour lue depuis la table satellite (M2). maxGuests reste en
@@ -83,6 +103,9 @@ export type SejoursSearchParams = {
   arrivee?: string;
   depart?: string;
   voyageurs?: string;
+  prixMin?: string;
+  prixMax?: string;
+  tri?: string;
   page?: string;
 };
 
@@ -93,6 +116,7 @@ export type ImmobilierSearchParams = {
   prixMax?: string;
   surfaceMin?: string;
   pieces?: string;
+  tri?: string;
   page?: string;
 };
 
@@ -206,6 +230,17 @@ export async function searchSejours(params: SejoursSearchParams) {
   const voyageurs = parsePositiveInt(params.voyageurs);
   if (voyageurs) baseWhere.stay = { maxGuests: { gte: voyageurs } };
 
+  // Fourchette de prix à la nuitée (TND). Réutilisée pour les suggestions à
+  // filtres égaux (baseWhere), comme la capacité et la disponibilité.
+  const prixMin = parsePositiveInt(params.prixMin);
+  const prixMax = parsePositiveInt(params.prixMax);
+  if (prixMin || prixMax) {
+    baseWhere.price = {
+      ...(prixMin ? { gte: prixMin } : {}),
+      ...(prixMax ? { lte: prixMax } : {}),
+    };
+  }
+
   const arrivee = parseDate(params.arrivee);
   const depart = parseDate(params.depart);
   if (arrivee && depart && depart > arrivee) {
@@ -248,6 +283,7 @@ export async function searchSejours(params: SejoursSearchParams) {
       total: 0,
       page,
       pageSize: PAGE_SIZE,
+      sort: parseSortKey(params.tri),
       suggestions: null as StaySuggestions | null,
     };
   }
@@ -256,11 +292,13 @@ export async function searchSejours(params: SejoursSearchParams) {
     ? { ...baseWhere, city: resolvedCity }
     : baseWhere;
 
+  const sort = parseSortKey(params.tri);
+
   const [results, total] = await Promise.all([
     prisma.property.findMany({
       where,
       include: listingCardInclude,
-      orderBy: listingOrderBy,
+      orderBy: orderByForSort(sort),
       take: PAGE_SIZE,
       skip,
     }),
@@ -273,7 +311,7 @@ export async function searchSejours(params: SejoursSearchParams) {
       ? await suggestStayAlternatives(resolvedCity, baseWhere)
       : null;
 
-  return { results, resolvedCity, unknownCity, total, page, pageSize: PAGE_SIZE, suggestions };
+  return { results, resolvedCity, unknownCity, total, page, pageSize: PAGE_SIZE, sort, suggestions };
 }
 
 export async function searchImmobilier(params: ImmobilierSearchParams) {
@@ -306,18 +344,20 @@ export async function searchImmobilier(params: ImmobilierSearchParams) {
   const page = parsePage(params.page);
   const skip = (page - 1) * PAGE_SIZE;
 
+  const sort = parseSortKey(params.tri);
+
   const [results, total] = await Promise.all([
     prisma.property.findMany({
       where,
       include: listingCardInclude,
-      orderBy: listingOrderBy,
+      orderBy: orderByForSort(sort),
       take: PAGE_SIZE,
       skip,
     }),
     prisma.property.count({ where }),
   ]);
 
-  return { results, transaction, total, page, pageSize: PAGE_SIZE };
+  return { results, transaction, total, page, pageSize: PAGE_SIZE, sort };
 }
 
 export async function getPropertyBySlug(slug: string) {

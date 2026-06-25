@@ -18,6 +18,7 @@ import { SplitView } from "@/components/search/SplitView";
 import { Pagination } from "@/components/search/Pagination";
 import { CityAutocomplete } from "@/components/search/CityAutocomplete";
 import { SearchDateRange } from "@/components/search/SearchDateRange";
+import { SortSelect } from "@/components/search/SortSelect";
 import { SectionHero } from "@/components/layout/SectionHero";
 import { getCityWeather, getCityForecast } from "@/lib/weather";
 import { WeatherBanner } from "@/components/search/WeatherBanner";
@@ -38,7 +39,7 @@ export default async function SejoursPage({
 
   const fr = await getT();
   const params = await searchParams;
-  const { results, resolvedCity, unknownCity, total, page, pageSize, suggestions } =
+  const { results, resolvedCity, unknownCity, total, page, pageSize, sort, suggestions } =
     await searchSejours(params);
   const sessionUser = await getSessionUser();
   const favCtx = await getFavoriteContext(sessionUser?.id);
@@ -117,8 +118,9 @@ export default async function SejoursPage({
           hero (chevauchement) puis colle au scroll. */}
       <form
         method="GET"
-        className="relative -mt-8 grid gap-3 rounded-3xl bg-white p-4 shadow-lg ring-1 ring-darna/10 sm:-mt-12 sm:grid-cols-2 lg:sticky lg:top-[4.5rem] lg:z-[1040] lg:grid-cols-[2fr_1fr_1fr_1fr_auto]"
+        className="relative -mt-8 rounded-3xl bg-white p-4 shadow-lg ring-1 ring-darna/10 sm:-mt-12 lg:sticky lg:top-[4.5rem] lg:z-[1040]"
       >
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_auto]">
         <label className="flex flex-col gap-1">
           <span className="text-xs font-semibold text-ink/60">
             {fr.search.ouAllezVous}
@@ -155,6 +157,37 @@ export default async function SejoursPage({
           <SearchIcon width={16} height={16} />
           {fr.common.rechercher}
         </button>
+        </div>
+
+        {/* Filtres avancés : fourchette de prix à la nuitée (TND). */}
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:max-w-sm">
+          <label className="flex flex-col gap-1">
+            <span className="text-xs font-semibold text-ink/60">
+              {fr.search.prixMin} ({fr.common.tnd})
+            </span>
+            <input
+              type="number"
+              name="prixMin"
+              min={0}
+              step={10}
+              defaultValue={params.prixMin ?? ""}
+              className="rounded-xl border border-darna/15 bg-cream px-3 py-2.5 text-sm outline-none focus:border-darna"
+            />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-xs font-semibold text-ink/60">
+              {fr.search.prixMax} ({fr.common.tnd})
+            </span>
+            <input
+              type="number"
+              name="prixMax"
+              min={0}
+              step={10}
+              defaultValue={params.prixMax ?? ""}
+              className="rounded-xl border border-darna/15 bg-cream px-3 py-2.5 text-sm outline-none focus:border-darna"
+            />
+          </label>
+        </div>
       </form>
 
       {resolvedCity && weather ? (
@@ -167,14 +200,19 @@ export default async function SejoursPage({
         />
       ) : null}
 
-      <div className="mt-4 flex items-center gap-2 text-sm text-ink/60">
-        <span className="font-semibold text-darna">
-          {fr.search.resultats(total)}
-        </span>
-        {resolvedCity ? (
-          <span className="rounded-full bg-darna/10 px-2.5 py-0.5 text-xs font-medium text-darna">
-            {resolvedCity}
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-ink/60">
+        <div className="flex items-center gap-2">
+          <span className="font-semibold text-darna">
+            {fr.search.resultats(total)}
           </span>
+          {resolvedCity ? (
+            <span className="rounded-full bg-darna/10 px-2.5 py-0.5 text-xs font-medium text-darna">
+              {resolvedCity}
+            </span>
+          ) : null}
+        </div>
+        {results.length > 0 ? (
+          <SortSelect basePath="/sejours" params={params} value={sort} />
         ) : null}
       </div>
 
