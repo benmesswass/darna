@@ -11,7 +11,7 @@ import { SERVICE_FEE_RATE, SITE_URL } from "@/lib/config";
 import { BOOKING_EXPIRY_MS } from "@/lib/constants";
 import { logAudit, logStructured } from "@/lib/audit";
 import { recomputePropertyRating } from "@/lib/listings";
-import { initKonnectPayment, isKonnectEnabled } from "@/lib/konnect";
+import { initKonnectPayment, isKonnectEnabled, signKonnectWebhook } from "@/lib/konnect";
 
 export type BookingFormState = { error?: string } | undefined;
 
@@ -420,7 +420,10 @@ export async function startKonnectPaymentAction(
       amountTND: booking.totalPrice,
       orderId: booking.id,
       description: `Darna — ${booking.property.title}`,
-      webhook: `${SITE_URL}/api/payments/konnect/webhook`,
+      // URL de webhook SIGNÉE : on y joint le bookingId + son HMAC. Konnect
+      // préserve ces paramètres et y ajoute `&payment_ref=…`. Le webhook
+      // revérifie la signature avant d'agir (cf. route.ts / verifyKonnectWebhook).
+      webhook: `${SITE_URL}/api/payments/konnect/webhook?bid=${booking.id}&sig=${signKonnectWebhook(booking.id)}`,
       successUrl: `${SITE_URL}/reservation/${booking.id}/paiement?konnect=success`,
       failUrl: `${SITE_URL}/reservation/${booking.id}/paiement?konnect=fail`,
       lifespanMinutes,

@@ -42,6 +42,11 @@ const envSchema = z
     KONNECT_API_KEY: z.string().optional(),
     KONNECT_RECEIVER_WALLET_ID: z.string().optional(),
     KONNECT_API_URL: z.string().url().optional(),
+    // Secret de signature du webhook Konnect (HMAC de l'URL qu'on fournit à
+    // l'init — Konnect ne signe pas ses webhooks). OPTIONNEL : à défaut, dérivé
+    // d'AUTH_SECRET (cf. src/lib/konnect.ts). À poser pour une rotation
+    // indépendante du secret d'auth. ≥16 caractères s'il est fourni.
+    KONNECT_WEBHOOK_SECRET: z.string().min(16).optional(),
 
     S3_ENDPOINT: z.string().url().optional(),
     S3_BUCKET: z.string().optional(),
