@@ -17,22 +17,17 @@ export function PriceRangeFilter({
   defaultMin,
   defaultMax,
   nights,
-  feeRate,
 }: {
   defaultMin?: string;
   defaultMax?: string;
   /** Nombre de nuits cherché (0 = pas de dates → pas d'équivalent affiché). */
   nights: number;
-  /** Taux de frais de service (SERVICE_FEE_RATE), passé par le serveur. */
-  feeRate: number;
 }) {
   const fr = useT();
   const [min, setMin] = useState(defaultMin ?? "");
   const [max, setMax] = useState(defaultMax ?? "");
 
-  /** Total tout compris pour un prix/nuit donné (même calcul que la réservation). */
-  const allIn = (perNight: number) =>
-    perNight * nights + Math.round(perNight * nights * feeRate);
+  const allIn = (perNight: number) => perNight * nights;
 
   const minN = Number(min) > 0 ? Number(min) : null;
   const maxN = Number(max) > 0 ? Number(max) : null;

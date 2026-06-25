@@ -21,7 +21,6 @@ import { SearchDateRange } from "@/components/search/SearchDateRange";
 import { SortSelect } from "@/components/search/SortSelect";
 import { AutoSubmitCheckbox } from "@/components/search/AutoSubmitCheckbox";
 import { PriceRangeFilter } from "@/components/search/PriceRangeFilter";
-import { SERVICE_FEE_RATE } from "@/lib/config";
 import { SectionHero } from "@/components/layout/SectionHero";
 import { getCityWeather, getCityForecast } from "@/lib/weather";
 import { WeatherBanner } from "@/components/search/WeatherBanner";
@@ -180,7 +179,6 @@ export default async function SejoursPage({
             defaultMin={params.prixMin}
             defaultMax={params.prixMax}
             nights={nightsSearched}
-            feeRate={SERVICE_FEE_RATE}
           />
           <AutoSubmitCheckbox
             name="verifie"
