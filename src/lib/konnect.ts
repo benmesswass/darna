@@ -17,6 +17,7 @@
 const KONNECT_API_URL =
   process.env.KONNECT_API_URL ?? "https://api.sandbox.konnect.network/api/v2";
 
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { paymentMode } from "@/lib/modes";
 
 const KONNECT_API_KEY = process.env.KONNECT_API_KEY;
@@ -40,6 +41,47 @@ export function tndToMillimes(tnd: number): number {
  */
 export function isKonnectEnabled(): boolean {
   return paymentMode() === "konnect";
+}
+
+/**
+ * Clé de signature du webhook. Konnect NE signe PAS ses webhooks (simple GET
+ * `?payment_ref=…`) : on signe donc NOUS-MÊMES l'URL de webhook à l'init, puis
+ * on revérifie cette signature à la réception (cf. signKonnectWebhook /
+ * verifyKonnectWebhook). Clé dédiée `KONNECT_WEBHOOK_SECRET` si fournie, sinon
+ * dérivée d'`AUTH_SECRET` (toujours présent, ≥32 car.) avec séparation de
+ * domaine → zéro config en démo, rotation indépendante possible en prod.
+ */
+function webhookKey(): string {
+  const dedicated = process.env.KONNECT_WEBHOOK_SECRET;
+  if (dedicated) return dedicated;
+  const auth = process.env.AUTH_SECRET ?? "darna-dev-konnect-webhook";
+  // Séparation de domaine : ne JAMAIS réutiliser AUTH_SECRET tel quel pour un
+  // autre usage cryptographique → on en dérive une sous-clé dédiée.
+  return createHmac("sha256", auth).update("konnect-webhook").digest("hex");
+}
+
+/**
+ * Signe un identifiant de réservation pour le webhook Konnect (HMAC-SHA256,
+ * encodé base64url → sûr en query string). À appeler à l'init-payment pour
+ * construire l'URL de webhook : `…/webhook?bid=<id>&sig=<signKonnectWebhook(id)>`.
+ */
+export function signKonnectWebhook(bookingId: string): string {
+  return createHmac("sha256", webhookKey()).update(bookingId).digest("base64url");
+}
+
+/**
+ * Vérifie en TEMPS CONSTANT la signature d'un webhook Konnect. Rejette toute
+ * signature absente, de longueur incohérente ou falsifiée → un `payment_ref`
+ * deviné/fuité ne suffit plus à déclencher un règlement (anti-forge).
+ */
+export function verifyKonnectWebhook(bookingId: string, sig: string): boolean {
+  if (!bookingId || !sig) return false;
+  const expected = Buffer.from(signKonnectWebhook(bookingId));
+  const provided = Buffer.from(sig);
+  // timingSafeEqual exige des longueurs égales : on court-circuite sinon (la
+  // comparaison de longueur ne fuit pas le secret, seulement le format).
+  if (expected.length !== provided.length) return false;
+  return timingSafeEqual(expected, provided);
 }
 
 /** Erreur dédiée : permet aux appelants de logger sans exposer le détail au client. */
