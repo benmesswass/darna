@@ -190,6 +190,8 @@ export const en: Dictionary = {
     triRecommande: "Recommended",
     triPrixAsc: "Price: low to high",
     triPrixDesc: "Price: high to low",
+    triAvisDesc: "Top rated",
+    triAvisAsc: "Lowest rated",
     triRecent: "Most recent",
   },
   destination: {

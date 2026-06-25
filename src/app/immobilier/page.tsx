@@ -167,6 +167,30 @@ export default async function ImmobilierPage({
             {fr.common.rechercher}
           </button>
         </div>
+
+        {/* Filtre confiance : niveau de vérification (cases indépendantes). */}
+        <div className="mt-3 flex flex-wrap items-center gap-4">
+          <label className="flex items-center gap-2 text-sm text-ink/70">
+            <input
+              type="checkbox"
+              name="verifie"
+              value="1"
+              defaultChecked={params.verifie === "1"}
+              className="h-4 w-4 accent-darna"
+            />
+            {fr.badges.verifieRemote}
+          </label>
+          <label className="flex items-center gap-2 text-sm text-ink/70">
+            <input
+              type="checkbox"
+              name="certifie"
+              value="1"
+              defaultChecked={params.certifie === "1"}
+              className="h-4 w-4 accent-darna"
+            />
+            {fr.badges.verifieOnSite}
+          </label>
+        </div>
       </form>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
@@ -174,7 +198,14 @@ export default async function ImmobilierPage({
           {fr.search.resultats(total)}
         </span>
         {results.length > 0 ? (
-          <SortSelect basePath="/immobilier" params={params} value={sort} />
+          // L'immo n'a jamais d'avis (un avis exige une réservation) → pas de
+          // tri par note proposé ici.
+          <SortSelect
+            basePath="/immobilier"
+            params={params}
+            value={sort}
+            sorts={["recommande", "prix-asc", "prix-desc", "recent"]}
+          />
         ) : null}
       </div>
 

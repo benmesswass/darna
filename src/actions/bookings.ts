@@ -10,6 +10,7 @@ import { requireUser } from "@/lib/session";
 import { SERVICE_FEE_RATE, SITE_URL } from "@/lib/config";
 import { BOOKING_EXPIRY_MS } from "@/lib/constants";
 import { logAudit, logStructured } from "@/lib/audit";
+import { recomputePropertyRating } from "@/lib/listings";
 import { initKonnectPayment, isKonnectEnabled } from "@/lib/konnect";
 
 export type BookingFormState = { error?: string } | undefined;
@@ -510,6 +511,9 @@ export async function submitReviewAction(
       comment: parsed.data.comment,
     },
   });
+
+  // Met à jour les agrégats d'avis dénormalisés (tri « mieux/moins notés »).
+  await recomputePropertyRating(booking.propertyId);
 
   await logAudit({
     action: "REVIEW_SUBMITTED",

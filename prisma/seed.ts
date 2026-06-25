@@ -1240,6 +1240,22 @@ async function main() {
     },
   });
 
+  // Agrégats d'avis dénormalisés (ratingAvg / ratingCount) : indispensables au
+  // tri « mieux / moins notés ». Le backfill de la migration ne couvre PAS les
+  // avis créés ici (le seed tourne APRÈS migrate), d'où ce recalcul explicite.
+  console.log("Recalcul des agrégats d'avis…");
+  const grouped = await prisma.review.groupBy({
+    by: ["propertyId"],
+    _avg: { rating: true },
+    _count: { rating: true },
+  });
+  for (const g of grouped) {
+    await prisma.property.update({
+      where: { id: g.propertyId },
+      data: { ratingAvg: g._avg.rating, ratingCount: g._count.rating },
+    });
+  }
+
   const counts = {
     utilisateurs: await prisma.user.count(),
     annonces: await prisma.property.count(),

@@ -58,11 +58,54 @@ function orderByForSort(sort: SortKey): Prisma.PropertyOrderByWithRelationInput[
       return [{ price: "asc" }, { publishedAt: "desc" }];
     case "prix-desc":
       return [{ price: "desc" }, { publishedAt: "desc" }];
+    // Tri par note : les annonces SANS avis (ratingAvg null) sont reléguées en
+    // fin dans LES DEUX sens (nulls: "last") — « aucun avis » n'est pas « mal noté ».
+    case "avis-desc":
+      return [{ ratingAvg: { sort: "desc", nulls: "last" } }, { ratingCount: "desc" }];
+    case "avis-asc":
+      return [{ ratingAvg: { sort: "asc", nulls: "last" } }, { ratingCount: "desc" }];
     case "recent":
       return [{ publishedAt: "desc" }];
     default:
       return listingOrderBy;
   }
+}
+
+/**
+ * Filtre par niveau de vérification (cases à cocher de recherche). « Vérifié
+ * Darna » = REMOTE ; « Certifié Wakil » = ON_SITE. Coché(s) → on restreint aux
+ * niveaux sélectionnés ; rien coché → aucun filtre. verificationLevel non-null
+ * implique verified=true (posés ensemble, cf. verifyPropertyAction).
+ */
+function verificationFilter(params: {
+  verifie?: string;
+  certifie?: string;
+}): Prisma.PropertyWhereInput {
+  const levels: string[] = [];
+  if (params.verifie === "1") levels.push("REMOTE");
+  if (params.certifie === "1") levels.push("ON_SITE");
+  return levels.length ? { verificationLevel: { in: levels } } : {};
+}
+
+/**
+ * Recalcule et persiste les agrégats d'avis d'une annonce (moyenne + nombre).
+ * À appeler après toute écriture d'avis. ratingAvg = null quand il n'y a aucun
+ * avis (relégué en fin de tri par note). Module serveur — partagé par
+ * submitReviewAction et le seed.
+ */
+export async function recomputePropertyRating(propertyId: string): Promise<void> {
+  const agg = await prisma.review.aggregate({
+    where: { propertyId },
+    _avg: { rating: true },
+    _count: { rating: true },
+  });
+  await prisma.property.update({
+    where: { id: propertyId },
+    data: {
+      ratingCount: agg._count.rating,
+      ratingAvg: agg._count.rating > 0 ? agg._avg.rating : null,
+    },
+  });
 }
 
 export const listingCardInclude = {
@@ -105,6 +148,8 @@ export type SejoursSearchParams = {
   voyageurs?: string;
   prixMin?: string;
   prixMax?: string;
+  verifie?: string;
+  certifie?: string;
   tri?: string;
   page?: string;
 };
@@ -116,6 +161,8 @@ export type ImmobilierSearchParams = {
   prixMax?: string;
   surfaceMin?: string;
   pieces?: string;
+  verifie?: string;
+  certifie?: string;
   tri?: string;
   page?: string;
 };
@@ -241,6 +288,9 @@ export async function searchSejours(params: SejoursSearchParams) {
     };
   }
 
+  // Cases « Vérifié Darna » / « Certifié Wakil » — filtre niveau de vérification.
+  Object.assign(baseWhere, verificationFilter(params));
+
   const arrivee = parseDate(params.arrivee);
   const depart = parseDate(params.depart);
   if (arrivee && depart && depart > arrivee) {
@@ -340,6 +390,9 @@ export async function searchImmobilier(params: ImmobilierSearchParams) {
 
   const pieces = parsePositiveInt(params.pieces);
   if (pieces) where.rooms = { gte: pieces };
+
+  // Cases « Vérifié Darna » / « Certifié Wakil » — filtre niveau de vérification.
+  Object.assign(where, verificationFilter(params));
 
   const page = parsePage(params.page);
   const skip = (page - 1) * PAGE_SIZE;

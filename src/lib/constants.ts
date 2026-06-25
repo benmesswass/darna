@@ -28,7 +28,14 @@ export type PropertyType = (typeof PROPERTY_TYPES)[number];
  * Prisma (serveur, src/lib/listings.ts). `recommande` (défaut) = mise en avant
  * payante puis vérifiées puis récentes.
  */
-export const SEARCH_SORTS = ["recommande", "prix-asc", "prix-desc", "recent"] as const;
+export const SEARCH_SORTS = [
+  "recommande",
+  "prix-asc",
+  "prix-desc",
+  "avis-desc",
+  "avis-asc",
+  "recent",
+] as const;
 export type SortKey = (typeof SEARCH_SORTS)[number];
 
 /** Normalise un `tri` reçu de l'URL en clé valide (défaut : recommande). */

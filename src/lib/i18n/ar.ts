@@ -202,6 +202,8 @@ export const ar: Dictionary = {
     triRecommande: "مقترح",
     triPrixAsc: "السوم من الأرخص للأغلى",
     triPrixDesc: "السوم من الأغلى للأرخص",
+    triAvisDesc: "الأعلى تقييمًا",
+    triAvisAsc: "الأدنى تقييمًا",
     triRecent: "الأحدث",
   },
   destination: {

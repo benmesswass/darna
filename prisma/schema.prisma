@@ -122,6 +122,12 @@ model Property {
   verifiedBy   User?     @relation("PropertyVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
   // Prix en TND : nuitée (SEJOUR), loyer mensuel (LOCATION), prix total (VENTE)
   price       Int
+  // Agrégats d'avis DÉNORMALISÉS (maintenus à chaque avis, cf. submitReviewAction
+  // + seed). Servent le tri « mieux/moins notés » : Prisma ne sait pas trier par
+  // moyenne d'une relation (et le projet s'interdit le SQL brut), d'où ce cache.
+  // ratingAvg null = aucun avis → relégué en fin de tri (nulls: "last").
+  ratingAvg   Float?
+  ratingCount Int      @default(0)
   surface     Int?
   rooms       Int?
   maxGuests   Int?

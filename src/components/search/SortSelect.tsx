@@ -15,16 +15,22 @@ export function SortSelect({
   basePath,
   params,
   value,
+  sorts = SEARCH_SORTS,
 }: {
   basePath: string;
   params: Record<string, string | undefined>;
   value: SortKey;
+  /** Sous-ensemble de tris à proposer (déf. tous). L'immo masque les tris par
+   *  avis : ses annonces n'ont jamais d'avis (un avis exige une réservation). */
+  sorts?: readonly SortKey[];
 }) {
   const fr = useT();
   const label: Record<SortKey, string> = {
     recommande: fr.search.triRecommande,
     "prix-asc": fr.search.triPrixAsc,
     "prix-desc": fr.search.triPrixDesc,
+    "avis-desc": fr.search.triAvisDesc,
+    "avis-asc": fr.search.triAvisAsc,
     recent: fr.search.triRecent,
   };
 
@@ -43,7 +49,7 @@ export function SortSelect({
           onChange={(e) => e.currentTarget.form?.requestSubmit()}
           className="rounded-xl border border-darna/15 bg-white px-3 py-1.5 text-sm font-semibold text-darna outline-none focus:border-darna"
         >
-          {SEARCH_SORTS.map((s) => (
+          {sorts.map((s) => (
             <option key={s} value={s}>
               {label[s]}
             </option>

@@ -191,6 +191,8 @@ export const fr = {
     triRecommande: "Recommandé",
     triPrixAsc: "Prix croissant",
     triPrixDesc: "Prix décroissant",
+    triAvisDesc: "Mieux notés",
+    triAvisAsc: "Moins bien notés",
     triRecent: "Plus récent",
   },
   destination: {
