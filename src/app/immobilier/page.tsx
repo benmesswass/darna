@@ -15,6 +15,8 @@ import { PropertyCard } from "@/components/property/PropertyCard";
 import { PropertyMap } from "@/components/map/PropertyMap";
 import { SplitView } from "@/components/search/SplitView";
 import { Pagination } from "@/components/search/Pagination";
+import { SortSelect } from "@/components/search/SortSelect";
+import { AutoSubmitCheckbox } from "@/components/search/AutoSubmitCheckbox";
 import { SectionHero } from "@/components/layout/SectionHero";
 import { GouvernoratAutocomplete } from "@/components/search/GouvernoratAutocomplete";
 import { SearchIcon } from "@/components/icons";
@@ -34,7 +36,7 @@ export default async function ImmobilierPage({
 
   const fr = await getT();
   const params = await searchParams;
-  const { results, transaction, total, page, pageSize } =
+  const { results, transaction, total, page, pageSize, sort } =
     await searchImmobilier(params);
   const favCtx = await getFavoriteContext((await getSessionUser())?.id);
 
@@ -57,7 +59,7 @@ export default async function ImmobilierPage({
       {/* Barre de recherche — flotte sur le bas du hero puis colle au scroll. */}
       <form
         method="GET"
-        className="relative -mt-8 rounded-3xl bg-white p-4 shadow-lg ring-1 ring-darna/10 sm:-mt-12 lg:sticky lg:top-[4.5rem] lg:z-[1040]"
+        className="relative -mt-8 rounded-3xl bg-white p-4 shadow-lg ring-1 ring-darna/10 sm:-mt-12 lg:z-[1040]"
       >
         {/* Onglets Louer / Acheter */}
         <div className="flex w-fit rounded-full bg-cream p-1 ring-1 ring-darna/10">
@@ -166,10 +168,37 @@ export default async function ImmobilierPage({
             {fr.common.rechercher}
           </button>
         </div>
+
+        {/* Filtre confiance : niveau de vérification (cases indépendantes,
+            re-soumission auto au changement). */}
+        <div className="mt-3 flex flex-wrap items-center gap-4">
+          <AutoSubmitCheckbox
+            name="verifie"
+            label={fr.badges.verifieRemote}
+            defaultChecked={params.verifie === "1"}
+          />
+          <AutoSubmitCheckbox
+            name="certifie"
+            label={fr.badges.verifieOnSite}
+            defaultChecked={params.certifie === "1"}
+          />
+        </div>
       </form>
 
-      <div className="mt-4 text-sm font-semibold text-darna">
-        {fr.search.resultats(total)}
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+        <span className="text-sm font-semibold text-darna">
+          {fr.search.resultats(total)}
+        </span>
+        {results.length > 0 ? (
+          // L'immo n'a jamais d'avis (un avis exige une réservation) → pas de
+          // tri par note proposé ici.
+          <SortSelect
+            basePath="/immobilier"
+            params={params}
+            value={sort}
+            sorts={["recommande", "prix-asc", "prix-desc", "recent"]}
+          />
+        ) : null}
       </div>
 
       <div className="mt-4">

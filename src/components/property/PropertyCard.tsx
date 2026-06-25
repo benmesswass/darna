@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getT } from "@/lib/i18n/server";
+import { SERVICE_FEE_RATE } from "@/lib/config";
 import type { ListingWithPhoto } from "@/lib/listings";
 import { isListingFeatured } from "@/lib/listings";
 import type { FavoriteCardProp } from "@/lib/favorites";
@@ -14,6 +15,7 @@ export async function PropertyCard({
   showType = false,
   favorite,
   query = "",
+  nights,
 }: {
   property: ListingWithPhoto;
   showType?: boolean;
@@ -22,8 +24,18 @@ export async function PropertyCard({
   // Query string optionnelle (ex. « ?arrivee=…&depart=… ») ajoutée au lien,
   // pour transmettre les dates de recherche à la page détail.
   query?: string;
+  // Nombre de nuits recherché (séjours uniquement) : si fourni, on affiche le
+  // coût TOTAL du séjour (sous-total + frais de service), c.-à-d. ce qui sera
+  // réellement payé — cohérent avec « le prix affiché est le prix payé ».
+  nights?: number;
 }) {
   const fr = await getT();
+  // Total tout compris pour le séjour cherché (même calcul que la réservation).
+  const stayTotal =
+    nights && nights > 0 && property.type === "SEJOUR"
+      ? property.price * nights +
+        Math.round(property.price * nights * SERVICE_FEE_RATE)
+      : null;
   // Helper interne : dépend du dictionnaire de la requête.
   function priceSuffix(type: string): string | undefined {
     if (type === "SEJOUR") return fr.common.parNuit;
@@ -103,6 +115,12 @@ export async function PropertyCard({
               suffix={priceSuffix(property.type)}
               className="text-lg font-bold text-darna"
             />
+            {stayTotal !== null ? (
+              <p className="mt-0.5 text-xs text-ink/60">
+                <Price amount={stayTotal} className="font-semibold text-ink/80" />{" "}
+                {fr.search.totalSejour(nights!)}
+              </p>
+            ) : null}
           </div>
         </div>
       </Link>

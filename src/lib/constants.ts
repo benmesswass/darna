@@ -23,6 +23,30 @@ export const PROPERTY_TYPES = ["SEJOUR", "LOCATION", "VENTE"] as const;
 export type PropertyType = (typeof PROPERTY_TYPES)[number];
 
 /**
+ * Tris proposés à la recherche (séjours + immo). Référentiel client-safe (pas
+ * d'env) : partagé par le sélecteur de tri (client) et le calcul du `orderBy`
+ * Prisma (serveur, src/lib/listings.ts). `recommande` (défaut) = mise en avant
+ * payante puis vérifiées puis récentes.
+ */
+export const SEARCH_SORTS = [
+  "recommande",
+  "prix-asc",
+  "prix-desc",
+  "avis-desc",
+  "avis-asc",
+  "recent",
+] as const;
+export type SortKey = (typeof SEARCH_SORTS)[number];
+
+/** Normalise un `tri` reçu de l'URL en clé valide (défaut : recommande). */
+export function parseSortKey(value: string | undefined): SortKey {
+  return SEARCH_SORTS.includes((value ?? "") as SortKey)
+    ? (value as SortKey)
+    : "recommande";
+}
+
+
+/**
  * Indicatifs téléphoniques proposés au KYC (Tunisie + diaspora ciblée).
  * Tunisie en tête (propriétaire = souvent sur place) ; France ensuite (cible
  * diaspora prioritaire). Données de référentiel — libellés en français, comme
