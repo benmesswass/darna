@@ -19,6 +19,7 @@ import { Pagination } from "@/components/search/Pagination";
 import { CityAutocomplete } from "@/components/search/CityAutocomplete";
 import { SearchDateRange } from "@/components/search/SearchDateRange";
 import { SortSelect } from "@/components/search/SortSelect";
+import { AutoSubmitCheckbox } from "@/components/search/AutoSubmitCheckbox";
 import { SectionHero } from "@/components/layout/SectionHero";
 import { getCityWeather, getCityForecast } from "@/lib/weather";
 import { WeatherBanner } from "@/components/search/WeatherBanner";
@@ -118,7 +119,7 @@ export default async function SejoursPage({
           hero (chevauchement) puis colle au scroll. */}
       <form
         method="GET"
-        className="relative -mt-8 rounded-3xl bg-white p-4 shadow-lg ring-1 ring-darna/10 sm:-mt-12 lg:sticky lg:top-[4.5rem] lg:z-[1040]"
+        className="relative -mt-8 rounded-3xl bg-white p-4 shadow-lg ring-1 ring-darna/10 sm:-mt-12 lg:z-[1040]"
       >
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_auto]">
         <label className="flex flex-col gap-1">
@@ -189,28 +190,19 @@ export default async function SejoursPage({
           </label>
         </div>
 
-        {/* Filtre confiance : niveau de vérification (cases indépendantes). */}
+        {/* Filtre confiance : niveau de vérification (cases indépendantes,
+            re-soumission auto au changement). */}
         <div className="mt-3 flex flex-wrap items-center gap-4">
-          <label className="flex items-center gap-2 text-sm text-ink/70">
-            <input
-              type="checkbox"
-              name="verifie"
-              value="1"
-              defaultChecked={params.verifie === "1"}
-              className="h-4 w-4 accent-darna"
-            />
-            {fr.badges.verifieRemote}
-          </label>
-          <label className="flex items-center gap-2 text-sm text-ink/70">
-            <input
-              type="checkbox"
-              name="certifie"
-              value="1"
-              defaultChecked={params.certifie === "1"}
-              className="h-4 w-4 accent-darna"
-            />
-            {fr.badges.verifieOnSite}
-          </label>
+          <AutoSubmitCheckbox
+            name="verifie"
+            label={fr.badges.verifieRemote}
+            defaultChecked={params.verifie === "1"}
+          />
+          <AutoSubmitCheckbox
+            name="certifie"
+            label={fr.badges.verifieOnSite}
+            defaultChecked={params.certifie === "1"}
+          />
         </div>
       </form>
 
