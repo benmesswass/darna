@@ -160,11 +160,12 @@ export default async function SejoursPage({
         </button>
         </div>
 
-        {/* Filtres avancés : fourchette de prix à la nuitée (TND). */}
-        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:max-w-sm">
-          <label className="flex flex-col gap-1">
-            <span className="text-xs font-semibold text-ink/60">
-              {fr.search.prixMin} ({fr.common.tnd})
+        {/* Filtres avancés sur UNE ligne : prix (min–max fusionnés dans un seul
+            champ) + cases de confiance (re-soumission auto au changement). */}
+        <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-3">
+          <div className="flex items-center gap-2 rounded-xl border border-darna/15 bg-cream px-3 py-2 focus-within:border-darna">
+            <span className="text-xs font-semibold text-ink/50">
+              {fr.search.prix} ({fr.common.tnd})
             </span>
             <input
               type="number"
@@ -172,27 +173,22 @@ export default async function SejoursPage({
               min={0}
               step={10}
               defaultValue={params.prixMin ?? ""}
-              className="rounded-xl border border-darna/15 bg-cream px-3 py-2.5 text-sm outline-none focus:border-darna"
+              placeholder={fr.search.min}
+              aria-label={`${fr.search.prixMin} (${fr.common.tnd})`}
+              className="w-16 bg-transparent text-sm outline-none placeholder:text-ink/30"
             />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-xs font-semibold text-ink/60">
-              {fr.search.prixMax} ({fr.common.tnd})
-            </span>
+            <span aria-hidden className="text-ink/30">–</span>
             <input
               type="number"
               name="prixMax"
               min={0}
               step={10}
               defaultValue={params.prixMax ?? ""}
-              className="rounded-xl border border-darna/15 bg-cream px-3 py-2.5 text-sm outline-none focus:border-darna"
+              placeholder={fr.search.max}
+              aria-label={`${fr.search.prixMax} (${fr.common.tnd})`}
+              className="w-16 bg-transparent text-sm outline-none placeholder:text-ink/30"
             />
-          </label>
-        </div>
-
-        {/* Filtre confiance : niveau de vérification (cases indépendantes,
-            re-soumission auto au changement). */}
-        <div className="mt-3 flex flex-wrap items-center gap-4">
+          </div>
           <AutoSubmitCheckbox
             name="verifie"
             label={fr.badges.verifieRemote}
