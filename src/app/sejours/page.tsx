@@ -164,8 +164,8 @@ export default async function SejoursPage({
             champ) + cases de confiance (re-soumission auto au changement). */}
         <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-3">
           <div className="flex items-center gap-2 rounded-xl border border-darna/15 bg-cream px-3 py-2 focus-within:border-darna">
-            <span className="text-xs font-semibold text-ink/50">
-              {fr.search.prix} ({fr.common.tnd})
+            <span className="whitespace-nowrap text-xs font-semibold text-ink/50">
+              {fr.search.prix} {fr.common.parNuit} ({fr.common.tnd})
             </span>
             <input
               type="number"
