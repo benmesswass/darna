@@ -1,31 +1,56 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Price } from "@/components/currency/Price";
 import { useT } from "@/components/i18n/LocaleProvider";
 
-/**
- * Champ de filtre prix séjour (min–max fusionnés dans un seul cadre) + retour
- * EN DIRECT : si des dates sont sélectionnées, on traduit la fourchette « par
- * nuit » en coût TOTAL du séjour (tout compris, frais de service inclus —
- * cohérent avec le total affiché sur les cartes). Met à jour à la frappe.
- *
- * Reste un champ de formulaire GET classique (name=prixMin/prixMax) : la
- * soumission se fait au clic « Rechercher », comme avant.
- */
+function computeNights(arrivee: string, depart: string): number {
+  if (!arrivee || !depart) return 0;
+  const ci = Date.parse(`${arrivee}T00:00:00.000Z`);
+  const co = Date.parse(`${depart}T00:00:00.000Z`);
+  if (Number.isNaN(ci) || Number.isNaN(co)) return 0;
+  const n = Math.round((co - ci) / 86_400_000);
+  return n > 0 ? n : 0;
+}
+
 export function PriceRangeFilter({
   defaultMin,
   defaultMax,
-  nights,
+  defaultArrivee,
+  defaultDepart,
 }: {
   defaultMin?: string;
   defaultMax?: string;
-  /** Nombre de nuits cherché (0 = pas de dates → pas d'équivalent affiché). */
-  nights: number;
+  defaultArrivee?: string;
+  defaultDepart?: string;
 }) {
   const fr = useT();
   const [min, setMin] = useState(defaultMin ?? "");
   const [max, setMax] = useState(defaultMax ?? "");
+  const [nights, setNights] = useState(() =>
+    computeNights(defaultArrivee ?? "", defaultDepart ?? "")
+  );
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const form = containerRef.current?.closest("form");
+    if (!form) return;
+
+    const update = () => {
+      const arrivee =
+        (form.elements.namedItem("arrivee") as HTMLInputElement | null)?.value ?? "";
+      const depart =
+        (form.elements.namedItem("depart") as HTMLInputElement | null)?.value ?? "";
+      setNights(computeNights(arrivee, depart));
+    };
+
+    form.addEventListener("change", update);
+    form.addEventListener("input", update);
+    return () => {
+      form.removeEventListener("change", update);
+      form.removeEventListener("input", update);
+    };
+  }, []);
 
   const allIn = (perNight: number) => perNight * nights;
 
@@ -37,7 +62,7 @@ export function PriceRangeFilter({
     "w-16 bg-transparent text-sm outline-none placeholder:text-ink/30";
 
   return (
-    <div className="flex flex-col gap-1">
+    <div ref={containerRef} className="flex flex-col gap-1">
       <div className="flex items-center gap-2 rounded-xl border border-darna/15 bg-cream px-3 py-2 focus-within:border-darna">
         <span className="whitespace-nowrap text-xs font-semibold text-ink/50">
           {fr.search.prix} {fr.common.parNuit} ({fr.common.tnd})

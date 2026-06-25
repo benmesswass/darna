@@ -178,7 +178,8 @@ export default async function SejoursPage({
           <PriceRangeFilter
             defaultMin={params.prixMin}
             defaultMax={params.prixMax}
-            nights={nightsSearched}
+            defaultArrivee={params.arrivee}
+            defaultDepart={params.depart}
           />
           <AutoSubmitCheckbox
             name="verifie"
