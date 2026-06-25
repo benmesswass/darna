@@ -691,6 +691,11 @@ export const fr = {
     total: "Total à payer",
     aucunFraisCache: "Aucun autre frais ne vous sera demandé. Jamais.",
     continuerPaiement: "Continuer vers le paiement",
+    holdLabel: "Place gardée — paiement sous",
+    holdExpireTitre: "Délai de paiement écoulé",
+    holdExpireDetail:
+      "Votre réservation n'a pas été confirmée à temps : les dates ont été libérées.",
+    holdExpireCta: "Refaire une réservation",
     datesInvalides: "Dates invalides — la date de départ doit suivre l'arrivée.",
     datesIndisponibles:
       "Ces dates ne sont plus disponibles. Merci d'en choisir d'autres.",

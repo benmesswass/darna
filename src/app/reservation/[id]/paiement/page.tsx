@@ -10,6 +10,7 @@ import { confirmPaymentAction } from "@/actions/bookings";
 import { settleKonnectBooking } from "@/lib/payments";
 import { isKonnectEnabled } from "@/lib/konnect";
 import { KonnectPayButton } from "@/components/booking/KonnectPayButton";
+import { HoldCountdown } from "@/components/booking/HoldCountdown";
 import { ActiveSection } from "@/components/layout/ActiveSection";
 import { formatDateFr } from "@/lib/format";
 import { Price } from "@/components/currency/Price";
@@ -46,7 +47,8 @@ export default async function PaiementPage({
       checkOut: true,
       serviceFee: true,
       totalPrice: true,
-      property: { select: { title: true, city: true } },
+      expiresAt: true,
+      property: { select: { title: true, city: true, slug: true } },
     },
   });
   // Autorisation : la réservation appartient au voyageur connecté.
@@ -68,7 +70,8 @@ export default async function PaiementPage({
         checkOut: true,
         serviceFee: true,
         totalPrice: true,
-        property: { select: { title: true, city: true } },
+        expiresAt: true,
+        property: { select: { title: true, city: true, slug: true } },
       },
     });
     if (!booking) notFound();
@@ -169,6 +172,15 @@ export default async function PaiementPage({
           </div>
 
           <Recap />
+
+          {/* Compte à rebours du hold (15 min) : rassure + crée l'urgence, et
+              gère proprement l'expiration (dates libérées → relancer). */}
+          {booking.expiresAt ? (
+            <HoldCountdown
+              expiresAt={booking.expiresAt.toISOString()}
+              slug={booking.property.slug}
+            />
+          ) : null}
 
           {konnectEnabled ? (
             <>
