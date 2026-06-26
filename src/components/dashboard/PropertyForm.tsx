@@ -186,7 +186,9 @@ export function PropertyForm({
       ) : null}
 
       <label className="block space-y-1.5">
-        <span className={labelClass}>{fr.annonceForm.titre}</span>
+        <span className={labelClass}>
+          {fr.annonceForm.titre} <span className="text-red-600">*</span>
+        </span>
         <input
           name="title"
           type="text"
@@ -226,7 +228,9 @@ export function PropertyForm({
           ) : null}
         </label>
         <label className="block space-y-1.5">
-          <span className={labelClass}>{priceLabel}</span>
+          <span className={labelClass}>
+            {priceLabel} <span className="text-red-600">*</span>
+          </span>
           <input
             name="price"
             type="number"
@@ -240,7 +244,9 @@ export function PropertyForm({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block space-y-1.5">
-          <span className={labelClass}>{fr.annonceForm.ville}</span>
+          <span className={labelClass}>
+            {fr.annonceForm.ville} <span className="text-red-600">*</span>
+          </span>
           <select
             name="city"
             required
@@ -289,7 +295,9 @@ export function PropertyForm({
         </label>
         {type === "SEJOUR" ? (
           <label className="block space-y-1.5">
-            <span className={labelClass}>{fr.annonceForm.capacite}</span>
+            <span className={labelClass}>
+              {fr.annonceForm.capacite} <span className="text-red-600">*</span>
+            </span>
             <input
               name="maxGuests"
               type="number"
@@ -386,7 +394,9 @@ export function PropertyForm({
 
       <div className="space-y-1.5">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className={labelClass}>{fr.annonceForm.description}</span>
+          <span className={labelClass}>
+            {fr.annonceForm.description} <span className="text-red-600">*</span>
+          </span>
           <button
             type="button"
             onClick={onGenerate}
