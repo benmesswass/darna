@@ -362,6 +362,9 @@ export const ar: Dictionary = {
     emailDejaUtilise: "ما نجمناش ننشئو الحساب بالمعطيات هاذي.",
     inscriptionReussie: "الحساب تعمل! تنجم تدخل توا.",
     motDePasseRegle: "8 أحرف كحد أدنى",
+    afficherMotDePasse: "أظهر كلمة السر",
+    masquerMotDePasse: "خبي كلمة السر",
+    confirmerMotDePasse: "أكد كلمة السر",
     motDePasseOublie: "نسيت كلمة السر؟",
     resetTitre: "إعادة تعيين كلمة السر",
     resetSousTitre:

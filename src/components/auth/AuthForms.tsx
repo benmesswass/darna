@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import Link from "next/link";
 import {
   loginAction,
@@ -13,6 +13,85 @@ import { useT } from "@/components/i18n/LocaleProvider";
 
 const inputClass =
   "w-full rounded-xl border border-darna/15 bg-cream px-3.5 py-2.5 text-sm outline-none focus:border-darna";
+
+function EyeIcon() {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function EyeOffIcon() {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c6.5 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+      <path d="M6.61 6.61A13.5 13.5 0 0 0 2 12s3.5 7 10 7a9.12 9.12 0 0 0 5.39-1.61" />
+      <line x1="2" y1="2" x2="22" y2="22" />
+    </svg>
+  );
+}
+
+/**
+ * Champ mot de passe avec bouton œil afficher/masquer. Non contrôlé (name
+ * uniquement) : les mots de passe se vident à chaque soumission.
+ */
+function PasswordInput({
+  name,
+  autoComplete,
+  minLength,
+  hasError,
+}: {
+  name: string;
+  autoComplete: string;
+  minLength?: number;
+  hasError?: boolean;
+}) {
+  const fr = useT();
+  const [show, setShow] = useState(false);
+  return (
+    <div className="relative">
+      <input
+        name={name}
+        type={show ? "text" : "password"}
+        required
+        minLength={minLength}
+        autoComplete={autoComplete}
+        className={`${inputClass} pe-11 ${hasError ? "border-red-400" : ""}`}
+      />
+      <button
+        type="button"
+        onClick={() => setShow((v) => !v)}
+        aria-label={show ? fr.auth.masquerMotDePasse : fr.auth.afficherMotDePasse}
+        aria-pressed={show}
+        className="absolute end-2.5 top-1/2 -translate-y-1/2 text-ink/45 transition hover:text-darna"
+      >
+        {show ? <EyeOffIcon /> : <EyeIcon />}
+      </button>
+    </div>
+  );
+}
 
 function SubmitButton({ label, pending }: { label: string; pending: boolean }) {
   const fr = useT();
@@ -49,8 +128,6 @@ function Feedback({ state }: { state: AuthFormState }) {
 export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
   const fr = useT();
   const [state, action, pending] = useActionState(loginAction, undefined);
-  // On propage le callbackUrl vers l'inscription pour ne pas perdre la cible
-  // (ex. « devenir hôte ») si l'utilisateur n'a pas encore de compte.
   const inscriptionHref = callbackUrl
     ? `/inscription?callbackUrl=${encodeURIComponent(callbackUrl)}`
     : "/inscription";
@@ -65,13 +142,7 @@ export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
       </label>
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold text-ink/70">{fr.auth.motDePasse}</span>
-        <input
-          name="password"
-          type="password"
-          required
-          autoComplete="current-password"
-          className={inputClass}
-        />
+        <PasswordInput name="password" autoComplete="current-password" />
       </label>
       <SubmitButton label={fr.auth.seConnecter} pending={pending} />
       <p className="text-center text-sm">
@@ -95,15 +166,11 @@ export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
 /** Demande de réinitialisation (saisie e-mail). En démo, affiche le lien renvoyé. */
 export function ForgotPasswordForm() {
   const fr = useT();
-  const [state, action, pending] = useActionState(
-    requestPasswordResetAction,
-    undefined
-  );
+  const [state, action, pending] = useActionState(requestPasswordResetAction, undefined);
 
   return (
     <form action={action} className="space-y-4">
       <Feedback state={state} />
-      {/* Mode démo : aucun e-mail réel n'est envoyé → on affiche le lien. */}
       {state?.resetUrl ? (
         <div className="rounded-xl bg-sand-light/40 px-4 py-3 text-sm text-darna-dark">
           <p className="font-semibold">{fr.auth.resetModeDemo}</p>
@@ -135,9 +202,20 @@ export function ResetPasswordForm({ token }: { token: string }) {
   const fr = useT();
   const [state, action, pending] = useActionState(resetPasswordAction, undefined);
   const done = Boolean(state?.success);
+  const [confirmError, setConfirmError] = useState("");
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    const data = new FormData(e.currentTarget);
+    if (data.get("password") !== data.get("confirmPassword")) {
+      e.preventDefault();
+      setConfirmError(fr.profil.mdpConfirmationInvalide);
+    } else {
+      setConfirmError("");
+    }
+  }
 
   return (
-    <form action={action} className="space-y-4">
+    <form action={action} onSubmit={handleSubmit} className="space-y-4">
       <Feedback state={state} />
       {done ? (
         <p className="text-center text-sm">
@@ -156,14 +234,21 @@ export function ResetPasswordForm({ token }: { token: string }) {
               {fr.auth.resetNouveauMdp}{" "}
               <span className="font-normal text-ink/40">({fr.auth.motDePasseRegle})</span>
             </span>
-            <input
-              name="password"
-              type="password"
-              required
-              minLength={8}
+            <PasswordInput name="password" autoComplete="new-password" minLength={8} />
+          </label>
+          <label className="block space-y-1.5">
+            <span className="text-sm font-semibold text-ink/70">
+              {fr.auth.confirmerMotDePasse}
+            </span>
+            <PasswordInput
+              name="confirmPassword"
               autoComplete="new-password"
-              className={inputClass}
+              minLength={8}
+              hasError={!!confirmError}
             />
+            {confirmError ? (
+              <p className="text-xs text-red-600">{confirmError}</p>
+            ) : null}
           </label>
           <SubmitButton label={fr.auth.resetValider} pending={pending} />
         </>
@@ -181,14 +266,23 @@ export function RegisterForm({
 }) {
   const fr = useT();
   const [state, action, pending] = useActionState(registerAction, undefined);
-  // Après inscription, le compte n'est pas connecté automatiquement : on dirige
-  // vers la connexion en conservant la cible (callbackUrl) pour y revenir.
+  const [confirmError, setConfirmError] = useState("");
   const connexionHref = callbackUrl
     ? `/connexion?callbackUrl=${encodeURIComponent(callbackUrl)}`
     : "/connexion";
 
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    const data = new FormData(e.currentTarget);
+    if (data.get("password") !== data.get("confirmPassword")) {
+      e.preventDefault();
+      setConfirmError(fr.profil.mdpConfirmationInvalide);
+    } else {
+      setConfirmError("");
+    }
+  }
+
   return (
-    <form action={action} className="space-y-4">
+    <form action={action} onSubmit={handleSubmit} className="space-y-4">
       <Feedback state={state} />
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold text-ink/70">{fr.auth.nom}</span>
@@ -203,14 +297,21 @@ export function RegisterForm({
           {fr.auth.motDePasse}{" "}
           <span className="font-normal text-ink/40">({fr.auth.motDePasseRegle})</span>
         </span>
-        <input
-          name="password"
-          type="password"
-          required
-          minLength={8}
+        <PasswordInput name="password" autoComplete="new-password" minLength={8} />
+      </label>
+      <label className="block space-y-1.5">
+        <span className="text-sm font-semibold text-ink/70">
+          {fr.auth.confirmerMotDePasse}
+        </span>
+        <PasswordInput
+          name="confirmPassword"
           autoComplete="new-password"
-          className={inputClass}
+          minLength={8}
+          hasError={!!confirmError}
         />
+        {confirmError ? (
+          <p className="text-xs text-red-600">{confirmError}</p>
+        ) : null}
       </label>
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold text-ink/70">

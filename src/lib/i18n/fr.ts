@@ -340,6 +340,9 @@ export const fr = {
     emailDejaUtilise: "Impossible de créer le compte avec ces informations.",
     inscriptionReussie: "Compte créé ! Vous pouvez vous connecter.",
     motDePasseRegle: "8 caractères minimum",
+    afficherMotDePasse: "Afficher le mot de passe",
+    masquerMotDePasse: "Masquer le mot de passe",
+    confirmerMotDePasse: "Confirmer le mot de passe",
     motDePasseOublie: "Mot de passe oublié ?",
     resetTitre: "Réinitialiser le mot de passe",
     resetSousTitre:

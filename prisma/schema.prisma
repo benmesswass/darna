@@ -47,6 +47,8 @@ model User {
   cinHash       String?  @unique
   // PR2 — Wakil : agent vérifié sur le terrain.
   isWakil       Boolean  @default(false)
+  // Incrémenté à chaque changement de mot de passe : invalide les JWT précédents.
+  tokenVersion  Int      @default(0)
   createdAt     DateTime @default(now())
 
   properties         Property[]
