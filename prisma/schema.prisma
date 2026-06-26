@@ -143,6 +143,7 @@ model Property {
   // L'annonce est à la une tant que featuredUntil > now ; le champ est remis
   // à null paresseusement une fois expiré (cf. clearExpiredFeatured()).
   featuredUntil DateTime?
+  cancelPolicy  String   @default("MODEREE") // FLEXIBLE | MODEREE | STRICTE
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -254,7 +255,10 @@ model Booking {
   expiresAt    DateTime?
   // Date de règlement : posée quand le paiement est confirmé (fonds sous
   // séquestre). Null tant que la réservation n'est pas payée.
-  paidAt       DateTime?
+  paidAt        DateTime?
+  // Annulation : date + montant remboursable figé au moment de l'annulation.
+  cancelledAt   DateTime?
+  refundAmount  Int?      // TND ; null si non annulée ou politique 0 %
   createdAt    DateTime  @default(now())
 
   propertyId String

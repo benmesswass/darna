@@ -290,6 +290,17 @@ export const en: Dictionary = {
     favoriSansDossier: "No folder",
     partagerWhatsapp: (titre: string, prix: string) =>
       `Hello, I'm interested in your listing “${titre}” (${prix}) seen on Darna. Is it still available?`,
+    politiqueAnnulation: "Cancellation policy",
+    cancelPolicy: {
+      FLEXIBLE: "Flexible",
+      MODEREE: "Moderate",
+      STRICTE: "Strict",
+    } as Record<string, string>,
+    cancelPolicyDesc: {
+      FLEXIBLE: "Free cancellation up to 24 hours before check-in.",
+      MODEREE: "Free cancellation up to 7 days before check-in.",
+      STRICTE: "50% refund if cancelled 14 days before; no refund after.",
+    } as Record<string, string>,
     gallery: {
       ouvrir: "Open gallery",
       voirToutes: (n: number) => `View all ${n} photos`,
@@ -407,6 +418,13 @@ export const en: Dictionary = {
       ANNULEE: "Cancelled",
       TERMINEE: "Completed",
     } as Record<string, string>,
+    annulerReservation: "Cancel this booking",
+    annulerConfirm: "Confirm cancellation",
+    annulerAnnuler: "Keep my booking",
+    remboursement: (montant: number) =>
+      montant > 0 ? `Refund: ${montant} TND` : "No refund under this policy",
+    cancelledAt: (date: string) => `Cancelled on ${date}`,
+    rembourseLabel: (montant: number) => `Refunded: ${montant} TND`,
   },
   annonceForm: {
     titre: "Listing title",
@@ -779,6 +797,8 @@ export const en: Dictionary = {
     placeholderPrix:
       "Pick your dates on the calendar to see the total price — with no hidden fees.",
     selectionnezDates: "Select your dates",
+    annulationImpossible: "This booking can no longer be cancelled.",
+    annulationConfirmee: "Your booking has been cancelled.",
   },
   alaUne: {
     titre: "Feature your listing",

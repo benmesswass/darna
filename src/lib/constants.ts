@@ -102,6 +102,9 @@ export type BookingStatus = (typeof BOOKING_STATUSES)[number];
 export const ESCROW_STATUSES = ["AUCUN", "EN_SEQUESTRE", "LIBERE"] as const;
 export type EscrowStatus = (typeof ESCROW_STATUSES)[number];
 
+export const CANCEL_POLICIES = ["FLEXIBLE", "MODEREE", "STRICTE"] as const;
+export type CancelPolicy = (typeof CANCEL_POLICIES)[number];
+
 /** Équipements proposés à la création d'annonce (libellés FR stockés tels quels). */
 export const AMENITIES = [
   "Climatisation",
