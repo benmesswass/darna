@@ -27,6 +27,7 @@ import {
   DoorIcon,
   UsersIcon,
   CloseIcon,
+  ShieldIcon,
 } from "@/components/icons";
 
 const inputClass =
@@ -77,9 +78,9 @@ export function PropertyForm({
     lng: initial?.longitude ?? 10.1815,
   });
   const [description, setDescription] = useState(initial?.description ?? "");
-  const [cancelPolicy, setCancelPolicy] = useState(
-    initial?.cancelPolicy ?? "MODEREE"
-  );
+  // Vide à la création : l'hôte DOIT choisir (champ essentiel). En édition,
+  // on préremplit avec la politique déjà enregistrée.
+  const [cancelPolicy, setCancelPolicy] = useState(initial?.cancelPolicy ?? "");
   // URLs d'aperçu des photos sélectionnées (création), dans l'ordre choisi.
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   // Instantané des champs au moment d'ouvrir l'aperçu (null = aperçu fermé).
@@ -303,24 +304,49 @@ export function PropertyForm({
       </div>
 
       {type === "SEJOUR" ? (
-        <label className="block space-y-1.5">
-          <span className={labelClass}>{fr.annonceForm.politiqueAnnulation}</span>
-          <select
-            name="cancelPolicy"
-            value={cancelPolicy}
-            onChange={(e) => setCancelPolicy(e.target.value)}
-            className={inputClass}
-          >
-            {CANCEL_POLICIES.map((p) => (
-              <option key={p} value={p}>
-                {fr.property.cancelPolicy[p]}
-              </option>
-            ))}
-          </select>
-          <span className="block text-xs text-ink/50">
-            {fr.property.cancelPolicyDesc[cancelPolicy]}
-          </span>
-        </label>
+        <fieldset className="space-y-3 rounded-2xl bg-cream/50 p-4 ring-1 ring-darna/15">
+          <legend className="flex items-center gap-1.5 px-1 text-sm font-bold text-darna">
+            <ShieldIcon width={16} height={16} />
+            {fr.annonceForm.politiqueAnnulation}
+            <span className="text-red-600">*</span>
+          </legend>
+          <p className="text-xs leading-relaxed text-ink/55">
+            {fr.annonceForm.politiqueAnnulationAide}
+          </p>
+          <div className="grid gap-2.5 sm:grid-cols-2">
+            {CANCEL_POLICIES.map((p) => {
+              const selected = cancelPolicy === p;
+              return (
+                <label
+                  key={p}
+                  className={`flex cursor-pointer flex-col gap-1 rounded-xl border bg-white p-3.5 transition ${
+                    selected
+                      ? "border-darna ring-2 ring-darna/30"
+                      : "border-darna/15 hover:border-darna/40"
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="cancelPolicy"
+                      value={p}
+                      required
+                      checked={selected}
+                      onChange={(e) => setCancelPolicy(e.target.value)}
+                      className="h-4 w-4 accent-darna"
+                    />
+                    <span className="text-sm font-bold text-ink">
+                      {fr.property.cancelPolicy[p]}
+                    </span>
+                  </span>
+                  <span className="ps-6 text-xs leading-relaxed text-ink/60">
+                    {fr.property.cancelPolicyDesc[p]}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        </fieldset>
       ) : null}
 
       <fieldset className="space-y-1.5">
