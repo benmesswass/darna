@@ -12,6 +12,7 @@ import { BOOKING_EXPIRY_MS } from "@/lib/constants";
 import { logAudit, logStructured } from "@/lib/audit";
 import { recomputePropertyRating } from "@/lib/listings";
 import { initKonnectPayment, isKonnectEnabled, signKonnectWebhook } from "@/lib/konnect";
+import { sendBookingConfirmationEmail } from "@/lib/notifications";
 
 export type BookingFormState = { error?: string } | undefined;
 
@@ -355,6 +356,8 @@ export async function confirmPaymentAction(formData: FormData): Promise<void> {
     success: true,
     metadata: { bookingId: booking.id, totalPrice: booking.totalPrice, demo: true },
   });
+
+  await sendBookingConfirmationEmail(booking.id);
 
   revalidatePath(`/reservation/${booking.id}/paiement`);
   revalidatePath("/dashboard/reservations");

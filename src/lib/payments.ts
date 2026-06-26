@@ -13,6 +13,7 @@
 import { prisma } from "@/lib/prisma";
 import { getKonnectPayment, tndToMillimes } from "@/lib/konnect";
 import { logAudit, logStructured } from "@/lib/audit";
+import { sendBookingConfirmationEmail } from "@/lib/notifications";
 
 export type SettleResult =
   | "CONFIRMEE" // payée et sous séquestre
@@ -125,6 +126,11 @@ export async function settleKonnectBooking(
       provider: "konnect",
     },
   });
+
+  // Notification transactionnelle (non bloquante) : on ne l'envoie qu'ici,
+  // après la transition réelle EN_ATTENTE → CONFIRMEE (count === 1), donc une
+  // seule fois même si webhook et page de retour règlent en concurrence.
+  await sendBookingConfirmationEmail(booking.id);
 
   return "CONFIRMEE";
 }

@@ -604,6 +604,36 @@ export const fr = {
     mailCorpsHtml: (code: string) =>
       `<p>Votre code de vérification Darna : <strong>${code}</strong></p>` +
       `<p>Ce code expire dans 10 minutes.</p>`,
+    bookingConfirmSujet: (titre: string) =>
+      `Darna — réservation confirmée : ${titre}`,
+    bookingConfirmHtml: (p: {
+      guestName: string;
+      propertyTitle: string;
+      checkIn: string;
+      checkOut: string;
+      guests: number;
+      nights: number;
+      total: string;
+      url: string;
+      demo: boolean;
+    }) =>
+      `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
+      `<h1 style="color:#0f766e;font-size:20px">Réservation confirmée ✅</h1>` +
+      `<p>Bonjour ${p.guestName},</p>` +
+      `<p>Votre réservation pour <strong>${p.propertyTitle}</strong> est confirmée et vos fonds sont placés sous séquestre Darna jusqu'à votre arrivée.</p>` +
+      `<table style="width:100%;border-collapse:collapse;margin:16px 0">` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Arrivée</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.checkIn}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Départ</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.checkOut}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Nuits</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.nights}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Voyageurs</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.guests}</td></tr>` +
+      `<tr><td style="padding:10px 0;border-top:1px solid #e5e7eb;color:#6b7280">Total payé</td><td style="padding:10px 0;border-top:1px solid #e5e7eb;text-align:right;font-weight:700;color:#0f766e">${p.total}</td></tr>` +
+      `</table>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">Voir ma réservation</a></p>` +
+      (p.demo
+        ? `<p style="background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:10px;font-size:13px;color:#92400e">Mode démonstration : aucun paiement réel n'a été effectué.</p>`
+        : "") +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Le logement vérifié.</p>` +
+      `</div>`,
   },
   verifications: {
     navLabel: "Vérifications",
