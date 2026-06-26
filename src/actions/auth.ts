@@ -12,6 +12,7 @@ import { safeCallbackUrl } from "@/lib/redirect";
 import { issueOtp } from "@/lib/otp";
 import { issueResetToken, consumeResetToken } from "@/lib/reset-token";
 import { sendEmail, getEmailProvider } from "@/lib/mailer";
+import { isValidCountry } from "@/lib/constants";
 import { SITE_URL } from "@/lib/config";
 
 export type AuthFormState =
@@ -41,6 +42,9 @@ const registerSchema = z.object({
     .regex(/^\+?[0-9\s]{8,16}$/)
     .optional()
     .or(z.literal("")),
+  // Pays de résidence déclaré (pilotage diaspora). Validé contre le référentiel ;
+  // toute valeur hors liste est ignorée (null) plutôt que rejetée.
+  country: z.string().trim().max(60).optional().or(z.literal("")),
   // ADMIN ne peut pas être choisi à l'inscription — assigné manuellement en DB
   role: z.enum(["VOYAGEUR", "HOTE", "AGENCE"] as const),
 });
@@ -59,11 +63,14 @@ export async function registerAction(
     email: formData.get("email"),
     password: formData.get("password"),
     phone: formData.get("phone"),
+    country: formData.get("country") ?? undefined,
     role: formData.get("role"),
   });
   if (!parsed.success) return { error: fr.common.champsRequis };
 
-  const { name, email, password, phone, role } = parsed.data;
+  const { name, email, password, phone, country, role } = parsed.data;
+  // Pays validé contre le référentiel ; hors liste → null (jamais d'échec).
+  const validCountry = country && isValidCountry(country) ? country : null;
 
   const existing = await prisma.user.findUnique({ where: { email } });
 
@@ -85,7 +92,7 @@ export async function registerAction(
 
   const passwordHash = await bcrypt.hash(password, 12);
   const user = await prisma.user.create({
-    data: { name, email, passwordHash, phone: phone || null, role },
+    data: { name, email, passwordHash, phone: phone || null, country: validCountry, role },
   });
 
   await logAudit({
