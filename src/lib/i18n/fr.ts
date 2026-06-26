@@ -29,7 +29,7 @@ export const fr = {
     heroLine2: "Le prix affiché est le prix payé.",
     heroLine3: "Votre argent est protégé.",
     heroSub:
-      "Darna est la première plateforme tunisienne où chaque annonce est vérifiable, chaque prix est transparent et chaque paiement est sécurisé par séquestre.",
+      "Darna est la première plateforme tunisienne où chaque annonce est vérifiable, chaque prix est transparent et chaque paiement est protégé jusqu'à la fin du séjour.",
     ctaSejours: "Trouver un séjour",
     ctaImmobilier: "Explorer l'immobilier",
   },
@@ -53,7 +53,7 @@ export const fr = {
     heroQuestion: "Que cherchez-vous ?",
     diffTitle: "Séjours ou Immobilier ?",
     diffSejours:
-      "Pour vos vacances : réservez un logement vérifié et payez en sécurité (séquestre) — l'argent n'est versé à l'hôte qu'après votre arrivée.",
+      "Pour vos vacances : réservez un logement vérifié et payez en sécurité — l'argent n'est versé à l'hôte qu'après votre séjour.",
     diffImmo:
       "Pour habiter à l'année : achat ou location longue durée, en contact direct avec le propriétaire ou l'agence — sans paiement en ligne.",
     trustTitle: "Comment Darna vous protège",
@@ -63,9 +63,9 @@ export const fr = {
     trust2Title: "Zéro frais caché",
     trust2Desc:
       "Le récapitulatif détaille chaque dinar avant paiement : prix, nuits, frais de service. Aucun frais de visite, jamais.",
-    trust3Title: "Argent sous séquestre",
+    trust3Title: "Paiement protégé",
     trust3Desc:
-      "Votre paiement n'est versé à l'hôte que 24 h après votre arrivée. En cas de problème, vous êtes remboursé.",
+      "Votre paiement n'est versé à l'hôte qu'après votre séjour : il reste protégé par Darna tant que vous n'êtes pas reparti.",
     featuredTitle: "Annonces vérifiées récentes",
     featuredAll: "Voir toutes les annonces",
     alaUneTitle: "À la une",
@@ -418,7 +418,7 @@ export const fr = {
     contratBail: "Contrat de bail",
     statutReservation: {
       EN_ATTENTE: "En attente de paiement",
-      CONFIRMEE: "Confirmée — fonds sous séquestre",
+      CONFIRMEE: "Confirmée — paiement protégé",
       ANNULEE: "Annulée",
       TERMINEE: "Terminée",
     } as Record<string, string>,
@@ -429,6 +429,21 @@ export const fr = {
       montant > 0 ? `Remboursement : ${montant} TND` : "Aucun remboursement selon la politique",
     cancelledAt: (date: string) => `Annulée le ${date}`,
     rembourseLabel: (montant: number) => `Remboursé : ${montant} TND`,
+    revenus: "Revenus",
+    revenusTitre: "Mes revenus",
+    revenusSousTitre:
+      "Le voyageur paie à la réservation ; Darna conserve le montant et vous le verse une fois son séjour terminé. C'est la garantie « paiement protégé » qui rassure les voyageurs et fait réserver.",
+    revenusTotal: "Revenus confirmés",
+    revenusEnAttente: "En attente de versement",
+    revenusVerse: "Déjà versé",
+    revenusAucun: "Aucun revenu pour le moment.",
+    revenusAucunCta:
+      "Dès qu'un voyageur paie une réservation, le montant apparaît ici — en attente de versement, puis versé après son départ.",
+    revenusBadgeEnAttente: "En attente de versement",
+    revenusBadgeVerse: "Versé",
+    revenusVersementPrevu: (date: string) =>
+      `Versement après le départ du voyageur (${date})`,
+    revenusVerseApres: (date: string) => `Versé — séjour terminé le ${date}`,
   },
   annonceForm: {
     titre: "Titre de l'annonce",
@@ -644,7 +659,7 @@ export const fr = {
       `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
       `<h1 style="color:#0f766e;font-size:20px">Réservation confirmée ✅</h1>` +
       `<p>Bonjour ${p.guestName},</p>` +
-      `<p>Votre réservation pour <strong>${p.propertyTitle}</strong> est confirmée et vos fonds sont placés sous séquestre Darna jusqu'à votre arrivée.</p>` +
+      `<p>Votre réservation pour <strong>${p.propertyTitle}</strong> est confirmée. Votre paiement est protégé par Darna : il ne sera versé à l'hôte qu'une fois votre séjour terminé.</p>` +
       `<table style="width:100%;border-collapse:collapse;margin:16px 0">` +
       `<tr><td style="padding:6px 0;color:#6b7280">Arrivée</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.checkIn}</td></tr>` +
       `<tr><td style="padding:6px 0;color:#6b7280">Départ</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.checkOut}</td></tr>` +
@@ -776,14 +791,14 @@ export const fr = {
     verifRequiseDesc:
       "Pour la confiance de tous sur Darna, seuls les comptes vérifiés (e-mail + téléphone) peuvent réserver. Cela prend moins de deux minutes.",
     verifRequiseCta: "Vérifier mon compte",
-    paiementTitre: "Paiement sécurisé — séquestre Darna",
+    paiementTitre: "Paiement sécurisé — protégé par Darna",
     sequestreExplication:
-      "Votre argent est protégé : il est conservé sous séquestre par Darna et versé à l'hôte 24 h après le check-in. En cas de problème à l'arrivée, vous êtes intégralement remboursé.",
+      "Votre argent est protégé : Darna le conserve pendant tout votre séjour et ne le verse à l'hôte qu'après votre départ. Vous n'êtes jamais débité au profit de l'hôte avant d'avoir séjourné.",
     paiementMockInfo:
       "Paiement Konnect / Flouci bientôt disponible. Mode démonstration : aucun débit réel.",
     payerSimulation: "Payer (simulation)",
     paiementKonnectInfo:
-      "Paiement sécurisé via Konnect — carte bancaire, e-DINAR ou wallet. Vos fonds restent protégés par le séquestre Darna.",
+      "Paiement sécurisé via Konnect — carte bancaire, e-DINAR ou wallet. Vos fonds restent protégés par Darna jusqu'à la fin de votre séjour.",
     payerKonnect: "Payer avec Konnect",
     redirectionKonnect: "Redirection vers le paiement sécurisé…",
     paiementEchoue:
@@ -797,7 +812,7 @@ export const fr = {
       "Cette réservation a expiré. Merci de relancer une demande.",
     paiementConfirme: "Réservation confirmée !",
     paiementConfirmeDetail:
-      "Vos fonds sont sous séquestre. L'hôte a été notifié — retrouvez les détails dans « Mes réservations ».",
+      "Votre paiement est protégé jusqu'à la fin de votre séjour. L'hôte a été notifié — retrouvez les détails dans « Mes réservations ».",
     voirMesReservations: "Voir mes réservations",
     sejourDates: (arrivee: string, depart: string) =>
       `Du ${arrivee} au ${depart}`,
@@ -916,7 +931,7 @@ export const fr = {
       "Annonces vérifiées sur le terrain par nos Wakils : ce que vous voyez depuis Paris ou Montréal existe vraiment à Hammamet.",
     arg2Titre: "Payez en toute sécurité",
     arg2Desc:
-      "Séquestre Darna : votre argent n'est versé qu'après votre arrivée. Paiement par carte internationale bientôt disponible.",
+      "Paiement protégé Darna : votre argent n'est versé à l'hôte qu'après votre séjour. Paiement par carte internationale bientôt disponible.",
     arg3Titre: "Visites vidéo (bientôt)",
     arg3Desc:
       "Un Wakil visite le bien en visio avec vous, avant tout engagement.",

@@ -30,7 +30,7 @@ export const en: Dictionary = {
     heroLine2: "The price you see is the price you pay.",
     heroLine3: "Your money is protected.",
     heroSub:
-      "Darna is the first Tunisian platform where every listing is verifiable, every price is transparent and every payment is secured in escrow.",
+      "Darna is the first Tunisian platform where every listing is verifiable, every price is transparent and every payment is protected until the stay is over.",
     ctaSejours: "Find a stay",
     ctaImmobilier: "Explore real estate",
   },
@@ -53,7 +53,7 @@ export const en: Dictionary = {
     heroQuestion: "What are you looking for?",
     diffTitle: "Stays or Real estate?",
     diffSejours:
-      "For your holidays: book a verified place and pay securely (escrow) — funds are released to the host only after check-in.",
+      "For your holidays: book a verified place and pay securely — funds are released to the host only after your stay.",
     diffImmo:
       "To live year-round: buy or rent long-term, in direct contact with the owner or agency — no online payment.",
     trustTitle: "How Darna protects you",
@@ -63,9 +63,9 @@ export const en: Dictionary = {
     trust2Title: "Zero hidden fees",
     trust2Desc:
       "The summary breaks down every dinar before payment: price, nights, service fee. No viewing fees, ever.",
-    trust3Title: "Money held in escrow",
+    trust3Title: "Protected payment",
     trust3Desc:
-      "Your payment is only released to the host 24 hours after your arrival. If anything goes wrong, you are refunded.",
+      "Your payment is only released to the host after your stay: it stays protected by Darna until you have checked out.",
     featuredTitle: "Recent verified listings",
     featuredAll: "See all listings",
     alaUneTitle: "Featured",
@@ -417,7 +417,7 @@ export const en: Dictionary = {
     contratBail: "Lease agreement",
     statutReservation: {
       EN_ATTENTE: "Awaiting payment",
-      CONFIRMEE: "Confirmed — funds in escrow",
+      CONFIRMEE: "Confirmed — payment protected",
       ANNULEE: "Cancelled",
       TERMINEE: "Completed",
     } as Record<string, string>,
@@ -428,6 +428,21 @@ export const en: Dictionary = {
       montant > 0 ? `Refund: ${montant} TND` : "No refund under this policy",
     cancelledAt: (date: string) => `Cancelled on ${date}`,
     rembourseLabel: (montant: number) => `Refunded: ${montant} TND`,
+    revenus: "Earnings",
+    revenusTitre: "My earnings",
+    revenusSousTitre:
+      "The guest pays when booking; Darna holds the amount and pays it out to you once their stay is over. That protected-payment guarantee is what reassures guests and drives bookings.",
+    revenusTotal: "Confirmed earnings",
+    revenusEnAttente: "Awaiting payout",
+    revenusVerse: "Already paid out",
+    revenusAucun: "No earnings yet.",
+    revenusAucunCta:
+      "As soon as a guest pays for a booking, the amount appears here — awaiting payout, then paid out after they check out.",
+    revenusBadgeEnAttente: "Awaiting payout",
+    revenusBadgeVerse: "Paid out",
+    revenusVersementPrevu: (date: string) =>
+      `Paid out after the guest checks out (${date})`,
+    revenusVerseApres: (date: string) => `Paid out — stay ended on ${date}`,
   },
   annonceForm: {
     titre: "Listing title",
@@ -640,7 +655,7 @@ export const en: Dictionary = {
       `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
       `<h1 style="color:#0f766e;font-size:20px">Booking confirmed ✅</h1>` +
       `<p>Hello ${p.guestName},</p>` +
-      `<p>Your booking for <strong>${p.propertyTitle}</strong> is confirmed and your funds are held in Darna escrow until your arrival.</p>` +
+      `<p>Your booking for <strong>${p.propertyTitle}</strong> is confirmed. Your payment is protected by Darna: it will only be released to the host once your stay is over.</p>` +
       `<table style="width:100%;border-collapse:collapse;margin:16px 0">` +
       `<tr><td style="padding:6px 0;color:#6b7280">Check-in</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.checkIn}</td></tr>` +
       `<tr><td style="padding:6px 0;color:#6b7280">Check-out</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.checkOut}</td></tr>` +
@@ -770,14 +785,14 @@ export const en: Dictionary = {
     verifRequiseDesc:
       "For everyone's trust on Darna, only verified accounts (email + phone) can book. It takes less than two minutes.",
     verifRequiseCta: "Verify my account",
-    paiementTitre: "Secure payment — Darna escrow",
+    paiementTitre: "Secure payment — protected by Darna",
     sequestreExplication:
-      "Your money is protected: it is held in escrow by Darna and released to the host 24 hours after check-in. If there is a problem on arrival, you are fully refunded.",
+      "Your money is protected: Darna holds it throughout your stay and only releases it to the host after you check out. You are never charged to the host's benefit before you have stayed.",
     paiementMockInfo:
       "Konnect / Flouci payment coming soon. Demo mode: no real charge.",
     payerSimulation: "Pay (simulation)",
     paiementKonnectInfo:
-      "Secure payment via Konnect — bank card, e-DINAR or wallet. Your funds stay protected by the Darna escrow.",
+      "Secure payment via Konnect — bank card, e-DINAR or wallet. Your funds stay protected by Darna until the end of your stay.",
     payerKonnect: "Pay with Konnect",
     redirectionKonnect: "Redirecting to secure payment…",
     paiementEchoue:
@@ -789,7 +804,7 @@ export const en: Dictionary = {
     reservationExpiree: "This booking has expired. Please start a new request.",
     paiementConfirme: "Booking confirmed!",
     paiementConfirmeDetail:
-      "Your funds are in escrow. The host has been notified — find the details in “My bookings”.",
+      "Your payment is protected until the end of your stay. The host has been notified — find the details in “My bookings”.",
     voirMesReservations: "View my bookings",
     sejourDates: (arrivee: string, depart: string) =>
       `From ${arrivee} to ${depart}`,
@@ -909,7 +924,7 @@ export const en: Dictionary = {
       "Listings verified on the ground by our Wakils: what you see from Paris or Montreal really exists in Hammamet.",
     arg2Titre: "Pay safely",
     arg2Desc:
-      "Darna escrow: your money is only released after your arrival. International card payment coming soon.",
+      "Darna protected payment: your money is only released to the host after your stay. International card payment coming soon.",
     arg3Titre: "Video visits (soon)",
     arg3Desc:
       "A Wakil visits the property with you by video call, before any commitment.",
