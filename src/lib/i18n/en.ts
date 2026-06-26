@@ -600,6 +600,36 @@ export const en: Dictionary = {
     mailCorpsHtml: (code: string) =>
       `<p>Your Darna verification code: <strong>${code}</strong></p>` +
       `<p>This code expires in 10 minutes.</p>`,
+    bookingConfirmSujet: (titre: string) =>
+      `Darna — booking confirmed: ${titre}`,
+    bookingConfirmHtml: (p: {
+      guestName: string;
+      propertyTitle: string;
+      checkIn: string;
+      checkOut: string;
+      guests: number;
+      nights: number;
+      total: string;
+      url: string;
+      demo: boolean;
+    }) =>
+      `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
+      `<h1 style="color:#0f766e;font-size:20px">Booking confirmed ✅</h1>` +
+      `<p>Hello ${p.guestName},</p>` +
+      `<p>Your booking for <strong>${p.propertyTitle}</strong> is confirmed and your funds are held in Darna escrow until your arrival.</p>` +
+      `<table style="width:100%;border-collapse:collapse;margin:16px 0">` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Check-in</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.checkIn}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Check-out</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.checkOut}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Nights</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.nights}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Guests</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.guests}</td></tr>` +
+      `<tr><td style="padding:10px 0;border-top:1px solid #e5e7eb;color:#6b7280">Total paid</td><td style="padding:10px 0;border-top:1px solid #e5e7eb;text-align:right;font-weight:700;color:#0f766e">${p.total}</td></tr>` +
+      `</table>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">View my booking</a></p>` +
+      (p.demo
+        ? `<p style="background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:10px;font-size:13px;color:#92400e">Demo mode: no real payment was made.</p>`
+        : "") +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Verified stays.</p>` +
+      `</div>`,
   },
   verifications: {
     navLabel: "Verification",
