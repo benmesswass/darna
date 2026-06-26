@@ -198,7 +198,7 @@ export async function changePasswordAction(
   const passwordHash = await bcrypt.hash(parsed.data, 12);
   await prisma.user.update({
     where: { id: user.id },
-    data: { passwordHash },
+    data: { passwordHash, tokenVersion: { increment: 1 } },
   });
 
   await logAudit({

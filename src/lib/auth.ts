@@ -31,6 +31,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const user = await prisma.user.findUnique({
           where: { email: parsed.data.email.toLowerCase() },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            passwordHash: true,
+            tokenVersion: true,
+          },
         });
 
         // Message générique côté UI : on ne distingue jamais
@@ -58,17 +65,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         logStructured("info", "auth.login_success", { userId: user.id });
-        return { id: user.id, name: user.name, email: user.email };
+        return { id: user.id, name: user.name, email: user.email, tokenVersion: user.tokenVersion };
       },
     }),
   ],
   callbacks: {
     jwt({ token, user }) {
-      if (user?.id) token.userId = user.id;
+      if (user?.id) {
+        token.userId = user.id;
+        token.tokenVersion = (user as { tokenVersion?: number }).tokenVersion ?? 0;
+      }
       return token;
     },
     session({ session, token }) {
       if (token.userId) session.user.id = token.userId as string;
+      if (token.tokenVersion !== undefined) session.user.tokenVersion = token.tokenVersion as number;
       return session;
     },
   },

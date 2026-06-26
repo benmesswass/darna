@@ -37,9 +37,19 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
       phoneVerified: true,
       emailVerified: true,
       isWakil: true,
+      tokenVersion: true,
     },
   });
-  return user;
+  if (!user) return null;
+
+  // JWT tokenVersion absent (ancien token) et DB 0 (nouveau champ) → 0 des deux côtés.
+  const jwtVersion = session.user.tokenVersion ?? 0;
+  const dbVersion = user.tokenVersion ?? 0;
+  if (dbVersion !== jwtVersion) return null;
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { tokenVersion: _, ...sessionUser } = user;
+  return sessionUser;
 });
 
 /** Garde serveur : lève si non connecté (mutations). */

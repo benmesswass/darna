@@ -250,7 +250,10 @@ export async function resetPasswordAction(
   if (!userId) return { error: fr.auth.resetLienInvalide };
 
   const passwordHash = await bcrypt.hash(parsed.data.password, 12);
-  await prisma.user.update({ where: { id: userId }, data: { passwordHash } });
+  await prisma.user.update({
+    where: { id: userId },
+    data: { passwordHash, tokenVersion: { increment: 1 } },
+  });
 
   await logAudit({ action: "PASSWORD_RESET", userId, success: true });
   return { success: fr.auth.resetReussi };

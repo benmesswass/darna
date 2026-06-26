@@ -125,8 +125,18 @@ describe("resetPasswordAction", () => {
     expect(res).toEqual({ success: "Mot de passe réinitialisé." });
     expect(update).toHaveBeenCalledWith({
       where: { id: "u1" },
-      data: { passwordHash: "hashed-pwd" },
+      data: { passwordHash: "hashed-pwd", tokenVersion: { increment: 1 } },
     });
+  });
+
+  it("incrémente tokenVersion pour invalider les sessions actives", async () => {
+    (consumeResetToken as unknown as Mock).mockResolvedValue("u2");
+    update.mockResolvedValue({});
+
+    await resetPasswordAction(undefined, resetFd("t".repeat(43), "azerty12"));
+
+    const updateCall = update.mock.calls[0][0] as { data: Record<string, unknown> };
+    expect(updateCall.data.tokenVersion).toEqual({ increment: 1 });
   });
 
   it("jeton invalide/expiré : message générique, aucun update", async () => {
