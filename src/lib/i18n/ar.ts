@@ -620,6 +620,36 @@ export const ar: Dictionary = {
     mailCorpsHtml: (code: string) =>
       `<p>رمز التثبّت متاعك في Darna: <strong>${code}</strong></p>` +
       `<p>الرمز هذا يفنى بعد 10 دقايق.</p>`,
+    bookingConfirmSujet: (titre: string) =>
+      `Darna — تأكّد الحجز: ${titre}`,
+    bookingConfirmHtml: (p: {
+      guestName: string;
+      propertyTitle: string;
+      checkIn: string;
+      checkOut: string;
+      guests: number;
+      nights: number;
+      total: string;
+      url: string;
+      demo: boolean;
+    }) =>
+      `<div dir="rtl" style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
+      `<h1 style="color:#0f766e;font-size:20px">تأكّد الحجز ✅</h1>` +
+      `<p>أهلا ${p.guestName}،</p>` +
+      `<p>الحجز متاعك في <strong>${p.propertyTitle}</strong> تأكّد، وفلوسك محفوظة في ضمان Darna حتّى ما توصل.</p>` +
+      `<table style="width:100%;border-collapse:collapse;margin:16px 0">` +
+      `<tr><td style="padding:6px 0;color:#6b7280">الدخول</td><td style="padding:6px 0;text-align:left;font-weight:600">${p.checkIn}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">الخروج</td><td style="padding:6px 0;text-align:left;font-weight:600">${p.checkOut}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">الليالي</td><td style="padding:6px 0;text-align:left;font-weight:600">${p.nights}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">المسافرين</td><td style="padding:6px 0;text-align:left;font-weight:600">${p.guests}</td></tr>` +
+      `<tr><td style="padding:10px 0;border-top:1px solid #e5e7eb;color:#6b7280">المجموع المدفوع</td><td style="padding:10px 0;border-top:1px solid #e5e7eb;text-align:left;font-weight:700;color:#0f766e">${p.total}</td></tr>` +
+      `</table>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">شوف الحجز متاعي</a></p>` +
+      (p.demo
+        ? `<p style="background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:10px;font-size:13px;color:#92400e">وضع التجربة: ما صار حتّى خلاص حقيقي.</p>`
+        : "") +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — السكن المضمون.</p>` +
+      `</div>`,
   },
   verifications: {
     navLabel: "التثبّت",

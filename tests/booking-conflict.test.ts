@@ -19,6 +19,7 @@ vi.mock("@/lib/prisma", () => ({
   },
 }));
 vi.mock("@/lib/session", () => ({ requireUser: vi.fn() }));
+vi.mock("@/lib/notifications", () => ({ sendBookingConfirmationEmail: vi.fn() }));
 vi.mock("@/lib/audit", () => ({ logAudit: vi.fn(), logStructured: vi.fn() }));
 vi.mock("@/lib/konnect", () => ({
   isKonnectEnabled: vi.fn(() => false),

@@ -9,6 +9,7 @@ vi.mock("@/lib/prisma", () => ({
   prisma: { property: { findUnique: vi.fn() } },
 }));
 vi.mock("@/lib/session", () => ({ requireUser: vi.fn() }));
+vi.mock("@/lib/notifications", () => ({ sendBookingConfirmationEmail: vi.fn() }));
 vi.mock("@/lib/config", () => ({ SERVICE_FEE_RATE: 0.05, SITE_URL: "http://localhost:3000" }));
 vi.mock("@/lib/konnect", () => ({ initKonnectPayment: vi.fn(), isKonnectEnabled: vi.fn(() => false) }));
 vi.mock("@/lib/audit", () => ({ logAudit: vi.fn(), logStructured: vi.fn() }));
