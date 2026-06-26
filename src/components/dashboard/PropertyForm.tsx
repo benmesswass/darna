@@ -305,11 +305,11 @@ export function PropertyForm({
 
       {type === "SEJOUR" ? (
         <fieldset className="space-y-3 rounded-2xl bg-cream/50 p-4 ring-1 ring-darna/15">
-          <legend className="flex items-center gap-1.5 px-1 text-sm font-bold text-darna">
+          <p className="flex items-center gap-1.5 text-sm font-bold text-darna">
             <ShieldIcon width={16} height={16} />
             {fr.annonceForm.politiqueAnnulation}
             <span className="text-red-600">*</span>
-          </legend>
+          </p>
           <p className="text-xs leading-relaxed text-ink/55">
             {fr.annonceForm.politiqueAnnulationAide}
           </p>
