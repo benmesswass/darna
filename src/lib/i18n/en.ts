@@ -339,6 +339,9 @@ export const en: Dictionary = {
     emailDejaUtilise: "Unable to create an account with this information.",
     inscriptionReussie: "Account created! You can now sign in.",
     motDePasseRegle: "8 characters minimum",
+    afficherMotDePasse: "Show password",
+    masquerMotDePasse: "Hide password",
+    confirmerMotDePasse: "Confirm password",
     motDePasseOublie: "Forgot your password?",
     resetTitre: "Reset your password",
     resetSousTitre:
