@@ -336,6 +336,7 @@ export const en: Dictionary = {
     dejaCompte: "Already have an account?",
     pasDeCompte: "No account yet?",
     identifiantsInvalides: "Invalid credentials.",
+    captchaEchec: "Anti-bot check failed. Please try again.",
     emailDejaUtilise: "Unable to create an account with this information.",
     inscriptionReussie: "Account created! You can now sign in.",
     motDePasseRegle: "8 characters minimum",

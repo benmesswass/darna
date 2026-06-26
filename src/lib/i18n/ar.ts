@@ -359,6 +359,7 @@ export const ar: Dictionary = {
     dejaCompte: "عندك حساب؟",
     pasDeCompte: "مازال ما عندكش حساب؟",
     identifiantsInvalides: "معطيات الدخول غالطة.",
+    captchaEchec: "فشل التحقق ضد الروبوتات. عاود من فضلك.",
     emailDejaUtilise: "ما نجمناش ننشئو الحساب بالمعطيات هاذي.",
     inscriptionReussie: "الحساب تعمل! تنجم تدخل توا.",
     motDePasseRegle: "8 أحرف كحد أدنى",
