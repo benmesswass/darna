@@ -262,7 +262,8 @@ export default async function MesReservationsPage() {
                       computeRefund(
                         b.totalPrice,
                         b.checkIn,
-                        b.property.cancelPolicy as CancelPolicy
+                        b.property.cancelPolicy as CancelPolicy,
+                        b.createdAt
                       ).refundAmount
                     }
                   />

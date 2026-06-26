@@ -10,7 +10,12 @@ import {
 import { useT } from "@/components/i18n/LocaleProvider";
 import { PhotoDropzone } from "./PhotoDropzone";
 import { generateDescription } from "@/lib/description";
-import { AMENITIES, PROPERTY_TYPES, type PropertyType } from "@/lib/constants";
+import {
+  AMENITIES,
+  CANCEL_POLICIES,
+  PROPERTY_TYPES,
+  type PropertyType,
+} from "@/lib/constants";
 import { CITIES, getCity, nearestCity, resolveCity } from "@/lib/geo";
 import { AddressAutocomplete } from "./AddressAutocomplete";
 import { LocationPicker } from "@/components/map/LocationPicker";
@@ -42,6 +47,7 @@ export type PropertyFormInitial = {
   longitude: number;
   description: string;
   amenities: string[];
+  cancelPolicy: string;
 };
 
 /** Formulaire d'annonce — création (sans `initial`) ou modification (avec). */
@@ -71,6 +77,9 @@ export function PropertyForm({
     lng: initial?.longitude ?? 10.1815,
   });
   const [description, setDescription] = useState(initial?.description ?? "");
+  const [cancelPolicy, setCancelPolicy] = useState(
+    initial?.cancelPolicy ?? "MODEREE"
+  );
   // URLs d'aperçu des photos sélectionnées (création), dans l'ordre choisi.
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   // Instantané des champs au moment d'ouvrir l'aperçu (null = aperçu fermé).
@@ -292,6 +301,27 @@ export function PropertyForm({
           </label>
         ) : null}
       </div>
+
+      {type === "SEJOUR" ? (
+        <label className="block space-y-1.5">
+          <span className={labelClass}>{fr.annonceForm.politiqueAnnulation}</span>
+          <select
+            name="cancelPolicy"
+            value={cancelPolicy}
+            onChange={(e) => setCancelPolicy(e.target.value)}
+            className={inputClass}
+          >
+            {CANCEL_POLICIES.map((p) => (
+              <option key={p} value={p}>
+                {fr.property.cancelPolicy[p]}
+              </option>
+            ))}
+          </select>
+          <span className="block text-xs text-ink/50">
+            {fr.property.cancelPolicyDesc[cancelPolicy]}
+          </span>
+        </label>
+      ) : null}
 
       <fieldset className="space-y-1.5">
         <legend className={labelClass}>

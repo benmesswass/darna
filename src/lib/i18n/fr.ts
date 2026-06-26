@@ -295,12 +295,15 @@ export const fr = {
     cancelPolicy: {
       FLEXIBLE: "Flexible",
       MODEREE: "Modérée",
+      FERME: "Ferme",
       STRICTE: "Stricte",
     } as Record<string, string>,
     cancelPolicyDesc: {
       FLEXIBLE: "Annulation gratuite jusqu'à 24 h avant l'arrivée.",
-      MODEREE: "Annulation gratuite jusqu'à 7 jours avant l'arrivée.",
-      STRICTE: "50 % remboursé si annulé 14 jours avant ; aucun remboursement après.",
+      MODEREE: "Annulation gratuite jusqu'à 5 jours avant l'arrivée.",
+      FERME:
+        "Annulation gratuite jusqu'à 30 jours avant ; 50 % remboursé entre 7 et 30 jours ; aucun remboursement à moins de 7 jours.",
+      STRICTE: "50 % remboursé si annulé au moins 14 jours avant ; aucun remboursement après.",
     } as Record<string, string>,
     gallery: {
       ouvrir: "Ouvrir la galerie",
@@ -444,6 +447,9 @@ export const fr = {
     surface: "Surface (m²)",
     pieces: "Nombre de pièces",
     capacite: "Capacité (voyageurs)",
+    politiqueAnnulation: "Politique d'annulation",
+    politiqueAnnulationAide:
+      "Définit ce que le voyageur récupère s'il annule. Plus elle est souple, plus vous rassurez ; plus elle est stricte, plus vous protégez vos revenus.",
     equipements: "Équipements",
     description: "Description",
     genererDescription: "Générer la description",

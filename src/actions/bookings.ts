@@ -556,6 +556,7 @@ export async function cancelBookingAction(
       status: true,
       checkIn: true,
       totalPrice: true,
+      createdAt: true,
       property: { select: { slug: true, cancelPolicy: true } },
     },
   });
@@ -569,7 +570,8 @@ export async function cancelBookingAction(
   const { refundAmount } = computeRefund(
     booking.totalPrice,
     booking.checkIn,
-    booking.property.cancelPolicy as CancelPolicy
+    booking.property.cancelPolicy as CancelPolicy,
+    booking.createdAt
   );
 
   await prisma.booking.update({

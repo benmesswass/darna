@@ -317,12 +317,15 @@ export const ar: Dictionary = {
     cancelPolicy: {
       FLEXIBLE: "مرنة",
       MODEREE: "معتدلة",
+      FERME: "حازمة",
       STRICTE: "صارمة",
     } as Record<string, string>,
     cancelPolicyDesc: {
       FLEXIBLE: "إلغاء مجاني حتى 24 ساعة قبل الوصول.",
-      MODEREE: "إلغاء مجاني حتى 7 أيام قبل الوصول.",
-      STRICTE: "استرجاع 50% عند الإلغاء 14 يوم قبل؛ لا استرجاع بعد ذلك.",
+      MODEREE: "إلغاء مجاني حتى 5 أيام قبل الوصول.",
+      FERME:
+        "إلغاء مجاني حتى 30 يوم قبل؛ استرجاع 50% بين 7 و30 يوم؛ لا استرجاع في أقل من 7 أيام.",
+      STRICTE: "استرجاع 50% عند الإلغاء 14 يوم على الأقل قبل؛ لا استرجاع بعد ذلك.",
     } as Record<string, string>,
     gallery: {
       ouvrir: "حلّ المعرض",
@@ -464,6 +467,9 @@ export const ar: Dictionary = {
     surface: "المساحة (م²)",
     pieces: "عدد البيوت",
     capacite: "السعة (مسافرين)",
+    politiqueAnnulation: "سياسة الإلغاء",
+    politiqueAnnulationAide:
+      "تحدّد شنوّة يرجع للمسافر كان يلغي. كل ما كانت مرنة أكثر، كل ما طمأنت المسافر؛ وكل ما كانت صارمة، كل ما حميت مداخيلك.",
     equipements: "التجهيزات",
     description: "الوصف",
     genererDescription: "ولّد الوصف",

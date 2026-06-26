@@ -294,12 +294,15 @@ export const en: Dictionary = {
     cancelPolicy: {
       FLEXIBLE: "Flexible",
       MODEREE: "Moderate",
+      FERME: "Firm",
       STRICTE: "Strict",
     } as Record<string, string>,
     cancelPolicyDesc: {
       FLEXIBLE: "Free cancellation up to 24 hours before check-in.",
-      MODEREE: "Free cancellation up to 7 days before check-in.",
-      STRICTE: "50% refund if cancelled 14 days before; no refund after.",
+      MODEREE: "Free cancellation up to 5 days before check-in.",
+      FERME:
+        "Free cancellation up to 30 days before; 50% refund between 7 and 30 days; no refund within 7 days.",
+      STRICTE: "50% refund if cancelled at least 14 days before; no refund after.",
     } as Record<string, string>,
     gallery: {
       ouvrir: "Open gallery",
@@ -443,6 +446,9 @@ export const en: Dictionary = {
     surface: "Area (m²)",
     pieces: "Number of rooms",
     capacite: "Capacity (guests)",
+    politiqueAnnulation: "Cancellation policy",
+    politiqueAnnulationAide:
+      "Sets what guests get back if they cancel. The more flexible, the more reassuring; the stricter, the more your income is protected.",
     equipements: "Amenities",
     description: "Description",
     genererDescription: "Generate description",

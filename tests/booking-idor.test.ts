@@ -182,6 +182,7 @@ describe("cancelBookingAction — IDOR", () => {
     status: "CONFIRMEE",
     checkIn: new Date(Date.now() + 10 * 86_400_000),
     totalPrice: 300,
+    createdAt: new Date(Date.now() - 10 * 86_400_000),
     property: { slug: "villa-hammamet", cancelPolicy: "MODEREE" },
   });
 
