@@ -13,6 +13,8 @@ import { logAudit, logStructured } from "@/lib/audit";
 import { recomputePropertyRating } from "@/lib/listings";
 import { initKonnectPayment, isKonnectEnabled, signKonnectWebhook } from "@/lib/konnect";
 import { sendBookingConfirmationEmail } from "@/lib/notifications";
+import { computeRefund } from "@/lib/cancellation";
+import type { CancelPolicy } from "@/lib/constants";
 
 export type BookingFormState = { error?: string } | undefined;
 
@@ -530,4 +532,66 @@ export async function submitReviewAction(
 
   revalidatePath(`/annonce/${booking.property.slug}`);
   return { success: fr.property.avisEnvoye };
+}
+
+export type CancelBookingState = { error?: string; success?: string } | undefined;
+
+const cancelSchema = z.object({ bookingId: z.string().cuid() });
+
+export async function cancelBookingAction(
+  _prev: CancelBookingState,
+  formData: FormData
+): Promise<CancelBookingState> {
+  const fr = await getT();
+  const user = await requireUser();
+
+  const parsed = cancelSchema.safeParse({ bookingId: formData.get("bookingId") });
+  if (!parsed.success) return { error: fr.common.champsRequis };
+
+  const booking = await prisma.booking.findUnique({
+    where: { id: parsed.data.bookingId },
+    select: {
+      id: true,
+      guestId: true,
+      status: true,
+      checkIn: true,
+      totalPrice: true,
+      createdAt: true,
+      property: { select: { slug: true, cancelPolicy: true } },
+    },
+  });
+
+  if (!booking || booking.guestId !== user.id)
+    return { error: fr.common.erreurInconnue };
+
+  if (booking.status !== "CONFIRMEE")
+    return { error: fr.booking.annulationImpossible };
+
+  const { refundAmount } = computeRefund(
+    booking.totalPrice,
+    booking.checkIn,
+    booking.property.cancelPolicy as CancelPolicy,
+    booking.createdAt
+  );
+
+  await prisma.booking.update({
+    where: { id: booking.id },
+    data: {
+      status: "ANNULEE",
+      escrow: "AUCUN",
+      cancelledAt: new Date(),
+      refundAmount: refundAmount > 0 ? refundAmount : null,
+    },
+  });
+
+  await logAudit({
+    action: "BOOKING_CANCELLED",
+    userId: user.id,
+    success: true,
+    metadata: { bookingId: booking.id, refundAmount },
+  });
+
+  revalidatePath("/dashboard/reservations");
+  revalidatePath(`/annonce/${booking.property.slug}`);
+  return { success: fr.booking.annulationConfirmee };
 }

@@ -9,6 +9,9 @@ import { formatDateShortFr } from "@/lib/format";
 import { Price } from "@/components/currency/Price";
 import { WhatsAppIcon } from "@/components/icons";
 import { toWhatsAppNumber } from "@/components/property/PropertyCtas";
+import { computeRefund } from "@/lib/cancellation";
+import type { CancelPolicy } from "@/lib/constants";
+import { CancelBookingButton } from "@/components/booking/CancelBookingButton";
 
 const STATUS_STYLES: Record<string, string> = {
   EN_ATTENTE: "bg-amber-100 text-amber-800",
@@ -173,6 +176,7 @@ export default async function MesReservationsPage() {
           slug: true,
           title: true,
           city: true,
+          cancelPolicy: true,
           photos: { orderBy: { position: "asc" }, take: 1 },
         },
       },
@@ -250,6 +254,29 @@ export default async function MesReservationsPage() {
                   >
                     {fr.booking.continuerPaiement}
                   </Link>
+                ) : null}
+                {b.status === "CONFIRMEE" ? (
+                  <CancelBookingButton
+                    bookingId={b.id}
+                    refundAmount={
+                      computeRefund(
+                        b.totalPrice,
+                        b.checkIn,
+                        b.property.cancelPolicy as CancelPolicy,
+                        b.createdAt
+                      ).refundAmount
+                    }
+                  />
+                ) : null}
+                {b.status === "ANNULEE" && b.cancelledAt ? (
+                  <div className="space-y-0.5 text-[11px] text-ink/50">
+                    <p>{fr.dashboard.cancelledAt(formatDateShortFr(b.cancelledAt))}</p>
+                    {b.refundAmount != null && b.refundAmount > 0 ? (
+                      <p className="font-semibold text-emerald-700">
+                        {fr.dashboard.rembourseLabel(b.refundAmount)}
+                      </p>
+                    ) : null}
+                  </div>
                 ) : null}
               </div>
             </li>

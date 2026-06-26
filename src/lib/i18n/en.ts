@@ -290,6 +290,20 @@ export const en: Dictionary = {
     favoriSansDossier: "No folder",
     partagerWhatsapp: (titre: string, prix: string) =>
       `Hello, I'm interested in your listing “${titre}” (${prix}) seen on Darna. Is it still available?`,
+    politiqueAnnulation: "Cancellation policy",
+    cancelPolicy: {
+      FLEXIBLE: "Flexible",
+      MODEREE: "Moderate",
+      FERME: "Firm",
+      STRICTE: "Strict",
+    } as Record<string, string>,
+    cancelPolicyDesc: {
+      FLEXIBLE: "Free cancellation up to 24 hours before check-in.",
+      MODEREE: "Free cancellation up to 5 days before check-in.",
+      FERME:
+        "Free cancellation up to 30 days before; 50% refund between 7 and 30 days; no refund within 7 days.",
+      STRICTE: "50% refund if cancelled at least 14 days before; no refund after.",
+    } as Record<string, string>,
     gallery: {
       ouvrir: "Open gallery",
       voirToutes: (n: number) => `View all ${n} photos`,
@@ -407,6 +421,13 @@ export const en: Dictionary = {
       ANNULEE: "Cancelled",
       TERMINEE: "Completed",
     } as Record<string, string>,
+    annulerReservation: "Cancel this booking",
+    annulerConfirm: "Confirm cancellation",
+    annulerAnnuler: "Keep my booking",
+    remboursement: (montant: number) =>
+      montant > 0 ? `Refund: ${montant} TND` : "No refund under this policy",
+    cancelledAt: (date: string) => `Cancelled on ${date}`,
+    rembourseLabel: (montant: number) => `Refunded: ${montant} TND`,
   },
   annonceForm: {
     titre: "Listing title",
@@ -425,6 +446,9 @@ export const en: Dictionary = {
     surface: "Area (m²)",
     pieces: "Number of rooms",
     capacite: "Capacity (guests)",
+    politiqueAnnulation: "Cancellation policy",
+    politiqueAnnulationAide:
+      "Sets what guests get back if they cancel. The more flexible, the more reassuring; the stricter, the more your income is protected.",
     equipements: "Amenities",
     description: "Description",
     genererDescription: "Generate description",
@@ -779,6 +803,8 @@ export const en: Dictionary = {
     placeholderPrix:
       "Pick your dates on the calendar to see the total price — with no hidden fees.",
     selectionnezDates: "Select your dates",
+    annulationImpossible: "This booking can no longer be cancelled.",
+    annulationConfirmee: "Your booking has been cancelled.",
   },
   alaUne: {
     titre: "Feature your listing",

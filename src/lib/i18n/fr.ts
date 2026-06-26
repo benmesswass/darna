@@ -291,6 +291,20 @@ export const fr = {
     favoriSansDossier: "Sans dossier",
     partagerWhatsapp: (titre: string, prix: string) =>
       `Bonjour, je suis intéressé(e) par votre annonce « ${titre} » (${prix}) vue sur Darna. Est-elle toujours disponible ?`,
+    politiqueAnnulation: "Politique d'annulation",
+    cancelPolicy: {
+      FLEXIBLE: "Flexible",
+      MODEREE: "Modérée",
+      FERME: "Ferme",
+      STRICTE: "Stricte",
+    } as Record<string, string>,
+    cancelPolicyDesc: {
+      FLEXIBLE: "Annulation gratuite jusqu'à 24 h avant l'arrivée.",
+      MODEREE: "Annulation gratuite jusqu'à 5 jours avant l'arrivée.",
+      FERME:
+        "Annulation gratuite jusqu'à 30 jours avant ; 50 % remboursé entre 7 et 30 jours ; aucun remboursement à moins de 7 jours.",
+      STRICTE: "50 % remboursé si annulé au moins 14 jours avant ; aucun remboursement après.",
+    } as Record<string, string>,
     gallery: {
       ouvrir: "Ouvrir la galerie",
       voirToutes: (n: number) => `Voir les ${n} photos`,
@@ -408,6 +422,13 @@ export const fr = {
       ANNULEE: "Annulée",
       TERMINEE: "Terminée",
     } as Record<string, string>,
+    annulerReservation: "Annuler cette réservation",
+    annulerConfirm: "Confirmer l'annulation",
+    annulerAnnuler: "Garder la réservation",
+    remboursement: (montant: number) =>
+      montant > 0 ? `Remboursement : ${montant} TND` : "Aucun remboursement selon la politique",
+    cancelledAt: (date: string) => `Annulée le ${date}`,
+    rembourseLabel: (montant: number) => `Remboursé : ${montant} TND`,
   },
   annonceForm: {
     titre: "Titre de l'annonce",
@@ -426,6 +447,9 @@ export const fr = {
     surface: "Surface (m²)",
     pieces: "Nombre de pièces",
     capacite: "Capacité (voyageurs)",
+    politiqueAnnulation: "Politique d'annulation",
+    politiqueAnnulationAide:
+      "Définit ce que le voyageur récupère s'il annule. Plus elle est souple, plus vous rassurez ; plus elle est stricte, plus vous protégez vos revenus.",
     equipements: "Équipements",
     description: "Description",
     genererDescription: "Générer la description",
@@ -787,6 +811,8 @@ export const fr = {
     placeholderPrix:
       "Choisissez vos dates sur le calendrier pour voir le prix total — sans aucun frais caché.",
     selectionnezDates: "Sélectionnez vos dates",
+    annulationImpossible: "Cette réservation ne peut plus être annulée.",
+    annulationConfirmee: "Votre réservation a été annulée.",
   },
   alaUne: {
     titre: "Mettez votre annonce à la une",

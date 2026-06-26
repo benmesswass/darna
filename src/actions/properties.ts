@@ -9,7 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { requireLister, requireUser } from "@/lib/session";
 import { resolveCity, getCity } from "@/lib/geo";
 import { buildPropertySlug } from "@/lib/slug";
-import { AMENITIES, PROPERTY_TYPES, verticalOfType } from "@/lib/constants";
+import { AMENITIES, CANCEL_POLICIES, PROPERTY_TYPES, verticalOfType } from "@/lib/constants";
 import { verticalEnabled, kycGatingEnabled } from "@/lib/modes";
 import { FEATURED_DURATION_DAYS, LISTING_LIFETIME_DAYS } from "@/lib/config";
 import { logAudit } from "@/lib/audit";
@@ -36,6 +36,7 @@ const createSchema = z
     longitude: z.coerce.number().min(7).max(12),
     description: z.string().trim().min(40).max(4000),
     amenities: z.array(z.enum(AMENITIES)).max(AMENITIES.length),
+    cancelPolicy: z.enum(CANCEL_POLICIES).default("MODEREE"),
   })
   .refine((data) => data.type !== "SEJOUR" || Number(data.maxGuests) >= 1, {
     message: "capacite",
@@ -61,6 +62,7 @@ export async function createPropertyAction(
     longitude: formData.get("longitude"),
     description: formData.get("description"),
     amenities: formData.getAll("amenities"),
+    cancelPolicy: formData.get("cancelPolicy") || undefined,
   });
   if (!parsed.success) return { error: fr.common.champsRequis };
 
@@ -137,6 +139,9 @@ export async function createPropertyAction(
       latitude: data.latitude,
       longitude: data.longitude,
       amenities: data.amenities.join("|"),
+      // Politique d'annulation : pertinente uniquement pour les séjours (les
+      // ventes/locations longue durée n'ont pas de réservation à annuler).
+      cancelPolicy: data.type === "SEJOUR" ? data.cancelPolicy : "MODEREE",
       expiresAt: new Date(Date.now() + LISTING_LIFETIME_DAYS * 24 * 60 * 60 * 1000),
       ownerId: user.id,
       photos: { create: photoRecords },
@@ -195,6 +200,7 @@ const updateSchema = z.object({
   longitude: z.coerce.number().min(7).max(12),
   description: z.string().trim().min(40).max(4000),
   amenities: z.array(z.enum(AMENITIES)).max(AMENITIES.length),
+  cancelPolicy: z.enum(CANCEL_POLICIES).default("MODEREE"),
 });
 
 export async function updatePropertyAction(
@@ -217,6 +223,7 @@ export async function updatePropertyAction(
     longitude: formData.get("longitude"),
     description: formData.get("description"),
     amenities: formData.getAll("amenities"),
+    cancelPolicy: formData.get("cancelPolicy") || undefined,
   });
   if (!parsed.success) return { error: fr.common.champsRequis };
 
@@ -245,6 +252,7 @@ export async function updatePropertyAction(
       latitude: data.latitude,
       longitude: data.longitude,
       amenities: data.amenities.join("|"),
+      cancelPolicy: property.type === "SEJOUR" ? data.cancelPolicy : "MODEREE",
       // Détails séjour (table satellite, M2) : tenu synchrone avec le shadow.
       stay:
         property.type === "SEJOUR" && data.maxGuests

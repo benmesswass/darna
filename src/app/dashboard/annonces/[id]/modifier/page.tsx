@@ -82,6 +82,7 @@ export default async function ModifierAnnoncePage({
               longitude: property.longitude,
               description: property.description,
               amenities: property.amenities ? property.amenities.split("|") : [],
+              cancelPolicy: property.cancelPolicy,
             }}
           />
         </div>

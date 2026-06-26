@@ -10,7 +10,12 @@ import {
 import { useT } from "@/components/i18n/LocaleProvider";
 import { PhotoDropzone } from "./PhotoDropzone";
 import { generateDescription } from "@/lib/description";
-import { AMENITIES, PROPERTY_TYPES, type PropertyType } from "@/lib/constants";
+import {
+  AMENITIES,
+  CANCEL_POLICIES,
+  PROPERTY_TYPES,
+  type PropertyType,
+} from "@/lib/constants";
 import { CITIES, getCity, nearestCity, resolveCity } from "@/lib/geo";
 import { AddressAutocomplete } from "./AddressAutocomplete";
 import { LocationPicker } from "@/components/map/LocationPicker";
@@ -22,6 +27,7 @@ import {
   DoorIcon,
   UsersIcon,
   CloseIcon,
+  ShieldIcon,
 } from "@/components/icons";
 
 const inputClass =
@@ -42,6 +48,7 @@ export type PropertyFormInitial = {
   longitude: number;
   description: string;
   amenities: string[];
+  cancelPolicy: string;
 };
 
 /** Formulaire d'annonce — création (sans `initial`) ou modification (avec). */
@@ -71,6 +78,9 @@ export function PropertyForm({
     lng: initial?.longitude ?? 10.1815,
   });
   const [description, setDescription] = useState(initial?.description ?? "");
+  // Vide à la création : l'hôte DOIT choisir (champ essentiel). En édition,
+  // on préremplit avec la politique déjà enregistrée.
+  const [cancelPolicy, setCancelPolicy] = useState(initial?.cancelPolicy ?? "");
   // URLs d'aperçu des photos sélectionnées (création), dans l'ordre choisi.
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   // Instantané des champs au moment d'ouvrir l'aperçu (null = aperçu fermé).
@@ -176,7 +186,9 @@ export function PropertyForm({
       ) : null}
 
       <label className="block space-y-1.5">
-        <span className={labelClass}>{fr.annonceForm.titre}</span>
+        <span className={labelClass}>
+          {fr.annonceForm.titre} <span className="text-red-600">*</span>
+        </span>
         <input
           name="title"
           type="text"
@@ -216,7 +228,9 @@ export function PropertyForm({
           ) : null}
         </label>
         <label className="block space-y-1.5">
-          <span className={labelClass}>{priceLabel}</span>
+          <span className={labelClass}>
+            {priceLabel} <span className="text-red-600">*</span>
+          </span>
           <input
             name="price"
             type="number"
@@ -230,7 +244,9 @@ export function PropertyForm({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block space-y-1.5">
-          <span className={labelClass}>{fr.annonceForm.ville}</span>
+          <span className={labelClass}>
+            {fr.annonceForm.ville} <span className="text-red-600">*</span>
+          </span>
           <select
             name="city"
             required
@@ -279,7 +295,9 @@ export function PropertyForm({
         </label>
         {type === "SEJOUR" ? (
           <label className="block space-y-1.5">
-            <span className={labelClass}>{fr.annonceForm.capacite}</span>
+            <span className={labelClass}>
+              {fr.annonceForm.capacite} <span className="text-red-600">*</span>
+            </span>
             <input
               name="maxGuests"
               type="number"
@@ -292,6 +310,52 @@ export function PropertyForm({
           </label>
         ) : null}
       </div>
+
+      {type === "SEJOUR" ? (
+        <fieldset className="space-y-3 rounded-2xl bg-cream/50 p-4 ring-1 ring-darna/15">
+          <p className="flex items-center gap-1.5 text-sm font-bold text-darna">
+            <ShieldIcon width={16} height={16} />
+            {fr.annonceForm.politiqueAnnulation}
+            <span className="text-red-600">*</span>
+          </p>
+          <p className="text-xs leading-relaxed text-ink/55">
+            {fr.annonceForm.politiqueAnnulationAide}
+          </p>
+          <div className="grid gap-2.5 sm:grid-cols-2">
+            {CANCEL_POLICIES.map((p) => {
+              const selected = cancelPolicy === p;
+              return (
+                <label
+                  key={p}
+                  className={`flex cursor-pointer flex-col gap-1 rounded-xl border bg-white p-3.5 transition ${
+                    selected
+                      ? "border-darna ring-2 ring-darna/30"
+                      : "border-darna/15 hover:border-darna/40"
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="cancelPolicy"
+                      value={p}
+                      required
+                      checked={selected}
+                      onChange={(e) => setCancelPolicy(e.target.value)}
+                      className="h-4 w-4 accent-darna"
+                    />
+                    <span className="text-sm font-bold text-ink">
+                      {fr.property.cancelPolicy[p]}
+                    </span>
+                  </span>
+                  <span className="ps-6 text-xs leading-relaxed text-ink/60">
+                    {fr.property.cancelPolicyDesc[p]}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        </fieldset>
+      ) : null}
 
       <fieldset className="space-y-1.5">
         <legend className={labelClass}>
@@ -330,7 +394,9 @@ export function PropertyForm({
 
       <div className="space-y-1.5">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className={labelClass}>{fr.annonceForm.description}</span>
+          <span className={labelClass}>
+            {fr.annonceForm.description} <span className="text-red-600">*</span>
+          </span>
           <button
             type="button"
             onClick={onGenerate}

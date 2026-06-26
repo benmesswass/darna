@@ -313,6 +313,20 @@ export const ar: Dictionary = {
     favoriSansDossier: "بلا مجلّد",
     partagerWhatsapp: (titre: string, prix: string) =>
       `عسلامة، مهتم بالإعلان متاعك « ${titre} » (${prix}) اللي شفتو على دارنا. مازال متوفّر؟`,
+    politiqueAnnulation: "سياسة الإلغاء",
+    cancelPolicy: {
+      FLEXIBLE: "مرنة",
+      MODEREE: "معتدلة",
+      FERME: "حازمة",
+      STRICTE: "صارمة",
+    } as Record<string, string>,
+    cancelPolicyDesc: {
+      FLEXIBLE: "إلغاء مجاني حتى 24 ساعة قبل الوصول.",
+      MODEREE: "إلغاء مجاني حتى 5 أيام قبل الوصول.",
+      FERME:
+        "إلغاء مجاني حتى 30 يوم قبل؛ استرجاع 50% بين 7 و30 يوم؛ لا استرجاع في أقل من 7 أيام.",
+      STRICTE: "استرجاع 50% عند الإلغاء 14 يوم على الأقل قبل؛ لا استرجاع بعد ذلك.",
+    } as Record<string, string>,
     gallery: {
       ouvrir: "حلّ المعرض",
       voirToutes: (n: number) => `شوف ${n} تصاور`,
@@ -428,6 +442,13 @@ export const ar: Dictionary = {
       ANNULEE: "ملغى",
       TERMINEE: "مكمّل",
     } as Record<string, string>,
+    annulerReservation: "الغ هذا الحجز",
+    annulerConfirm: "أكّد الإلغاء",
+    annulerAnnuler: "اِحفظ حجزي",
+    remboursement: (montant: number) =>
+      montant > 0 ? `استرجاع: ${montant} دينار` : "لا استرجاع حسب السياسة",
+    cancelledAt: (date: string) => `ملغى في ${date}`,
+    rembourseLabel: (montant: number) => `مُسترجع: ${montant} دينار`,
   },
   annonceForm: {
     titre: "عنوان الإعلان",
@@ -446,6 +467,9 @@ export const ar: Dictionary = {
     surface: "المساحة (م²)",
     pieces: "عدد البيوت",
     capacite: "السعة (مسافرين)",
+    politiqueAnnulation: "سياسة الإلغاء",
+    politiqueAnnulationAide:
+      "تحدّد شنوّة يرجع للمسافر كان يلغي. كل ما كانت مرنة أكثر، كل ما طمأنت المسافر؛ وكل ما كانت صارمة، كل ما حميت مداخيلك.",
     equipements: "التجهيزات",
     description: "الوصف",
     genererDescription: "ولّد الوصف",
@@ -800,6 +824,8 @@ export const ar: Dictionary = {
     moisSuivant: "الشهور الجايين",
     placeholderPrix: "اختار التواريخ متاعك في الروزنامة باش تشوف السوم الكامل — بلا حتى مليم مخبّي.",
     selectionnezDates: "اختار التواريخ متاعك",
+    annulationImpossible: "هذا الحجز ما ينجّمش يتلغى.",
+    annulationConfirmee: "الحجز متاعك تلغى.",
   },
   alaUne: {
     titre: "حطّ إعلانك في الواجهة",

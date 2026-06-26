@@ -6,7 +6,7 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { getCity } from "../src/lib/geo";
 import { buildPropertySlug } from "../src/lib/slug";
-import { verticalOfType } from "../src/lib/constants";
+import { verticalOfType, CANCEL_POLICIES } from "../src/lib/constants";
 import { hashCin } from "../src/lib/crypto";
 
 const prisma = new PrismaClient();
@@ -1083,6 +1083,12 @@ async function main() {
         latitude: cityRef.latitude + p.jitter[0],
         longitude: cityRef.longitude + p.jitter[1],
         amenities: p.amenities.join("|"),
+        // Variété de démo : chaque séjour adopte une politique différente en
+        // tournant sur les 4 niveaux (les non-séjours gardent le défaut).
+        cancelPolicy:
+          p.type === "SEJOUR"
+            ? CANCEL_POLICIES[i % CANCEL_POLICIES.length]
+            : "MODEREE",
         publishedAt,
         expiresAt,
         featuredUntil: p.featuredDaysLeft

@@ -7,6 +7,7 @@ import { StayDatesPicker } from "@/modules/stay/listing/StayDatesPicker";
 import { UsersIcon } from "@/components/icons";
 import { ListingDetail } from "@/modules/core/listing/ListingDetail";
 import { Caracteristique } from "@/modules/core/listing/Caracteristique";
+import type { CancelPolicy } from "@/lib/constants";
 import type {
   ListingData,
   ListingFavCtx,
@@ -84,7 +85,21 @@ export async function StayDetail({
         </section>
       }
       belowPrice={
-        <p className="mt-1 text-xs text-ink/50">{fr.property.fraisServiceInfo}</p>
+        <>
+          <p className="mt-1 text-xs text-ink/50">{fr.property.fraisServiceInfo}</p>
+          <div className="mt-2 rounded-xl bg-cream px-3 py-2 text-xs">
+            <p className="font-semibold text-ink/80">
+              {fr.property.politiqueAnnulation} :{" "}
+              <span className="text-darna">
+                {fr.property.cancelPolicy[property.cancelPolicy as CancelPolicy] ??
+                  property.cancelPolicy}
+              </span>
+            </p>
+            <p className="mt-0.5 text-ink/60">
+              {fr.property.cancelPolicyDesc[property.cancelPolicy as CancelPolicy]}
+            </p>
+          </div>
+        </>
       }
       cta={
         <PropertyCtas
