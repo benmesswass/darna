@@ -53,6 +53,7 @@ export default async function DashboardLayout({
       ? [
           { href: "/dashboard/annonces", label: fr.dashboard.mesAnnonces, icon: "BuildingIcon" as IconName },
           { href: "/dashboard/demandes", label: fr.dashboard.demandesRecues, icon: "UsersIcon" as IconName },
+          { href: "/dashboard/revenus", label: fr.dashboard.revenus, icon: "CoinsIcon" as IconName },
           { href: "/dashboard/yield", label: fr.dashboard.yieldAdvisor, icon: "SparklesIcon" as IconName },
         ]
       : []),

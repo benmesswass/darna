@@ -34,7 +34,7 @@ export const ar: Dictionary = {
     heroLine2: "السوم اللي تشوفو هو اللي تخلّصو.",
     heroLine3: "فلوسك محميّة.",
     heroSub:
-      "دارنا هي أول منصة تونسية وين كل إعلان موثّق، كل سوم شفّاف، وكل خلاص محمي بنظام الضمان.",
+      "دارنا هي أول منصة تونسية وين كل إعلان موثّق، كل سوم شفّاف، وكل خلاص محمي حتّى تكمّل الإقامة.",
     ctaSejours: "لوّج على إقامة",
     ctaImmobilier: "اكتشف العقارات",
   },
@@ -56,7 +56,7 @@ export const ar: Dictionary = {
     heroQuestion: "شنوّة تلوّج عليه؟",
     diffTitle: "إقامات ولا عقارات؟",
     diffSejours:
-      "للعطلة: أحجز مسكن موثوق وخلّص بأمان (ضمان) — الفلوس ما تتعطاش للمضيف كان بعد ما توصل.",
+      "للعطلة: أحجز مسكن موثوق وخلّص بأمان — الفلوس ما تتعطاش للمضيف كان بعد ما تكمّل إقامتك.",
     diffImmo:
       "باش تسكن طول العام: شراء ولا كراء طويل الأمد، اتصال مباشر بالمالك ولا الوكالة — بلا خلاص أونلاين.",
     trustTitle: "كيفاش دارنا تحميك",
@@ -66,9 +66,9 @@ export const ar: Dictionary = {
     trust2Title: "حتى مليم مخبّي",
     trust2Desc:
       "الملخّص يفصّللك كل دينار قبل الخلاص: السوم، الليالي، ومعلوم الخدمة. حتى معلوم زيارة، أبدًا.",
-    trust3Title: "فلوسك في الضمان",
+    trust3Title: "خلاص محمي",
     trust3Desc:
-      "خلاصك ما يوصلش للمضيف كان بعد 24 ساعة من وصولك. كان صار مشكل، ترجعلك فلوسك الكل.",
+      "خلاصك ما يوصلش للمضيف كان بعد ما تكمّل إقامتك: يبقى محمي عند دارنا حتّى تمشي.",
     featuredTitle: "آخر الإعلانات الموثّقة",
     featuredAll: "شوف الإعلانات الكل",
     alaUneTitle: "في الواجهة",
@@ -438,7 +438,7 @@ export const ar: Dictionary = {
     contratBail: "عقد الكراء",
     statutReservation: {
       EN_ATTENTE: "في انتظار الخلاص",
-      CONFIRMEE: "مؤكّد — الفلوس في الضمان",
+      CONFIRMEE: "مؤكّد — الخلاص محمي",
       ANNULEE: "ملغى",
       TERMINEE: "مكمّل",
     } as Record<string, string>,
@@ -449,6 +449,21 @@ export const ar: Dictionary = {
       montant > 0 ? `استرجاع: ${montant} دينار` : "لا استرجاع حسب السياسة",
     cancelledAt: (date: string) => `ملغى في ${date}`,
     rembourseLabel: (montant: number) => `مُسترجع: ${montant} دينار`,
+    revenus: "المداخيل",
+    revenusTitre: "مداخيلي",
+    revenusSousTitre:
+      "المسافر يخلّص وقت الحجز؛ دارنا تحفظ المبلغ وتعطيهولك كان بعد ما يكمّل إقامتو. هاذي ضمانة « الخلاص المحمي » اللي تطمّن المسافرين وتخلّيهم يحجزو.",
+    revenusTotal: "مداخيل مؤكّدة",
+    revenusEnAttente: "في انتظار الصرف",
+    revenusVerse: "متصرّف",
+    revenusAucun: "ما فماش مداخيل للتوّ.",
+    revenusAucunCta:
+      "كان يخلّص مسافر حجز، المبلغ يبان هنا — الأول في انتظار الصرف، ومن بعد يتصرّفلك بعد ما يمشي.",
+    revenusBadgeEnAttente: "في انتظار الصرف",
+    revenusBadgeVerse: "متصرّف",
+    revenusVersementPrevu: (date: string) =>
+      `يتصرّف بعد ما يمشي المسافر (${date})`,
+    revenusVerseApres: (date: string) => `متصرّف — الإقامة كمّلت في ${date}`,
   },
   annonceForm: {
     titre: "عنوان الإعلان",
@@ -660,7 +675,7 @@ export const ar: Dictionary = {
       `<div dir="rtl" style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
       `<h1 style="color:#0f766e;font-size:20px">تأكّد الحجز ✅</h1>` +
       `<p>أهلا ${p.guestName}،</p>` +
-      `<p>الحجز متاعك في <strong>${p.propertyTitle}</strong> تأكّد، وفلوسك محفوظة في ضمان Darna حتّى ما توصل.</p>` +
+      `<p>الحجز متاعك في <strong>${p.propertyTitle}</strong> تأكّد. فلوسك محميّة عند Darna: ما تتعطاش للمضيف كان بعد ما تكمّل إقامتك.</p>` +
       `<table style="width:100%;border-collapse:collapse;margin:16px 0">` +
       `<tr><td style="padding:6px 0;color:#6b7280">الدخول</td><td style="padding:6px 0;text-align:left;font-weight:600">${p.checkIn}</td></tr>` +
       `<tr><td style="padding:6px 0;color:#6b7280">الخروج</td><td style="padding:6px 0;text-align:left;font-weight:600">${p.checkOut}</td></tr>` +
@@ -792,14 +807,14 @@ export const ar: Dictionary = {
     verifRequiseDesc:
       "باش تكون الثقة بين الكل في دارنا، كان الحسابات الموثّقة (إيميل + تيليفون) تنجّم تحجز. ياخذلك أقلّ من دقيقتين.",
     verifRequiseCta: "ثبّت حسابي",
-    paiementTitre: "خلاص مؤمّن — ضمان دارنا",
+    paiementTitre: "خلاص مؤمّن — محمي عند دارنا",
     sequestreExplication:
-      "فلوسك محميّة: تقعد في الضمان عند دارنا وما توصل للمضيف كان بعد 24 ساعة من الوصول. كان صار مشكل عند الوصول، ترجعلك فلوسك الكل.",
+      "فلوسك محميّة: دارنا تحفظها طول إقامتك وما تعطيهاش للمضيف كان بعد ما تمشي. عمرك ما تتخلّص للمضيف قبل ما تقيم.",
     paiementMockInfo:
       "الخلاص عبر Konnect / Flouci قريبًا. وضع تجريبي: حتى خصم حقيقي ما يصير.",
     payerSimulation: "اخلص (تجربة)",
     paiementKonnectInfo:
-      "خلاص مؤمّن عبر Konnect — كارت بنكية، e-DINAR ولا wallet. فلوسك تبقى محميّة بضمان دارنا.",
+      "خلاص مؤمّن عبر Konnect — كارت بنكية، e-DINAR ولا wallet. فلوسك تبقى محميّة عند دارنا حتّى تكمّل إقامتك.",
     payerKonnect: "اخلص بـ Konnect",
     redirectionKonnect: "توجيه للخلاص المؤمّن…",
     paiementEchoue:
@@ -811,7 +826,7 @@ export const ar: Dictionary = {
     reservationExpiree: "الحجز هذا فات وقتو. عاود اطلب من فضلك.",
     paiementConfirme: "الحجز تأكّد!",
     paiementConfirmeDetail:
-      "فلوسك في الضمان. المضيف تعلّم — تلقى التفاصيل في « حجوزاتي ».",
+      "خلاصك محمي حتّى تكمّل إقامتك. المضيف تعلّم — تلقى التفاصيل في « حجوزاتي ».",
     voirMesReservations: "شوف حجوزاتي",
     sejourDates: (arrivee: string, depart: string) =>
       `من ${arrivee} إلى ${depart}`,
@@ -937,7 +952,7 @@ export const ar: Dictionary = {
       "إعلانات موثّقة في عين المكان من وكلائنا: اللي تشوفو من باريس ولا مونريال موجود فعلًا في الحمامات.",
     arg2Titre: "اخلص بكل أمان",
     arg2Desc:
-      "ضمان دارنا: فلوسك ما تتخلّصش كان بعد وصولك. الخلاص بالبطاقة البنكية العالمية قريبًا.",
+      "خلاص محمي مع دارنا: فلوسك ما تتعطاش للمضيف كان بعد إقامتك. الخلاص بالبطاقة البنكية العالمية قريبًا.",
     arg3Titre: "زيارات بالفيديو (قريبًا)",
     arg3Desc: "وكيل يزور العقار معاك بالفيديو، قبل أي التزام.",
     toggleTitre: "اعرض الأسعار بعملتك",
