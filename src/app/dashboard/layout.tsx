@@ -70,6 +70,15 @@ export default async function DashboardLayout({
       icon: "ShieldIcon" as IconName,
       badge: verifsRestantes > 0 ? verifsRestantes : undefined,
     },
+    ...(user.role === "ADMIN"
+      ? [
+          {
+            href: "/dashboard/admin/analytics",
+            label: fr.admin.navAnalytics,
+            icon: "ChartIcon" as IconName,
+          },
+        ]
+      : []),
     ...(isAdminOrWakil
       ? [
           {

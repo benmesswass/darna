@@ -11,6 +11,7 @@ import {
 } from "@/actions/auth";
 import { useT } from "@/components/i18n/LocaleProvider";
 import { TurnstileWidget } from "@/components/auth/TurnstileWidget";
+import { COUNTRY_LABELS } from "@/lib/constants";
 
 const inputClass =
   "w-full rounded-xl border border-darna/15 bg-cream px-3.5 py-2.5 text-sm outline-none focus:border-darna";
@@ -329,6 +330,20 @@ export function RegisterForm({
           <span className="font-normal text-ink/40">({fr.common.optionnel})</span>
         </span>
         <input name="phone" type="tel" className={inputClass} />
+      </label>
+      <label className="block space-y-1.5">
+        <span className="text-sm font-semibold text-ink/70">
+          {fr.auth.pays}{" "}
+          <span className="font-normal text-ink/40">({fr.common.optionnel})</span>
+        </span>
+        <select name="country" defaultValue="" className={inputClass}>
+          <option value="">—</option>
+          {COUNTRY_LABELS.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
       </label>
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold text-ink/70">{fr.auth.role}</span>
