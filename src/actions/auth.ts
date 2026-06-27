@@ -6,7 +6,8 @@ import { z } from "zod";
 import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { signIn, signOut } from "@/lib/auth";
-import { assertRateLimit } from "@/lib/rate-limit";
+import { assertRateLimit, clientIp } from "@/lib/rate-limit";
+import { verifyTurnstile } from "@/lib/turnstile";
 import { logAudit } from "@/lib/audit";
 import { safeCallbackUrl } from "@/lib/redirect";
 import { issueOtp } from "@/lib/otp";
@@ -57,6 +58,13 @@ export async function registerAction(
   if (!(await assertRateLimit("inscription"))) {
     return { error: fr.common.tropDeTentatives };
   }
+
+  // CAPTCHA anti-robot (no-op si désactivé). Vérifié AVANT toute écriture.
+  const captchaOk = await verifyTurnstile(
+    formData.get("cf-turnstile-response") as string | null,
+    await clientIp()
+  );
+  if (!captchaOk) return { error: fr.auth.captchaEchec };
 
   const parsed = registerSchema.safeParse({
     name: formData.get("name"),
@@ -138,6 +146,13 @@ export async function loginAction(
     password: formData.get("password"),
   });
   if (!parsed.success) return { error: fr.auth.identifiantsInvalides };
+
+  // CAPTCHA anti-robot / anti brute-force (no-op si désactivé), avant signIn.
+  const captchaOk = await verifyTurnstile(
+    formData.get("cf-turnstile-response") as string | null,
+    await clientIp()
+  );
+  if (!captchaOk) return { error: fr.auth.captchaEchec };
 
   // Retour à la page voulue (ex. formulaire « devenir hôte ») après connexion,
   // validé contre l'open redirect ; défaut = /dashboard.

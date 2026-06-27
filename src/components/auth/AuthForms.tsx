@@ -10,6 +10,7 @@ import {
   type AuthFormState,
 } from "@/actions/auth";
 import { useT } from "@/components/i18n/LocaleProvider";
+import { TurnstileWidget } from "@/components/auth/TurnstileWidget";
 import { COUNTRY_LABELS } from "@/lib/constants";
 
 const inputClass =
@@ -126,7 +127,13 @@ function Feedback({ state }: { state: AuthFormState }) {
   return null;
 }
 
-export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
+export function LoginForm({
+  callbackUrl,
+  captchaSiteKey = "",
+}: {
+  callbackUrl?: string;
+  captchaSiteKey?: string;
+}) {
   const fr = useT();
   const [state, action, pending] = useActionState(loginAction, undefined);
   const inscriptionHref = callbackUrl
@@ -145,6 +152,7 @@ export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
         <span className="text-sm font-semibold text-ink/70">{fr.auth.motDePasse}</span>
         <PasswordInput name="password" autoComplete="current-password" />
       </label>
+      <TurnstileWidget siteKey={captchaSiteKey} />
       <SubmitButton label={fr.auth.seConnecter} pending={pending} />
       <p className="text-center text-sm">
         <Link
@@ -261,9 +269,11 @@ export function ResetPasswordForm({ token }: { token: string }) {
 export function RegisterForm({
   defaultRole = "VOYAGEUR",
   callbackUrl,
+  captchaSiteKey = "",
 }: {
   defaultRole?: string;
   callbackUrl?: string;
+  captchaSiteKey?: string;
 }) {
   const fr = useT();
   const [state, action, pending] = useActionState(registerAction, undefined);
@@ -343,6 +353,7 @@ export function RegisterForm({
           <option value="AGENCE">{fr.auth.roleAgence}</option>
         </select>
       </label>
+      <TurnstileWidget siteKey={captchaSiteKey} />
       <SubmitButton label={fr.auth.sInscrire} pending={pending} />
       <p className="text-center text-sm text-ink/60">
         {fr.auth.dejaCompte}{" "}

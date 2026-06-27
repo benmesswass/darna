@@ -337,6 +337,7 @@ export const fr = {
     dejaCompte: "Déjà un compte ?",
     pasDeCompte: "Pas encore de compte ?",
     identifiantsInvalides: "Identifiants invalides.",
+    captchaEchec: "Vérification anti-robot échouée. Veuillez réessayer.",
     emailDejaUtilise: "Impossible de créer le compte avec ces informations.",
     inscriptionReussie: "Compte créé ! Vous pouvez vous connecter.",
     motDePasseRegle: "8 caractères minimum",

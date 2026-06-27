@@ -26,6 +26,11 @@ vi.mock("next-auth", () => ({ AuthError: class AuthError extends Error {} }));
 
 vi.mock("@/lib/rate-limit", () => ({
   assertRateLimit: vi.fn().mockResolvedValue(true),
+  clientIp: vi.fn().mockResolvedValue("127.0.0.1"),
+}));
+
+vi.mock("@/lib/turnstile", () => ({
+  verifyTurnstile: vi.fn().mockResolvedValue(true),
 }));
 
 vi.mock("@/lib/audit", () => ({ logAudit: vi.fn() }));
@@ -37,7 +42,7 @@ vi.mock("@/lib/mailer", () => ({ sendEmail: vi.fn() }));
 
 vi.mock("@/lib/i18n/server", () => ({
   getT: vi.fn().mockResolvedValue({
-    auth: { inscriptionReussie: "Compte créé !" },
+    auth: { inscriptionReussie: "Compte créé !", captchaEchec: "Anti-robot échoué." },
     common: { champsRequis: "Champs requis.", tropDeTentatives: "Trop de tentatives." },
     email: {
       mailSujet: "Darna — vérifiez votre adresse e-mail",
@@ -50,6 +55,7 @@ import { registerAction } from "@/actions/auth";
 import { prisma } from "@/lib/prisma";
 import { issueOtp } from "@/lib/otp";
 import { sendEmail } from "@/lib/mailer";
+import { verifyTurnstile } from "@/lib/turnstile";
 
 function formData(): FormData {
   const fd = new FormData();
@@ -107,5 +113,15 @@ describe("registerAction — vérification d'email à l'inscription", () => {
     expect(prisma.user.create).not.toHaveBeenCalled();
     expect(issueOtp).not.toHaveBeenCalled();
     expect(sendEmail).not.toHaveBeenCalled();
+  });
+
+  it("bloque l'inscription si le CAPTCHA échoue (avant toute écriture)", async () => {
+    (verifyTurnstile as unknown as Mock).mockResolvedValueOnce(false);
+
+    const res = await registerAction(undefined, formData());
+
+    expect(res).toEqual({ error: "Anti-robot échoué." });
+    expect(prisma.user.create).not.toHaveBeenCalled();
+    expect(issueOtp).not.toHaveBeenCalled();
   });
 });

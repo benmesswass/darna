@@ -99,3 +99,16 @@ export type OtpProvider = "sms" | "meta-whatsapp";
 export function getOtpProvider(): OtpProvider {
   return process.env.OTP_PROVIDER === "meta-whatsapp" ? "meta-whatsapp" : "sms";
 }
+
+/**
+ * CAPTCHA anti-robot sur les formulaires auth. Défaut : `off` (aucune friction
+ * en démo, aucune clé requise). `turnstile` active Cloudflare Turnstile (gratuit,
+ * respectueux de la vie privée). Comme pour Konnect, l'activation est EXPLICITE :
+ * la présence des clés ne suffit pas. La complétude de la config (clés présentes)
+ * est garantie au boot par src/lib/env.ts.
+ */
+export type CaptchaMode = "off" | "turnstile";
+
+export function captchaMode(): CaptchaMode {
+  return process.env.CAPTCHA_MODE === "turnstile" ? "turnstile" : "off";
+}
