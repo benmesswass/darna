@@ -11,6 +11,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/prix-du-marche`, changeFrequency: "daily", priority: 0.7 },
     { url: `${SITE_URL}/diaspora`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${SITE_URL}/devenir-wakil`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${SITE_URL}/cgu`, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${SITE_URL}/mentions-legales`, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${SITE_URL}/confidentialite`, changeFrequency: "yearly", priority: 0.3 },
   ];
 
   // Seules les annonces actives et non expirées sont indexables. Borné à la

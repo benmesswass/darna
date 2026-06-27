@@ -90,6 +90,7 @@ export const fr = {
     aPropos: "À propos",
     cgu: "CGU",
     mentionsLegales: "Mentions légales",
+    confidentialite: "Politique de confidentialité",
     contact: "Contact",
     copyright: "Darna — fait avec soin en Tunisie.",
   },
@@ -1075,8 +1076,166 @@ export const fr = {
   pagesLegales: {
     cguTitre: "Conditions générales d'utilisation",
     mentionsTitre: "Mentions légales",
+    confidentialiteTitre: "Politique de confidentialité",
     aRediger:
       "Document en cours de rédaction — il sera publié avant le lancement officiel de la plateforme.",
+    miseAJour: "Dernière mise à jour : juin 2026",
+    avertissement:
+      "Ce document est fourni à titre informatif pour la phase de démonstration de Darna. Il devra être revu et validé par un conseil juridique avant le lancement public de la plateforme.",
+    cgu: {
+      intro:
+        "Les présentes conditions générales d'utilisation (« CGU ») régissent l'accès et l'usage de la plateforme Darna, qui met en relation des voyageurs et des annonceurs pour la location de séjours et de biens immobiliers en Tunisie. En créant un compte ou en utilisant le service, vous acceptez ces CGU.",
+      sections: [
+        {
+          titre: "1. Objet",
+          corps: [
+            "Darna est une place de marché de mise en relation. Darna n'est ni propriétaire, ni loueur, ni agent des biens publiés : la plateforme fournit des outils de recherche, de réservation et de vérification de confiance.",
+          ],
+        },
+        {
+          titre: "2. Compte et inscription",
+          corps: [
+            "La création d'un compte requiert une adresse e-mail valide et un mot de passe. Vous vous engagez à fournir des informations exactes et à les tenir à jour.",
+            "Certaines actions exigent la vérification de votre e-mail et de votre téléphone, voire de votre identité (CIN). Vous êtes responsable de la confidentialité de vos identifiants et de toute activité réalisée depuis votre compte.",
+          ],
+        },
+        {
+          titre: "3. Annonces et vérification",
+          corps: [
+            "Les annonces sont publiées sous la seule responsabilité de l'annonceur (hôte ou agence). Toute annonce est soumise à une vérification (réseau Wakil) avant sa mise en ligne et l'attribution du badge « Vérifié Darna ».",
+            "Darna se réserve le droit de refuser, suspendre ou retirer toute annonce non conforme, frauduleuse ou trompeuse.",
+          ],
+        },
+        {
+          titre: "4. Réservations et paiements",
+          corps: [
+            "Une demande de réservation bloque le créneau pendant 15 minutes. Les prix et frais (dont les frais de service) sont systématiquement recalculés côté serveur ; aucune valeur transmise par le navigateur n'est utilisée comme montant facturé.",
+            "Pendant la phase de démonstration, le séquestre des fonds est simulé par défaut : aucun mouvement d'argent réel n'a lieu. Lorsque le paiement réel (Konnect) est activé, le montant débité est toujours exprimé en dinars tunisiens (TND), l'affichage en euros n'étant qu'une conversion indicative.",
+          ],
+        },
+        {
+          titre: "5. Obligations des utilisateurs",
+          corps: [
+            "Vous vous engagez à utiliser Darna de manière loyale, à ne pas contourner les mécanismes de sécurité ou de vérification, à ne pas publier de contenu illicite et à respecter la législation tunisienne en vigueur.",
+          ],
+        },
+        {
+          titre: "6. Responsabilité",
+          corps: [
+            "Darna agit en qualité d'intermédiaire. La plateforme est fournie « en l'état » pendant la phase de démonstration et ne saurait être tenue responsable des litiges entre voyageurs et annonceurs, dans les limites permises par la loi.",
+          ],
+        },
+        {
+          titre: "7. Suspension et résiliation",
+          corps: [
+            "Darna peut suspendre ou clôturer un compte en cas de manquement aux présentes CGU, de fraude ou d'usage abusif. Vous pouvez fermer votre compte à tout moment.",
+          ],
+        },
+        {
+          titre: "8. Droit applicable",
+          corps: [
+            "Les présentes CGU sont régies par le droit tunisien. Tout litige relève de la compétence des tribunaux de Tunis, sous réserve des règles impératives protégeant les consommateurs résidant dans l'Union européenne.",
+          ],
+        },
+      ],
+    },
+    mentions: {
+      intro:
+        "Conformément aux obligations de transparence, les informations relatives à l'éditeur et à l'hébergement de la plateforme Darna sont précisées ci-dessous.",
+      sections: [
+        {
+          titre: "Éditeur",
+          corps: [
+            "Darna est un projet édité par Wassim Ben Messaoud. Pour toute question, vous pouvez écrire à : contact@darna.tn.",
+            "Les coordonnées légales complètes (forme juridique, immatriculation, siège) seront publiées avant le lancement commercial de la plateforme.",
+          ],
+        },
+        {
+          titre: "Hébergement",
+          corps: [
+            "La plateforme est hébergée chez un prestataire d'infrastructure cloud. Les coordonnées de l'hébergeur seront précisées avant la mise en production.",
+          ],
+        },
+        {
+          titre: "Propriété intellectuelle",
+          corps: [
+            "La marque Darna, son logo, ses textes et son interface sont protégés. Toute reproduction sans autorisation est interdite. Les contenus des annonces restent la propriété de leurs auteurs.",
+          ],
+        },
+        {
+          titre: "Contact",
+          corps: [
+            "Pour toute demande relative aux mentions légales : contact@darna.tn.",
+          ],
+        },
+      ],
+    },
+    confidentialite: {
+      intro:
+        "Darna accorde une importance particulière à la protection de vos données personnelles. Cette politique explique quelles données nous collectons, pourquoi, et quels sont vos droits — y compris pour les utilisateurs résidant dans l'Union européenne (RGPD).",
+      sections: [
+        {
+          titre: "1. Responsable du traitement",
+          corps: [
+            "Le responsable du traitement des données est l'éditeur de Darna. Pour toute question relative à vos données, écrivez à : privacy@darna.tn.",
+          ],
+        },
+        {
+          titre: "2. Données collectées",
+          corps: [
+            "Données de compte : nom, adresse e-mail, numéro de téléphone, rôle (voyageur, hôte, agence).",
+            "Données de vérification (KYC) : votre numéro de carte d'identité (CIN), conservé chiffré et jamais affiché en clair.",
+            "Données d'usage et techniques : réservations, favoris, messages de contact, journaux de sécurité (adresse IP, horodatage) à des fins d'audit.",
+          ],
+        },
+        {
+          titre: "3. Finalités",
+          corps: [
+            "Vos données servent à fournir le service (compte, recherche, réservation), à assurer la confiance et la sécurité (vérification, prévention de la fraude, audit) et à vous contacter au sujet de vos réservations.",
+          ],
+        },
+        {
+          titre: "4. Base légale",
+          corps: [
+            "Le traitement repose sur l'exécution du contrat (fourniture du service), notre intérêt légitime (sécurité et prévention de la fraude), le respect d'obligations légales, et votre consentement lorsqu'il est requis (par exemple pour les cookies non essentiels).",
+          ],
+        },
+        {
+          titre: "5. Cookies",
+          corps: [
+            "Darna n'utilise que des cookies strictement nécessaires : session de connexion, préférence de langue, préférence de devise, et mémorisation de votre choix de consentement. Aucun cookie publicitaire ni traceur tiers n'est utilisé pendant la phase de démonstration.",
+            "Vous pouvez à tout moment effacer les cookies depuis votre navigateur ; les cookies nécessaires sont indispensables au bon fonctionnement du service.",
+          ],
+        },
+        {
+          titre: "6. Conservation",
+          corps: [
+            "Les données de compte sont conservées tant que votre compte est actif. Les journaux d'audit sont conservés pour une durée limitée à des fins de sécurité. Vos données sont supprimées ou anonymisées lorsqu'elles ne sont plus nécessaires.",
+          ],
+        },
+        {
+          titre: "7. Sécurité",
+          corps: [
+            "Vos mots de passe sont stockés sous forme de condensé sécurisé (bcrypt) ; votre CIN est chiffrée au repos (AES-256-GCM). L'accès aux données sensibles est restreint et tracé.",
+          ],
+        },
+        {
+          titre: "8. Vos droits",
+          corps: [
+            "Conformément au RGPD, vous disposez d'un droit d'accès, de rectification, d'effacement, de limitation et d'opposition au traitement de vos données, ainsi que d'un droit à la portabilité. Pour exercer ces droits, contactez : privacy@darna.tn.",
+            "Vous pouvez également introduire une réclamation auprès de l'autorité de protection des données compétente.",
+          ],
+        },
+      ],
+    },
+  },
+  cookieConsent: {
+    titre: "Vos cookies, votre choix",
+    message:
+      "Darna n'utilise que des cookies strictement nécessaires à son fonctionnement (connexion, langue, devise). Aucun traceur publicitaire.",
+    enSavoirPlus: "En savoir plus",
+    accepter: "J'ai compris",
+    refuser: "Continuer sans accepter",
   },
   notFound: {
     titre: "Page introuvable",
