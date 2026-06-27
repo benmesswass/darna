@@ -365,6 +365,7 @@ export const ar: Dictionary = {
     afficherMotDePasse: "أظهر كلمة السر",
     masquerMotDePasse: "خبي كلمة السر",
     confirmerMotDePasse: "أكد كلمة السر",
+    pays: "بلد الإقامة",
     motDePasseOublie: "نسيت كلمة السر؟",
     resetTitre: "إعادة تعيين كلمة السر",
     resetSousTitre:
@@ -598,6 +599,7 @@ export const ar: Dictionary = {
     annonces: "الإعلانات",
     navAnnonces: "مراجعة الإعلانات",
     navWakils: "مراجعة الوكلاء",
+    navAnalytics: "لوحة القيادة",
     wakils: "الوكلاء",
     fileModeration: "قائمة مراجعة الإعلانات",
     fileModerationDesc:
@@ -643,6 +645,106 @@ export const ar: Dictionary = {
     wakilsSupprimeeesDesc: "هذه الطلبات تمّت أرشفتها. يمكنك حذفها نهائياً.",
     supprimerDefinitivement: "حذف",
     aucuneCandidatureSupprimee: "لا توجد طلبات مؤرشفة.",
+  },
+  analytics: {
+    titre: "لوحة القيادة",
+    sousTitre:
+      "متابعة اعتماد المنصة: الاكتساب، التفعيل، الحجوزات والاحتفاظ. بيانات محسوبة مباشرة.",
+    genereLe: (date: string) => `محدّث في ${date}`,
+    pourcent: (v: number) => `٪${Math.round(v * 100)}`,
+    rolesLabel: {
+      VOYAGEUR: "المسافرون",
+      HOTE: "المضيفون",
+      AGENCE: "الوكالات",
+      ADMIN: "المدراء",
+    } as Record<string, string>,
+
+    periodeLabel: "الفترة",
+    periodes: { "7": "7 أيام", "30": "30 يومًا", "90": "90 يومًا", all: "الكل" } as Record<
+      string,
+      string
+    >,
+    periodeNom: (p: number | null) =>
+      p === null ? "منذ البداية" : `آخر ${p} يومًا`,
+    surPeriode: (label: string) => `خلال ${label}`,
+
+    sectionVerticales: "حسب القطاع — إقامة مقابل عقارات",
+    verticalesDesc:
+      "نموذجان لا يُخلطان: الإقامة معاملاتية (دفع محمي)، والعقارات وساطة (عملاء محتملون، دون دفع إلكتروني).",
+    verticalLabel: { STAY: "إقامة", IMMO: "عقارات" } as Record<string, string>,
+    vStayBadge: "معاملاتي",
+    vImmoBadge: "وساطة",
+    vActives: "إعلانات نشطة",
+    vVerifiees: "موثّقة نشطة",
+    vTaux: "نسبة التوثيق",
+    vReservations: "حجوزات مدفوعة",
+    vGmv: "GMV",
+    vLeads: "عملاء محتملون",
+
+    sectionNorthStar: "نظرة عامة",
+    annoncesVerifieesActives: "إعلانات موثّقة نشطة",
+    annoncesVerifieesActivesDesc: "النجم الشمالي للمنتج",
+    annoncesActives: "إعلانات نشطة",
+    tauxVerification: "نسبة التوثيق",
+    gmv: "حجم الحجوزات (GMV)",
+    gmvDesc: "الحجوزات المدفوعة، بما فيها التجريبية",
+    gmvReelle: "منها الحقيقي (دون التجريبي)",
+    reservationsConfirmees: "حجوزات مؤكَّدة",
+    utilisateursTotal: "حسابات منشأة",
+
+    sectionAcquisition: "الاكتساب والتفعيل",
+    inscriptions7j: "تسجيلات (7 أيام)",
+    inscriptions30j: "تسجيلات (30 يومًا)",
+    inscriptionsParJour: (n: number) => `تسجيلات / يوم — آخر ${n} يومًا`,
+    repartitionRoles: "التوزيع حسب الدور",
+    repartitionPays: "التوزيع حسب البلد",
+    repartitionPaysDesc: "الحسابات حسب البلد المُصرَّح — متابعة الجالية.",
+    paysNonRenseigne: "غير محدَّد",
+    tauxEmailVerifie: "بريد موثّق",
+    tauxKyc: "هوية موثّقة (المعلنون)",
+    annonceursActifs: "معلنون لديهم إعلان",
+    annonceursActifsDesc: "نسبة المضيفين/الوكالات الذين نشروا",
+
+    sectionFunnel: "مسار الحجز",
+    funnelDesc:
+      "من الحجز المنشأ إلى الدفع المؤكَّد. المراحل تعكس جدول الحجوزات.",
+    funnelCreees: "منشأة",
+    funnelInitiees: "بدأ الدفع",
+    funnelConfirmees: "مؤكَّدة",
+    funnelAnnulees: "ملغاة",
+    funnelExpirees: "منتهية (15 دقيقة)",
+    funnelEnAttente: "قيد الانتظار",
+    tauxConversion: "نسبة التحويل",
+    tauxAbandon: "نسبة التخلي",
+
+    sectionRetention: "الاحتفاظ والتسرّب",
+    retentionDesc:
+      "متى يتوقف المسافرون عن الحجز. تقسيم حسب تاريخ آخر حجز.",
+    voyageursAyantReserve: "مسافرون حجزوا",
+    actifs30j: "نشطون (≤ 30 يومًا)",
+    aRisque: "في خطر (30–90 يومًا)",
+    perdus: "مفقودون (> 90 يومًا)",
+    cohortes: "أفواج التفعيل",
+    cohortesDesc:
+      "حسب شهر التسجيل: نسبة الحسابات التي حجزت مرة واحدة على الأقل.",
+    moisInscription: "الشهر",
+    inscrits: "تسجيلات",
+    actives: "مفعّلون",
+    tauxActivation: "التفعيل",
+
+    sectionWakil: "شبكة الوكلاء",
+    candidaturesParStatut: "الطلبات حسب الحالة",
+    verificationsSurPlace: "توثيقات ميدانية",
+    topWakils: "أبرز الوكلاء (توثيقات)",
+
+    sectionEvenements: "النشاط الأخير",
+    evenementsDesc: "آخر أحداث سجل التدقيق.",
+    evenement: "الحدث",
+    utilisateur: "المستخدم",
+    quand: "متى",
+    systeme: "النظام",
+    echec: "فشل",
+    aucuneDonnee: "لا توجد بيانات بعد.",
   },
   email: {
     titre: "تثبّت الإيميل",

@@ -342,6 +342,7 @@ export const en: Dictionary = {
     afficherMotDePasse: "Show password",
     masquerMotDePasse: "Hide password",
     confirmerMotDePasse: "Confirm password",
+    pays: "Country of residence",
     motDePasseOublie: "Forgot your password?",
     resetTitre: "Reset your password",
     resetSousTitre:
@@ -578,6 +579,7 @@ export const en: Dictionary = {
     annonces: "Listings",
     navAnnonces: "Verify listings",
     navWakils: "Verify Wakils",
+    navAnalytics: "Dashboard",
     wakils: "Wakils",
     fileModeration: "Listing moderation queue",
     fileModerationDesc:
@@ -623,6 +625,106 @@ export const en: Dictionary = {
     wakilsSupprimeeesDesc: "These applications have been archived. You can permanently delete them.",
     supprimerDefinitivement: "Delete",
     aucuneCandidatureSupprimee: "No archived applications.",
+  },
+  analytics: {
+    titre: "Dashboard",
+    sousTitre:
+      "Track platform adoption: acquisition, activation, bookings and retention. Computed live.",
+    genereLe: (date: string) => `Updated ${date}`,
+    pourcent: (v: number) => `${Math.round(v * 100)}%`,
+    rolesLabel: {
+      VOYAGEUR: "Travelers",
+      HOTE: "Hosts",
+      AGENCE: "Agencies",
+      ADMIN: "Admins",
+    } as Record<string, string>,
+
+    periodeLabel: "Period",
+    periodes: { "7": "7d", "30": "30d", "90": "90d", all: "All" } as Record<
+      string,
+      string
+    >,
+    periodeNom: (p: number | null) =>
+      p === null ? "all time" : `the last ${p} days`,
+    surPeriode: (label: string) => `Over ${label}`,
+
+    sectionVerticales: "By vertical — Stay vs Real estate",
+    verticalesDesc:
+      "Two models that should not be mixed: stays are transactional (escrowed payment), real estate is lead generation (no online payment).",
+    verticalLabel: { STAY: "Stay", IMMO: "Real estate" } as Record<string, string>,
+    vStayBadge: "Transactional",
+    vImmoBadge: "Lead generation",
+    vActives: "Active listings",
+    vVerifiees: "Verified active",
+    vTaux: "Verif. rate",
+    vReservations: "Paid bookings",
+    vGmv: "GMV",
+    vLeads: "Leads received",
+
+    sectionNorthStar: "Overview",
+    annoncesVerifieesActives: "Verified active listings",
+    annoncesVerifieesActivesDesc: "Product north-star",
+    annoncesActives: "Active listings",
+    tauxVerification: "Verification rate",
+    gmv: "Booked volume (GMV)",
+    gmvDesc: "Paid bookings, demo included",
+    gmvReelle: "of which real (excl. demo)",
+    reservationsConfirmees: "Confirmed bookings",
+    utilisateursTotal: "Accounts created",
+
+    sectionAcquisition: "Acquisition & activation",
+    inscriptions7j: "Signups (7d)",
+    inscriptions30j: "Signups (30d)",
+    inscriptionsParJour: (n: number) => `Signups / day — last ${n} days`,
+    repartitionRoles: "Breakdown by role",
+    repartitionPays: "Breakdown by country",
+    repartitionPaysDesc: "Accounts by declared country — diaspora tracking.",
+    paysNonRenseigne: "Not provided",
+    tauxEmailVerifie: "Verified emails",
+    tauxKyc: "Verified identity (listers)",
+    annonceursActifs: "Listers with a listing",
+    annonceursActifsDesc: "Share of hosts/agencies who published",
+
+    sectionFunnel: "Booking funnel",
+    funnelDesc:
+      "From created booking to confirmed payment. Steps reflect the bookings table.",
+    funnelCreees: "Created",
+    funnelInitiees: "Payment started",
+    funnelConfirmees: "Confirmed",
+    funnelAnnulees: "Cancelled",
+    funnelExpirees: "Expired (15 min)",
+    funnelEnAttente: "Pending",
+    tauxConversion: "Conversion rate",
+    tauxAbandon: "Abandon rate",
+
+    sectionRetention: "Retention & churn",
+    retentionDesc:
+      "When travelers stop booking. Segmented on last booking date.",
+    voyageursAyantReserve: "Travelers who booked",
+    actifs30j: "Active (≤ 30d)",
+    aRisque: "At risk (30–90d)",
+    perdus: "Lost (> 90d)",
+    cohortes: "Activation cohorts",
+    cohortesDesc:
+      "By signup month: share of accounts that booked at least once.",
+    moisInscription: "Month",
+    inscrits: "Signups",
+    actives: "Activated",
+    tauxActivation: "Activation",
+
+    sectionWakil: "Wakil network",
+    candidaturesParStatut: "Applications by status",
+    verificationsSurPlace: "On-site verifications",
+    topWakils: "Top Wakils (verifications)",
+
+    sectionEvenements: "Recent activity",
+    evenementsDesc: "Latest audit trail events.",
+    evenement: "Event",
+    utilisateur: "User",
+    quand: "When",
+    systeme: "System",
+    echec: "failure",
+    aucuneDonnee: "No data yet.",
   },
   email: {
     titre: "Email verification",
