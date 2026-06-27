@@ -90,6 +90,7 @@ export const en: Dictionary = {
     aPropos: "About",
     cgu: "Terms of use",
     mentionsLegales: "Legal notice",
+    confidentialite: "Privacy policy",
     contact: "Contact",
     copyright: "Darna — made with care in Tunisia.",
   },
@@ -1067,8 +1068,166 @@ export const en: Dictionary = {
   pagesLegales: {
     cguTitre: "Terms of use",
     mentionsTitre: "Legal notice",
+    confidentialiteTitre: "Privacy policy",
     aRediger:
       "Document being drafted — it will be published before the platform's official launch.",
+    miseAJour: "Last updated: June 2026",
+    avertissement:
+      "This document is provided for information purposes during Darna's demonstration phase. It must be reviewed and validated by legal counsel before the platform's public launch.",
+    cgu: {
+      intro:
+        "These terms of use (the “Terms”) govern access to and use of the Darna platform, which connects travellers and advertisers for short stays and real-estate listings in Tunisia. By creating an account or using the service, you accept these Terms.",
+      sections: [
+        {
+          titre: "1. Purpose",
+          corps: [
+            "Darna is a matchmaking marketplace. Darna neither owns, rents out, nor acts as agent for the listed properties: the platform provides search, booking and trust-verification tools.",
+          ],
+        },
+        {
+          titre: "2. Account and registration",
+          corps: [
+            "Creating an account requires a valid email address and a password. You agree to provide accurate information and to keep it up to date.",
+            "Some actions require verification of your email and phone, and possibly your identity (national ID). You are responsible for keeping your credentials confidential and for any activity carried out from your account.",
+          ],
+        },
+        {
+          titre: "3. Listings and verification",
+          corps: [
+            "Listings are published under the sole responsibility of the advertiser (host or agency). Every listing is subject to verification (the Wakil network) before going live and being granted the “Verified by Darna” badge.",
+            "Darna reserves the right to refuse, suspend or remove any listing that is non-compliant, fraudulent or misleading.",
+          ],
+        },
+        {
+          titre: "4. Bookings and payments",
+          corps: [
+            "A booking request holds the slot for 15 minutes. Prices and fees (including the service fee) are always recomputed server-side; no value sent by the browser is used as the charged amount.",
+            "During the demonstration phase, fund escrow is simulated by default: no real money movement takes place. When real payment (Konnect) is enabled, the charged amount is always expressed in Tunisian dinars (TND); the euro display is only an indicative conversion.",
+          ],
+        },
+        {
+          titre: "5. User obligations",
+          corps: [
+            "You agree to use Darna fairly, not to circumvent security or verification mechanisms, not to publish unlawful content, and to comply with applicable Tunisian law.",
+          ],
+        },
+        {
+          titre: "6. Liability",
+          corps: [
+            "Darna acts as an intermediary. The platform is provided “as is” during the demonstration phase and cannot be held liable for disputes between travellers and advertisers, to the extent permitted by law.",
+          ],
+        },
+        {
+          titre: "7. Suspension and termination",
+          corps: [
+            "Darna may suspend or close an account in the event of a breach of these Terms, fraud or abusive use. You may close your account at any time.",
+          ],
+        },
+        {
+          titre: "8. Governing law",
+          corps: [
+            "These Terms are governed by Tunisian law. Any dispute falls under the jurisdiction of the courts of Tunis, subject to the mandatory rules protecting consumers residing in the European Union.",
+          ],
+        },
+      ],
+    },
+    mentions: {
+      intro:
+        "In line with transparency obligations, information about the publisher and hosting of the Darna platform is provided below.",
+      sections: [
+        {
+          titre: "Publisher",
+          corps: [
+            "Darna is a project published by Wassim Ben Messaoud. For any question, you can write to: contact@darna.tn.",
+            "Full legal details (legal form, registration, registered office) will be published before the platform's commercial launch.",
+          ],
+        },
+        {
+          titre: "Hosting",
+          corps: [
+            "The platform is hosted by a cloud infrastructure provider. The host's details will be specified before going to production.",
+          ],
+        },
+        {
+          titre: "Intellectual property",
+          corps: [
+            "The Darna brand, logo, texts and interface are protected. Any reproduction without authorisation is prohibited. Listing content remains the property of its authors.",
+          ],
+        },
+        {
+          titre: "Contact",
+          corps: [
+            "For any request regarding the legal notice: contact@darna.tn.",
+          ],
+        },
+      ],
+    },
+    confidentialite: {
+      intro:
+        "Darna places particular importance on protecting your personal data. This policy explains what data we collect, why, and what your rights are — including for users residing in the European Union (GDPR).",
+      sections: [
+        {
+          titre: "1. Data controller",
+          corps: [
+            "The data controller is the publisher of Darna. For any question about your data, write to: privacy@darna.tn.",
+          ],
+        },
+        {
+          titre: "2. Data collected",
+          corps: [
+            "Account data: name, email address, phone number, role (traveller, host, agency).",
+            "Verification (KYC) data: your national ID number, stored encrypted and never displayed in clear text.",
+            "Usage and technical data: bookings, favourites, contact messages, security logs (IP address, timestamp) for audit purposes.",
+          ],
+        },
+        {
+          titre: "3. Purposes",
+          corps: [
+            "Your data is used to provide the service (account, search, booking), to ensure trust and security (verification, fraud prevention, audit) and to contact you about your bookings.",
+          ],
+        },
+        {
+          titre: "4. Legal basis",
+          corps: [
+            "Processing is based on the performance of the contract (providing the service), our legitimate interest (security and fraud prevention), compliance with legal obligations, and your consent where required (for example for non-essential cookies).",
+          ],
+        },
+        {
+          titre: "5. Cookies",
+          corps: [
+            "Darna only uses strictly necessary cookies: login session, language preference, currency preference, and remembering your consent choice. No advertising cookie or third-party tracker is used during the demonstration phase.",
+            "You can clear cookies from your browser at any time; necessary cookies are essential for the service to work properly.",
+          ],
+        },
+        {
+          titre: "6. Retention",
+          corps: [
+            "Account data is kept for as long as your account is active. Audit logs are kept for a limited period for security purposes. Your data is deleted or anonymised when no longer needed.",
+          ],
+        },
+        {
+          titre: "7. Security",
+          corps: [
+            "Your passwords are stored as a secure hash (bcrypt); your national ID is encrypted at rest (AES-256-GCM). Access to sensitive data is restricted and logged.",
+          ],
+        },
+        {
+          titre: "8. Your rights",
+          corps: [
+            "Under the GDPR, you have the right to access, rectify, erase, restrict and object to the processing of your data, as well as the right to portability. To exercise these rights, contact: privacy@darna.tn.",
+            "You may also lodge a complaint with the competent data protection authority.",
+          ],
+        },
+      ],
+    },
+  },
+  cookieConsent: {
+    titre: "Your cookies, your choice",
+    message:
+      "Darna only uses cookies strictly necessary for it to work (login, language, currency). No advertising trackers.",
+    enSavoirPlus: "Learn more",
+    accepter: "Got it",
+    refuser: "Continue without accepting",
   },
   notFound: {
     titre: "Page not found",
