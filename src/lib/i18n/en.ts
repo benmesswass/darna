@@ -946,7 +946,7 @@ export const en: Dictionary = {
     soldeArriveeAide:
       "You pay the remainder directly to the host, in cash, on the day you arrive.",
     acompteSequestreInfo:
-      "Your deposit is held in escrow by Darna. The host's contact details are shared with you as soon as the booking is confirmed.",
+      "Your deposit is held in escrow by Darna. The host's contact details are shared with you once the free-cancellation window has passed — your booking is then firm.",
     commissionNonRemboursable:
       "Free cancellation: you're fully refunded, Darna commission included. After the free window, the commission is retained and the rest follows the listing's cancellation policy.",
     annulationGratuiteJusqu: (date: string) =>
@@ -972,6 +972,12 @@ export const en: Dictionary = {
     contactVerrouilleTitre: "Host contact details hidden",
     contactVerrouilleAide:
       "For everyone's safety, the host's contact details are shared once your deposit is paid and the booking is confirmed.",
+    // ── Contact locked until the free-cancellation window closes ───────────
+    contactLockedTitreHote: "Host contact details available soon",
+    contactLockedTitreVoyageur: "Guest contact details available soon",
+    contactDebloqueLe: (date: string) => `Unlocked on ${date}`,
+    contactLockedAide:
+      "For everyone's safety, direct contact details are exchanged once the free-cancellation window has passed — your booking is then firm.",
   },
   alaUne: {
     titre: "Feature your listing",

@@ -955,7 +955,7 @@ export const fr = {
     soldeArriveeAide:
       "Vous payez le reste directement à l'hôte, en espèces, le jour de votre arrivée.",
     acompteSequestreInfo:
-      "Votre acompte est bloqué en séquestre par Darna. Les coordonnées de l'hôte vous sont communiquées dès la confirmation de la réservation.",
+      "Votre acompte est bloqué en séquestre par Darna. Les coordonnées de l'hôte vous sont communiquées une fois passée la période d'annulation gratuite — votre réservation est alors ferme.",
     commissionNonRemboursable:
       "Annulation gratuite : vous êtes intégralement remboursé, commission Darna comprise. Passé le délai gratuit, la commission reste acquise et le reste suit la politique d'annulation de l'annonce.",
     annulationGratuiteJusqu: (date: string) =>
@@ -982,6 +982,12 @@ export const fr = {
     contactVerrouilleTitre: "Coordonnées de l'hôte masquées",
     contactVerrouilleAide:
       "Pour la sécurité de tous, les coordonnées de l'hôte vous sont communiquées dès que votre acompte est réglé et la réservation confirmée.",
+    // ── Contact verrouillé jusqu'à la fin de l'annulation gratuite ────────
+    contactLockedTitreHote: "Coordonnées de l'hôte bientôt disponibles",
+    contactLockedTitreVoyageur: "Coordonnées du voyageur bientôt disponibles",
+    contactDebloqueLe: (date: string) => `Débloquées le ${date}`,
+    contactLockedAide:
+      "Pour la sécurité de tous, les coordonnées directes sont échangées une fois la période d'annulation gratuite passée — votre réservation est alors ferme.",
   },
   alaUne: {
     titre: "Mettez votre annonce à la une",
