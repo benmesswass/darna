@@ -16,6 +16,7 @@ import { ActiveSection } from "@/components/layout/ActiveSection";
 import { formatDateFr } from "@/lib/format";
 import { Price } from "@/components/currency/Price";
 import { CheckIcon, ShieldIcon } from "@/components/icons";
+import type { CancelPolicy } from "@/lib/constants";
 
 export const metadata: Metadata = { title: frMeta.booking.paiementTitre };
 
@@ -58,6 +59,7 @@ export default async function PaiementPage({
         slug: true,
         verified: true,
         verificationLevel: true,
+        cancelPolicy: true,
       },
     },
   } as const;
@@ -255,6 +257,25 @@ export default async function PaiementPage({
               </Link>
             </p>
           ) : null}
+
+          {/* Politique d'annulation de l'annonce — affichée AU MOMENT de payer :
+              le voyageur sait ce qui est remboursable avant de s'engager. La
+              part remboursable se calcule sur (payé − commission). */}
+          <div className="mt-5 rounded-2xl bg-cream p-4 text-start text-sm">
+            <p className="font-semibold text-ink">
+              {fr.property.politiqueAnnulation} :{" "}
+              <span className="text-darna">
+                {fr.property.cancelPolicy[
+                  booking.property.cancelPolicy as CancelPolicy
+                ] ?? booking.property.cancelPolicy}
+              </span>
+            </p>
+            <p className="mt-1 text-xs text-ink/60">
+              {fr.property.cancelPolicyDesc[
+                booking.property.cancelPolicy as CancelPolicy
+              ] ?? ""}
+            </p>
+          </div>
 
           {/* Choix du montant à régler maintenant (acompte → total) + paiement.
               Le serveur reborne toujours dans [acompte, total]. */}
