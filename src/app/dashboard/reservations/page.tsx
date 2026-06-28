@@ -7,12 +7,11 @@ import { getSessionUser } from "@/lib/session";
 import { completeElapsedBookings } from "@/lib/bookings";
 import { formatDateShortFr } from "@/lib/format";
 import { Price } from "@/components/currency/Price";
-import { WhatsAppIcon, LockIcon } from "@/components/icons";
-import { toWhatsAppNumber } from "@/components/property/PropertyCtas";
 import { computeBookingRefund } from "@/lib/cancellation";
+import { contactRevealState, type ContactGate } from "@/lib/contact-reveal";
 import type { CancelPolicy } from "@/lib/constants";
 import { CancelBookingButton } from "@/components/booking/CancelBookingButton";
-import { RevealedContactCard } from "@/components/booking/RevealedContactCard";
+import { ContactReveal } from "@/components/booking/ContactReveal";
 
 const STATUS_STYLES: Record<string, string> = {
   EN_ATTENTE: "bg-amber-100 text-amber-800",
@@ -49,6 +48,7 @@ export default async function MesReservationsPage() {
             slug: true,
             title: true,
             city: true,
+            cancelPolicy: true,
             photos: { orderBy: { position: "asc" }, take: 1 },
           },
         },
@@ -125,48 +125,23 @@ export default async function MesReservationsPage() {
                     {fr.property.capacite(b.guests)}
                   </p>
 
-                  {/* Gating anti-bypass : les coordonnées du voyageur ne sont
-                      révélées à l'hôte qu'une fois l'acompte réglé (CONFIRMEE /
-                      TERMINEE). Avant, on n'affiche aucune donnée personnelle. */}
-                  {b.status === "CONFIRMEE" || b.status === "TERMINEE" ? (
-                    <>
-                      <p className="mt-1.5 text-sm font-semibold text-ink">
-                        {fr.dashboard.reservePar(b.guest.name)}
-                      </p>
-                      <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-                        <a
-                          href={`mailto:${b.guest.email}`}
-                          className="font-medium text-darna underline"
-                        >
-                          {b.guest.email}
-                        </a>
-                        {b.guest.phone ? (
-                          <>
-                            <a
-                              href={`tel:${b.guest.phone}`}
-                              className="font-medium text-darna underline"
-                            >
-                              {b.guest.phone}
-                            </a>
-                            <a
-                              href={`https://wa.me/${toWhatsAppNumber(b.guest.phone)}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 font-bold text-[#128C7E] underline"
-                            >
-                              <WhatsAppIcon width={15} height={15} />
-                              {fr.property.whatsapp}
-                            </a>
-                          </>
-                        ) : null}
-                      </div>
-                    </>
-                  ) : (
-                    <p className="mt-1.5 flex items-center gap-1.5 text-sm text-ink/50">
-                      <LockIcon width={14} height={14} />
-                      {fr.dashboard.contactVoyageurMasque}
-                    </p>
-                  )}
+                  {/* Gating anti-bypass : coordonnées du voyageur révélées
+                      seulement une fois la fenêtre d'annulation gratuite passée
+                      (sinon verrouillées avec date de déblocage). */}
+                  {(() => {
+                    const reveal = contactRevealState(
+                      b.status,
+                      b.checkIn,
+                      b.property.cancelPolicy as CancelPolicy
+                    );
+                    const gate: ContactGate =
+                      reveal.state === "revealed"
+                        ? { state: "revealed", viewer: "host", counterpart: b.guest }
+                        : reveal.state === "locked"
+                          ? { state: "locked", viewer: "host", revealAt: reveal.revealAt }
+                          : null;
+                    return <ContactReveal contacts={gate} className="mt-2" />;
+                  })()}
 
                   <p className="mt-1.5 text-sm">
                     <Price amount={b.totalPrice} className="font-bold text-darna" />
@@ -255,13 +230,22 @@ export default async function MesReservationsPage() {
                 <p className="mt-0.5 text-sm">
                   <Price amount={b.totalPrice} className="font-bold text-darna" />
                 </p>
-                {/* Coordonnées de l'hôte — révélées au voyageur après confirmation. */}
-                {b.status === "CONFIRMEE" || b.status === "TERMINEE" ? (
-                  <RevealedContactCard
-                    contacts={{ viewer: "guest", counterpart: b.property.owner }}
-                    className="mt-3"
-                  />
-                ) : null}
+                {/* Coordonnées de l'hôte — révélées au voyageur une fois la
+                    fenêtre d'annulation gratuite passée (sinon verrouillées). */}
+                {(() => {
+                  const reveal = contactRevealState(
+                    b.status,
+                    b.checkIn,
+                    b.property.cancelPolicy as CancelPolicy
+                  );
+                  const gate: ContactGate =
+                    reveal.state === "revealed"
+                      ? { state: "revealed", viewer: "guest", counterpart: b.property.owner }
+                      : reveal.state === "locked"
+                        ? { state: "locked", viewer: "guest", revealAt: reveal.revealAt }
+                        : null;
+                  return <ContactReveal contacts={gate} className="mt-3" />;
+                })()}
               </div>
               <div className="flex flex-col gap-2">
                 <Link

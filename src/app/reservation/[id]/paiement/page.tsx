@@ -11,7 +11,7 @@ import { isKonnectEnabled } from "@/lib/konnect";
 import { getRevealedContacts } from "@/lib/contact-reveal";
 import { cancellationSchedule } from "@/lib/cancellation";
 import { DepositPayment } from "@/components/booking/DepositPayment";
-import { RevealedContactCard } from "@/components/booking/RevealedContactCard";
+import { ContactReveal } from "@/components/booking/ContactReveal";
 import { HoldCountdown } from "@/components/booking/HoldCountdown";
 import { ActiveSection } from "@/components/layout/ActiveSection";
 import { formatDateFr } from "@/lib/format";
@@ -193,10 +193,9 @@ export default async function PaiementPage({
             </dl>
           </div>
 
-          {/* Coordonnées de l'hôte — révélées seulement maintenant (acompte réglé). */}
-          {contacts ? (
-            <RevealedContactCard contacts={contacts} className="mt-5" />
-          ) : null}
+          {/* Coordonnées de l'hôte — révélées une fois la fenêtre d'annulation
+              gratuite passée, sinon verrouillées avec date de déblocage. */}
+          <ContactReveal contacts={contacts} className="mt-5" />
 
           <Link
             href="/dashboard/reservations"

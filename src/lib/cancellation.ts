@@ -43,6 +43,21 @@ export function cancellationSchedule(policy: CancelPolicy, checkIn: Date): Refun
 }
 
 /**
+ * Date de fin de la période d'ANNULATION GRATUITE (taux 100 %) d'une
+ * réservation, ou `null` si la politique n'offre aucun palier gratuit (ex.
+ * STRICTE). Avant cette date, annuler rembourse intégralement ; après, ça coûte.
+ * Sert de seuil à la révélation différée du contact (anti-bypass) : tant
+ * qu'annuler est gratuit, aucune coordonnée directe n'est échangée.
+ */
+export function freeCancellationCutoff(
+  policy: CancelPolicy,
+  checkIn: Date
+): Date | null {
+  const free = POLICY_TIERS[policy].find((t) => t.rate === 1);
+  return free ? new Date(checkIn.getTime() - free.daysBefore * DAY_MS) : null;
+}
+
+/**
  * Calcule le montant remboursable selon la politique et le délai restant.
  *
  * ⚠️ `refundableBase` est le montant SUR LEQUEL porte le remboursement, déjà

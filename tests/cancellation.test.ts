@@ -3,6 +3,7 @@ import {
   computeRefund,
   computeBookingRefund,
   cancellationSchedule,
+  freeCancellationCutoff,
 } from "@/lib/cancellation";
 
 const DAY_MS = 86_400_000;
@@ -163,5 +164,26 @@ describe("cancellationSchedule — paliers datés", () => {
   it("FLEXIBLE : gratuit jusqu'à J-1", () => {
     const tiers = cancellationSchedule("FLEXIBLE", checkIn);
     expect(tiers).toEqual([{ rate: 1, until: new Date(checkIn.getTime() - 1 * DAY) }]);
+  });
+});
+
+describe("freeCancellationCutoff — seuil de révélation du contact", () => {
+  const DAY = DAY_MS;
+  const checkIn = new Date("2026-07-18T00:00:00.000Z");
+
+  it("MODEREE → fin du gratuit à J-5", () => {
+    expect(freeCancellationCutoff("MODEREE", checkIn)?.getTime()).toBe(
+      checkIn.getTime() - 5 * DAY
+    );
+  });
+
+  it("FERME → fin du gratuit à J-30 (palier 100 %)", () => {
+    expect(freeCancellationCutoff("FERME", checkIn)?.getTime()).toBe(
+      checkIn.getTime() - 30 * DAY
+    );
+  });
+
+  it("STRICTE → null (aucune annulation gratuite)", () => {
+    expect(freeCancellationCutoff("STRICTE", checkIn)).toBeNull();
   });
 });
