@@ -284,6 +284,7 @@ export const ar: Dictionary = {
       "العقار هذا مازال ما تثبّتناش منو في عين المكان. ما تخلّص حتى تسبقة خارج دارنا.",
     proprietaire: "المالك",
     agence: "وكالة",
+    hoteMasque: "صاحب دار متثبّت — الهويّة تتبيّن وقت الحجز",
     annonceIndisponible:
       "الإعلان هذا ما عادش نشيط. محفوظ كأرشيف فقط.",
     annonceEnAttente:
@@ -437,6 +438,8 @@ export const ar: Dictionary = {
     aucuneReservationHoteCta: "كي يحجز مسافر إعلان من إعلاناتك، يبان هوني.",
     reservePar: (nom: string) => `محجوز من ${nom}`,
     payeLe: (date: string) => `تخلّص في ${date}`,
+    contactVoyageurMasque:
+      "معلومات الاتصال متاع المسافر تتبيّن كيف يخلّص التسبقة.",
     aucuneDemande: "حتى طلب للتوّ.",
     aucunFavori: "حتى مفضّلة للتوّ.",
     reservationDe: (nom: string) => `حجز من ${nom}`,
@@ -948,6 +951,47 @@ export const ar: Dictionary = {
     selectionnezDates: "اختار التواريخ متاعك",
     annulationImpossible: "هذا الحجز ما ينجّمش يتلغى.",
     annulationConfirmee: "الحجز متاعك تلغى.",
+    // ── حجز التسبقة (ضد التحويل خارج المنصّة) : قدّاش تخلّص توّا ──────────
+    totalSejour: "إجمالي الإقامة",
+    payerMaintenant: "تخلّص توّا",
+    montantAPayer: "قدّاش تحبّ تخلّص توّا ؟",
+    montantAPayerAide:
+      "خلّص أونلاين على الأقلّ التسبقة (10٪) — عمولة دارنا داخلة فيها. تنجّم تخلّص أكثر حتى للمبلغ الكامل ؛ الباقي يتخلّص كاش لصاحب الدار وقت الوصول.",
+    acompteMin: "التسبقة الدنيا",
+    raccourciAcompte: (pct: number) => `تسبقة (${pct}٪)`,
+    raccourciMoitie: "النصف",
+    raccourciTotalite: "المبلغ الكامل",
+    pourcentDuTotal: (pct: number) => `${pct}٪ من الإجمالي`,
+    dontCommission: "فيها عمولة دارنا",
+    soldeArrivee: "الباقي يتخلّص كاش وقت الوصول",
+    soldeArriveeAide:
+      "تخلّص الباقي مباشرةً لصاحب الدار، كاش، نهار الوصول متاعك.",
+    acompteSequestreInfo:
+      "التسبقة متاعك محجوزة في الضمان عند دارنا. معلومات الاتصال متاع صاحب الدار يتبعثولك كيف يتأكّد الحجز.",
+    commissionNonRemboursable:
+      "الإلغاء المجّاني: يتردّلك المبلغ الكامل، عمولة دارنا داخلة فيه. بعد فوات الأجل المجّاني، العمولة تبقى عند دارنا والباقي يتبع سياسة الإلغاء متاعة الإعلان.",
+    annulationGratuiteJusqu: (date: string) => `إلغاء مجّاني حتى ${date}`,
+    annulationRembJusqu: (pct: number, date: string) =>
+      `${pct}٪ يتردّو حتى ${date}`,
+    annulationNonRembApres: (date: string) => `ما فمّاش ترجيع بعد ${date}`,
+    verifieWakil: "متثبّت من وكيل",
+    verifieWakilAide:
+      "الدار تثبّت منها على عين المكان عون وكيل موثوق.",
+    montantInvalide:
+      "مبلغ غير صحيح — خلّص بين التسبقة الدنيا وإجمالي الإقامة.",
+    // ── معلومات الاتصال تتبيّن بعد تأكيد الحجز (التسبقة تخلّصت) ──────────
+    contactHoteTitre: "معلومات الاتصال متاع صاحب الدار",
+    contactHoteAide:
+      "الحجز تأكّد : اتّصل بصاحب الدار مباشرةً باش تنظّم وصولك.",
+    contactVoyageurTitre: "معلومات الاتصال متاع المسافر",
+    contactVoyageurAide:
+      "اتّصل بالمسافر باش تحضّر وصولو والباقي الكاش.",
+    contactNom: "الاسم",
+    contactEmail: "البريد الإلكتروني",
+    contactTelephone: "الهاتف",
+    contactVerrouilleTitre: "معلومات الاتصال متاع صاحب الدار مخفيّة",
+    contactVerrouilleAide:
+      "لسلامة الجميع، معلومات الاتصال متاع صاحب الدار يتبعثولك كيف تخلّص التسبقة ويتأكّد الحجز.",
   },
   alaUne: {
     titre: "حطّ إعلانك في الواجهة",

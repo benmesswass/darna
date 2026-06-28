@@ -7,13 +7,18 @@ import { Prisma } from "@prisma/client";
 import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
-import { SERVICE_FEE_RATE, SITE_URL } from "@/lib/config";
+import {
+  SERVICE_FEE_RATE,
+  SITE_URL,
+  computeDepositAmount,
+  clampPayAmount,
+} from "@/lib/config";
 import { BOOKING_EXPIRY_MS } from "@/lib/constants";
 import { logAudit, logStructured } from "@/lib/audit";
 import { recomputePropertyRating } from "@/lib/listings";
 import { initKonnectPayment, isKonnectEnabled, signKonnectWebhook } from "@/lib/konnect";
 import { sendBookingConfirmationEmail } from "@/lib/notifications";
-import { computeRefund } from "@/lib/cancellation";
+import { computeBookingRefund } from "@/lib/cancellation";
 import type { CancelPolicy } from "@/lib/constants";
 
 export type BookingFormState = { error?: string } | undefined;
@@ -128,6 +133,8 @@ export async function createBookingAction(
   const subtotal = property.price * nights;
   const serviceFee = Math.round(subtotal * SERVICE_FEE_RATE);
   const totalPrice = subtotal + serviceFee;
+  // Acompte minimum dû en ligne, figé dès la création du hold (anti-bypass).
+  const depositAmount = computeDepositAmount(totalPrice, serviceFee);
   const expiresAt = new Date(Date.now() + BOOKING_EXPIRY_MS);
 
   let bookingId: string;
@@ -183,6 +190,7 @@ export async function createBookingAction(
           nightlyPrice: property.price,
           serviceFee,
           totalPrice,
+          depositAmount,
           status: "EN_ATTENTE",
           expiresAt,
         },
@@ -305,7 +313,14 @@ export async function quoteBookingAction(input: {
   return { ok: true, nights, subtotal, serviceFee, total: subtotal + serviceFee };
 }
 
-const confirmSchema = z.string().cuid();
+/** Montant choisi à la réservation : borné [acompte, total] côté serveur. */
+const payAmountSchema = z.object({
+  bookingId: z.string().cuid(),
+  // Montant que le voyageur choisit de régler maintenant (TND). Toujours
+  // re-clampé serveur — un client malveillant ne peut ni payer moins que
+  // l'acompte ni « confirmer » au-delà du total.
+  payAmount: z.coerce.number().finite(),
+});
 
 /** Paiement simulé : passe la réservation en séquestre Darna. */
 export async function confirmPaymentAction(formData: FormData): Promise<void> {
@@ -315,12 +330,22 @@ export async function confirmPaymentAction(formData: FormData): Promise<void> {
   if (isKonnectEnabled()) return;
 
   const user = await requireUser();
-  const parsed = confirmSchema.safeParse(formData.get("bookingId"));
+  const parsed = payAmountSchema.safeParse({
+    bookingId: formData.get("bookingId"),
+    payAmount: formData.get("payAmount"),
+  });
   if (!parsed.success) return;
 
   const booking = await prisma.booking.findUnique({
-    where: { id: parsed.data },
-    select: { id: true, guestId: true, status: true, expiresAt: true, totalPrice: true },
+    where: { id: parsed.data.bookingId },
+    select: {
+      id: true,
+      guestId: true,
+      status: true,
+      expiresAt: true,
+      totalPrice: true,
+      depositAmount: true,
+    },
   });
 
   // Autorisation stricte : seul le voyageur concerné peut payer sa réservation
@@ -341,6 +366,14 @@ export async function confirmPaymentAction(formData: FormData): Promise<void> {
     return;
   }
 
+  // Montant réellement encaissé : le choix du voyageur, CLAMPÉ serveur dans
+  // [acompte, total]. Jamais de confiance au montant brut du formulaire.
+  const amountPaid = clampPayAmount(
+    parsed.data.payAmount,
+    booking.depositAmount,
+    booking.totalPrice
+  );
+
   await prisma.booking.update({
     where: { id: booking.id },
     data: {
@@ -348,6 +381,7 @@ export async function confirmPaymentAction(formData: FormData): Promise<void> {
       escrow: "EN_SEQUESTRE",
       expiresAt: null, // Plus d'expiration une fois confirmé
       paidAt: new Date(),
+      amountPaid,
       demo: true, // Aucun argent réel n'a transité : réservation marquée DÉMO.
     },
   });
@@ -356,7 +390,12 @@ export async function confirmPaymentAction(formData: FormData): Promise<void> {
     action: "PAYMENT_CONFIRMED",
     userId: user.id,
     success: true,
-    metadata: { bookingId: booking.id, totalPrice: booking.totalPrice, demo: true },
+    metadata: {
+      bookingId: booking.id,
+      amountPaid,
+      totalPrice: booking.totalPrice,
+      demo: true,
+    },
   });
 
   await sendBookingConfirmationEmail(booking.id);
@@ -384,17 +423,21 @@ export async function startKonnectPaymentAction(
 
   if (!isKonnectEnabled()) return { error: fr.common.erreurInconnue };
 
-  const parsed = confirmSchema.safeParse(formData.get("bookingId"));
+  const parsed = payAmountSchema.safeParse({
+    bookingId: formData.get("bookingId"),
+    payAmount: formData.get("payAmount"),
+  });
   if (!parsed.success) return { error: fr.common.erreurInconnue };
 
   const booking = await prisma.booking.findUnique({
-    where: { id: parsed.data },
+    where: { id: parsed.data.bookingId },
     select: {
       id: true,
       guestId: true,
       status: true,
       expiresAt: true,
       totalPrice: true,
+      depositAmount: true,
       property: { select: { title: true } },
     },
   });
@@ -416,13 +459,22 @@ export async function startKonnectPaymentAction(
     : BOOKING_EXPIRY_MS;
   const lifespanMinutes = Math.max(2, Math.ceil(remainingMs / 60000));
 
+  // Montant à débiter = choix du voyageur, CLAMPÉ serveur dans [acompte, total].
+  // Mémorisé sur la réservation (amountPaid) AVANT la redirection : devient la
+  // source de vérité du montant attendu, revérifiée au règlement (settle).
+  const amountToCharge = clampPayAmount(
+    parsed.data.payAmount,
+    booking.depositAmount,
+    booking.totalPrice
+  );
+
   const [firstName, ...rest] = user.name.trim().split(/\s+/);
 
   let payUrl: string;
   let paymentRef: string;
   try {
     const result = await initKonnectPayment({
-      amountTND: booking.totalPrice,
+      amountTND: amountToCharge,
       orderId: booking.id,
       description: `Darna — ${booking.property.title}`,
       // URL de webhook SIGNÉE : on y joint le bookingId + son HMAC. Konnect
@@ -456,14 +508,19 @@ export async function startKonnectPaymentAction(
 
   await prisma.booking.update({
     where: { id: booking.id },
-    data: { paymentRef },
+    data: { paymentRef, amountPaid: amountToCharge },
   });
 
   await logAudit({
     action: "PAYMENT_INITIATED",
     userId: user.id,
     success: true,
-    metadata: { bookingId: booking.id, paymentRef, provider: "konnect" },
+    metadata: {
+      bookingId: booking.id,
+      paymentRef,
+      amountToCharge,
+      provider: "konnect",
+    },
   });
 
   return { payUrl };
@@ -555,7 +612,8 @@ export async function cancelBookingAction(
       guestId: true,
       status: true,
       checkIn: true,
-      totalPrice: true,
+      serviceFee: true,
+      amountPaid: true,
       createdAt: true,
       property: { select: { slug: true, cancelPolicy: true } },
     },
@@ -567,8 +625,12 @@ export async function cancelBookingAction(
   if (booking.status !== "CONFIRMEE")
     return { error: fr.booking.annulationImpossible };
 
-  const { refundAmount } = computeRefund(
-    booking.totalPrice,
+  // Annulation gratuite (politique ou grâce 24 h) → remboursement intégral,
+  // commission comprise. Sinon la commission Darna reste acquise et seul
+  // (encaissé − commission) suit la politique. Cf. computeBookingRefund.
+  const { refundAmount } = computeBookingRefund(
+    booking.amountPaid,
+    booking.serviceFee,
     booking.checkIn,
     booking.property.cancelPolicy as CancelPolicy,
     booking.createdAt

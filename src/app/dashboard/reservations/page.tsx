@@ -7,11 +7,12 @@ import { getSessionUser } from "@/lib/session";
 import { completeElapsedBookings } from "@/lib/bookings";
 import { formatDateShortFr } from "@/lib/format";
 import { Price } from "@/components/currency/Price";
-import { WhatsAppIcon } from "@/components/icons";
+import { WhatsAppIcon, LockIcon } from "@/components/icons";
 import { toWhatsAppNumber } from "@/components/property/PropertyCtas";
-import { computeRefund } from "@/lib/cancellation";
+import { computeBookingRefund } from "@/lib/cancellation";
 import type { CancelPolicy } from "@/lib/constants";
 import { CancelBookingButton } from "@/components/booking/CancelBookingButton";
+import { RevealedContactCard } from "@/components/booking/RevealedContactCard";
 
 const STATUS_STYLES: Record<string, string> = {
   EN_ATTENTE: "bg-amber-100 text-amber-800",
@@ -124,36 +125,48 @@ export default async function MesReservationsPage() {
                     {fr.property.capacite(b.guests)}
                   </p>
 
-                  <p className="mt-1.5 text-sm font-semibold text-ink">
-                    {fr.dashboard.reservePar(b.guest.name)}
-                  </p>
-                  <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-                    <a
-                      href={`mailto:${b.guest.email}`}
-                      className="font-medium text-darna underline"
-                    >
-                      {b.guest.email}
-                    </a>
-                    {b.guest.phone ? (
-                      <>
+                  {/* Gating anti-bypass : les coordonnées du voyageur ne sont
+                      révélées à l'hôte qu'une fois l'acompte réglé (CONFIRMEE /
+                      TERMINEE). Avant, on n'affiche aucune donnée personnelle. */}
+                  {b.status === "CONFIRMEE" || b.status === "TERMINEE" ? (
+                    <>
+                      <p className="mt-1.5 text-sm font-semibold text-ink">
+                        {fr.dashboard.reservePar(b.guest.name)}
+                      </p>
+                      <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
                         <a
-                          href={`tel:${b.guest.phone}`}
+                          href={`mailto:${b.guest.email}`}
                           className="font-medium text-darna underline"
                         >
-                          {b.guest.phone}
+                          {b.guest.email}
                         </a>
-                        <a
-                          href={`https://wa.me/${toWhatsAppNumber(b.guest.phone)}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 font-bold text-[#128C7E] underline"
-                        >
-                          <WhatsAppIcon width={15} height={15} />
-                          {fr.property.whatsapp}
-                        </a>
-                      </>
-                    ) : null}
-                  </div>
+                        {b.guest.phone ? (
+                          <>
+                            <a
+                              href={`tel:${b.guest.phone}`}
+                              className="font-medium text-darna underline"
+                            >
+                              {b.guest.phone}
+                            </a>
+                            <a
+                              href={`https://wa.me/${toWhatsAppNumber(b.guest.phone)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 font-bold text-[#128C7E] underline"
+                            >
+                              <WhatsAppIcon width={15} height={15} />
+                              {fr.property.whatsapp}
+                            </a>
+                          </>
+                        ) : null}
+                      </div>
+                    </>
+                  ) : (
+                    <p className="mt-1.5 flex items-center gap-1.5 text-sm text-ink/50">
+                      <LockIcon width={14} height={14} />
+                      {fr.dashboard.contactVoyageurMasque}
+                    </p>
+                  )}
 
                   <p className="mt-1.5 text-sm">
                     <Price amount={b.totalPrice} className="font-bold text-darna" />
@@ -178,6 +191,9 @@ export default async function MesReservationsPage() {
           city: true,
           cancelPolicy: true,
           photos: { orderBy: { position: "asc" }, take: 1 },
+          // Coordonnées de l'hôte : récupérées ici mais RENDUES uniquement pour
+          // les réservations confirmées (gating anti-bypass ci-dessous).
+          owner: { select: { name: true, email: true, phone: true } },
         },
       },
       review: { select: { id: true } },
@@ -239,6 +255,13 @@ export default async function MesReservationsPage() {
                 <p className="mt-0.5 text-sm">
                   <Price amount={b.totalPrice} className="font-bold text-darna" />
                 </p>
+                {/* Coordonnées de l'hôte — révélées au voyageur après confirmation. */}
+                {b.status === "CONFIRMEE" || b.status === "TERMINEE" ? (
+                  <RevealedContactCard
+                    contacts={{ viewer: "guest", counterpart: b.property.owner }}
+                    className="mt-3"
+                  />
+                ) : null}
               </div>
               <div className="flex flex-col gap-2">
                 <Link
@@ -259,8 +282,9 @@ export default async function MesReservationsPage() {
                   <CancelBookingButton
                     bookingId={b.id}
                     refundAmount={
-                      computeRefund(
-                        b.totalPrice,
+                      computeBookingRefund(
+                        b.amountPaid,
+                        b.serviceFee,
                         b.checkIn,
                         b.property.cancelPolicy as CancelPolicy,
                         b.createdAt
