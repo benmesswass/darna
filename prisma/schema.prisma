@@ -248,6 +248,15 @@ model Booking {
   nightlyPrice Int  // TND, figé à la réservation
   serviceFee   Int  // TND, affiché au récapitulatif — zéro frais caché
   totalPrice   Int  // TND
+  // Gating acompte (anti-bypass) : acompte MINIMUM dû en ligne, figé à la
+  // création = max(10 % du total, commission Darna) et ≤ total. La commission
+  // Darna y est entièrement contenue (revenu garanti). Cf. computeDepositAmount.
+  depositAmount Int      @default(0)
+  // Montant RÉELLEMENT choisi par le voyageur puis encaissé (entre depositAmount
+  // et totalPrice). Posé à l'init du paiement → source de vérité serveur pour la
+  // vérif du montant reçu (settleKonnectBooking). Solde dû en cash à l'arrivée =
+  // totalPrice - amountPaid (jamais stocké, toujours recalculé).
+  amountPaid    Int      @default(0)
   status       String    @default("EN_ATTENTE") // EN_ATTENTE | CONFIRMEE | ANNULEE | TERMINEE
   escrow       String    @default("AUCUN")      // AUCUN | EN_SEQUESTRE | LIBERE
   // true = confirmée via paiement SIMULÉ (PAYMENT_MODE=demo) : aucun argent réel

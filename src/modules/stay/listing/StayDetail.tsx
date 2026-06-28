@@ -60,6 +60,10 @@ export async function StayDetail({
       favCtx={favCtx}
       arrivee={arrivee}
       activeSection="sejours"
+      // Anti-bypass : l'identité de l'hôte (nom/contact) reste masquée tant que
+      // l'acompte n'est pas réglé. Les coordonnées sont révélées à la
+      // confirmation (cf. getRevealedContacts).
+      anonymizeOwner
       priceSuffix={fr.common.parNuit}
       eligibleBookingId={eligibleBooking?.id}
       characteristicsExtra={
@@ -107,7 +111,9 @@ export async function StayDetail({
           type={property.type}
           title={property.title}
           priceLabel={markerPriceLabel(property.price, property.type)}
-          ownerPhone={property.owner.phone}
+          // Séjour : le téléphone de l'hôte n'est JAMAIS transmis avant
+          // réservation confirmée (anti-bypass). Contact via réservation only.
+          ownerPhone={null}
           active={isActive}
         />
       }

@@ -13,9 +13,14 @@ export interface RefundResult {
 /**
  * Calcule le montant remboursable selon la politique et le délai restant.
  *
+ * ⚠️ `refundableBase` est le montant SUR LEQUEL porte le remboursement, déjà
+ * net de la part NON REMBOURSABLE. Pour un séjour Darna, l'appelant passe
+ * `amountPaid − serviceFee` : la commission Darna contenue dans l'acompte ne se
+ * rembourse jamais (cut garanti). La politique s'applique ensuite à cette base.
+ *
  * Grâce 24 h (standard du marché) : annulation dans les 24 h suivant la
- * réservation = 100 % remboursé quelle que soit la politique, À CONDITION
- * d'être encore à ≥ 7 jours du check-in.
+ * réservation = 100 % de la base remboursé quelle que soit la politique, À
+ * CONDITION d'être encore à ≥ 7 jours du check-in.
  *
  * Politiques (calquées Airbnb courts séjours) :
  *  FLEXIBLE : 100 % si ≥ 1 j avant l'arrivée.
@@ -24,7 +29,7 @@ export interface RefundResult {
  *  STRICTE  : 50 % si ≥ 14 j ; 0 % après.
  */
 export function computeRefund(
-  totalPrice: number,
+  refundableBase: number,
   checkIn: Date,
   policy: CancelPolicy,
   bookingCreatedAt: Date,
@@ -35,7 +40,7 @@ export function computeRefund(
   // Période de grâce : prioritaire sur la politique.
   const withinGrace = now.getTime() - bookingCreatedAt.getTime() <= GRACE_MS;
   if (withinGrace && daysUntil >= GRACE_MIN_DAYS_BEFORE) {
-    return { refundRate: 1, refundAmount: totalPrice, grace: true };
+    return { refundRate: 1, refundAmount: refundableBase, grace: true };
   }
 
   let refundRate: 0 | 0.5 | 1;
@@ -49,5 +54,9 @@ export function computeRefund(
     refundRate = daysUntil >= 14 ? 0.5 : 0;
   }
 
-  return { refundRate, refundAmount: Math.round(totalPrice * refundRate), grace: false };
+  return {
+    refundRate,
+    refundAmount: Math.round(refundableBase * refundRate),
+    grace: false,
+  };
 }

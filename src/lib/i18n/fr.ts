@@ -261,6 +261,7 @@ export const fr = {
       "Ce bien n'a pas encore été vérifié sur le terrain. Ne versez jamais d'acompte hors de Darna.",
     proprietaire: "Propriétaire",
     agence: "Agence",
+    hoteMasque: "Hôte vérifié — identité révélée à la réservation",
     annonceIndisponible:
       "Cette annonce n'est plus active. Elle est conservée à titre d'archive.",
     annonceEnAttente:
@@ -416,6 +417,8 @@ export const fr = {
       "Dès qu'un voyageur réserve l'une de vos annonces, il apparaîtra ici.",
     reservePar: (nom: string) => `Réservé par ${nom}`,
     payeLe: (date: string) => `Payé le ${date}`,
+    contactVoyageurMasque:
+      "Coordonnées du voyageur visibles dès que son acompte est réglé.",
     aucuneDemande: "Aucune demande reçue pour le moment.",
     aucunFavori: "Aucun favori pour le moment.",
     reservationDe: (nom: string) => `Réservation de ${nom}`,
@@ -935,6 +938,43 @@ export const fr = {
     selectionnezDates: "Sélectionnez vos dates",
     annulationImpossible: "Cette réservation ne peut plus être annulée.",
     annulationConfirmee: "Votre réservation a été annulée.",
+    // ── Gating acompte (anti-bypass) : choix du montant à régler ──────────
+    totalSejour: "Total du séjour",
+    payerMaintenant: "Vous payez maintenant",
+    montantAPayer: "Combien souhaitez-vous régler maintenant ?",
+    montantAPayerAide:
+      "Réglez en ligne au minimum l'acompte (10 %) — la commission Darna y est incluse. Vous pouvez payer davantage, jusqu'à la totalité ; le reste se règle en espèces à l'hôte, à l'arrivée.",
+    acompteMin: "Acompte minimum",
+    raccourciAcompte: (pct: number) => `Acompte (${pct} %)`,
+    raccourciMoitie: "La moitié",
+    raccourciTotalite: "La totalité",
+    pourcentDuTotal: (pct: number) => `${pct} % du total`,
+    dontCommission: "dont commission Darna",
+    soldeArrivee: "Solde à régler en cash à l'arrivée",
+    soldeArriveeAide:
+      "Vous payez le reste directement à l'hôte, en espèces, le jour de votre arrivée.",
+    acompteSequestreInfo:
+      "Votre acompte est bloqué en séquestre par Darna. Les coordonnées de l'hôte vous sont communiquées dès la confirmation de la réservation.",
+    commissionNonRemboursable:
+      "La commission Darna comprise dans l'acompte n'est pas remboursable. Le reste suit la politique d'annulation de l'annonce.",
+    verifieWakil: "Vérifié par Wakil",
+    verifieWakilAide:
+      "Logement contrôlé sur place par un agent Wakil de confiance.",
+    montantInvalide:
+      "Montant invalide — réglez entre l'acompte minimum et le total du séjour.",
+    // ── Coordonnées révélées APRÈS confirmation (acompte réglé) ───────────
+    contactHoteTitre: "Coordonnées de votre hôte",
+    contactHoteAide:
+      "Réservation confirmée : contactez votre hôte directement pour organiser votre arrivée.",
+    contactVoyageurTitre: "Coordonnées du voyageur",
+    contactVoyageurAide:
+      "Contactez votre voyageur pour préparer son arrivée et le solde en espèces.",
+    contactNom: "Nom",
+    contactEmail: "E-mail",
+    contactTelephone: "Téléphone",
+    contactVerrouilleTitre: "Coordonnées de l'hôte masquées",
+    contactVerrouilleAide:
+      "Pour la sécurité de tous, les coordonnées de l'hôte vous sont communiquées dès que votre acompte est réglé et la réservation confirmée.",
   },
   alaUne: {
     titre: "Mettez votre annonce à la une",

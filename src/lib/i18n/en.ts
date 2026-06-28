@@ -260,6 +260,7 @@ export const en: Dictionary = {
       "This property has not been verified on the ground yet. Never pay a deposit outside Darna.",
     proprietaire: "Owner",
     agence: "Agency",
+    hoteMasque: "Verified host — identity revealed at booking",
     annonceIndisponible:
       "This listing is no longer active. It is kept for archive purposes only.",
     annonceEnAttente:
@@ -415,6 +416,8 @@ export const en: Dictionary = {
       "As soon as a traveler books one of your listings, they'll show up here.",
     reservePar: (nom: string) => `Booked by ${nom}`,
     payeLe: (date: string) => `Paid on ${date}`,
+    contactVoyageurMasque:
+      "Guest's contact details become visible once their deposit is paid.",
     aucuneDemande: "No requests received yet.",
     aucunFavori: "No favourites yet.",
     reservationDe: (nom: string) => `Booking from ${nom}`,
@@ -926,6 +929,43 @@ export const en: Dictionary = {
     selectionnezDates: "Select your dates",
     annulationImpossible: "This booking can no longer be cancelled.",
     annulationConfirmee: "Your booking has been cancelled.",
+    // ── Deposit gating (anti-bypass): choosing how much to pay now ─────────
+    totalSejour: "Stay total",
+    payerMaintenant: "You pay now",
+    montantAPayer: "How much would you like to pay now?",
+    montantAPayerAide:
+      "Pay at least the deposit (10%) online — the Darna commission is included. You can pay more, up to the full amount; the rest is settled in cash to the host on arrival.",
+    acompteMin: "Minimum deposit",
+    raccourciAcompte: (pct: number) => `Deposit (${pct}%)`,
+    raccourciMoitie: "Half",
+    raccourciTotalite: "Full amount",
+    pourcentDuTotal: (pct: number) => `${pct}% of total`,
+    dontCommission: "incl. Darna commission",
+    soldeArrivee: "Balance to pay in cash on arrival",
+    soldeArriveeAide:
+      "You pay the remainder directly to the host, in cash, on the day you arrive.",
+    acompteSequestreInfo:
+      "Your deposit is held in escrow by Darna. The host's contact details are shared with you as soon as the booking is confirmed.",
+    commissionNonRemboursable:
+      "The Darna commission included in the deposit is non-refundable. The rest follows the listing's cancellation policy.",
+    verifieWakil: "Verified by Wakil",
+    verifieWakilAide:
+      "Property checked on site by a trusted Wakil agent.",
+    montantInvalide:
+      "Invalid amount — pay between the minimum deposit and the stay total.",
+    // ── Contacts revealed AFTER confirmation (deposit paid) ────────────────
+    contactHoteTitre: "Your host's contact details",
+    contactHoteAide:
+      "Booking confirmed: contact your host directly to organise your arrival.",
+    contactVoyageurTitre: "Guest's contact details",
+    contactVoyageurAide:
+      "Contact your guest to prepare their arrival and the cash balance.",
+    contactNom: "Name",
+    contactEmail: "Email",
+    contactTelephone: "Phone",
+    contactVerrouilleTitre: "Host contact details hidden",
+    contactVerrouilleAide:
+      "For everyone's safety, the host's contact details are shared once your deposit is paid and the booking is confirmed.",
   },
   alaUne: {
     titre: "Feature your listing",

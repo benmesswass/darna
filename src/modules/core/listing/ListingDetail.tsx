@@ -49,6 +49,7 @@ export async function ListingDetail({
   afterLocation,
   belowPrice,
   cta,
+  anonymizeOwner = false,
 }: {
   property: ListingData;
   favCtx: ListingFavCtx;
@@ -69,6 +70,12 @@ export async function ListingDetail({
   belowPrice?: ReactNode;
   /** Appel à l'action de la verticale (Réserver / Contacter). */
   cta: ReactNode;
+  /**
+   * Masque l'IDENTITÉ de l'hôte (nom) dans l'encart annonceur — séjours only.
+   * Anti-bypass : le nom n'est révélé qu'après réservation confirmée. On garde
+   * le rôle + le badge de vérification (trust) sans la donnée personnelle.
+   */
+  anonymizeOwner?: boolean;
 }) {
   const fr = await getT();
 
@@ -339,7 +346,9 @@ export async function ListingDetail({
                 ? fr.property.agence
                 : fr.property.proprietaire}
             </p>
-            <p className="mt-1 font-semibold text-ink">{property.owner.name}</p>
+            <p className="mt-1 font-semibold text-ink">
+              {anonymizeOwner ? fr.property.hoteMasque : property.owner.name}
+            </p>
             {property.owner.kycStatus === "VERIFIE" ? (
               <p className="mt-2 inline-flex items-center gap-1 rounded-full bg-darna/5 px-2.5 py-1 text-xs font-medium text-darna">
                 <CheckIcon width={12} height={12} strokeWidth={3} />

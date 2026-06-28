@@ -7,6 +7,7 @@ import bcrypt from "bcryptjs";
 import { getCity } from "../src/lib/geo";
 import { buildPropertySlug } from "../src/lib/slug";
 import { verticalOfType, CANCEL_POLICIES } from "../src/lib/constants";
+import { computeDepositAmount } from "../src/lib/config";
 import { hashCin } from "../src/lib/crypto";
 
 const prisma = new PrismaClient();
@@ -1171,6 +1172,7 @@ async function main() {
     const checkIn = daysAgo(r.daysAgoCheckIn);
     const checkOut = new Date(checkIn.getTime() + r.nights * DAY);
     const serviceFee = Math.round(target.price * r.nights * 0.08);
+    const totalPrice = target.price * r.nights + serviceFee;
 
     const booking = await prisma.booking.create({
       data: {
@@ -1181,7 +1183,10 @@ async function main() {
         guests: 2,
         nightlyPrice: target.price,
         serviceFee,
-        totalPrice: target.price * r.nights + serviceFee,
+        totalPrice,
+        depositAmount: computeDepositAmount(totalPrice, serviceFee),
+        // Séjour passé : réglé en totalité (historique cohérent pour les avis).
+        amountPaid: totalPrice,
         status: "TERMINEE",
         escrow: "LIBERE",
         // Payé quelques jours avant l'arrivée (réaliste pour un séjour).
@@ -1208,6 +1213,8 @@ async function main() {
   const villaHammamet = sejours[0];
   const nights = 5;
   const fee = Math.round(villaHammamet.price * nights * 0.08);
+  const villaTotal = villaHammamet.price * nights + fee;
+  const villaDeposit = computeDepositAmount(villaTotal, fee);
   await prisma.booking.create({
     data: {
       propertyId: villaHammamet.id,
@@ -1217,7 +1224,11 @@ async function main() {
       guests: 4,
       nightlyPrice: villaHammamet.price,
       serviceFee: fee,
-      totalPrice: villaHammamet.price * nights + fee,
+      totalPrice: villaTotal,
+      depositAmount: villaDeposit,
+      // Démo du gating : seul l'acompte minimum a été réglé en ligne ; le solde
+      // se paie en cash à l'arrivée. Les coordonnées sont déjà révélées.
+      amountPaid: villaDeposit,
       status: "CONFIRMEE",
       escrow: "EN_SEQUESTRE",
       paidAt: daysAgo(3),
