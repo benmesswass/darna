@@ -18,7 +18,7 @@ import { logAudit, logStructured } from "@/lib/audit";
 import { recomputePropertyRating } from "@/lib/listings";
 import { initKonnectPayment, isKonnectEnabled, signKonnectWebhook } from "@/lib/konnect";
 import { sendBookingConfirmationEmail } from "@/lib/notifications";
-import { computeRefund } from "@/lib/cancellation";
+import { computeBookingRefund } from "@/lib/cancellation";
 import type { CancelPolicy } from "@/lib/constants";
 
 export type BookingFormState = { error?: string } | undefined;
@@ -625,12 +625,12 @@ export async function cancelBookingAction(
   if (booking.status !== "CONFIRMEE")
     return { error: fr.booking.annulationImpossible };
 
-  // La commission Darna (serviceFee) contenue dans l'acompte est NON
-  // REMBOURSABLE : le remboursable se calcule sur (encaissé − commission),
-  // jamais sur la commission elle-même (cut Darna garanti).
-  const refundableBase = Math.max(0, booking.amountPaid - booking.serviceFee);
-  const { refundAmount } = computeRefund(
-    refundableBase,
+  // Annulation gratuite (politique ou grâce 24 h) → remboursement intégral,
+  // commission comprise. Sinon la commission Darna reste acquise et seul
+  // (encaissé − commission) suit la politique. Cf. computeBookingRefund.
+  const { refundAmount } = computeBookingRefund(
+    booking.amountPaid,
+    booking.serviceFee,
     booking.checkIn,
     booking.property.cancelPolicy as CancelPolicy,
     booking.createdAt

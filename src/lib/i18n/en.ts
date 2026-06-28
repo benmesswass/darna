@@ -947,7 +947,7 @@ export const en: Dictionary = {
     acompteSequestreInfo:
       "Your deposit is held in escrow by Darna. The host's contact details are shared with you as soon as the booking is confirmed.",
     commissionNonRemboursable:
-      "The Darna commission included in the deposit is non-refundable. The rest follows the listing's cancellation policy.",
+      "Free cancellation: you're fully refunded, Darna commission included. After the free window, the commission is retained and the rest follows the listing's cancellation policy.",
     verifieWakil: "Verified by Wakil",
     verifieWakilAide:
       "Property checked on site by a trusted Wakil agent.",

@@ -956,7 +956,7 @@ export const fr = {
     acompteSequestreInfo:
       "Votre acompte est bloqué en séquestre par Darna. Les coordonnées de l'hôte vous sont communiquées dès la confirmation de la réservation.",
     commissionNonRemboursable:
-      "La commission Darna comprise dans l'acompte n'est pas remboursable. Le reste suit la politique d'annulation de l'annonce.",
+      "Annulation gratuite : vous êtes intégralement remboursé, commission Darna comprise. Passé le délai gratuit, la commission reste acquise et le reste suit la politique d'annulation de l'annonce.",
     verifieWakil: "Vérifié par Wakil",
     verifieWakilAide:
       "Logement contrôlé sur place par un agent Wakil de confiance.",

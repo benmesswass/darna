@@ -9,7 +9,7 @@ import { formatDateShortFr } from "@/lib/format";
 import { Price } from "@/components/currency/Price";
 import { WhatsAppIcon, LockIcon } from "@/components/icons";
 import { toWhatsAppNumber } from "@/components/property/PropertyCtas";
-import { computeRefund } from "@/lib/cancellation";
+import { computeBookingRefund } from "@/lib/cancellation";
 import type { CancelPolicy } from "@/lib/constants";
 import { CancelBookingButton } from "@/components/booking/CancelBookingButton";
 import { RevealedContactCard } from "@/components/booking/RevealedContactCard";
@@ -282,8 +282,9 @@ export default async function MesReservationsPage() {
                   <CancelBookingButton
                     bookingId={b.id}
                     refundAmount={
-                      computeRefund(
-                        Math.max(0, b.amountPaid - b.serviceFee),
+                      computeBookingRefund(
+                        b.amountPaid,
+                        b.serviceFee,
                         b.checkIn,
                         b.property.cancelPolicy as CancelPolicy,
                         b.createdAt

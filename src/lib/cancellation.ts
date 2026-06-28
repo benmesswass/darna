@@ -60,3 +60,33 @@ export function computeRefund(
     grace: false,
   };
 }
+
+/**
+ * Remboursement d'une réservation Darna, règle « commission rendue UNIQUEMENT
+ * si l'annulation est gratuite ».
+ *
+ *  • Annulation GRATUITE (taux 100 %, politique ou grâce 24 h) → remboursement
+ *    INTÉGRAL, commission Darna comprise : le « gratuit » est réellement gratuit.
+ *  • Annulation hors délai gratuit (taux partiel / nul) → la commission Darna
+ *    reste acquise (cut garanti, anti-bypass) et seul `amountPaid − serviceFee`
+ *    suit le taux de la politique.
+ *
+ * `amountPaid` = montant réellement encaissé ; `serviceFee` = commission Darna.
+ */
+export function computeBookingRefund(
+  amountPaid: number,
+  serviceFee: number,
+  checkIn: Date,
+  policy: CancelPolicy,
+  bookingCreatedAt: Date,
+  now = new Date()
+): RefundResult {
+  const refundableBase = Math.max(0, amountPaid - serviceFee);
+  const result = computeRefund(refundableBase, checkIn, policy, bookingCreatedAt, now);
+
+  // Annulation gratuite : on rembourse TOUT, commission comprise.
+  if (result.refundRate === 1) {
+    return { ...result, refundAmount: Math.max(0, amountPaid) };
+  }
+  return result;
+}
