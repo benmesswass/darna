@@ -979,6 +979,20 @@ export const en: Dictionary = {
     contactLockedAide:
       "For everyone's safety, direct contact details are exchanged once the free-cancellation window has passed — your booking is then firm.",
   },
+  messages: {
+    titre: "Messages",
+    lien: "Messages",
+    banniere:
+      "For your safety, phone numbers and emails are hidden. You'll exchange direct contact details once the booking is firm.",
+    placeholder: "Write your message…",
+    vide: "No messages yet. Start the conversation.",
+    vous: "You",
+    hote: "Host",
+    voyageur: "Guest",
+    masque: "contact details hidden",
+    indisponible: "Messaging opens once the booking is confirmed.",
+    depuisVerrouille: "Chat via Darna messaging",
+  },
   alaUne: {
     titre: "Feature your listing",
     sousTitre:

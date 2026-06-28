@@ -140,8 +140,22 @@ export default async function MesReservationsPage() {
                         : reveal.state === "locked"
                           ? { state: "locked", viewer: "host", revealAt: reveal.revealAt }
                           : null;
-                    return <ContactReveal contacts={gate} className="mt-2" />;
+                    return (
+                      <ContactReveal
+                        contacts={gate}
+                        bookingId={b.id}
+                        className="mt-2"
+                      />
+                    );
                   })()}
+                  {b.status === "CONFIRMEE" || b.status === "TERMINEE" ? (
+                    <Link
+                      href={`/reservation/${b.id}/messages`}
+                      className="mt-2 inline-block text-xs font-bold text-darna underline"
+                    >
+                      {fr.messages.lien} →
+                    </Link>
+                  ) : null}
 
                   <p className="mt-1.5 text-sm">
                     <Price amount={b.totalPrice} className="font-bold text-darna" />
@@ -244,7 +258,13 @@ export default async function MesReservationsPage() {
                       : reveal.state === "locked"
                         ? { state: "locked", viewer: "guest", revealAt: reveal.revealAt }
                         : null;
-                  return <ContactReveal contacts={gate} className="mt-3" />;
+                  return (
+                    <ContactReveal
+                      contacts={gate}
+                      bookingId={b.id}
+                      className="mt-3"
+                    />
+                  );
                 })()}
               </div>
               <div className="flex flex-col gap-2">
@@ -260,6 +280,14 @@ export default async function MesReservationsPage() {
                     className="rounded-xl bg-sand px-3.5 py-2 text-center text-xs font-bold text-darna-dark hover:bg-sand-light"
                   >
                     {fr.booking.continuerPaiement}
+                  </Link>
+                ) : null}
+                {b.status === "CONFIRMEE" || b.status === "TERMINEE" ? (
+                  <Link
+                    href={`/reservation/${b.id}/messages`}
+                    className="rounded-xl border border-darna/15 px-3.5 py-2 text-center text-xs font-semibold text-darna hover:bg-darna/5"
+                  >
+                    {fr.messages.lien}
                   </Link>
                 ) : null}
                 {b.status === "CONFIRMEE" ? (

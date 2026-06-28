@@ -989,6 +989,21 @@ export const fr = {
     contactLockedAide:
       "Pour la sécurité de tous, les coordonnées directes sont échangées une fois la période d'annulation gratuite passée — votre réservation est alors ferme.",
   },
+  messages: {
+    titre: "Messagerie",
+    lien: "Messagerie",
+    banniere:
+      "Pour votre sécurité, les numéros et e-mails sont masqués. Vous échangerez vos coordonnées directes une fois la réservation ferme.",
+    placeholder: "Écrivez votre message…",
+    vide: "Aucun message pour le moment. Démarrez la conversation.",
+    vous: "Vous",
+    hote: "Hôte",
+    voyageur: "Voyageur",
+    masque: "coordonnées masquées",
+    indisponible:
+      "La messagerie s'ouvre une fois la réservation confirmée.",
+    depuisVerrouille: "Échangez via la messagerie Darna",
+  },
   alaUne: {
     titre: "Mettez votre annonce à la une",
     sousTitre:

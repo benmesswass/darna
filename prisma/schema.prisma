@@ -57,6 +57,7 @@ model User {
 
   properties         Property[]
   bookings           Booking[]
+  messages           Message[]
   reviews            Review[]
   contactRequests    ContactRequest[]
   favorites          Favorite[]
@@ -281,11 +282,31 @@ model Booking {
   guestId    String
   guest      User     @relation(fields: [guestId], references: [id], onDelete: Cascade)
 
-  review Review?
+  review   Review?
+  messages Message[]
 
   @@index([propertyId, status])
   @@index([guestId])
   @@index([status, expiresAt]) // Pour le cleanup des EN_ATTENTE expirées
+}
+
+// Messagerie interne Darna, attachée à une réservation (Phase 2 anti-bypass).
+// Permet à l'hôte et au voyageur de coordonner AVANT la révélation du contact
+// direct (cf. contactRevealState), sans échanger de PII : `body` est scanné et
+// les numéros/e-mails sont masqués à l'écriture (cf. src/lib/message-scan.ts).
+// `flagged` = true quand des coordonnées ont été détectées et masquées.
+model Message {
+  id        String   @id @default(cuid())
+  body      String
+  flagged   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  bookingId String
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  senderId  String
+  sender    User    @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId, createdAt])
 }
 
 // Un avis sans réservation est impossible au niveau du schéma :
