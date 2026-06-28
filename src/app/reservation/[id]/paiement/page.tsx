@@ -16,7 +16,7 @@ import { HoldCountdown } from "@/components/booking/HoldCountdown";
 import { ActiveSection } from "@/components/layout/ActiveSection";
 import { formatDateFr } from "@/lib/format";
 import { Price } from "@/components/currency/Price";
-import { CheckIcon, ShieldIcon } from "@/components/icons";
+import { CheckIcon, CloseIcon, ShieldIcon } from "@/components/icons";
 import type { CancelPolicy } from "@/lib/constants";
 
 export const metadata: Metadata = { title: frMeta.booking.paiementTitre };
@@ -292,10 +292,13 @@ export default async function PaiementPage({
                       )}
                 </li>
               ))}
-              <li className="flex items-start gap-1.5 text-ink/45">
-                <span className="mt-0.5 shrink-0" aria-hidden>
-                  ·
-                </span>
+              <li className="flex items-start gap-1.5 font-semibold text-red-600">
+                <CloseIcon
+                  width={13}
+                  height={13}
+                  strokeWidth={3}
+                  className="mt-0.5 shrink-0"
+                />
                 {fr.booking.annulationNonRembApres(formatDateFr(lastTierDate))}
               </li>
             </ul>
