@@ -1215,7 +1215,7 @@ async function main() {
   const fee = Math.round(villaHammamet.price * nights * 0.08);
   const villaTotal = villaHammamet.price * nights + fee;
   const villaDeposit = computeDepositAmount(villaTotal, fee);
-  await prisma.booking.create({
+  const villaBooking = await prisma.booking.create({
     data: {
       propertyId: villaHammamet.id,
       guestId: voyageur.id,
@@ -1227,12 +1227,33 @@ async function main() {
       totalPrice: villaTotal,
       depositAmount: villaDeposit,
       // Démo du gating : seul l'acompte minimum a été réglé en ligne ; le solde
-      // se paie en cash à l'arrivée. Les coordonnées sont déjà révélées.
+      // se paie en cash à l'arrivée. Arrivée dans 20 j → politique MODÉRÉE :
+      // les coordonnées directes restent VERROUILLÉES jusqu'à J-5 (cf. Phase 1),
+      // la coordination se fait en attendant via la messagerie interne.
       amountPaid: villaDeposit,
       status: "CONFIRMEE",
       escrow: "EN_SEQUESTRE",
       paidAt: daysAgo(3),
     },
+  });
+
+  // Quelques messages de démo dans la messagerie interne (Phase 2) — coordonnées
+  // déjà masquées à l'écriture en prod ; ici on insère du texte « propre ».
+  await prisma.message.createMany({
+    data: [
+      {
+        bookingId: villaBooking.id,
+        senderId: voyageur.id,
+        body: "Bonjour ! On arrive vers 16 h le jour J. Le solde en cash à l'arrivée, c'est bien ça ?",
+        createdAt: daysAgo(2),
+      },
+      {
+        bookingId: villaBooking.id,
+        senderId: owners.hote.id,
+        body: "Bonjour et bienvenue ! Oui, le solde se règle en espèces à l'arrivée. À très vite !",
+        createdAt: daysAgo(2),
+      },
+    ],
   });
 
   // Périodes bloquées par les hôtes sur quelques séjours.

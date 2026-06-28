@@ -195,7 +195,11 @@ export default async function PaiementPage({
 
           {/* Coordonnées de l'hôte — révélées une fois la fenêtre d'annulation
               gratuite passée, sinon verrouillées avec date de déblocage. */}
-          <ContactReveal contacts={contacts} className="mt-5" />
+          <ContactReveal
+            contacts={contacts}
+            bookingId={booking.id}
+            className="mt-5"
+          />
 
           <Link
             href="/dashboard/reservations"

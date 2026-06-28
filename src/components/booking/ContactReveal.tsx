@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getT } from "@/lib/i18n/server";
 import { formatDateFr } from "@/lib/format";
 import { LockIcon } from "@/components/icons";
@@ -16,9 +17,12 @@ import type { ContactGate } from "@/lib/contact-reveal";
  */
 export async function ContactReveal({
   contacts,
+  bookingId,
   className,
 }: {
   contacts: ContactGate;
+  /** Réservation concernée — sert au lien vers la messagerie quand verrouillé. */
+  bookingId?: string;
   className?: string;
 }) {
   if (!contacts) return null;
@@ -44,6 +48,14 @@ export async function ContactReveal({
         {fr.booking.contactDebloqueLe(formatDateFr(contacts.revealAt))}
       </p>
       <p className="mt-1 text-xs text-ink/60">{fr.booking.contactLockedAide}</p>
+      {bookingId ? (
+        <Link
+          href={`/reservation/${bookingId}/messages`}
+          className="mt-2 inline-block text-xs font-bold text-darna underline"
+        >
+          {fr.messages.depuisVerrouille} →
+        </Link>
+      ) : null}
     </div>
   );
 }
