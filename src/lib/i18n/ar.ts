@@ -969,6 +969,10 @@ export const ar: Dictionary = {
       "التسبقة متاعك محجوزة في الضمان عند دارنا. معلومات الاتصال متاع صاحب الدار يتبعثولك كيف يتأكّد الحجز.",
     commissionNonRemboursable:
       "الإلغاء المجّاني: يتردّلك المبلغ الكامل، عمولة دارنا داخلة فيه. بعد فوات الأجل المجّاني، العمولة تبقى عند دارنا والباقي يتبع سياسة الإلغاء متاعة الإعلان.",
+    annulationGratuiteJusqu: (date: string) => `إلغاء مجّاني حتى ${date}`,
+    annulationRembJusqu: (pct: number, date: string) =>
+      `${pct}٪ يتردّو حتى ${date}`,
+    annulationNonRembApres: (date: string) => `ما فمّاش ترجيع بعد ${date}`,
     verifieWakil: "متثبّت من وكيل",
     verifieWakilAide:
       "الدار تثبّت منها على عين المكان عون وكيل موثوق.",

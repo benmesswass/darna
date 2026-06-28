@@ -957,6 +957,12 @@ export const fr = {
       "Votre acompte est bloqué en séquestre par Darna. Les coordonnées de l'hôte vous sont communiquées dès la confirmation de la réservation.",
     commissionNonRemboursable:
       "Annulation gratuite : vous êtes intégralement remboursé, commission Darna comprise. Passé le délai gratuit, la commission reste acquise et le reste suit la politique d'annulation de l'annonce.",
+    annulationGratuiteJusqu: (date: string) =>
+      `Annulation gratuite jusqu'au ${date}`,
+    annulationRembJusqu: (pct: number, date: string) =>
+      `${pct} % remboursé jusqu'au ${date}`,
+    annulationNonRembApres: (date: string) =>
+      `Aucun remboursement après le ${date}`,
     verifieWakil: "Vérifié par Wakil",
     verifieWakilAide:
       "Logement contrôlé sur place par un agent Wakil de confiance.",

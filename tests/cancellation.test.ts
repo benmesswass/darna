@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { computeRefund, computeBookingRefund } from "@/lib/cancellation";
+import {
+  computeRefund,
+  computeBookingRefund,
+  cancellationSchedule,
+} from "@/lib/cancellation";
 
 const DAY_MS = 86_400_000;
 function daysFromNow(n: number) {
@@ -133,5 +137,31 @@ describe("computeBookingRefund — commission rendue seulement si gratuit", () =
   it("acompte = commission, annulation gratuite → rembourse l'acompte entier", () => {
     const r = computeBookingRefund(80, 80, daysFromNow(2), "FLEXIBLE", OLD);
     expect(r.refundAmount).toBe(80);
+  });
+});
+
+describe("cancellationSchedule — paliers datés", () => {
+  const DAY = DAY_MS;
+  const checkIn = new Date("2026-07-18T00:00:00.000Z");
+
+  it("FERME : palier 100 % à J-30 puis 50 % à J-7", () => {
+    const tiers = cancellationSchedule("FERME", checkIn);
+    expect(tiers).toHaveLength(2);
+    expect(tiers[0].rate).toBe(1);
+    expect(tiers[0].until.getTime()).toBe(checkIn.getTime() - 30 * DAY);
+    expect(tiers[1].rate).toBe(0.5);
+    expect(tiers[1].until.getTime()).toBe(checkIn.getTime() - 7 * DAY);
+  });
+
+  it("STRICTE : un seul palier 50 % à J-14 (aucun palier gratuit)", () => {
+    const tiers = cancellationSchedule("STRICTE", checkIn);
+    expect(tiers).toHaveLength(1);
+    expect(tiers[0].rate).toBe(0.5);
+    expect(tiers[0].until.getTime()).toBe(checkIn.getTime() - 14 * DAY);
+  });
+
+  it("FLEXIBLE : gratuit jusqu'à J-1", () => {
+    const tiers = cancellationSchedule("FLEXIBLE", checkIn);
+    expect(tiers).toEqual([{ rate: 1, until: new Date(checkIn.getTime() - 1 * DAY) }]);
   });
 });

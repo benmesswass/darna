@@ -948,6 +948,11 @@ export const en: Dictionary = {
       "Your deposit is held in escrow by Darna. The host's contact details are shared with you as soon as the booking is confirmed.",
     commissionNonRemboursable:
       "Free cancellation: you're fully refunded, Darna commission included. After the free window, the commission is retained and the rest follows the listing's cancellation policy.",
+    annulationGratuiteJusqu: (date: string) =>
+      `Free cancellation until ${date}`,
+    annulationRembJusqu: (pct: number, date: string) =>
+      `${pct}% refunded until ${date}`,
+    annulationNonRembApres: (date: string) => `No refund after ${date}`,
     verifieWakil: "Verified by Wakil",
     verifieWakilAide:
       "Property checked on site by a trusted Wakil agent.",

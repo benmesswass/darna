@@ -9,6 +9,7 @@ import { stayEnabled } from "@/lib/modes";
 import { settleKonnectBooking } from "@/lib/payments";
 import { isKonnectEnabled } from "@/lib/konnect";
 import { getRevealedContacts } from "@/lib/contact-reveal";
+import { cancellationSchedule } from "@/lib/cancellation";
 import { DepositPayment } from "@/components/booking/DepositPayment";
 import { RevealedContactCard } from "@/components/booking/RevealedContactCard";
 import { HoldCountdown } from "@/components/booking/HoldCountdown";
@@ -96,6 +97,12 @@ export default async function PaiementPage({
   // contact » avant paiement.
   const isWakilVerified = booking.property.verificationLevel === "ON_SITE";
   const balanceDue = booking.totalPrice - booking.amountPaid;
+
+  // Politique d'annulation traduite en DATES précises (paliers de remboursement
+  // calculés depuis le check-in), comme chez les concurrents.
+  const cancelPolicy = booking.property.cancelPolicy as CancelPolicy;
+  const refundSchedule = cancellationSchedule(cancelPolicy, booking.checkIn);
+  const lastTierDate = refundSchedule[refundSchedule.length - 1].until;
 
   const Recap = () => (
     <dl className="mt-5 space-y-2.5 text-sm">
@@ -265,16 +272,33 @@ export default async function PaiementPage({
             <p className="font-semibold text-ink">
               {fr.property.politiqueAnnulation} :{" "}
               <span className="text-darna">
-                {fr.property.cancelPolicy[
-                  booking.property.cancelPolicy as CancelPolicy
-                ] ?? booking.property.cancelPolicy}
+                {fr.property.cancelPolicy[cancelPolicy] ?? cancelPolicy}
               </span>
             </p>
-            <p className="mt-1 text-xs text-ink/60">
-              {fr.property.cancelPolicyDesc[
-                booking.property.cancelPolicy as CancelPolicy
-              ] ?? ""}
-            </p>
+            <ul className="mt-2 space-y-1 text-xs text-ink/70">
+              {refundSchedule.map((tier) => (
+                <li key={tier.rate} className="flex items-start gap-1.5">
+                  <CheckIcon
+                    width={13}
+                    height={13}
+                    strokeWidth={3}
+                    className="mt-0.5 shrink-0 text-emerald-600"
+                  />
+                  {tier.rate === 1
+                    ? fr.booking.annulationGratuiteJusqu(formatDateFr(tier.until))
+                    : fr.booking.annulationRembJusqu(
+                        tier.rate * 100,
+                        formatDateFr(tier.until)
+                      )}
+                </li>
+              ))}
+              <li className="flex items-start gap-1.5 text-ink/45">
+                <span className="mt-0.5 shrink-0" aria-hidden>
+                  ·
+                </span>
+                {fr.booking.annulationNonRembApres(formatDateFr(lastTierDate))}
+              </li>
+            </ul>
           </div>
 
           {/* Choix du montant à régler maintenant (acompte → total) + paiement.

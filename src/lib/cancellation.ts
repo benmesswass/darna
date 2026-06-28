@@ -11,6 +11,38 @@ export interface RefundResult {
 }
 
 /**
+ * Paliers de remboursement de chaque politique, exprimés en « jours AVANT le
+ * check-in ». Source unique alignée sur computeRefund : annuler au moins
+ * `daysBefore` jours avant l'arrivée donne `rate`. Sert à afficher la politique
+ * avec des DATES précises (cf. cancellationSchedule), comme les concurrents.
+ */
+const POLICY_TIERS: Record<CancelPolicy, { rate: 1 | 0.5; daysBefore: number }[]> = {
+  FLEXIBLE: [{ rate: 1, daysBefore: 1 }],
+  MODEREE: [{ rate: 1, daysBefore: 5 }],
+  FERME: [
+    { rate: 1, daysBefore: 30 },
+    { rate: 0.5, daysBefore: 7 },
+  ],
+  STRICTE: [{ rate: 0.5, daysBefore: 14 }],
+};
+
+/** Un palier daté : annuler avant `until` (inclus) donne `rate`. */
+export type RefundTier = { rate: 1 | 0.5; until: Date };
+
+/**
+ * Calendrier de remboursement DATÉ pour une réservation : convertit les paliers
+ * de la politique en dates limites concrètes à partir du `checkIn`. Au-delà du
+ * dernier palier (date la plus tardive), le remboursement est nul. La grâce
+ * 24 h n'y figure pas (elle dépend de la date de réservation, pas du check-in).
+ */
+export function cancellationSchedule(policy: CancelPolicy, checkIn: Date): RefundTier[] {
+  return POLICY_TIERS[policy].map((t) => ({
+    rate: t.rate,
+    until: new Date(checkIn.getTime() - t.daysBefore * DAY_MS),
+  }));
+}
+
+/**
  * Calcule le montant remboursable selon la politique et le délai restant.
  *
  * ⚠️ `refundableBase` est le montant SUR LEQUEL porte le remboursement, déjà
