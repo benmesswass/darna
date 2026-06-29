@@ -16,7 +16,7 @@ import {
   UsersIcon,
 } from "@/components/icons";
 
-const ICONS = {
+export const ICONS = {
   BuildingIcon,
   CalendarIcon,
   ChartIcon,
