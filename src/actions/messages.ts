@@ -12,7 +12,9 @@ import { logAudit, logStructured } from "@/lib/audit";
 import { MESSAGE_FLAG_ESCALATION_THRESHOLD } from "@/lib/config";
 import type { CancelPolicy } from "@/lib/constants";
 
-export type MessageFormState = { error?: string; sent?: boolean; warned?: boolean } | undefined;
+export type MessageFormState =
+  | { error?: string; sent?: boolean; warned?: boolean; escalated?: boolean }
+  | undefined;
 
 const schema = z.object({
   bookingId: z.string().cuid(),
@@ -92,6 +94,7 @@ export async function sendMessageAction(
 
   // Tentative de partage de coordonnées hors plateforme : on remonte à l'admin
   // (audit) et on escalade si l'utilisateur récidive.
+  let escalated = false;
   if (flagged) {
     logStructured("warn", "message.contact_masked", {
       bookingId: booking.id,
@@ -107,7 +110,8 @@ export async function sendMessageAction(
     const flaggedCount = await prisma.message.count({
       where: { senderId: user.id, flagged: true },
     });
-    if (flaggedCount >= MESSAGE_FLAG_ESCALATION_THRESHOLD) {
+    escalated = flaggedCount >= MESSAGE_FLAG_ESCALATION_THRESHOLD;
+    if (escalated) {
       await logAudit({
         action: "MESSAGE_BYPASS_ESCALATION",
         userId: user.id,
@@ -118,5 +122,5 @@ export async function sendMessageAction(
   }
 
   revalidatePath(`/reservation/${booking.id}/messages`);
-  return { sent: true, warned: flagged };
+  return { sent: true, warned: flagged, escalated };
 }

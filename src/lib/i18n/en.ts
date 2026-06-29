@@ -1002,7 +1002,9 @@ export const en: Dictionary = {
     banniereLibre:
       "Your booking is firm: you can now freely exchange your contact details.",
     avertissementMasque:
-      "Your contact details were hidden. Sharing a phone number or email off Darna isn't allowed until the booking is firm — you'll be connected automatically.",
+      "Your contact details were hidden. Sharing a phone number or email off Darna isn't allowed until the booking is firm — you'll be connected automatically. ⚠️ Repeated attempts may lead to your account being suspended.",
+    avertissementEscalade:
+      "⚠️ Final warning: several attempts to share contact details off Darna have been detected on your account. Any further attempt may result in your account being suspended.",
   },
   alaUne: {
     titre: "Feature your listing",
