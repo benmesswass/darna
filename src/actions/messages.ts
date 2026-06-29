@@ -13,6 +13,8 @@ import {
   MESSAGE_FLAG_ESCALATION_THRESHOLD,
   MESSAGE_FLAG_SUSPENSION_THRESHOLD,
 } from "@/lib/config";
+import { isSuspended, nextSuspension } from "@/lib/suspension";
+import { formatDateFr } from "@/lib/format";
 import type { CancelPolicy } from "@/lib/constants";
 
 export type MessageFormState =
@@ -49,8 +51,14 @@ export async function sendMessageAction(
   const fr = await getT();
   const user = await requireUser();
 
-  // Compte suspendu (anti-bypass) : plus aucun envoi possible.
-  if (user.suspended) return { error: fr.messages.compteSuspendu };
+  // Compte suspendu ACTIF (anti-bypass) : plus aucun envoi possible.
+  if (isSuspended(user)) {
+    return {
+      error: user.suspendedUntil
+        ? fr.messages.compteSuspenduJusqu(formatDateFr(user.suspendedUntil))
+        : fr.messages.compteSuspendu,
+    };
+  }
 
   if (!(await assertRateLimit("message"))) {
     return { error: fr.common.tropDeTentatives };
@@ -133,17 +141,34 @@ export async function sendMessageAction(
       });
     }
 
-    // Au-delà du seuil de suspension : le compte est RÉELLEMENT suspendu.
+    // Au-delà du seuil de suspension : suspension PROGRESSIVE (temporaire puis
+    // de plus en plus longue, indéfinie au-delà du dernier palier).
     if (flaggedCount >= MESSAGE_FLAG_SUSPENSION_THRESHOLD) {
+      const current = await prisma.user.findUnique({
+        where: { id: user.id },
+        select: { suspensionCount: true },
+      });
+      const level = (current?.suspensionCount ?? 0) + 1;
+      const { until } = nextSuspension(level);
       await prisma.user.update({
         where: { id: user.id },
-        data: { suspended: true, suspendedAt: new Date() },
+        data: {
+          suspended: true,
+          suspendedAt: new Date(),
+          suspendedUntil: until,
+          suspensionCount: level,
+        },
       });
       await logAudit({
         action: "ACCOUNT_SUSPENDED",
         userId: user.id,
         success: false,
-        metadata: { bookingId: booking.id, flaggedCount },
+        metadata: {
+          bookingId: booking.id,
+          flaggedCount,
+          level,
+          until: until?.toISOString() ?? null,
+        },
       });
       suspended = true;
     }

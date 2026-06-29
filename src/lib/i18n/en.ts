@@ -592,6 +592,7 @@ export const en: Dictionary = {
     signalementsCompte: (n: number) => (n === 1 ? "1 attempt" : `${n} attempts`),
     signalementsEscalade: (n: number) => `Repeat offender — ${n} attempts`,
     signalementsSuspendu: "Account suspended",
+    signalementsSuspenduJusqu: (date: string) => `Suspended until ${date}`,
     reactiver: "Reactivate account",
     navAnalytics: "Dashboard",
     wakils: "Wakils",
@@ -1010,6 +1011,19 @@ export const en: Dictionary = {
       "⚠️ Final warning: several attempts to share contact details off Darna have been detected on your account. Any further attempt may result in your account being suspended.",
     compteSuspendu:
       "Your account is suspended following repeated attempts to share contact details off Darna. Contact support to reactivate it.",
+    compteSuspenduJusqu: (date: string) =>
+      `Your account is suspended until ${date} following attempts to share contact details off Darna. Stay on Darna to protect your bookings and reviews.`,
+    pourquoiTitre: "Learn more — why stay on Darna?",
+    pourquoi1:
+      "Protected payment: your deposit is held in Darna escrow. Off-platform, no guarantee — an open door to scams.",
+    pourquoi2:
+      "Verified reviews: only stays booked on Darna can be reviewed. That's what builds a host's reputation and a guest's trust. Off-platform: no proof, no reputation.",
+    pourquoi3:
+      "Disputes: if something goes wrong, Darna steps in and protects you. Off-platform, you're on your own.",
+    pourquoi4:
+      "For hosts: visibility, the “Verified” badge, future bookings — it all runs through Darna. Going around it cuts you off from your next guests.",
+    pourquoiConclusion:
+      "Darna, Tunisia's first trusted booking platform. Together, let's build an ecosystem where everyone is protected.",
   },
   alaUne: {
     titre: "Feature your listing",

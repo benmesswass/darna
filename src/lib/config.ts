@@ -69,3 +69,11 @@ export const MESSAGE_FLAG_ESCALATION_THRESHOLD = 3;
  * « dernier avertissement » précède la suspension.
  */
 export const MESSAGE_FLAG_SUSPENSION_THRESHOLD = 4;
+
+/**
+ * Suspension PROGRESSIVE : durée (en jours) de chaque suspension successive. La
+ * 1re suspension est courte (avertissement « pour de vrai »), puis ça s'allonge.
+ * Au-delà de la liste, la suspension devient indéfinie (revue par un admin).
+ * Modèle volontairement souple : on éduque avant de bannir.
+ */
+export const SUSPENSION_DURATIONS_DAYS = [3, 14];

@@ -9,7 +9,10 @@ vi.mock("@/lib/prisma", () => ({
   prisma: {
     booking: { findUnique: vi.fn() },
     message: { create: vi.fn(), count: vi.fn().mockResolvedValue(1) },
-    user: { update: vi.fn() },
+    user: {
+      update: vi.fn(),
+      findUnique: vi.fn().mockResolvedValue({ suspensionCount: 0 }),
+    },
   },
 }));
 vi.mock("@/lib/session", () => ({ requireUser: vi.fn() }));
@@ -104,14 +107,28 @@ describe("sendMessageAction", () => {
     expect(prisma.user.update).not.toHaveBeenCalled();
   });
 
-  it("SUSPEND réellement le compte au-delà du seuil de suspension", async () => {
+  it("SUSPEND (1re fois = temporaire) au-delà du seuil de suspension", async () => {
     mockBooking();
     (prisma.message.count as unknown as Mock).mockResolvedValue(4);
+    (prisma.user.findUnique as unknown as Mock).mockResolvedValue({ suspensionCount: 0 });
     const res = await sendMessageAction(undefined, fd("watsab 20123456"));
     expect(res).toEqual({ sent: true, warned: true, escalated: true, suspended: true });
     const upd = (prisma.user.update as unknown as Mock).mock.calls[0][0];
     expect(upd.where).toEqual({ id: "guest1" });
     expect(upd.data.suspended).toBe(true);
+    expect(upd.data.suspensionCount).toBe(1);
+    // 1re suspension = temporaire (date de fin renseignée, pas indéfinie).
+    expect(upd.data.suspendedUntil).toBeInstanceOf(Date);
+  });
+
+  it("suspension PROGRESSIVE : la 2e suspension passe au palier suivant", async () => {
+    mockBooking();
+    (prisma.message.count as unknown as Mock).mockResolvedValue(5);
+    (prisma.user.findUnique as unknown as Mock).mockResolvedValue({ suspensionCount: 1 });
+    await sendMessageAction(undefined, fd("3aytili 20123456"));
+    const upd = (prisma.user.update as unknown as Mock).mock.calls[0][0];
+    expect(upd.data.suspensionCount).toBe(2);
+    expect(upd.data.suspendedUntil).toBeInstanceOf(Date);
   });
 
   it("refuse tout envoi si le compte est déjà suspendu", async () => {

@@ -55,6 +55,13 @@ model User {
   // peut le réactiver. Cf. MESSAGE_FLAG_SUSPENSION_THRESHOLD.
   suspended     Boolean  @default(false)
   suspendedAt   DateTime?
+  // Suspension PROGRESSIVE : `suspendedUntil` = fin de la suspension temporaire
+  // (null + suspended=true = suspension indéfinie, levée par un admin).
+  // `suspensionCount` = nombre de suspensions subies → palier de durée croissant
+  // (cf. SUSPENSION_DURATIONS_DAYS). Une suspension est ACTIVE si suspended ET
+  // (suspendedUntil null OU suspendedUntil > now) — cf. src/lib/suspension.ts.
+  suspendedUntil  DateTime?
+  suspensionCount Int       @default(0)
   // Pays de résidence déclaré à l'inscription (libellé FR, cf. PHONE_COUNTRIES) —
   // clé du pilotage diaspora (north-star marketing : cible France). Null tant
   // que non renseigné (comptes historiques ou inscription sans choix).

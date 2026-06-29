@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { formatDateShortFr } from "@/lib/format";
 import { MESSAGE_FLAG_ESCALATION_THRESHOLD } from "@/lib/config";
+import { isSuspended } from "@/lib/suspension";
 import { reactivateUserAction } from "@/actions/admin";
 
 /**
@@ -28,7 +29,9 @@ export default async function SignalementsPage() {
         body: true,
         createdAt: true,
         senderId: true,
-        sender: { select: { name: true, email: true, suspended: true } },
+        sender: {
+          select: { name: true, email: true, suspended: true, suspendedUntil: true },
+        },
         booking: { select: { id: true, property: { select: { title: true } } } },
       },
     }),
@@ -55,6 +58,7 @@ export default async function SignalementsPage() {
           {flagged.map((m) => {
             const total = totalBySender.get(m.senderId) ?? 1;
             const escalated = total >= MESSAGE_FLAG_ESCALATION_THRESHOLD;
+            const senderSuspended = isSuspended(m.sender);
             return (
               <li
                 key={m.id}
@@ -74,9 +78,13 @@ export default async function SignalementsPage() {
                       ? fr.admin.signalementsEscalade(total)
                       : fr.admin.signalementsCompte(total)}
                   </span>
-                  {m.sender.suspended ? (
+                  {senderSuspended ? (
                     <span className="rounded-full bg-red-600 px-2.5 py-0.5 text-[11px] font-bold text-white">
-                      {fr.admin.signalementsSuspendu}
+                      {m.sender.suspendedUntil
+                        ? fr.admin.signalementsSuspenduJusqu(
+                            formatDateShortFr(m.sender.suspendedUntil)
+                          )
+                        : fr.admin.signalementsSuspendu}
                     </span>
                   ) : null}
                   <span className="ms-auto text-xs text-ink/45">
@@ -91,7 +99,7 @@ export default async function SignalementsPage() {
                   >
                     {m.booking.property.title}
                   </Link>
-                  {m.sender.suspended ? (
+                  {senderSuspended ? (
                     <form action={reactivateUserAction}>
                       <input type="hidden" name="userId" value={m.senderId} />
                       <button
