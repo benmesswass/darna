@@ -39,11 +39,15 @@ export default async function DashboardLayout({
   // Fetch pending counts for admin/wakil nav badges (skip for regular users)
   let pendingAnnonces = 0;
   let pendingWakils = 0;
+  let flaggedMessages = 0;
   if (isAdminOrWakil) {
-    [pendingAnnonces, pendingWakils] = await Promise.all([
+    [pendingAnnonces, pendingWakils, flaggedMessages] = await Promise.all([
       prisma.property.count({ where: { status: "EN_ATTENTE_VALIDATION" } }),
       user.role === "ADMIN"
         ? prisma.wakilApplication.count({ where: { status: "RECUE", deletedAt: null } })
+        : Promise.resolve(0),
+      user.role === "ADMIN"
+        ? prisma.message.count({ where: { flagged: true } })
         : Promise.resolve(0),
     ]);
   }
@@ -94,6 +98,12 @@ export default async function DashboardLayout({
                   label: fr.admin.navWakils,
                   icon: "UsersIcon" as IconName,
                   badge: pendingWakils > 0 ? pendingWakils : undefined,
+                },
+                {
+                  href: "/dashboard/admin/signalements",
+                  label: fr.admin.navSignalements,
+                  icon: "ShieldIcon" as IconName,
+                  badge: flaggedMessages > 0 ? flaggedMessages : undefined,
                 },
               ]
             : []),

@@ -604,6 +604,13 @@ export const ar: Dictionary = {
     annonces: "الإعلانات",
     navAnnonces: "مراجعة الإعلانات",
     navWakils: "مراجعة الوكلاء",
+    navSignalements: "البلاغات",
+    signalementsTitre: "بلاغات تجاوز دارنا",
+    signalementsSousTitre:
+      "الرسائل اللي تلقّاو فيها معلومات اتصال وتغطّات. شوف محاولات الخروج برّة دارنا واللي يعاودو.",
+    signalementsVide: "ما فمّاش بلاغات توّا.",
+    signalementsCompte: (n: number) => (n === 1 ? "محاولة وحدة" : `${n} محاولات`),
+    signalementsEscalade: (n: number) => `يعاود — ${n} محاولات`,
     navAnalytics: "لوحة القيادة",
     wakils: "الوكلاء",
     fileModeration: "قائمة مراجعة الإعلانات",
@@ -1012,6 +1019,10 @@ export const ar: Dictionary = {
     masque: "معلومات الاتصال متغطّية",
     indisponible: "المراسلة تتحلّ كيف يتأكّد الحجز.",
     depuisVerrouille: "تراسلو عبر مراسلة دارنا",
+    banniereLibre:
+      "الحجز متاعك ولّى نهائي : تنجّمو تتبادلو معلومات الاتصال بكل حرّية.",
+    avertissementMasque:
+      "معلومات الاتصال متاعك تغطّات. ممنوع تبعث رقم ولا إيميل برّة دارنا قبل ما يولّي الحجز نهائي — باش تتربطو ببعضكم أوتوماتيكي.",
   },
   alaUne: {
     titre: "حطّ إعلانك في الواجهة",

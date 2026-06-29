@@ -584,6 +584,13 @@ export const en: Dictionary = {
     annonces: "Listings",
     navAnnonces: "Verify listings",
     navWakils: "Verify Wakils",
+    navSignalements: "Flags",
+    signalementsTitre: "Anti-bypass flags",
+    signalementsSousTitre:
+      "Messages where contact details were detected and hidden. Spot attempts to go off Darna and repeat offenders.",
+    signalementsVide: "No flags yet.",
+    signalementsCompte: (n: number) => (n === 1 ? "1 attempt" : `${n} attempts`),
+    signalementsEscalade: (n: number) => `Repeat offender — ${n} attempts`,
     navAnalytics: "Dashboard",
     wakils: "Wakils",
     fileModeration: "Listing moderation queue",
@@ -992,6 +999,10 @@ export const en: Dictionary = {
     masque: "contact details hidden",
     indisponible: "Messaging opens once the booking is confirmed.",
     depuisVerrouille: "Chat via Darna messaging",
+    banniereLibre:
+      "Your booking is firm: you can now freely exchange your contact details.",
+    avertissementMasque:
+      "Your contact details were hidden. Sharing a phone number or email off Darna isn't allowed until the booking is firm — you'll be connected automatically.",
   },
   alaUne: {
     titre: "Feature your listing",
