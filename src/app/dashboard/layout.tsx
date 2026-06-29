@@ -4,8 +4,8 @@ import { redirect } from "next/navigation";
 import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
-import { logoutAction } from "@/actions/auth";
-import { DashboardNav, type IconName } from "@/components/dashboard/DashboardNav";
+import { DashboardNav } from "@/components/dashboard/DashboardNav";
+import { buildDashboardLinks } from "@/lib/dashboard-nav";
 import { CheckIcon } from "@/components/icons";
 
 /** Initiales (1 à 2 lettres) pour l'avatar par défaut de l'en-tête. */
@@ -52,64 +52,17 @@ export default async function DashboardLayout({
     ]);
   }
 
-  const links: { href: string; label: string; icon: IconName; badge?: number }[] = [
-    ...(isLister
-      ? [
-          { href: "/dashboard/annonces", label: fr.dashboard.mesAnnonces, icon: "BuildingIcon" as IconName },
-          { href: "/dashboard/demandes", label: fr.dashboard.demandesRecues, icon: "UsersIcon" as IconName },
-          { href: "/dashboard/revenus", label: fr.dashboard.revenus, icon: "CoinsIcon" as IconName },
-          { href: "/dashboard/yield", label: fr.dashboard.yieldAdvisor, icon: "SparklesIcon" as IconName },
-        ]
-      : []),
-    {
-      href: "/dashboard/reservations",
-      label: isLister ? fr.dashboard.mesVoyageurs : fr.dashboard.mesReservations,
-      icon: "CalendarIcon" as IconName,
-    },
-    { href: "/dashboard/favoris", label: fr.dashboard.favoris, icon: "HeartIcon" as IconName },
-    { href: "/dashboard/profil", label: fr.dashboard.monProfil, icon: "UserIcon" as IconName },
-    {
-      href: "/dashboard/verifications",
-      label: fr.verifications.navLabel,
-      icon: "ShieldIcon" as IconName,
-      badge: verifsRestantes > 0 ? verifsRestantes : undefined,
-    },
-    ...(user.role === "ADMIN"
-      ? [
-          {
-            href: "/dashboard/admin/analytics",
-            label: fr.admin.navAnalytics,
-            icon: "ChartIcon" as IconName,
-          },
-        ]
-      : []),
-    ...(isAdminOrWakil
-      ? [
-          {
-            href: "/dashboard/admin/annonces",
-            label: fr.admin.navAnnonces,
-            icon: "StarIcon" as IconName,
-            badge: pendingAnnonces > 0 ? pendingAnnonces : undefined,
-          },
-          ...(user.role === "ADMIN"
-            ? [
-                {
-                  href: "/dashboard/admin/wakils",
-                  label: fr.admin.navWakils,
-                  icon: "UsersIcon" as IconName,
-                  badge: pendingWakils > 0 ? pendingWakils : undefined,
-                },
-                {
-                  href: "/dashboard/admin/signalements",
-                  label: fr.admin.navSignalements,
-                  icon: "ShieldIcon" as IconName,
-                  badge: flaggedMessages > 0 ? flaggedMessages : undefined,
-                },
-              ]
-            : []),
-        ]
-      : []),
-  ];
+  // Compteurs (badges) injectés sur les liens partagés, par href.
+  const badges: Record<string, number | undefined> = {
+    "/dashboard/verifications": verifsRestantes > 0 ? verifsRestantes : undefined,
+    "/dashboard/admin/annonces": pendingAnnonces > 0 ? pendingAnnonces : undefined,
+    "/dashboard/admin/wakils": pendingWakils > 0 ? pendingWakils : undefined,
+    "/dashboard/admin/signalements": flaggedMessages > 0 ? flaggedMessages : undefined,
+  };
+  const links = buildDashboardLinks(user, fr).map((l) => ({
+    ...l,
+    badge: badges[l.href],
+  }));
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
@@ -157,14 +110,6 @@ export default async function DashboardLayout({
             </p>
           </div>
         </div>
-        <form action={logoutAction}>
-          <button
-            type="submit"
-            className="rounded-full border border-darna/20 px-4 py-2 text-sm font-semibold text-darna transition hover:bg-darna hover:text-white"
-          >
-            {fr.nav.deconnexion}
-          </button>
-        </form>
       </div>
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[230px_minmax(0,1fr)]">
