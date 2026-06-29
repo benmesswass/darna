@@ -2,12 +2,21 @@
 
 import { useState } from "react";
 import { useT } from "@/components/i18n/LocaleProvider";
+import { logoutAction } from "@/actions/auth";
 import { CloseIcon, MenuIcon } from "@/components/icons";
 import { NavLink } from "./NavLink";
 
 type Item = { href: string; label: string };
 
-export function MobileMenu({ items }: { items: Item[] }) {
+export function MobileMenu({
+  items,
+  loggedIn = false,
+  logoutLabel,
+}: {
+  items: Item[];
+  loggedIn?: boolean;
+  logoutLabel?: string;
+}) {
   const fr = useT();
   const [open, setOpen] = useState(false);
 
@@ -39,6 +48,18 @@ export function MobileMenu({ items }: { items: Item[] }) {
                 </NavLink>
               </li>
             ))}
+            {loggedIn ? (
+              <li className="mt-1 border-t border-white/10 pt-1">
+                <form action={logoutAction}>
+                  <button
+                    type="submit"
+                    className="block w-full rounded-lg px-3 py-2.5 text-start text-sm font-semibold text-red-300 hover:bg-white/10"
+                  >
+                    {logoutLabel}
+                  </button>
+                </form>
+              </li>
+            ) : null}
           </ul>
         </nav>
       ) : null}

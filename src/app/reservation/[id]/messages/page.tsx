@@ -10,7 +10,7 @@ import { formatDateShortFr } from "@/lib/format";
 import { MessageComposer } from "@/components/booking/MessageComposer";
 import { contactRevealState } from "@/lib/contact-reveal";
 import type { CancelPolicy } from "@/lib/constants";
-import { LockIcon } from "@/components/icons";
+import { LockIcon, ChevronLeftIcon } from "@/components/icons";
 
 export const metadata: Metadata = { title: frMeta.messages.titre };
 
@@ -66,12 +66,13 @@ export default async function MessagesPage({
     <div className="mx-auto max-w-xl px-4 py-10 sm:px-6">
       <Link
         href="/dashboard/reservations"
-        className="text-sm font-semibold text-darna hover:underline"
+        className="inline-flex items-center gap-1.5 rounded-full border border-darna/15 px-3.5 py-1.5 text-sm font-semibold text-darna transition hover:bg-darna/5"
       >
-        ← {fr.dashboard.mesReservations}
+        <ChevronLeftIcon width={15} height={15} className="shrink-0 rtl:rotate-180" />
+        {fr.dashboard.mesReservations}
       </Link>
 
-      <h1 className="mt-3 text-2xl font-bold text-darna">{fr.messages.titre}</h1>
+      <h1 className="mt-4 text-2xl font-bold text-darna">{fr.messages.titre}</h1>
       <p className="mt-1 text-sm text-ink/60">{booking.property.title}</p>
 
       {/* Bandeau de sécurité : coordonnées masquées tant que la réservation
