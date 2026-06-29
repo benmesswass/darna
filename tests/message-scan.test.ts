@@ -43,4 +43,27 @@ describe("scanForContactInfo", () => {
     const r = scanForContactInfo("Nous serons 2 voyageurs pour 4 nuits");
     expect(r.flagged).toBe(false);
   });
+
+  it("masque les graphies arabizi d'apps (watsab, tlgrm)", () => {
+    expect(scanForContactInfo("ja3ml watsab w nahkiw").clean).not.toMatch(/watsab/i);
+    expect(scanForContactInfo("ajoute moi sur tlgrm").flagged).toBe(true);
+  });
+
+  it("FLAGUE sans masquer une sollicitation derja (kalamni f telifoun)", () => {
+    const msg = "kalamni f telifoun";
+    const r = scanForContactInfo(msg);
+    expect(r.flagged).toBe(true);
+    expect(r.clean).toBe(msg); // le texte n'est pas mutilé
+  });
+
+  it("FLAGUE les sollicitations (a3tini raqmek, appelle-moi)", () => {
+    expect(scanForContactInfo("a3tini raqmek").flagged).toBe(true);
+    expect(scanForContactInfo("appelle-moi ce soir").flagged).toBe(true);
+  });
+
+  it("masque le numéro ET flague même quand la sollicitation est en derja", () => {
+    const r = scanForContactInfo("3aytili 3al 20123456");
+    expect(r.flagged).toBe(true);
+    expect(r.clean).not.toContain("20123456");
+  });
 });
