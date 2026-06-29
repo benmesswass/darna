@@ -9,7 +9,7 @@ import { signIn, signOut } from "@/lib/auth";
 import { assertRateLimit, clientIp } from "@/lib/rate-limit";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { logAudit } from "@/lib/audit";
-import { safeCallbackUrl } from "@/lib/redirect";
+import { safeCallbackUrl, defaultLandingPath } from "@/lib/redirect";
 import { issueOtp } from "@/lib/otp";
 import { issueResetToken, consumeResetToken } from "@/lib/reset-token";
 import { sendEmail, getEmailProvider } from "@/lib/mailer";
@@ -154,9 +154,27 @@ export async function loginAction(
   );
   if (!captchaOk) return { error: fr.auth.captchaEchec };
 
-  // Retour à la page voulue (ex. formulaire « devenir hôte ») après connexion,
-  // validé contre l'open redirect ; défaut = /dashboard.
-  const redirectTo = safeCallbackUrl(formData.get("callbackUrl") as string | null);
+  // Cible de redirection après connexion :
+  //  • un `callbackUrl` explicite (ex. « devenir hôte ») prime, validé contre
+  //    l'open redirect ;
+  //  • sinon, atterrissage par défaut selon l'état de vérification du compte :
+  //    page de vérification si incomplet, accueil si déjà vérifié.
+  const rawCb = formData.get("callbackUrl") as string | null;
+  let redirectTo: string;
+  if (rawCb && safeCallbackUrl(rawCb, "") !== "") {
+    redirectTo = safeCallbackUrl(rawCb);
+  } else {
+    const u = await prisma.user.findUnique({
+      where: { email: parsed.data.email },
+      select: {
+        role: true,
+        emailVerified: true,
+        phoneVerified: true,
+        kycStatus: true,
+      },
+    });
+    redirectTo = u ? defaultLandingPath(u) : "/dashboard";
+  }
 
   try {
     await signIn("credentials", {
