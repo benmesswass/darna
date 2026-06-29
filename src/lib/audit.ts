@@ -39,7 +39,11 @@ export type AuditAction =
   | "PROPERTY_VERIFIED"
   | "PROPERTY_UNVERIFIED"
   | "EMAIL_OTP_REQUESTED"
-  | "EMAIL_VERIFIED";
+  | "EMAIL_VERIFIED"
+  // Anti-bypass messagerie : coordonnées masquées dans un message, et escalade
+  // lorsqu'un même utilisateur répète les tentatives.
+  | "MESSAGE_FLAGGED"
+  | "MESSAGE_BYPASS_ESCALATION";
 
 /**
  * Audit trail — chaque événement sensible est enregistré avec userId, IP et

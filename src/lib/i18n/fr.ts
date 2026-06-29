@@ -587,6 +587,14 @@ export const fr = {
     annonces: "Annonces",
     navAnnonces: "Vérif. annonces",
     navWakils: "Vérif. Wakils",
+    navSignalements: "Signalements",
+    signalementsTitre: "Signalements anti-bypass",
+    signalementsSousTitre:
+      "Messages où des coordonnées ont été détectées et masquées. Repérez les tentatives de passage hors Darna et les récidivistes.",
+    signalementsVide: "Aucun signalement pour le moment.",
+    signalementsCompte: (n: number) =>
+      n === 1 ? "1 tentative" : `${n} tentatives`,
+    signalementsEscalade: (n: number) => `Récidiviste — ${n} tentatives`,
     navAnalytics: "Tableau de bord",
     wakils: "Wakils",
     fileModeration: "File de modération des annonces",
@@ -1003,6 +1011,10 @@ export const fr = {
     indisponible:
       "La messagerie s'ouvre une fois la réservation confirmée.",
     depuisVerrouille: "Échangez via la messagerie Darna",
+    banniereLibre:
+      "Votre réservation est ferme : vous pouvez échanger librement vos coordonnées.",
+    avertissementMasque:
+      "Vos coordonnées ont été masquées. Le partage de numéro ou d'e-mail hors Darna n'est pas autorisé tant que la réservation n'est pas ferme — vous serez mis en relation automatiquement.",
   },
   alaUne: {
     titre: "Mettez votre annonce à la une",

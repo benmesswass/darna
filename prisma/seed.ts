@@ -1253,6 +1253,15 @@ async function main() {
         body: "Bonjour et bienvenue ! Oui, le solde se règle en espèces à l'arrivée. À très vite !",
         createdAt: daysAgo(2),
       },
+      {
+        // Tentative de partage de coordonnées (déjà masquée à l'écriture) :
+        // alimente la page admin « Signalements ».
+        bookingId: villaBooking.id,
+        senderId: voyageur.id,
+        body: "On peut s'arranger en direct ? Mon numéro c'est ●●●",
+        flagged: true,
+        createdAt: daysAgo(1),
+      },
     ],
   });
 

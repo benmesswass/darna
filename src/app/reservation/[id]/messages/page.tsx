@@ -8,6 +8,8 @@ import { getSessionUser } from "@/lib/session";
 import { stayEnabled } from "@/lib/modes";
 import { formatDateShortFr } from "@/lib/format";
 import { MessageComposer } from "@/components/booking/MessageComposer";
+import { contactRevealState } from "@/lib/contact-reveal";
+import type { CancelPolicy } from "@/lib/constants";
 import { LockIcon } from "@/components/icons";
 
 export const metadata: Metadata = { title: frMeta.messages.titre };
@@ -29,8 +31,9 @@ export default async function MessagesPage({
     select: {
       id: true,
       status: true,
+      checkIn: true,
       guestId: true,
-      property: { select: { ownerId: true, title: true, slug: true } },
+      property: { select: { ownerId: true, cancelPolicy: true, title: true, slug: true } },
       messages: {
         orderBy: { createdAt: "asc" },
         select: { id: true, body: true, flagged: true, createdAt: true, senderId: true },
@@ -51,6 +54,13 @@ export default async function MessagesPage({
 
   const isOpen = booking.status === "CONFIRMEE" || booking.status === "TERMINEE";
   const otherLabel = viewer === "guest" ? fr.messages.hote : fr.messages.voyageur;
+  // Réservation ferme → l'échange de coordonnées est libre (plus de masquage).
+  const firm =
+    contactRevealState(
+      booking.status,
+      booking.checkIn,
+      booking.property.cancelPolicy as CancelPolicy
+    ).state === "revealed";
 
   return (
     <div className="mx-auto max-w-xl px-4 py-10 sm:px-6">
@@ -68,7 +78,7 @@ export default async function MessagesPage({
           n'est pas ferme (anti-bypass). */}
       <p className="mt-4 flex items-start gap-2 rounded-2xl bg-cream px-4 py-3 text-xs font-medium text-darna-dark">
         <LockIcon width={15} height={15} className="mt-0.5 shrink-0" />
-        {fr.messages.banniere}
+        {firm ? fr.messages.banniereLibre : fr.messages.banniere}
       </p>
 
       <div className="mt-5 space-y-3">

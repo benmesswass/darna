@@ -53,3 +53,11 @@ export const SUMMER_OCCUPANCY_RATE = 0.6;
 
 /** URL canonique du site (SEO). */
 export const SITE_URL = process.env.SITE_URL ?? "http://localhost:3000";
+
+/**
+ * Anti-bypass messagerie : au-delà de ce nombre de messages contenant des
+ * coordonnées masquées (sur l'ensemble de ses réservations), l'utilisateur est
+ * escaladé (journalisé en MESSAGE_BYPASS_ESCALATION → suivi admin / base d'une
+ * future suspension).
+ */
+export const MESSAGE_FLAG_ESCALATION_THRESHOLD = 3;

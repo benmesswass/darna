@@ -32,6 +32,11 @@ export function MessageComposer({ bookingId }: { bookingId: string }) {
           {state.error}
         </p>
       ) : null}
+      {state?.warned ? (
+        <p className="mb-2 rounded-xl bg-amber-50 px-4 py-2.5 text-sm font-medium text-amber-800">
+          {fr.messages.avertissementMasque}
+        </p>
+      ) : null}
       <input type="hidden" name="bookingId" value={bookingId} />
       <textarea
         name="body"
