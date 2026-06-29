@@ -9,11 +9,20 @@ import { assertRateLimit } from "@/lib/rate-limit";
 import { scanForContactInfo } from "@/lib/message-scan";
 import { contactRevealState } from "@/lib/contact-reveal";
 import { logAudit, logStructured } from "@/lib/audit";
-import { MESSAGE_FLAG_ESCALATION_THRESHOLD } from "@/lib/config";
+import {
+  MESSAGE_FLAG_ESCALATION_THRESHOLD,
+  MESSAGE_FLAG_SUSPENSION_THRESHOLD,
+} from "@/lib/config";
 import type { CancelPolicy } from "@/lib/constants";
 
 export type MessageFormState =
-  | { error?: string; sent?: boolean; warned?: boolean; escalated?: boolean }
+  | {
+      error?: string;
+      sent?: boolean;
+      warned?: boolean;
+      escalated?: boolean;
+      suspended?: boolean;
+    }
   | undefined;
 
 const schema = z.object({
@@ -39,6 +48,9 @@ export async function sendMessageAction(
 ): Promise<MessageFormState> {
   const fr = await getT();
   const user = await requireUser();
+
+  // Compte suspendu (anti-bypass) : plus aucun envoi possible.
+  if (user.suspended) return { error: fr.messages.compteSuspendu };
 
   if (!(await assertRateLimit("message"))) {
     return { error: fr.common.tropDeTentatives };
@@ -95,6 +107,7 @@ export async function sendMessageAction(
   // Tentative de partage de coordonnées hors plateforme : on remonte à l'admin
   // (audit) et on escalade si l'utilisateur récidive.
   let escalated = false;
+  let suspended = false;
   if (flagged) {
     logStructured("warn", "message.contact_masked", {
       bookingId: booking.id,
@@ -119,8 +132,23 @@ export async function sendMessageAction(
         metadata: { bookingId: booking.id, flaggedCount },
       });
     }
+
+    // Au-delà du seuil de suspension : le compte est RÉELLEMENT suspendu.
+    if (flaggedCount >= MESSAGE_FLAG_SUSPENSION_THRESHOLD) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { suspended: true, suspendedAt: new Date() },
+      });
+      await logAudit({
+        action: "ACCOUNT_SUSPENDED",
+        userId: user.id,
+        success: false,
+        metadata: { bookingId: booking.id, flaggedCount },
+      });
+      suspended = true;
+    }
   }
 
   revalidatePath(`/reservation/${booking.id}/messages`);
-  return { sent: true, warned: flagged, escalated };
+  return { sent: true, warned: flagged, escalated, suspended };
 }

@@ -49,6 +49,12 @@ model User {
   isWakil       Boolean  @default(false)
   // Incrémenté à chaque changement de mot de passe : invalide les JWT précédents.
   tokenVersion  Int      @default(0)
+  // Suspension anti-bypass : posée quand l'utilisateur dépasse le seuil de
+  // tentatives de partage de coordonnées hors plateforme (cf. messages). Un
+  // compte suspendu ne peut plus réserver ni envoyer de messages ; un admin
+  // peut le réactiver. Cf. MESSAGE_FLAG_SUSPENSION_THRESHOLD.
+  suspended     Boolean  @default(false)
+  suspendedAt   DateTime?
   // Pays de résidence déclaré à l'inscription (libellé FR, cf. PHONE_COUNTRIES) —
   // clé du pilotage diaspora (north-star marketing : cible France). Null tant
   // que non renseigné (comptes historiques ou inscription sans choix).

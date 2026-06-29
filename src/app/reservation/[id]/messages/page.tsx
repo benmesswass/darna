@@ -115,7 +115,11 @@ export default async function MessagesPage({
         )}
       </div>
 
-      {isOpen ? (
+      {user.suspended ? (
+        <p className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 ring-1 ring-red-200">
+          {fr.messages.compteSuspendu}
+        </p>
+      ) : isOpen ? (
         <MessageComposer bookingId={booking.id} />
       ) : (
         <p className="mt-4 rounded-2xl bg-sand-light/50 px-4 py-3 text-sm font-medium text-darna-dark">

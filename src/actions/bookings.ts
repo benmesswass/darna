@@ -72,6 +72,11 @@ export async function createBookingAction(
     return { error: fr.booking.verifRequise };
   }
 
+  // Compte suspendu (anti-bypass) : réservation bloquée jusqu'à réactivation.
+  if (user.suspended) {
+    return { error: fr.booking.compteSuspendu };
+  }
+
   const parsed = createSchema.safeParse({
     slug: formData.get("slug"),
     arrivee: formData.get("arrivee"),

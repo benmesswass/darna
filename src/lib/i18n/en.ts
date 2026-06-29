@@ -591,6 +591,8 @@ export const en: Dictionary = {
     signalementsVide: "No flags yet.",
     signalementsCompte: (n: number) => (n === 1 ? "1 attempt" : `${n} attempts`),
     signalementsEscalade: (n: number) => `Repeat offender — ${n} attempts`,
+    signalementsSuspendu: "Account suspended",
+    reactiver: "Reactivate account",
     navAnalytics: "Dashboard",
     wakils: "Wakils",
     fileModeration: "Listing moderation queue",
@@ -898,6 +900,7 @@ export const en: Dictionary = {
       `This accommodation hosts a maximum of ${max} guests.`,
     connexionRequise: "Sign in to book.",
     verifRequise: "Verify your account (email + phone) before booking.",
+    compteSuspendu: "Your account is suspended. You can't book right now.",
     verifRequiseTitre: "Verify your account to book",
     verifRequiseDesc:
       "For everyone's trust on Darna, only verified accounts (email + phone) can book. It takes less than two minutes.",
@@ -1005,6 +1008,8 @@ export const en: Dictionary = {
       "Your contact details were hidden. Sharing a phone number or email off Darna isn't allowed until the booking is firm — you'll be connected automatically. ⚠️ Repeated attempts may lead to your account being suspended.",
     avertissementEscalade:
       "⚠️ Final warning: several attempts to share contact details off Darna have been detected on your account. Any further attempt may result in your account being suspended.",
+    compteSuspendu:
+      "Your account is suspended following repeated attempts to share contact details off Darna. Contact support to reactivate it.",
   },
   alaUne: {
     titre: "Feature your listing",

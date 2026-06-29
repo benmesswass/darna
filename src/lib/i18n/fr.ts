@@ -595,6 +595,8 @@ export const fr = {
     signalementsCompte: (n: number) =>
       n === 1 ? "1 tentative" : `${n} tentatives`,
     signalementsEscalade: (n: number) => `Récidiviste — ${n} tentatives`,
+    signalementsSuspendu: "Compte suspendu",
+    reactiver: "Réactiver le compte",
     navAnalytics: "Tableau de bord",
     wakils: "Wakils",
     fileModeration: "File de modération des annonces",
@@ -906,6 +908,8 @@ export const fr = {
       `Ce logement accueille au maximum ${max} voyageurs.`,
     connexionRequise: "Connectez-vous pour réserver.",
     verifRequise: "Vérifiez votre compte (e-mail + téléphone) avant de réserver.",
+    compteSuspendu:
+      "Votre compte est suspendu. Vous ne pouvez pas réserver pour le moment.",
     verifRequiseTitre: "Vérifiez votre compte pour réserver",
     verifRequiseDesc:
       "Pour la confiance de tous sur Darna, seuls les comptes vérifiés (e-mail + téléphone) peuvent réserver. Cela prend moins de deux minutes.",
@@ -1017,6 +1021,8 @@ export const fr = {
       "Vos coordonnées ont été masquées. Partager un numéro ou un e-mail hors Darna est interdit tant que la réservation n'est pas ferme — vous serez mis en relation automatiquement. ⚠️ Les tentatives répétées peuvent entraîner la suspension de votre compte.",
     avertissementEscalade:
       "⚠️ Dernier avertissement : plusieurs tentatives de partage de coordonnées hors Darna ont été détectées sur votre compte. Toute nouvelle tentative expose votre compte à une suspension.",
+    compteSuspendu:
+      "Votre compte est suspendu suite à des tentatives répétées de partage de coordonnées hors Darna. Contactez le support pour le réactiver.",
   },
   alaUne: {
     titre: "Mettez votre annonce à la une",
