@@ -46,9 +46,13 @@ export function MessageComposer({ bookingId }: { bookingId: string }) {
         >
           {fr.messages.avertissementEscalade}
         </p>
-      ) : state?.warned ? (
+      ) : state?.masked ? (
         <p className="mb-2 rounded-xl bg-amber-50 px-4 py-2.5 text-sm font-medium text-amber-800">
           {fr.messages.avertissementMasque}
+        </p>
+      ) : state?.warned ? (
+        <p className="mb-2 rounded-xl bg-amber-50 px-4 py-2.5 text-sm font-medium text-amber-800">
+          {fr.messages.avertissementSollicitation}
         </p>
       ) : null}
       <input type="hidden" name="bookingId" value={bookingId} />

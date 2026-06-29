@@ -10,6 +10,7 @@ describe("scanForContactInfo", () => {
   it("masque un numéro tunisien (8 chiffres) et flague", () => {
     const r = scanForContactInfo("Appelle-moi au 20123456 stp");
     expect(r.flagged).toBe(true);
+    expect(r.masked).toBe(true);
     expect(r.clean).toContain(CONTACT_MASK);
     expect(r.clean).not.toContain("20123456");
   });
@@ -53,6 +54,7 @@ describe("scanForContactInfo", () => {
     const msg = "kalamni f telifoun";
     const r = scanForContactInfo(msg);
     expect(r.flagged).toBe(true);
+    expect(r.masked).toBe(false); // rien de réellement masqué
     expect(r.clean).toBe(msg); // le texte n'est pas mutilé
   });
 

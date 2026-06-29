@@ -1020,6 +1020,8 @@ export const fr = {
       "Votre réservation est ferme : vous pouvez échanger librement vos coordonnées.",
     avertissementMasque:
       "Vos coordonnées ont été masquées. Partager un numéro ou un e-mail hors Darna est interdit tant que la réservation n'est pas ferme — vous serez mis en relation automatiquement. ⚠️ Les tentatives répétées peuvent entraîner la suspension de votre compte.",
+    avertissementSollicitation:
+      "⚠️ Demander à échanger vos coordonnées hors Darna n'est pas autorisé tant que la réservation n'est pas ferme. Les tentatives répétées peuvent entraîner la suspension de votre compte.",
     avertissementEscalade:
       "⚠️ Dernier avertissement : plusieurs tentatives de partage de coordonnées hors Darna ont été détectées sur votre compte. Toute nouvelle tentative expose votre compte à une suspension.",
     compteSuspendu:

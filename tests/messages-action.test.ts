@@ -84,7 +84,7 @@ describe("sendMessageAction", () => {
   it("enregistre le message d'un participant (fenêtre gratuite → pas de coordonnée)", async () => {
     mockBooking();
     const res = await sendMessageAction(undefined, fd("Bonjour, à quelle heure l'arrivée ?"));
-    expect(res).toEqual({ sent: true, warned: false, escalated: false, suspended: false });
+    expect(res).toEqual({ sent: true, warned: false, masked: false, escalated: false, suspended: false });
     const data = (prisma.message.create as unknown as Mock).mock.calls[0][0].data;
     expect(data.flagged).toBe(false);
     expect(data.senderId).toBe("guest1");
@@ -93,17 +93,28 @@ describe("sendMessageAction", () => {
   it("masque un numéro + signale (warned) quand le contact est verrouillé", async () => {
     mockBooking();
     const res = await sendMessageAction(undefined, fd("appelle 20123456"));
-    expect(res).toEqual({ sent: true, warned: true, escalated: false, suspended: false });
+    expect(res).toEqual({ sent: true, warned: true, masked: true, escalated: false, suspended: false });
     const data = (prisma.message.create as unknown as Mock).mock.calls[0][0].data;
     expect(data.flagged).toBe(true);
     expect(data.body).not.toContain("20123456");
+  });
+
+  it("sollicitation seule (« appelle moi ») : signalée mais NON masquée, sans escalade", async () => {
+    mockBooking();
+    const res = await sendMessageAction(undefined, fd("appelle moi stp"));
+    expect(res).toEqual({ sent: true, warned: true, masked: false, escalated: false, suspended: false });
+    const data = (prisma.message.create as unknown as Mock).mock.calls[0][0].data;
+    expect(data.flagged).toBe(true);
+    expect(data.body).toBe("appelle moi stp"); // texte intact, rien de masqué
+    expect(prisma.message.count).not.toHaveBeenCalled(); // ne compte pas → pas d'escalade
+    expect(prisma.user.update).not.toHaveBeenCalled();
   });
 
   it("escalade (avertissement suspension) au-delà du seuil de tentatives", async () => {
     mockBooking();
     (prisma.message.count as unknown as Mock).mockResolvedValue(3);
     const res = await sendMessageAction(undefined, fd("watsab 20123456"));
-    expect(res).toEqual({ sent: true, warned: true, escalated: true, suspended: false });
+    expect(res).toEqual({ sent: true, warned: true, masked: true, escalated: true, suspended: false });
     expect(prisma.user.update).not.toHaveBeenCalled();
   });
 
@@ -112,7 +123,7 @@ describe("sendMessageAction", () => {
     (prisma.message.count as unknown as Mock).mockResolvedValue(4);
     (prisma.user.findUnique as unknown as Mock).mockResolvedValue({ suspensionCount: 0 });
     const res = await sendMessageAction(undefined, fd("watsab 20123456"));
-    expect(res).toEqual({ sent: true, warned: true, escalated: true, suspended: true });
+    expect(res).toEqual({ sent: true, warned: true, masked: true, escalated: true, suspended: true });
     const upd = (prisma.user.update as unknown as Mock).mock.calls[0][0];
     expect(upd.where).toEqual({ id: "guest1" });
     expect(upd.data.suspended).toBe(true);
@@ -141,7 +152,7 @@ describe("sendMessageAction", () => {
   it("NE masque PAS une fois la réservation ferme (politique STRICTE = contact débloqué)", async () => {
     mockBooking({ cancelPolicy: "STRICTE" });
     const res = await sendMessageAction(undefined, fd("mon num 20123456"));
-    expect(res).toEqual({ sent: true, warned: false, escalated: false, suspended: false });
+    expect(res).toEqual({ sent: true, warned: false, masked: false, escalated: false, suspended: false });
     const data = (prisma.message.create as unknown as Mock).mock.calls[0][0].data;
     expect(data.flagged).toBe(false);
     expect(data.body).toContain("20123456");
@@ -151,6 +162,6 @@ describe("sendMessageAction", () => {
     (requireUser as unknown as Mock).mockResolvedValue({ id: "host1" });
     mockBooking();
     const res = await sendMessageAction(undefined, fd("Bienvenue !"));
-    expect(res).toEqual({ sent: true, warned: false, escalated: false, suspended: false });
+    expect(res).toEqual({ sent: true, warned: false, masked: false, escalated: false, suspended: false });
   });
 });

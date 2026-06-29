@@ -40,14 +40,22 @@ const SOLICIT_RE =
   /\b(t[eé]l[eé]?fou?n|t[eé]l[eé]phone|num[eé]ro|numro|nimero|ra9?am|ra9?mi|raqam|raqmi|3ay?tili|3ayetli|kalamni|klamni|sonni|sonnili|appelle|appel|a3tini|a3tik|hatli)\b/i;
 
 /**
- * Masque les coordonnées d'un message (e-mails, numéros, apps de
- * contournement) et signale (`flagged`) tout masquage OU toute sollicitation
- * de contact hors plateforme (fr/derja/arabizi). `clean` = corps assaini.
+ * Masque les coordonnées d'un message et signale les tentatives de bypass.
+ * @returns
+ *  - `clean`   : corps assaini ;
+ *  - `masked`  : une vraie coordonnée (e-mail/numéro/app) a été masquée ;
+ *  - `flagged` : `masked` OU une simple sollicitation de contact hors plateforme
+ *                a été détectée (fr/derja/arabizi). `flagged` sert au monitoring
+ *                admin ; seul `masked` traduit un partage RÉEL de coordonnées.
  */
-export function scanForContactInfo(body: string): { clean: string; flagged: boolean } {
-  let flagged = false;
+export function scanForContactInfo(body: string): {
+  clean: string;
+  masked: boolean;
+  flagged: boolean;
+} {
+  let masked = false;
   const mask = () => {
-    flagged = true;
+    masked = true;
     return CONTACT_MASK;
   };
 
@@ -58,8 +66,9 @@ export function scanForContactInfo(body: string): { clean: string; flagged: bool
     .replace(PHONE_RE, mask)
     .replace(APP_RE, mask);
 
-  // Sollicitations : flag seul (pas de masquage), évalué sur le texte d'origine.
-  if (SOLICIT_RE.test(body)) flagged = true;
+  // Sollicitation (« appelle-moi », « telifoun »…) : signalée mais NON masquée
+  // (rien à retirer), évaluée sur le texte d'origine.
+  const solicited = SOLICIT_RE.test(body);
 
-  return { clean, flagged };
+  return { clean, masked, flagged: masked || solicited };
 }

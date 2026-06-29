@@ -9,6 +9,7 @@ import { stayEnabled } from "@/lib/modes";
 import { formatDateShortFr, formatDateFr } from "@/lib/format";
 import { MessageComposer } from "@/components/booking/MessageComposer";
 import { isSuspended } from "@/lib/suspension";
+import { CONTACT_MASK } from "@/lib/message-scan";
 import { contactRevealState } from "@/lib/contact-reveal";
 import type { CancelPolicy } from "@/lib/constants";
 import { LockIcon, ChevronLeftIcon } from "@/components/icons";
@@ -125,7 +126,7 @@ export default async function MessagesPage({
                 <span className="mt-1 px-1 text-[11px] text-ink/45">
                   {mine ? fr.messages.vous : otherLabel} ·{" "}
                   {formatDateShortFr(m.createdAt)}
-                  {m.flagged ? ` · ${fr.messages.masque}` : ""}
+                  {m.body.includes(CONTACT_MASK) ? ` · ${fr.messages.masque}` : ""}
                 </span>
               </div>
             );
