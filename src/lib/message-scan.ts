@@ -18,11 +18,17 @@ export const CONTACT_MASK = "●●●";
 // E-mail classique.
 const EMAIL_RE = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
 
-// Suite d'au moins 8 chiffres, éventuellement séparés par espaces, points,
+// Suite d'au moins 7 chiffres, éventuellement séparés par espaces, points,
 // tirets, parenthèses ou préfixée d'un « + » : couvre les numéros tunisiens
-// (8 chiffres) comme internationaux (+216 …). Les nombres plus courts (prix
-// courts, années, « 2 voyageurs ») ne sont pas touchés.
-const PHONE_RE = /\+?\d(?:[\s.\-()]*\d){7,}/g;
+// (8 chiffres), internationaux (+216 …) et les saisies maladroites (7 chiffres).
+// Les nombres plus courts (années, « 2 voyageurs ») ne sont pas touchés.
+const PHONE_RE = /\+?\d(?:[\s.\-()]*\d){6,}/g;
+
+// En CONTEXTE de sollicitation (« appelle-moi sur… », « numéro »…), on masque
+// aussi les suites plus courtes (≥5 chiffres) : un numéro partiel partagé
+// volontairement reste un partage de coordonnées. Hors contexte, on ne touche
+// pas ces nombres courts (risque de masquer un prix discuté).
+const PHONE_SHORT_RE = /\d(?:[\s.\-()]*\d){4,}/g;
 
 // Apps de mise en relation hors plateforme (signal explicite de contournement),
 // y compris leurs graphies arabizi/abrégées courantes (watsab, tlgrm, vibr…).
@@ -61,14 +67,16 @@ export function scanForContactInfo(body: string): {
 
   // Ordre : e-mails d'abord (leur partie chiffrée ne doit pas être prise pour
   // un numéro), puis numéros, puis apps.
-  const clean = body
+  let clean = body
     .replace(EMAIL_RE, mask)
     .replace(PHONE_RE, mask)
     .replace(APP_RE, mask);
 
-  // Sollicitation (« appelle-moi », « telifoun »…) : signalée mais NON masquée
-  // (rien à retirer), évaluée sur le texte d'origine.
+  // Sollicitation (« appelle-moi », « telifoun »…), évaluée sur le texte
+  // d'origine. Elle est signalée ; et SI elle s'accompagne d'une suite de
+  // chiffres plus courte (≥5), on masque aussi cette suite (numéro partagé).
   const solicited = SOLICIT_RE.test(body);
+  if (solicited) clean = clean.replace(PHONE_SHORT_RE, mask);
 
   return { clean, masked, flagged: masked || solicited };
 }

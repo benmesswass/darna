@@ -15,6 +15,24 @@ describe("scanForContactInfo", () => {
     expect(r.clean).not.toContain("20123456");
   });
 
+  it("masque une suite de 7 chiffres (saisie maladroite)", () => {
+    const r = scanForContactInfo("appelle moi sur 2222222");
+    expect(r.masked).toBe(true);
+    expect(r.clean).not.toContain("2222222");
+  });
+
+  it("masque une suite courte (6 chiffres) EN CONTEXTE de sollicitation", () => {
+    const r = scanForContactInfo("appelle moi sur 222222");
+    expect(r.masked).toBe(true);
+    expect(r.clean).not.toContain("222222");
+  });
+
+  it("ne masque PAS une suite courte HORS contexte de sollicitation (prix)", () => {
+    const r = scanForContactInfo("le solde est 12000 à l'arrivée");
+    expect(r.masked).toBe(false);
+    expect(r.clean).toContain("12000");
+  });
+
   it("masque un numéro international espacé (+216 …)", () => {
     const r = scanForContactInfo("mon num +216 20 123 456");
     expect(r.flagged).toBe(true);
