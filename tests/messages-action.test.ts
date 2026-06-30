@@ -8,7 +8,11 @@ import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     booking: { findUnique: vi.fn() },
-    message: { create: vi.fn(), count: vi.fn().mockResolvedValue(1) },
+    message: {
+      create: vi.fn(),
+      count: vi.fn().mockResolvedValue(1),
+      findMany: vi.fn().mockResolvedValue([]),
+    },
     user: {
       update: vi.fn(),
       findUnique: vi.fn().mockResolvedValue({ suspensionCount: 0 }),
@@ -62,6 +66,7 @@ function mockBooking(
 beforeEach(() => {
   vi.clearAllMocks();
   (prisma.message.count as unknown as Mock).mockResolvedValue(1);
+  (prisma.message.findMany as unknown as Mock).mockResolvedValue([]);
   (requireUser as unknown as Mock).mockResolvedValue({ id: "guest1" });
 });
 
@@ -97,6 +102,17 @@ describe("sendMessageAction", () => {
     const data = (prisma.message.create as unknown as Mock).mock.calls[0][0].data;
     expect(data.flagged).toBe(true);
     expect(data.body).not.toContain("20123456");
+  });
+
+  it("anti-découpage : un chiffre court est masqué si le fil est déjà signalé", async () => {
+    mockBooking();
+    // L'expéditeur a déjà un message signalé dans ce fil → contexte « à risque ».
+    (prisma.message.findMany as unknown as Mock).mockResolvedValue([{ id: "m0" }]);
+    const res = await sendMessageAction(undefined, fd("22"));
+    expect(res).toMatchObject({ masked: true });
+    const data = (prisma.message.create as unknown as Mock).mock.calls[0][0].data;
+    expect(data.body).not.toContain("22");
+    expect(data.flagged).toBe(true);
   });
 
   it("sollicitation seule (« appelle moi ») : signalée mais NON masquée, sans escalade", async () => {

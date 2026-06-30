@@ -33,6 +33,18 @@ describe("scanForContactInfo", () => {
     expect(r.clean).toContain("12000");
   });
 
+  it("anti-découpage : un chiffre court est masqué en CONTEXTE de fil", () => {
+    const r = scanForContactInfo("22", { contextSolicited: true });
+    expect(r.masked).toBe(true);
+    expect(r.clean).not.toContain("22");
+  });
+
+  it("hors contexte, un chiffre court isolé reste intact", () => {
+    const r = scanForContactInfo("22");
+    expect(r.masked).toBe(false);
+    expect(r.flagged).toBe(false);
+  });
+
   it("masque un numéro international espacé (+216 …)", () => {
     const r = scanForContactInfo("mon num +216 20 123 456");
     expect(r.flagged).toBe(true);

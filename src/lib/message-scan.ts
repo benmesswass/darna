@@ -25,10 +25,10 @@ const EMAIL_RE = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
 const PHONE_RE = /\+?\d(?:[\s.\-()]*\d){6,}/g;
 
 // En CONTEXTE de sollicitation (« appelle-moi sur… », « numéro »…), on masque
-// aussi les suites plus courtes (≥5 chiffres) : un numéro partiel partagé
-// volontairement reste un partage de coordonnées. Hors contexte, on ne touche
-// pas ces nombres courts (risque de masquer un prix discuté).
-const PHONE_SHORT_RE = /\d(?:[\s.\-()]*\d){4,}/g;
+// aussi les suites COURTES (≥2 chiffres) : c'est la parade au découpage d'un
+// numéro sur plusieurs messages (« 222 » puis « 222 » puis « 22 »). Hors
+// contexte, on ne touche pas ces nombres courts (risque de masquer un prix).
+const PHONE_SHORT_RE = /\d(?:[\s.\-()]*\d){1,}/g;
 
 // Apps de mise en relation hors plateforme (signal explicite de contournement),
 // y compris leurs graphies arabizi/abrégées courantes (watsab, tlgrm, vibr…).
@@ -54,7 +54,10 @@ const SOLICIT_RE =
  *                a été détectée (fr/derja/arabizi). `flagged` sert au monitoring
  *                admin ; seul `masked` traduit un partage RÉEL de coordonnées.
  */
-export function scanForContactInfo(body: string): {
+export function scanForContactInfo(
+  body: string,
+  opts: { contextSolicited?: boolean } = {}
+): {
   clean: string;
   masked: boolean;
   flagged: boolean;
@@ -72,11 +75,17 @@ export function scanForContactInfo(body: string): {
     .replace(PHONE_RE, mask)
     .replace(APP_RE, mask);
 
-  // Sollicitation (« appelle-moi », « telifoun »…), évaluée sur le texte
-  // d'origine. Elle est signalée ; et SI elle s'accompagne d'une suite de
-  // chiffres plus courte (≥5), on masque aussi cette suite (numéro partagé).
-  const solicited = SOLICIT_RE.test(body);
-  if (solicited) clean = clean.replace(PHONE_SHORT_RE, mask);
+  // Ce message porte-t-il lui-même une sollicitation (« appelle-moi »…) ?
+  const ownSolicited = SOLICIT_RE.test(body);
 
-  return { clean, masked, flagged: masked || solicited };
+  // En contexte de sollicitation — soit ce message, soit un message RÉCENT du
+  // même expéditeur dans le fil (opts.contextSolicited) — on masque aussi les
+  // suites courtes de chiffres : parade au numéro découpé sur plusieurs messages.
+  if (ownSolicited || opts.contextSolicited) {
+    clean = clean.replace(PHONE_SHORT_RE, mask);
+  }
+
+  // `flagged` ne dépend QUE de ce message (sollicitation propre ou masquage) :
+  // un message anodin après un fil « à risque » n'est pas signalé pour rien.
+  return { clean, masked, flagged: masked || ownSolicited };
 }

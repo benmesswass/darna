@@ -105,7 +105,17 @@ export async function sendMessageAction(
   let masked = false;
   let flagged = false;
   if (reveal.state !== "revealed") {
-    const scan = scanForContactInfo(parsed.data.body);
+    // Contexte anti-découpage : si l'expéditeur a déjà un message signalé récent
+    // dans ce fil, on considère que le fil partage des coordonnées → on masque
+    // même les suites courtes de chiffres du message courant (numéro éclaté).
+    const recent = await prisma.message.findMany({
+      where: { bookingId: booking.id, senderId: user.id, flagged: true },
+      select: { id: true },
+      take: 1,
+    });
+    const scan = scanForContactInfo(parsed.data.body, {
+      contextSolicited: recent.length > 0,
+    });
     body = scan.clean;
     masked = scan.masked;
     flagged = scan.flagged;
