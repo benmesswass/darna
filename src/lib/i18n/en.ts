@@ -786,6 +786,22 @@ export const en: Dictionary = {
         : "") +
       `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Verified stays.</p>` +
       `</div>`,
+    newMessageSujet: (titre: string) => `Darna — new message · ${titre}`,
+    newMessageHtml: (p: {
+      recipientName: string;
+      senderName: string;
+      propertyTitle: string;
+      preview: string;
+      url: string;
+    }) =>
+      `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
+      `<h1 style="color:#0f766e;font-size:20px">New message 💬</h1>` +
+      `<p>Hello ${p.recipientName},</p>` +
+      `<p><strong>${p.senderName}</strong> sent you a message about <strong>${p.propertyTitle}</strong>:</p>` +
+      `<blockquote style="margin:16px 0;padding:12px 16px;background:#f3f4f6;border-inline-start:3px solid #0f766e;border-radius:8px;color:#374151">${p.preview}</blockquote>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">Reply on Darna</a></p>` +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">For your safety, always reply through Darna messaging. Darna — Verified stays.</p>` +
+      `</div>`,
   },
   verifications: {
     navLabel: "Verification",
@@ -989,6 +1005,13 @@ export const en: Dictionary = {
   messages: {
     titre: "Messages",
     lien: "Messages",
+    hubTitre: "Messages",
+    hubSousTitre: "All your conversations with hosts and guests.",
+    hubVide: "No conversations yet. Your exchanges with hosts and guests will appear here.",
+    notifTitre: "New message",
+    notifCorps: (n: number) =>
+      n > 1 ? `You have ${n} unread messages.` : "You've received a new message.",
+    notifVoir: "Open messages",
     banniere:
       "For your safety, phone numbers and emails are hidden. You'll exchange direct contact details once the booking is firm.",
     placeholder: "Write your message…",

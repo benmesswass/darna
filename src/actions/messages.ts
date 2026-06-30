@@ -9,6 +9,7 @@ import { assertRateLimit } from "@/lib/rate-limit";
 import { scanForContactInfo } from "@/lib/message-scan";
 import { contactRevealState } from "@/lib/contact-reveal";
 import { logAudit, logStructured } from "@/lib/audit";
+import { sendNewMessageEmail } from "@/lib/notifications";
 import { MESSAGE_FLAG_ESCALATION_THRESHOLD } from "@/lib/config";
 import type { CancelPolicy } from "@/lib/constants";
 
@@ -86,9 +87,13 @@ export async function sendMessageAction(
     flagged = scan.flagged;
   }
 
-  await prisma.message.create({
+  const created = await prisma.message.create({
     data: { bookingId: booking.id, senderId: user.id, body, flagged },
+    select: { id: true },
   });
+
+  // Notifie le destinataire par e-mail (non bloquant : avale ses propres erreurs).
+  await sendNewMessageEmail(created.id);
 
   // Tentative de partage de coordonnées hors plateforme : on remonte à l'admin
   // (audit) et on escalade si l'utilisateur récidive.

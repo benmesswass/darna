@@ -77,3 +77,72 @@ export async function sendBookingConfirmationEmail(bookingId: string): Promise<v
     });
   }
 }
+
+/** Échappe le HTML d'un extrait de message inséré dans le corps de l'e-mail. */
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/**
+ * Notifie par e-mail le DESTINATAIRE d'un nouveau message (l'autre participant
+ * de la réservation, jamais l'auteur). Appelé depuis sendMessageAction APRÈS la
+ * création du message. JAMAIS BLOQUANT : un échec d'envoi n'annule pas le
+ * message déjà enregistré (toute erreur est journalisée et avalée).
+ */
+export async function sendNewMessageEmail(messageId: string): Promise<void> {
+  try {
+    const message = await prisma.message.findUnique({
+      where: { id: messageId },
+      select: {
+        body: true,
+        senderId: true,
+        bookingId: true,
+        booking: {
+          select: {
+            guest: { select: { id: true, name: true, email: true } },
+            property: {
+              select: { title: true, owner: { select: { id: true, name: true, email: true } } },
+            },
+          },
+        },
+      },
+    });
+
+    if (!message) {
+      logStructured("warn", "notif.message_not_found", { messageId });
+      return;
+    }
+
+    const { guest } = message.booking;
+    const owner = message.booking.property.owner;
+    // Le destinataire est celui des deux participants qui n'a pas écrit.
+    const sender = message.senderId === guest.id ? guest : owner;
+    const recipient = message.senderId === guest.id ? owner : guest;
+
+    // Extrait court et échappé (le corps peut contenir des caractères HTML).
+    const trimmed = message.body.trim();
+    const preview = escapeHtml(trimmed.length > 140 ? `${trimmed.slice(0, 140)}…` : trimmed);
+
+    await sendEmail({
+      to: recipient.email,
+      subject: frMail.email.newMessageSujet(message.booking.property.title),
+      html: frMail.email.newMessageHtml({
+        recipientName: recipient.name,
+        senderName: sender.name,
+        propertyTitle: message.booking.property.title,
+        preview,
+        url: `${SITE_URL}/reservation/${message.bookingId}/messages`,
+      }),
+    });
+  } catch (err) {
+    // Non bloquant : le message est enregistré quoi qu'il arrive à l'e-mail.
+    logStructured("error", "notif.new_message_failed", {
+      messageId,
+      error: (err as Error).message,
+    });
+  }
+}
