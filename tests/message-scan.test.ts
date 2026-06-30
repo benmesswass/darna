@@ -10,8 +10,39 @@ describe("scanForContactInfo", () => {
   it("masque un numéro tunisien (8 chiffres) et flague", () => {
     const r = scanForContactInfo("Appelle-moi au 20123456 stp");
     expect(r.flagged).toBe(true);
+    expect(r.masked).toBe(true);
     expect(r.clean).toContain(CONTACT_MASK);
     expect(r.clean).not.toContain("20123456");
+  });
+
+  it("masque une suite de 7 chiffres (saisie maladroite)", () => {
+    const r = scanForContactInfo("appelle moi sur 2222222");
+    expect(r.masked).toBe(true);
+    expect(r.clean).not.toContain("2222222");
+  });
+
+  it("masque une suite courte (6 chiffres) EN CONTEXTE de sollicitation", () => {
+    const r = scanForContactInfo("appelle moi sur 222222");
+    expect(r.masked).toBe(true);
+    expect(r.clean).not.toContain("222222");
+  });
+
+  it("ne masque PAS une suite courte HORS contexte de sollicitation (prix)", () => {
+    const r = scanForContactInfo("le solde est 12000 à l'arrivée");
+    expect(r.masked).toBe(false);
+    expect(r.clean).toContain("12000");
+  });
+
+  it("anti-découpage : un chiffre court est masqué en CONTEXTE de fil", () => {
+    const r = scanForContactInfo("22", { contextSolicited: true });
+    expect(r.masked).toBe(true);
+    expect(r.clean).not.toContain("22");
+  });
+
+  it("hors contexte, un chiffre court isolé reste intact", () => {
+    const r = scanForContactInfo("22");
+    expect(r.masked).toBe(false);
+    expect(r.flagged).toBe(false);
   });
 
   it("masque un numéro international espacé (+216 …)", () => {
@@ -53,6 +84,7 @@ describe("scanForContactInfo", () => {
     const msg = "kalamni f telifoun";
     const r = scanForContactInfo(msg);
     expect(r.flagged).toBe(true);
+    expect(r.masked).toBe(false); // rien de réellement masqué
     expect(r.clean).toBe(msg); // le texte n'est pas mutilé
   });
 

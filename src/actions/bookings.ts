@@ -19,6 +19,7 @@ import { recomputePropertyRating } from "@/lib/listings";
 import { initKonnectPayment, isKonnectEnabled, signKonnectWebhook } from "@/lib/konnect";
 import { sendBookingConfirmationEmail } from "@/lib/notifications";
 import { computeBookingRefund } from "@/lib/cancellation";
+import { isSuspended } from "@/lib/suspension";
 import type { CancelPolicy } from "@/lib/constants";
 
 export type BookingFormState = { error?: string } | undefined;
@@ -70,6 +71,12 @@ export async function createBookingAction(
   // confiance au client. La CIN n'est PAS requise pour réserver (côté voyageur).
   if (!user.emailVerified || !user.phoneVerified) {
     return { error: fr.booking.verifRequise };
+  }
+
+  // Compte suspendu ACTIF (anti-bypass) : réservation bloquée le temps de la
+  // suspension (temporaire ou indéfinie).
+  if (isSuspended(user)) {
+    return { error: fr.booking.compteSuspendu };
   }
 
   const parsed = createSchema.safeParse({

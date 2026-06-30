@@ -265,3 +265,32 @@ export async function hardDeleteWakilApplicationAction(
   revalidatePath("/dashboard/admin/wakils");
   return { success: fr.admin.candidatureDefinitivementSupprimee };
 }
+
+// ── Suspension anti-bypass : réactivation d'un compte par un admin ───────────
+
+const userIdSchema = z.object({ userId: z.string().cuid() });
+
+/**
+ * Réactive un compte suspendu pour cause de tentatives de bypass. Admin only.
+ * Action à FormData directe (utilisée en formulaire serveur dans la page
+ * « Signalements »).
+ */
+export async function reactivateUserAction(formData: FormData): Promise<void> {
+  const actor = await requireAdmin();
+  const parsed = userIdSchema.safeParse({ userId: formData.get("userId") });
+  if (!parsed.success) return;
+
+  await prisma.user.update({
+    where: { id: parsed.data.userId },
+    data: { suspended: false, suspendedAt: null },
+  });
+
+  await logAudit({
+    action: "ACCOUNT_REACTIVATED",
+    userId: actor.id,
+    success: true,
+    metadata: { targetUserId: parsed.data.userId },
+  });
+
+  revalidatePath("/dashboard/admin/signalements");
+}

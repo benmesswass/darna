@@ -8,7 +8,15 @@ import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     booking: { findUnique: vi.fn() },
-    message: { create: vi.fn(), count: vi.fn().mockResolvedValue(1) },
+    message: {
+      create: vi.fn(),
+      count: vi.fn().mockResolvedValue(1),
+      findMany: vi.fn().mockResolvedValue([]),
+    },
+    user: {
+      update: vi.fn(),
+      findUnique: vi.fn().mockResolvedValue({ suspensionCount: 0 }),
+    },
   },
 }));
 vi.mock("@/lib/session", () => ({ requireUser: vi.fn() }));
@@ -25,7 +33,7 @@ vi.mock("@/lib/i18n/server", () => ({
       champsRequis: "champs",
       erreurInconnue: "inconnue",
     },
-    messages: { indisponible: "indispo" },
+    messages: { indisponible: "indispo", compteSuspendu: "suspendu" },
   }),
 }));
 
@@ -62,6 +70,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   (prisma.message.count as unknown as Mock).mockResolvedValue(1);
   (prisma.message.create as unknown as Mock).mockResolvedValue({ id: "msg1" });
+  (prisma.message.findMany as unknown as Mock).mockResolvedValue([]);
   (requireUser as unknown as Mock).mockResolvedValue({ id: "guest1" });
 });
 
@@ -84,7 +93,7 @@ describe("sendMessageAction", () => {
   it("enregistre le message d'un participant (fenêtre gratuite → pas de coordonnée)", async () => {
     mockBooking();
     const res = await sendMessageAction(undefined, fd("Bonjour, à quelle heure l'arrivée ?"));
-    expect(res).toEqual({ sent: true, warned: false });
+    expect(res).toEqual({ sent: true, warned: false, masked: false, escalated: false, suspended: false });
     const data = (prisma.message.create as unknown as Mock).mock.calls[0][0].data;
     expect(data.flagged).toBe(false);
     expect(data.senderId).toBe("guest1");
@@ -93,16 +102,77 @@ describe("sendMessageAction", () => {
   it("masque un numéro + signale (warned) quand le contact est verrouillé", async () => {
     mockBooking();
     const res = await sendMessageAction(undefined, fd("appelle 20123456"));
-    expect(res).toEqual({ sent: true, warned: true });
+    expect(res).toEqual({ sent: true, warned: true, masked: true, escalated: false, suspended: false });
     const data = (prisma.message.create as unknown as Mock).mock.calls[0][0].data;
     expect(data.flagged).toBe(true);
     expect(data.body).not.toContain("20123456");
   });
 
+  it("anti-découpage : un chiffre court est masqué si le fil est déjà signalé", async () => {
+    mockBooking();
+    // L'expéditeur a déjà un message signalé dans ce fil → contexte « à risque ».
+    (prisma.message.findMany as unknown as Mock).mockResolvedValue([{ id: "m0" }]);
+    const res = await sendMessageAction(undefined, fd("22"));
+    expect(res).toMatchObject({ masked: true });
+    const data = (prisma.message.create as unknown as Mock).mock.calls[0][0].data;
+    expect(data.body).not.toContain("22");
+    expect(data.flagged).toBe(true);
+  });
+
+  it("sollicitation seule (« appelle moi ») : signalée mais NON masquée, sans escalade", async () => {
+    mockBooking();
+    const res = await sendMessageAction(undefined, fd("appelle moi stp"));
+    expect(res).toEqual({ sent: true, warned: true, masked: false, escalated: false, suspended: false });
+    const data = (prisma.message.create as unknown as Mock).mock.calls[0][0].data;
+    expect(data.flagged).toBe(true);
+    expect(data.body).toBe("appelle moi stp"); // texte intact, rien de masqué
+    expect(prisma.message.count).not.toHaveBeenCalled(); // ne compte pas → pas d'escalade
+    expect(prisma.user.update).not.toHaveBeenCalled();
+  });
+
+  it("escalade (avertissement suspension) au-delà du seuil de tentatives", async () => {
+    mockBooking();
+    (prisma.message.count as unknown as Mock).mockResolvedValue(3);
+    const res = await sendMessageAction(undefined, fd("watsab 20123456"));
+    expect(res).toEqual({ sent: true, warned: true, masked: true, escalated: true, suspended: false });
+    expect(prisma.user.update).not.toHaveBeenCalled();
+  });
+
+  it("SUSPEND (1re fois = temporaire) au-delà du seuil de suspension", async () => {
+    mockBooking();
+    (prisma.message.count as unknown as Mock).mockResolvedValue(4);
+    (prisma.user.findUnique as unknown as Mock).mockResolvedValue({ suspensionCount: 0 });
+    const res = await sendMessageAction(undefined, fd("watsab 20123456"));
+    expect(res).toEqual({ sent: true, warned: true, masked: true, escalated: true, suspended: true });
+    const upd = (prisma.user.update as unknown as Mock).mock.calls[0][0];
+    expect(upd.where).toEqual({ id: "guest1" });
+    expect(upd.data.suspended).toBe(true);
+    expect(upd.data.suspensionCount).toBe(1);
+    // 1re suspension = temporaire (date de fin renseignée, pas indéfinie).
+    expect(upd.data.suspendedUntil).toBeInstanceOf(Date);
+  });
+
+  it("suspension PROGRESSIVE : la 2e suspension passe au palier suivant", async () => {
+    mockBooking();
+    (prisma.message.count as unknown as Mock).mockResolvedValue(5);
+    (prisma.user.findUnique as unknown as Mock).mockResolvedValue({ suspensionCount: 1 });
+    await sendMessageAction(undefined, fd("3aytili 20123456"));
+    const upd = (prisma.user.update as unknown as Mock).mock.calls[0][0];
+    expect(upd.data.suspensionCount).toBe(2);
+    expect(upd.data.suspendedUntil).toBeInstanceOf(Date);
+  });
+
+  it("refuse tout envoi si le compte est déjà suspendu", async () => {
+    (requireUser as unknown as Mock).mockResolvedValue({ id: "guest1", suspended: true });
+    const res = await sendMessageAction(undefined, fd("coucou"));
+    expect(res).toEqual({ error: "suspendu" });
+    expect(prisma.message.create).not.toHaveBeenCalled();
+  });
+
   it("NE masque PAS une fois la réservation ferme (politique STRICTE = contact débloqué)", async () => {
     mockBooking({ cancelPolicy: "STRICTE" });
     const res = await sendMessageAction(undefined, fd("mon num 20123456"));
-    expect(res).toEqual({ sent: true, warned: false });
+    expect(res).toEqual({ sent: true, warned: false, masked: false, escalated: false, suspended: false });
     const data = (prisma.message.create as unknown as Mock).mock.calls[0][0].data;
     expect(data.flagged).toBe(false);
     expect(data.body).toContain("20123456");
@@ -112,6 +182,6 @@ describe("sendMessageAction", () => {
     (requireUser as unknown as Mock).mockResolvedValue({ id: "host1" });
     mockBooking();
     const res = await sendMessageAction(undefined, fd("Bienvenue !"));
-    expect(res).toEqual({ sent: true, warned: false });
+    expect(res).toEqual({ sent: true, warned: false, masked: false, escalated: false, suspended: false });
   });
 });
