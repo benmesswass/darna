@@ -595,6 +595,9 @@ export const fr = {
     signalementsCompte: (n: number) =>
       n === 1 ? "1 tentative" : `${n} tentatives`,
     signalementsEscalade: (n: number) => `Récidiviste — ${n} tentatives`,
+    signalementsSuspendu: "Compte suspendu",
+    signalementsSuspenduJusqu: (date: string) => `Suspendu jusqu'au ${date}`,
+    reactiver: "Réactiver le compte",
     navAnalytics: "Tableau de bord",
     wakils: "Wakils",
     fileModeration: "File de modération des annonces",
@@ -906,6 +909,8 @@ export const fr = {
       `Ce logement accueille au maximum ${max} voyageurs.`,
     connexionRequise: "Connectez-vous pour réserver.",
     verifRequise: "Vérifiez votre compte (e-mail + téléphone) avant de réserver.",
+    compteSuspendu:
+      "Votre compte est suspendu. Vous ne pouvez pas réserver pour le moment.",
     verifRequiseTitre: "Vérifiez votre compte pour réserver",
     verifRequiseDesc:
       "Pour la confiance de tous sur Darna, seuls les comptes vérifiés (e-mail + téléphone) peuvent réserver. Cela prend moins de deux minutes.",
@@ -1014,7 +1019,26 @@ export const fr = {
     banniereLibre:
       "Votre réservation est ferme : vous pouvez échanger librement vos coordonnées.",
     avertissementMasque:
-      "Vos coordonnées ont été masquées. Le partage de numéro ou d'e-mail hors Darna n'est pas autorisé tant que la réservation n'est pas ferme — vous serez mis en relation automatiquement.",
+      "Vos coordonnées ont été masquées. Partager un numéro ou un e-mail hors Darna est interdit tant que la réservation n'est pas ferme — vous serez mis en relation automatiquement. ⚠️ Les tentatives répétées peuvent entraîner la suspension de votre compte.",
+    avertissementSollicitation:
+      "⚠️ Demander à échanger vos coordonnées hors Darna n'est pas autorisé tant que la réservation n'est pas ferme. Les tentatives répétées peuvent entraîner la suspension de votre compte.",
+    avertissementEscalade:
+      "⚠️ Dernier avertissement : plusieurs tentatives de partage de coordonnées hors Darna ont été détectées sur votre compte. Toute nouvelle tentative expose votre compte à une suspension.",
+    compteSuspendu:
+      "Votre compte est suspendu suite à des tentatives répétées de partage de coordonnées hors Darna. Contactez le support pour le réactiver.",
+    compteSuspenduJusqu: (date: string) =>
+      `Votre compte est suspendu jusqu'au ${date} suite à des tentatives de partage de coordonnées hors Darna. Restez sur Darna pour protéger vos réservations et vos avis.`,
+    pourquoiTitre: "En savoir plus — pourquoi rester sur Darna ?",
+    pourquoi1:
+      "Paiement protégé : votre acompte est sous séquestre Darna. Hors plateforme, aucune garantie — c'est la porte ouverte aux arnaques.",
+    pourquoi2:
+      "Avis vérifiés : seuls les séjours réservés sur Darna donnent droit à un avis. C'est ce qui bâtit la réputation de l'hôte et la confiance du voyageur. En dehors : ni preuve, ni réputation.",
+    pourquoi3:
+      "Litiges : en cas de souci, Darna tranche et vous protège. Hors plateforme, vous êtes seul face au problème.",
+    pourquoi4:
+      "Pour l'hôte : visibilité, badge « Vérifié », réservations futures — tout passe par Darna. Contourner, c'est se couper de ses prochains clients.",
+    pourquoiConclusion:
+      "Darna, la première plateforme tunisienne de réservation de confiance. Ensemble, construisons un écosystème où chacun est protégé.",
   },
   alaUne: {
     titre: "Mettez votre annonce à la une",

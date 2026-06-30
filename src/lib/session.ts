@@ -13,6 +13,8 @@ export type SessionUser = {
   phoneVerified: boolean;
   emailVerified: boolean;
   isWakil: boolean;
+  suspended: boolean;
+  suspendedUntil: Date | null;
 };
 
 /**
@@ -37,6 +39,8 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
       phoneVerified: true,
       emailVerified: true,
       isWakil: true,
+      suspended: true,
+      suspendedUntil: true,
       tokenVersion: true,
     },
   });

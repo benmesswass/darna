@@ -6,13 +6,27 @@ import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { assertRateLimit } from "@/lib/rate-limit";
-import { scanForContactInfo } from "@/lib/message-scan";
+import { scanForContactInfo, CONTACT_MASK } from "@/lib/message-scan";
 import { contactRevealState } from "@/lib/contact-reveal";
 import { logAudit, logStructured } from "@/lib/audit";
-import { MESSAGE_FLAG_ESCALATION_THRESHOLD } from "@/lib/config";
+import {
+  MESSAGE_FLAG_ESCALATION_THRESHOLD,
+  MESSAGE_FLAG_SUSPENSION_THRESHOLD,
+} from "@/lib/config";
+import { isSuspended, nextSuspension } from "@/lib/suspension";
+import { formatDateFr } from "@/lib/format";
 import type { CancelPolicy } from "@/lib/constants";
 
-export type MessageFormState = { error?: string; sent?: boolean; warned?: boolean } | undefined;
+export type MessageFormState =
+  | {
+      error?: string;
+      sent?: boolean;
+      warned?: boolean;
+      masked?: boolean;
+      escalated?: boolean;
+      suspended?: boolean;
+    }
+  | undefined;
 
 const schema = z.object({
   bookingId: z.string().cuid(),
@@ -37,6 +51,15 @@ export async function sendMessageAction(
 ): Promise<MessageFormState> {
   const fr = await getT();
   const user = await requireUser();
+
+  // Compte suspendu ACTIF (anti-bypass) : plus aucun envoi possible.
+  if (isSuspended(user)) {
+    return {
+      error: user.suspendedUntil
+        ? fr.messages.compteSuspenduJusqu(formatDateFr(user.suspendedUntil))
+        : fr.messages.compteSuspendu,
+    };
+  }
 
   if (!(await assertRateLimit("message"))) {
     return { error: fr.common.tropDeTentatives };
@@ -79,10 +102,22 @@ export async function sendMessageAction(
   );
 
   let body = parsed.data.body;
+  let masked = false;
   let flagged = false;
   if (reveal.state !== "revealed") {
-    const scan = scanForContactInfo(parsed.data.body);
+    // Contexte anti-découpage : si l'expéditeur a déjà un message signalé récent
+    // dans ce fil, on considère que le fil partage des coordonnées → on masque
+    // même les suites courtes de chiffres du message courant (numéro éclaté).
+    const recent = await prisma.message.findMany({
+      where: { bookingId: booking.id, senderId: user.id, flagged: true },
+      select: { id: true },
+      take: 1,
+    });
+    const scan = scanForContactInfo(parsed.data.body, {
+      contextSolicited: recent.length > 0,
+    });
     body = scan.clean;
+    masked = scan.masked;
     flagged = scan.flagged;
   }
 
@@ -90,33 +125,73 @@ export async function sendMessageAction(
     data: { bookingId: booking.id, senderId: user.id, body, flagged },
   });
 
-  // Tentative de partage de coordonnées hors plateforme : on remonte à l'admin
-  // (audit) et on escalade si l'utilisateur récidive.
+  // Signalement admin : toute tentative (coordonnée masquée OU simple
+  // sollicitation) est tracée pour monitoring.
   if (flagged) {
-    logStructured("warn", "message.contact_masked", {
+    logStructured("warn", "message.contact_flagged", {
       bookingId: booking.id,
       userId: user.id,
+      masked,
     });
     await logAudit({
       action: "MESSAGE_FLAGGED",
       userId: user.id,
       success: true,
-      metadata: { bookingId: booking.id },
+      metadata: { bookingId: booking.id, masked },
     });
+  }
 
-    const flaggedCount = await prisma.message.count({
-      where: { senderId: user.id, flagged: true },
+  // Escalade / suspension : SEUL un partage RÉEL de coordonnées (masked) compte —
+  // une simple sollicitation (« appelle-moi ») est signalée mais ne suspend pas.
+  let escalated = false;
+  let suspended = false;
+  if (masked) {
+    const maskedCount = await prisma.message.count({
+      where: { senderId: user.id, body: { contains: CONTACT_MASK } },
     });
-    if (flaggedCount >= MESSAGE_FLAG_ESCALATION_THRESHOLD) {
+    escalated = maskedCount >= MESSAGE_FLAG_ESCALATION_THRESHOLD;
+    if (escalated) {
       await logAudit({
         action: "MESSAGE_BYPASS_ESCALATION",
         userId: user.id,
         success: false,
-        metadata: { bookingId: booking.id, flaggedCount },
+        metadata: { bookingId: booking.id, maskedCount },
       });
+    }
+
+    // Au-delà du seuil de suspension : suspension PROGRESSIVE (temporaire puis
+    // de plus en plus longue, indéfinie au-delà du dernier palier).
+    if (maskedCount >= MESSAGE_FLAG_SUSPENSION_THRESHOLD) {
+      const current = await prisma.user.findUnique({
+        where: { id: user.id },
+        select: { suspensionCount: true },
+      });
+      const level = (current?.suspensionCount ?? 0) + 1;
+      const { until } = nextSuspension(level);
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          suspended: true,
+          suspendedAt: new Date(),
+          suspendedUntil: until,
+          suspensionCount: level,
+        },
+      });
+      await logAudit({
+        action: "ACCOUNT_SUSPENDED",
+        userId: user.id,
+        success: false,
+        metadata: {
+          bookingId: booking.id,
+          maskedCount,
+          level,
+          until: until?.toISOString() ?? null,
+        },
+      });
+      suspended = true;
     }
   }
 
   revalidatePath(`/reservation/${booking.id}/messages`);
-  return { sent: true, warned: flagged };
+  return { sent: true, warned: flagged, masked, escalated, suspended };
 }

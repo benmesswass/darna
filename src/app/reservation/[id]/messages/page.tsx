@@ -6,8 +6,10 @@ import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { stayEnabled } from "@/lib/modes";
-import { formatDateShortFr } from "@/lib/format";
+import { formatDateShortFr, formatDateFr } from "@/lib/format";
 import { MessageComposer } from "@/components/booking/MessageComposer";
+import { isSuspended } from "@/lib/suspension";
+import { CONTACT_MASK } from "@/lib/message-scan";
 import { contactRevealState } from "@/lib/contact-reveal";
 import type { CancelPolicy } from "@/lib/constants";
 import { LockIcon, ChevronLeftIcon } from "@/components/icons";
@@ -82,6 +84,23 @@ export default async function MessagesPage({
         {firm ? fr.messages.banniereLibre : fr.messages.banniere}
       </p>
 
+      {!firm ? (
+        <details className="mt-2 rounded-2xl bg-white px-4 py-3 text-start ring-1 ring-darna/10">
+          <summary className="cursor-pointer text-xs font-bold text-darna">
+            {fr.messages.pourquoiTitre}
+          </summary>
+          <ul className="mt-2 space-y-1.5 text-xs leading-relaxed text-ink/70">
+            <li>• {fr.messages.pourquoi1}</li>
+            <li>• {fr.messages.pourquoi2}</li>
+            <li>• {fr.messages.pourquoi3}</li>
+            <li>• {fr.messages.pourquoi4}</li>
+          </ul>
+          <p className="mt-2 text-xs font-semibold text-darna">
+            {fr.messages.pourquoiConclusion}
+          </p>
+        </details>
+      ) : null}
+
       <div className="mt-5 space-y-3">
         {booking.messages.length === 0 ? (
           <p className="rounded-2xl bg-white px-4 py-8 text-center text-sm text-ink/50 ring-1 ring-darna/10">
@@ -107,7 +126,7 @@ export default async function MessagesPage({
                 <span className="mt-1 px-1 text-[11px] text-ink/45">
                   {mine ? fr.messages.vous : otherLabel} ·{" "}
                   {formatDateShortFr(m.createdAt)}
-                  {m.flagged ? ` · ${fr.messages.masque}` : ""}
+                  {m.body.includes(CONTACT_MASK) ? ` · ${fr.messages.masque}` : ""}
                 </span>
               </div>
             );
@@ -115,7 +134,13 @@ export default async function MessagesPage({
         )}
       </div>
 
-      {isOpen ? (
+      {isSuspended(user) ? (
+        <p className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 ring-1 ring-red-200">
+          {user.suspendedUntil
+            ? fr.messages.compteSuspenduJusqu(formatDateFr(user.suspendedUntil))
+            : fr.messages.compteSuspendu}
+        </p>
+      ) : isOpen ? (
         <MessageComposer bookingId={booking.id} />
       ) : (
         <p className="mt-4 rounded-2xl bg-sand-light/50 px-4 py-3 text-sm font-medium text-darna-dark">
