@@ -420,6 +420,10 @@ export const fr = {
     payeLe: (date: string) => `Payé le ${date}`,
     contactVoyageurMasque:
       "Coordonnées du voyageur visibles dès que son acompte est réglé.",
+    suspenduJusqu: (date: string) => `Compte suspendu jusqu'au ${date}`,
+    suspenduIndefini: "Compte suspendu",
+    suspenduDetail:
+      "Vous restez protégé : vous pouvez consulter et gérer vos réservations en cours, contacter l'hôte d'un séjour confirmé, et annuler/être remboursé. Pendant la suspension, vous ne pouvez pas faire de nouvelle réservation ni envoyer de messages.",
     aucuneDemande: "Aucune demande reçue pour le moment.",
     aucunFavori: "Aucun favori pour le moment.",
     reservationDe: (nom: string) => `Réservation de ${nom}`,

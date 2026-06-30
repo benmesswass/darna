@@ -6,6 +6,8 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { DashboardNav } from "@/components/dashboard/DashboardNav";
 import { buildDashboardLinks } from "@/lib/dashboard-nav";
+import { isSuspended } from "@/lib/suspension";
+import { formatDateFr } from "@/lib/format";
 import { CheckIcon } from "@/components/icons";
 
 /** Initiales (1 à 2 lettres) pour l'avatar par défaut de l'en-tête. */
@@ -111,6 +113,19 @@ export default async function DashboardLayout({
           </div>
         </div>
       </div>
+
+      {isSuspended(user) ? (
+        <div className="mt-4 rounded-2xl bg-red-50 p-4 ring-1 ring-red-200">
+          <p className="text-sm font-bold text-red-700">
+            {user.suspendedUntil
+              ? fr.dashboard.suspenduJusqu(formatDateFr(user.suspendedUntil))
+              : fr.dashboard.suspenduIndefini}
+          </p>
+          <p className="mt-1 text-xs leading-relaxed text-ink/70">
+            {fr.dashboard.suspenduDetail}
+          </p>
+        </div>
+      ) : null}
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[230px_minmax(0,1fr)]">
         <nav className="flex gap-1.5 overflow-x-auto lg:flex-col">
