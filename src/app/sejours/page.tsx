@@ -21,6 +21,8 @@ import { SearchDateRange } from "@/components/search/SearchDateRange";
 import { SortSelect } from "@/components/search/SortSelect";
 import { AutoSubmitCheckbox } from "@/components/search/AutoSubmitCheckbox";
 import { PriceRangeFilter } from "@/components/search/PriceRangeFilter";
+import { AmenitiesFilter } from "@/components/search/AmenitiesFilter";
+import { parseAmenitiesParam } from "@/lib/constants";
 import { SectionHero } from "@/components/layout/SectionHero";
 import { getCityWeather, getCityForecast } from "@/lib/weather";
 import { WeatherBanner } from "@/components/search/WeatherBanner";
@@ -191,6 +193,7 @@ export default async function SejoursPage({
             label={fr.badges.verifieOnSite}
             defaultChecked={params.certifie === "1"}
           />
+          <AmenitiesFilter selected={parseAmenitiesParam(params.equipements)} />
         </div>
       </form>
 

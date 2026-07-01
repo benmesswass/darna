@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { resolveCity, nearbyCities } from "@/lib/geo";
 import { markerPriceLabel } from "@/lib/format";
-import { parseSortKey, type SortKey } from "@/lib/constants";
+import { parseSortKey, parseAmenitiesParam, type SortKey } from "@/lib/constants";
 import type { MapMarker } from "@/components/map/types";
 
 /** Taille de page pour les listings (protection DoS + UX). */
@@ -150,6 +150,9 @@ export type SejoursSearchParams = {
   prixMax?: string;
   verifie?: string;
   certifie?: string;
+  // Cases à cocher répétées → Next.js donne une string si une seule est
+  // cochée, un string[] si plusieurs (cf. parseAmenitiesParam).
+  equipements?: string | string[];
   tri?: string;
   page?: string;
 };
@@ -290,6 +293,15 @@ export async function searchSejours(params: SejoursSearchParams) {
 
   // Cases « Vérifié Darna » / « Certifié Wakil » — filtre niveau de vérification.
   Object.assign(baseWhere, verificationFilter(params));
+
+  // Filtre équipements : amenities est un String « A|B|C » (héritage SQLite),
+  // chaque équipement coché doit apparaître dans la chaîne. Aucun libellé
+  // d'AMENITIES n'est une sous-chaîne d'un autre, donc `contains` par équipement
+  // suffit sans faux positifs.
+  const equipements = parseAmenitiesParam(params.equipements);
+  if (equipements.length) {
+    baseWhere.AND = equipements.map((a) => ({ amenities: { contains: a } }));
+  }
 
   const arrivee = parseDate(params.arrivee);
   const depart = parseDate(params.depart);
