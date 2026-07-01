@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { DashboardNav } from "@/components/dashboard/DashboardNav";
 import { buildDashboardLinks } from "@/lib/dashboard-nav";
-import { isSuspended } from "@/lib/suspension";
+import { isSuspended, nextSuspensionDays } from "@/lib/suspension";
 import { formatDateFr } from "@/lib/format";
 import { CheckIcon } from "@/components/icons";
 
@@ -121,9 +121,33 @@ export default async function DashboardLayout({
               ? fr.dashboard.suspenduJusqu(formatDateFr(user.suspendedUntil))
               : fr.dashboard.suspenduIndefini}
           </p>
-          <p className="mt-1 text-xs leading-relaxed text-ink/70">
-            {fr.dashboard.suspenduDetail}
-          </p>
+          <details className="mt-1.5 text-start">
+            <summary className="cursor-pointer text-xs font-bold text-red-700 underline">
+              {fr.dashboard.enSavoirPlus}
+            </summary>
+            <div className="mt-2 space-y-2 text-xs leading-relaxed text-ink/70">
+              <p>
+                <span className="font-semibold text-ink">
+                  {fr.dashboard.suspenduPourquoiTitre}
+                </span>{" "}
+                {fr.dashboard.suspenduPourquoi}
+              </p>
+              <p>
+                <span className="font-semibold text-ink">
+                  {fr.dashboard.suspenduConsequencesTitre}
+                </span>{" "}
+                {fr.dashboard.suspenduDetail}
+              </p>
+              <p className="font-semibold text-red-700">
+                {(() => {
+                  const days = nextSuspensionDays(user.suspensionCount);
+                  return days
+                    ? fr.dashboard.suspenduProchaine(days)
+                    : fr.dashboard.suspenduProchaineIndefinie;
+                })()}
+              </p>
+            </div>
+          </details>
         </div>
       ) : null}
 

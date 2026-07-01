@@ -15,6 +15,7 @@ export type SessionUser = {
   isWakil: boolean;
   suspended: boolean;
   suspendedUntil: Date | null;
+  suspensionCount: number;
 };
 
 /**
@@ -41,6 +42,7 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
       isWakil: true,
       suspended: true,
       suspendedUntil: true,
+      suspensionCount: true,
       tokenVersion: true,
     },
   });

@@ -32,3 +32,12 @@ export function nextSuspension(
   if (days === undefined) return { until: null }; // indéfinie
   return { until: new Date(now.getTime() + days * DAY_MS) };
 }
+
+/**
+ * Durée (en jours) de la PROCHAINE suspension pour un utilisateur ayant déjà été
+ * suspendu `currentCount` fois, ou `null` si la prochaine serait indéfinie (au
+ * -delà du dernier palier). Sert à prévenir l'utilisateur de la sanction à venir.
+ */
+export function nextSuspensionDays(currentCount: number): number | null {
+  return SUSPENSION_DURATIONS_DAYS[currentCount] ?? null;
+}
