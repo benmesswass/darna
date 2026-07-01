@@ -29,7 +29,7 @@
 |---|-------|------|--------|--------|
 | F4 | Filtre par équipements (wifi, piscine, climatisation…) sur la recherche séjours | P1 | ✅ | PR #72. `parseAmenitiesParam` (`src/lib/constants.ts`), filtre dans `searchSejours` (`src/lib/listings.ts`), `AmenitiesFilter` (`src/components/search/AmenitiesFilter.tsx`) branché sur `/sejours`. |
 | F5 | Filtre chambres / capacité voyageurs / type de bien sur la recherche séjours | P2 | ❌ | `maxGuests`/`rooms` existent en base, absents des query params de recherche. |
-| F6 | Section "annonces similaires" en fin de fiche annonce | P1 | ❌ | Aucune requête de biens comparables (même ville/type) dans `ListingDetail.tsx`. |
+| F6 | Section "annonces similaires" en fin de fiche annonce | P1 | ✅ | `getSimilarListings` (`src/lib/listings.ts`, même ville + même type) branché en pleine largeur en fin de `ListingDetail.tsx` (masqué si rien de comparable). |
 | F7 | Alertes de recherche sauvegardée (email quand une annonce matche ville/dates/budget) | P2 | ❌ | Fonctionnalité à créer de zéro (modèle + cron/job + email). |
 
 ## 3. Partage & rétention
@@ -53,7 +53,7 @@
 1. ✅ F4 — filtre équipements (PR #72).
 2. ✅ F3 — fiche hôte publique (PR #73).
 3. ✅ F8 — bouton Partager (PR #74).
-4. F6 — annonces similaires.
+4. ✅ F6 — annonces similaires.
 5. F10 — vérifier/exposer l'annulation self-service.
 6. F1 — avis bidirectionnels.
 

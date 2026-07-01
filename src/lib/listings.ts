@@ -502,6 +502,28 @@ export async function getHostProfile(id: string): Promise<HostProfile | null> {
   };
 }
 
+/**
+ * Annonces comparables en fin de fiche : même ville + même type, hors
+ * l'annonce courante. Retourne un tableau vide (pas d'erreur) si rien de
+ * comparable — la section « Annonces similaires » se masque alors côté UI.
+ */
+export async function getSimilarListings(
+  property: { id: string; city: string; type: string },
+  take = 4
+): Promise<ListingWithPhoto[]> {
+  return prisma.property.findMany({
+    where: {
+      ...activeListingWhere(),
+      type: property.type,
+      city: property.city,
+      id: { not: property.id },
+    },
+    include: listingCardInclude,
+    orderBy: listingOrderBy,
+    take,
+  });
+}
+
 export async function getFeaturedListings(take = 6) {
   return prisma.property.findMany({
     where: { ...activeListingWhere(), verified: true },
