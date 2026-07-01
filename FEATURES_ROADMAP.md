@@ -27,7 +27,7 @@
 
 | # | Tâche | Prio | Statut | Détail |
 |---|-------|------|--------|--------|
-| F4 | Filtre par équipements (wifi, piscine, climatisation…) sur la recherche séjours | P1 | ❌ | Le champ `amenities` existe déjà en base (`prisma/schema.prisma:159`) mais n'est pas un paramètre de recherche (`src/lib/listings.ts`, `src/app/sejours/page.tsx`). |
+| F4 | Filtre par équipements (wifi, piscine, climatisation…) sur la recherche séjours | P1 | ✅ | PR #72. `parseAmenitiesParam` (`src/lib/constants.ts`), filtre dans `searchSejours` (`src/lib/listings.ts`), `AmenitiesFilter` (`src/components/search/AmenitiesFilter.tsx`) branché sur `/sejours`. |
 | F5 | Filtre chambres / capacité voyageurs / type de bien sur la recherche séjours | P2 | ❌ | `maxGuests`/`rooms` existent en base, absents des query params de recherche. |
 | F6 | Section "annonces similaires" en fin de fiche annonce | P1 | ❌ | Aucune requête de biens comparables (même ville/type) dans `ListingDetail.tsx`. |
 | F7 | Alertes de recherche sauvegardée (email quand une annonce matche ville/dates/budget) | P2 | ❌ | Fonctionnalité à créer de zéro (modèle + cron/job + email). |
@@ -50,7 +50,7 @@
 ## Exécution (prioritisée)
 
 **Maintenant (P0/P1) :**
-1. F4 — filtre équipements (le plus rentable : donnée déjà en base).
+1. ✅ F4 — filtre équipements (PR #72).
 2. F3 — fiche hôte publique.
 3. F8 — bouton Partager.
 4. F6 — annonces similaires.

@@ -40,7 +40,7 @@ export async function clearExpiredFeatured(): Promise<void> {
  * lointain en tête), puis vérifiées, puis les plus récentes. À utiliser
  * APRÈS clearExpiredFeatured() pour que featuredUntil non-null = boost actif.
  */
-const listingOrderBy: Prisma.PropertyOrderByWithRelationInput[] = [
+export const listingOrderBy: Prisma.PropertyOrderByWithRelationInput[] = [
   { featuredUntil: { sort: "desc", nulls: "last" } },
   { verified: "desc" },
   { publishedAt: "desc" },
@@ -454,6 +454,52 @@ export async function getPropertyBySlug(slug: string) {
       },
     },
   });
+}
+
+export type HostProfile = {
+  id: string;
+  name: string;
+  image: string | null;
+  role: string;
+  kycStatus: string;
+  createdAt: Date;
+  listings: ListingWithPhoto[];
+  ratingAvg: number | null;
+  ratingCount: number;
+};
+
+/**
+ * Fiche hôte publique (F4/F3) : uniquement pour un HOTE/AGENCE (jamais un
+ * VOYAGEUR, même en visitant directement /hote/[id]). Note = agrégat sur TOUS
+ * les avis reçus par cet hôte (pas seulement ses annonces encore actives) —
+ * la réputation d'un hôte survit à l'expiration d'une annonce individuelle.
+ */
+export async function getHostProfile(id: string): Promise<HostProfile | null> {
+  const user = await prisma.user.findUnique({
+    where: { id },
+    select: { id: true, name: true, image: true, role: true, kycStatus: true, createdAt: true },
+  });
+  if (!user || (user.role !== "HOTE" && user.role !== "AGENCE")) return null;
+
+  const [listings, rating] = await Promise.all([
+    prisma.property.findMany({
+      where: { ...activeListingWhere(), ownerId: id },
+      include: listingCardInclude,
+      orderBy: listingOrderBy,
+    }),
+    prisma.review.aggregate({
+      where: { property: { ownerId: id } },
+      _avg: { rating: true },
+      _count: { rating: true },
+    }),
+  ]);
+
+  return {
+    ...user,
+    listings,
+    ratingAvg: rating._count.rating > 0 ? rating._avg.rating : null,
+    ratingCount: rating._count.rating,
+  };
 }
 
 export async function getFeaturedListings(take = 6) {

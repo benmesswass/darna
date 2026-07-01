@@ -1384,6 +1384,15 @@ export const fr = {
     desc: "Cette page n'existe pas ou l'annonce a été retirée. Comme quoi, même chez Darna, tout ne dure pas toujours.",
     cta: "Retour à l'accueil",
   },
+  host: {
+    voirProfil: "Voir le profil",
+    titre: (nom: string) => `Profil de ${nom}`,
+    membreDepuis: (annee: number) => `Membre depuis ${annee}`,
+    annoncesActives: (n: number) =>
+      n === 1 ? "1 annonce active" : `${n} annonces actives`,
+    aucuneAnnonceActive: "Aucune annonce active pour le moment.",
+    retourAccueil: "Retour à l'accueil",
+  },
 };
 
 export type Dictionary = typeof fr;
