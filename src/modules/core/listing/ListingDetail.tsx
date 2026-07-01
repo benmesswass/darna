@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { getT } from "@/lib/i18n/server";
 import { FavoriteButton } from "@/components/property/FavoriteButton";
 import { markerPriceLabel } from "@/lib/format";
@@ -346,9 +347,18 @@ export async function ListingDetail({
                 ? fr.property.agence
                 : fr.property.proprietaire}
             </p>
-            <p className="mt-1 font-semibold text-ink">
-              {anonymizeOwner ? fr.property.hoteMasque : property.owner.name}
-            </p>
+            {anonymizeOwner ? (
+              <p className="mt-1 font-semibold text-ink">{fr.property.hoteMasque}</p>
+            ) : (
+              // Lien vers la fiche hôte publique — jamais affiché tant que
+              // l'identité est masquée (anti-bypass, cf. anonymizeOwner).
+              <Link
+                href={`/hote/${property.owner.id}`}
+                className="mt-1 inline-block font-semibold text-ink underline-offset-4 hover:text-darna hover:underline"
+              >
+                {property.owner.name}
+              </Link>
+            )}
             {property.owner.kycStatus === "VERIFIE" ? (
               <p className="mt-2 inline-flex items-center gap-1 rounded-full bg-darna/5 px-2.5 py-1 text-xs font-medium text-darna">
                 <CheckIcon width={12} height={12} strokeWidth={3} />

@@ -26,6 +26,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     take: 50_000 - staticPages.length,
   });
 
+  // Fiches hôte publiques : un hôte par annonce active, dédupliqué (groupBy).
+  const hosts = await prisma.property.groupBy({
+    by: ["ownerId"],
+    where: activeListingWhere(),
+  });
+
   return [
     ...staticPages,
     ...properties.map((p) => ({
@@ -33,6 +39,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: p.updatedAt,
       changeFrequency: "weekly" as const,
       priority: 0.8,
+    })),
+    ...hosts.map((h) => ({
+      url: `${SITE_URL}/hote/${h.ownerId}`,
+      changeFrequency: "weekly" as const,
+      priority: 0.5,
     })),
   ];
 }

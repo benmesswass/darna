@@ -1372,4 +1372,13 @@ export const en: Dictionary = {
     desc: "This page does not exist or the listing has been removed. Proof that even at Darna, nothing lasts forever.",
     cta: "Back to home",
   },
+  host: {
+    voirProfil: "View profile",
+    titre: (nom: string) => `${nom}'s profile`,
+    membreDepuis: (annee: number) => `Member since ${annee}`,
+    annoncesActives: (n: number) =>
+      n === 1 ? "1 active listing" : `${n} active listings`,
+    aucuneAnnonceActive: "No active listings at the moment.",
+    retourAccueil: "Back to home",
+  },
 };

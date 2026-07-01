@@ -1398,4 +1398,13 @@ export const ar: Dictionary = {
     desc: "الصفحة هاذي ما عادتش موجودة ولا الإعلان تنحّى. شفت؟ حتى في دارنا، موش كل شيء يدوم.",
     cta: "ارجع للصفحة الرئيسية",
   },
+  host: {
+    voirProfil: "شوف البروفايل",
+    titre: (nom: string) => `بروفايل ${nom}`,
+    membreDepuis: (annee: number) => `عضو من ${annee}`,
+    annoncesActives: (n: number) =>
+      n === 1 ? "إعلان واحد نشيط" : `${n} إعلانات نشيطة`,
+    aucuneAnnonceActive: "ما فماش إعلانات نشيطة توا.",
+    retourAccueil: "ارجع للصفحة الرئيسية",
+  },
 };
