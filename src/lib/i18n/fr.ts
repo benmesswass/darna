@@ -346,6 +346,8 @@ export const fr = {
     afficherMotDePasse: "Afficher le mot de passe",
     masquerMotDePasse: "Masquer le mot de passe",
     confirmerMotDePasse: "Confirmer le mot de passe",
+    motDePasseNonIdentiques: "Les mots de passe ne sont pas identiques.",
+    compteCreeConnectezVous: "Compte créé ! Connectez-vous pour continuer.",
     pays: "Pays de résidence",
     motDePasseOublie: "Mot de passe oublié ?",
     resetTitre: "Réinitialiser le mot de passe",

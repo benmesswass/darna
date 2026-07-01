@@ -45,6 +45,9 @@
 ## API & abuse
 - [ ] Global API rate limiting / WAF in front of public endpoints.
 - [ ] Bot/abuse protection (CAPTCHA or equivalent) on public forms (contact, wakil, register).
+  - [x] **Register + login**: Cloudflare Turnstile integrated (dual-mode, `CAPTCHA_MODE=turnstile`, `src/lib/turnstile.ts`).
+  - [ ] ⚠️ **Replace Turnstile TEST keys with REAL keys before prod.** Dev uses the Cloudflare always-pass dummy keys (`NEXT_PUBLIC_TURNSTILE_SITE_KEY=1x000…AA` / `TURNSTILE_SECRET_KEY=1x000…AA`) which validate everything and protect NOTHING. Generate a real Managed widget on the Cloudflare dashboard (free), set the prod env vars (keep `CAPTCHA_MODE=turnstile`), and verify a real challenge is enforced.
+  - [ ] Extend Turnstile (or equivalent) to the remaining public forms: contact, wakil.
 - [ ] Fuzzing of all server-action inputs (excessive/nested/typed payloads).
 
 ## Database & data integrity

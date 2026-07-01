@@ -345,6 +345,8 @@ export const en: Dictionary = {
     afficherMotDePasse: "Show password",
     masquerMotDePasse: "Hide password",
     confirmerMotDePasse: "Confirm password",
+    motDePasseNonIdentiques: "Passwords do not match.",
+    compteCreeConnectezVous: "Account created! Sign in to continue.",
     pays: "Country of residence",
     motDePasseOublie: "Forgot your password?",
     resetTitre: "Reset your password",

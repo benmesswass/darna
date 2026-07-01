@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   loginAction,
   registerAction,
@@ -56,8 +57,9 @@ function EyeOffIcon() {
 }
 
 /**
- * Champ mot de passe avec bouton œil afficher/masquer. Non contrôlé (name
- * uniquement) : les mots de passe se vident à chaque soumission.
+ * Champ mot de passe avec bouton œil afficher/masquer. Reste non contrôlé
+ * (name + reset de formulaire React) : volontairement sans defaultValue pour
+ * que les mots de passe se vident à chaque soumission (sécurité + UX demandée).
  */
 function PasswordInput({
   name,
@@ -87,7 +89,8 @@ function PasswordInput({
         onClick={() => setShow((v) => !v)}
         aria-label={show ? fr.auth.masquerMotDePasse : fr.auth.afficherMotDePasse}
         aria-pressed={show}
-        className="absolute end-2.5 top-1/2 -translate-y-1/2 text-ink/45 transition hover:text-darna"
+        tabIndex={-1}
+        className="absolute inset-y-0 end-0 flex items-center pe-3.5 text-ink/45 transition hover:text-darna focus:outline-none focus-visible:text-darna"
       >
         {show ? <EyeOffIcon /> : <EyeIcon />}
       </button>
@@ -129,9 +132,13 @@ function Feedback({ state }: { state: AuthFormState }) {
 
 export function LoginForm({
   callbackUrl,
+  registered = false,
+  defaultEmail = "",
   captchaSiteKey = "",
 }: {
   callbackUrl?: string;
+  registered?: boolean;
+  defaultEmail?: string;
   captchaSiteKey?: string;
 }) {
   const fr = useT();
@@ -143,10 +150,23 @@ export function LoginForm({
   return (
     <form action={action} className="space-y-4">
       <Feedback state={state} />
+      {/* Bannière affichée quand on arrive juste après une inscription réussie. */}
+      {registered && !state ? (
+        <p role="status" className="rounded-xl bg-emerald-50 px-4 py-2.5 text-sm font-medium text-emerald-700">
+          {fr.auth.compteCreeConnectezVous}
+        </p>
+      ) : null}
       {callbackUrl ? <input type="hidden" name="callbackUrl" value={callbackUrl} /> : null}
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold text-ink/70">{fr.auth.email}</span>
-        <input name="email" type="email" required autoComplete="email" className={inputClass} />
+        <input
+          name="email"
+          type="email"
+          required
+          autoComplete="email"
+          defaultValue={defaultEmail}
+          className={inputClass}
+        />
       </label>
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold text-ink/70">{fr.auth.motDePasse}</span>
@@ -276,12 +296,15 @@ export function RegisterForm({
   captchaSiteKey?: string;
 }) {
   const fr = useT();
+  const router = useRouter();
   const [state, action, pending] = useActionState(registerAction, undefined);
   const [confirmError, setConfirmError] = useState("");
   const connexionHref = callbackUrl
     ? `/connexion?callbackUrl=${encodeURIComponent(callbackUrl)}`
     : "/connexion";
 
+  // Validation client immédiate : bloque la soumission si les deux mots de
+  // passe diffèrent (la validation serveur `.refine()` reste le garde-fou).
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     const data = new FormData(e.currentTarget);
     if (data.get("password") !== data.get("confirmPassword")) {
@@ -292,16 +315,45 @@ export function RegisterForm({
     }
   }
 
+  // Inscription réussie → on ouvre directement la page de connexion, e-mail
+  // pré-rempli, pour que l'utilisateur se logue sans ressaisir son adresse.
+  useEffect(() => {
+    if (!state?.success) return;
+    const params = new URLSearchParams({ registered: "1" });
+    if (state.email) params.set("email", state.email);
+    if (callbackUrl) params.set("callbackUrl", callbackUrl);
+    router.replace(`/connexion?${params.toString()}`);
+  }, [state, callbackUrl, router]);
+
+  // En cas d'erreur, on repeuple les champs non sensibles renvoyés par l'action
+  // (le reset de formulaire React reprend ces defaultValue) ; les mots de passe,
+  // eux, n'ont pas de defaultValue → ils se vident, comme demandé.
+  const values = state?.values;
+
   return (
     <form action={action} onSubmit={handleSubmit} className="space-y-4">
       <Feedback state={state} />
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold text-ink/70">{fr.auth.nom}</span>
-        <input name="name" type="text" required minLength={2} className={inputClass} />
+        <input
+          name="name"
+          type="text"
+          required
+          minLength={2}
+          defaultValue={values?.name ?? ""}
+          className={inputClass}
+        />
       </label>
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold text-ink/70">{fr.auth.email}</span>
-        <input name="email" type="email" required autoComplete="email" className={inputClass} />
+        <input
+          name="email"
+          type="email"
+          required
+          autoComplete="email"
+          defaultValue={values?.email ?? ""}
+          className={inputClass}
+        />
       </label>
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold text-ink/70">
@@ -329,7 +381,12 @@ export function RegisterForm({
           {fr.auth.telephone}{" "}
           <span className="font-normal text-ink/40">({fr.common.optionnel})</span>
         </span>
-        <input name="phone" type="tel" className={inputClass} />
+        <input
+          name="phone"
+          type="tel"
+          defaultValue={values?.phone ?? ""}
+          className={inputClass}
+        />
       </label>
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold text-ink/70">
@@ -347,7 +404,12 @@ export function RegisterForm({
       </label>
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold text-ink/70">{fr.auth.role}</span>
-        <select name="role" required defaultValue={defaultRole} className={inputClass}>
+        <select
+          name="role"
+          required
+          defaultValue={values?.role || defaultRole}
+          className={inputClass}
+        >
           <option value="VOYAGEUR">{fr.auth.roleVoyageur}</option>
           <option value="HOTE">{fr.auth.roleHote}</option>
           <option value="AGENCE">{fr.auth.roleAgence}</option>

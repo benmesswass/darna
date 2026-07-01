@@ -17,7 +17,15 @@ import { isValidCountry } from "@/lib/constants";
 import { SITE_URL } from "@/lib/config";
 
 export type AuthFormState =
-  | { error?: string; success?: string; resetUrl?: string }
+  | {
+      error?: string;
+      success?: string;
+      email?: string;
+      resetUrl?: string;
+      // Valeurs non sensibles renvoyées pour repeupler le formulaire après une
+      // erreur (jamais les mots de passe).
+      values?: { name: string; email: string; phone: string; role: string };
+    }
   | undefined;
 
 /**
@@ -33,22 +41,31 @@ const passwordSchema = z
   .max(200)
   .regex(/[0-9]/, "Le mot de passe doit contenir au moins un chiffre");
 
-const registerSchema = z.object({
-  name: z.string().trim().min(2).max(100),
-  email: z.string().trim().toLowerCase().email().max(200),
-  password: passwordSchema,
-  phone: z
-    .string()
-    .trim()
-    .regex(/^\+?[0-9\s]{8,16}$/)
-    .optional()
-    .or(z.literal("")),
-  // Pays de résidence déclaré (pilotage diaspora). Validé contre le référentiel ;
-  // toute valeur hors liste est ignorée (null) plutôt que rejetée.
-  country: z.string().trim().max(60).optional().or(z.literal("")),
-  // ADMIN ne peut pas être choisi à l'inscription — assigné manuellement en DB
-  role: z.enum(["VOYAGEUR", "HOTE", "AGENCE"] as const),
-});
+const registerSchema = z
+  .object({
+    name: z.string().trim().min(2).max(100),
+    email: z.string().trim().toLowerCase().email().max(200),
+    password: passwordSchema,
+    // Confirmation saisie par l'utilisateur ; comparée au mot de passe ci-dessous.
+    confirmPassword: z.string().max(200),
+    phone: z
+      .string()
+      .trim()
+      .regex(/^\+?[0-9\s]{8,16}$/)
+      .optional()
+      .or(z.literal("")),
+    // Pays de résidence déclaré (pilotage diaspora). Validé contre le référentiel ;
+    // toute valeur hors liste est ignorée (null) plutôt que rejetée.
+    country: z.string().trim().max(60).optional().or(z.literal("")),
+    // ADMIN ne peut pas être choisi à l'inscription — assigné manuellement en DB
+    role: z.enum(["VOYAGEUR", "HOTE", "AGENCE"] as const),
+  })
+  // Marqueur dédié pour distinguer « mots de passe différents » des autres
+  // erreurs de validation et afficher un message précis côté formulaire.
+  .refine((d) => d.password === d.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "PASSWORD_MISMATCH",
+  });
 
 export async function registerAction(
   _prev: AuthFormState,
@@ -59,22 +76,40 @@ export async function registerAction(
     return { error: fr.common.tropDeTentatives };
   }
 
+  // Valeurs brutes renvoyées en cas d'erreur pour repeupler le formulaire
+  // (sans jamais inclure les mots de passe).
+  const values = {
+    name: String(formData.get("name") ?? ""),
+    email: String(formData.get("email") ?? ""),
+    phone: String(formData.get("phone") ?? ""),
+    role: String(formData.get("role") ?? ""),
+  };
+
   // CAPTCHA anti-robot (no-op si désactivé). Vérifié AVANT toute écriture.
   const captchaOk = await verifyTurnstile(
     formData.get("cf-turnstile-response") as string | null,
     await clientIp()
   );
-  if (!captchaOk) return { error: fr.auth.captchaEchec };
+  if (!captchaOk) return { error: fr.auth.captchaEchec, values };
 
   const parsed = registerSchema.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),
     password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword"),
     phone: formData.get("phone"),
     country: formData.get("country") ?? undefined,
     role: formData.get("role"),
   });
-  if (!parsed.success) return { error: fr.common.champsRequis };
+  if (!parsed.success) {
+    const mismatch = parsed.error.issues.some(
+      (i) => i.message === "PASSWORD_MISMATCH"
+    );
+    return {
+      error: mismatch ? fr.auth.motDePasseNonIdentiques : fr.common.champsRequis,
+      values,
+    };
+  }
 
   const { name, email, password, phone, country, role } = parsed.data;
   // Pays validé contre le référentiel ; hors liste → null (jamais d'échec).
@@ -82,20 +117,18 @@ export async function registerAction(
 
   const existing = await prisma.user.findUnique({ where: { email } });
 
-  // Message générique : ne révèle PAS qu'un compte existe déjà pour cet email.
-  // (Anti account-enumeration — OWASP Authentication Cheat Sheet)
-  // Le comportement correct en production est d'envoyer un email "compte déjà existant"
-  // à l'adresse concernée, et d'afficher le même message succès dans tous les cas.
-  // TODO : brancher un provider email (Resend / Mailgun) pour ce flow.
+  // Choix produit (validé par Wassim) : on indique explicitement que l'e-mail
+  // est déjà utilisé, à la manière des grands sites grand public — le lien
+  // « se connecter » est juste sous le formulaire. Le risque d'énumération de
+  // comptes est mitigé par le rate limiting de l'inscription (assertRateLimit
+  // ci-dessus). La page de connexion, elle, garde un message générique.
   if (existing) {
     await logAudit({
       action: "REGISTER",
       success: false,
       metadata: { reason: "email_already_exists", email },
     });
-    // Délai artificiel pour aligner le timing avec une vraie insertion (anti-timing)
-    await new Promise((r) => setTimeout(r, 200 + Math.random() * 100));
-    return { success: fr.auth.inscriptionReussie };
+    return { error: fr.auth.emailDejaUtilise, values };
   }
 
   const passwordHash = await bcrypt.hash(password, 12);
@@ -126,7 +159,7 @@ export async function registerAction(
     await logAudit({ action: "EMAIL_OTP_REQUESTED", userId: user.id, success: false });
   }
 
-  return { success: fr.auth.inscriptionReussie };
+  return { success: fr.auth.inscriptionReussie, email };
 }
 
 const loginSchema = z.object({

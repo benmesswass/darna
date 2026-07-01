@@ -368,6 +368,8 @@ export const ar: Dictionary = {
     afficherMotDePasse: "أظهر كلمة السر",
     masquerMotDePasse: "خبي كلمة السر",
     confirmerMotDePasse: "أكد كلمة السر",
+    motDePasseNonIdentiques: "كلمات السر ما متطابقاش.",
+    compteCreeConnectezVous: "الحساب تعمل! أدخل باش تكمّل.",
     pays: "بلد الإقامة",
     motDePasseOublie: "نسيت كلمة السر؟",
     resetTitre: "إعادة تعيين كلمة السر",

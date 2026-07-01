@@ -44,7 +44,8 @@ Site trilingue **fr / en / ar** (arabe = derja tunisienne en écriture arabe, li
 ## Sécurité (invariants à préserver)
 
 - zod sur chaque server action mutante ; autorisation serveur sur chaque mutation (propriété vérifiée en base, jamais confiance au client).
-- Prix toujours recalculés côté serveur. Messages d'erreur auth génériques. Rate limiting dans `authorize` (un seul point).
+- Prix toujours recalculés côté serveur. Rate limiting dans `authorize` (un seul point). Messages d'erreur **connexion** génériques (anti-énumération). Exception assumée : **l'inscription** indique explicitement « un compte existe déjà avec cet e-mail » (UX grand public, choix produit de Wassim), mitigée par le rate limiting + le CAPTCHA optionnel.
+- **CAPTCHA dual-mode** (`src/lib/turnstile.ts`, Cloudflare Turnstile) sur inscription + connexion : désactivé par défaut (`off`), actif via `CAPTCHA_MODE=turnstile` (+ `TURNSTILE_SECRET_KEY` + `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, complétude garantie au boot par `src/lib/env.ts`). `verifyTurnstile()` est fail-closed et no-op quand désactivé. La CSP n'ouvre `challenges.cloudflare.com` que lorsque le mode est actif (`src/middleware.ts`).
 - Pas de `dangerouslySetInnerHTML` — unique exception encadrée : `src/components/seo/JsonLd.tsx`.
 
 ## Paiement Konnect (séquestre réel)

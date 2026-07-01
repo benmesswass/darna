@@ -201,6 +201,19 @@ const envSchema = z
       });
     }
 
+    // CAPTCHA réel : les deux clés Turnstile sont exigées (sinon widget côté
+    // client OU vérification serveur inopérants → fail-closed silencieux).
+    if (
+      e.CAPTCHA_MODE === "turnstile" &&
+      !(e.TURNSTILE_SECRET_KEY && e.NEXT_PUBLIC_TURNSTILE_SITE_KEY)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "CAPTCHA_MODE=turnstile requiert TURNSTILE_SECRET_KEY et NEXT_PUBLIC_TURNSTILE_SITE_KEY.",
+      });
+    }
+
     // B1 — production RÉELLE (au moins un mode réel actif) : un proxy de confiance
     // est obligatoire, sinon le rate limiting par IP retombe sur un bucket global
     // « untrusted » (lockout de toute la plateforme / DoS trivial). Une DÉMO en
