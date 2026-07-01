@@ -21,6 +21,9 @@ vi.mock("@/lib/prisma", () => ({
 }));
 vi.mock("@/lib/session", () => ({ requireUser: vi.fn() }));
 vi.mock("@/lib/rate-limit", () => ({ assertRateLimit: vi.fn().mockResolvedValue(true) }));
+// L'e-mail au destinataire est testé ailleurs : ici on neutralise l'envoi pour
+// isoler l'autorisation et le masquage.
+vi.mock("@/lib/notifications", () => ({ sendNewMessageEmail: vi.fn() }));
 vi.mock("@/lib/audit", () => ({ logStructured: vi.fn(), logAudit: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/lib/i18n/server", () => ({
@@ -66,6 +69,7 @@ function mockBooking(
 beforeEach(() => {
   vi.clearAllMocks();
   (prisma.message.count as unknown as Mock).mockResolvedValue(1);
+  (prisma.message.create as unknown as Mock).mockResolvedValue({ id: "msg1" });
   (prisma.message.findMany as unknown as Mock).mockResolvedValue([]);
   (requireUser as unknown as Mock).mockResolvedValue({ id: "guest1" });
 });

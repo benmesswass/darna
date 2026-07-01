@@ -8,6 +8,8 @@ import { NavLink } from "./NavLink";
 import { PrimaryNav } from "./PrimaryNav";
 import { AccountMenu } from "./AccountMenu";
 import { buildDashboardLinks } from "@/lib/dashboard-nav";
+import { countUnreadMessages } from "@/lib/messages";
+import { MessagesNotifier } from "@/components/messages/MessagesNotifier";
 import { CurrencyToggle } from "@/components/currency/CurrencyToggle";
 import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 
@@ -22,8 +24,16 @@ function initials(name: string): string {
 export async function Header() {
   const [user, fr] = await Promise.all([getSessionUser(), getT()]);
 
-  // Pages de l'espace personnel (menu « Mon espace » du header).
-  const navLinks = user ? buildDashboardLinks(user, fr) : [];
+  // Pages de l'espace personnel (menu « Mon espace » du header). On injecte la
+  // pastille des messages non lus sur le lien « Messagerie ».
+  const unreadMessages = user ? await countUnreadMessages(user.id) : 0;
+  const navLinks = user
+    ? buildDashboardLinks(user, fr).map((l) =>
+        l.href === "/dashboard/messagerie" && unreadMessages > 0
+          ? { ...l, badge: unreadMessages }
+          : l
+      )
+    : [];
 
   // Navigation des verticales : seules les verticales activées sont proposées
   // (cf. src/lib/modes.ts). En démo, les deux sont actives → nav inchangée.
@@ -100,6 +110,7 @@ export async function Header() {
               links={navLinks}
               label={fr.nav.dashboard}
               logoutLabel={fr.nav.deconnexion}
+              initialUnread={unreadMessages}
             />
           ) : (
             <Link
@@ -117,6 +128,10 @@ export async function Header() {
           />
         </div>
       </div>
+
+      {/* Notification in-app : sonde le nombre de non-lus et prévient (toast +
+          notification navigateur) à l'arrivée d'un nouveau message. */}
+      {user ? <MessagesNotifier initialCount={unreadMessages} /> : null}
     </header>
   );
 }

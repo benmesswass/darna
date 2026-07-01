@@ -9,6 +9,7 @@ import { assertRateLimit } from "@/lib/rate-limit";
 import { scanForContactInfo, CONTACT_MASK } from "@/lib/message-scan";
 import { contactRevealState } from "@/lib/contact-reveal";
 import { logAudit, logStructured } from "@/lib/audit";
+import { sendNewMessageEmail } from "@/lib/notifications";
 import {
   MESSAGE_FLAG_ESCALATION_THRESHOLD,
   MESSAGE_FLAG_SUSPENSION_THRESHOLD,
@@ -121,9 +122,13 @@ export async function sendMessageAction(
     flagged = scan.flagged;
   }
 
-  await prisma.message.create({
+  const created = await prisma.message.create({
     data: { bookingId: booking.id, senderId: user.id, body, flagged },
+    select: { id: true },
   });
+
+  // Notifie le destinataire par e-mail (non bloquant : avale ses propres erreurs).
+  await sendNewMessageEmail(created.id);
 
   // Signalement admin : toute tentative (coordonnée masquée OU simple
   // sollicitation) est tracée pour monitoring.

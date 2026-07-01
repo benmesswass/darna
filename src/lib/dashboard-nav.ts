@@ -32,6 +32,7 @@ export function buildDashboardLinks(user: SessionUser, fr: Dictionary): NavItem[
   }
 
   links.push(
+    { href: "/dashboard/messagerie", label: fr.messages.lien, icon: "MailIcon" },
     { href: "/dashboard/favoris", label: fr.dashboard.favoris, icon: "HeartIcon" },
     { href: "/dashboard/profil", label: fr.dashboard.monProfil, icon: "UserIcon" },
     { href: "/dashboard/verifications", label: fr.verifications.navLabel, icon: "ShieldIcon" }

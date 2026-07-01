@@ -312,6 +312,11 @@ model Message {
   id        String   @id @default(cuid())
   body      String
   flagged   Boolean  @default(false)
+  // Lu/non lu : posé quand le DESTINATAIRE (l'autre participant de la
+  // réservation, jamais l'auteur) ouvre le fil. Null = non lu → alimente le
+  // compteur de la pastille « Messagerie » et la notification. Le fil n'a que
+  // deux parties, donc un seul horodatage par message suffit.
+  readAt    DateTime?
   createdAt DateTime @default(now())
 
   bookingId String
@@ -320,6 +325,8 @@ model Message {
   sender    User    @relation(fields: [senderId], references: [id], onDelete: Cascade)
 
   @@index([bookingId, createdAt])
+  // Compteur de non-lus par destinataire (senderId ≠ moi, readAt null).
+  @@index([senderId, readAt])
 }
 
 // Un avis sans réservation est impossible au niveau du schéma :

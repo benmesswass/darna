@@ -8,6 +8,7 @@ import { DashboardNav } from "@/components/dashboard/DashboardNav";
 import { buildDashboardLinks } from "@/lib/dashboard-nav";
 import { isSuspended, nextSuspensionDays } from "@/lib/suspension";
 import { formatDateFr } from "@/lib/format";
+import { countUnreadMessages } from "@/lib/messages";
 import { CheckIcon } from "@/components/icons";
 
 /** Initiales (1 à 2 lettres) pour l'avatar par défaut de l'en-tête. */
@@ -54,8 +55,12 @@ export default async function DashboardLayout({
     ]);
   }
 
+  // Messages non lus (tous fils confondus) → pastille « Messagerie », pour tous.
+  const unreadMessages = await countUnreadMessages(user.id);
+
   // Compteurs (badges) injectés sur les liens partagés, par href.
   const badges: Record<string, number | undefined> = {
+    "/dashboard/messagerie": unreadMessages > 0 ? unreadMessages : undefined,
     "/dashboard/verifications": verifsRestantes > 0 ? verifsRestantes : undefined,
     "/dashboard/admin/annonces": pendingAnnonces > 0 ? pendingAnnonces : undefined,
     "/dashboard/admin/wakils": pendingWakils > 0 ? pendingWakils : undefined,

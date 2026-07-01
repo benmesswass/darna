@@ -19,6 +19,7 @@ export function AccountMenu({
   links,
   label,
   logoutLabel,
+  initialUnread = 0,
 }: {
   name: string;
   image: string | null;
@@ -26,10 +27,22 @@ export function AccountMenu({
   links: NavItem[];
   label: string;
   logoutLabel: string;
+  initialUnread?: number;
 }) {
   const [open, setOpen] = useState(false);
+  // Compteur de messages non lus, rafraîchi en direct par MessagesNotifier via
+  // l'événement « darna:unread » (la valeur serveur ne sert que de premier rendu).
+  const [unread, setUnread] = useState(initialUnread);
   const ref = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+
+  useEffect(() => setUnread(initialUnread), [initialUnread]);
+
+  useEffect(() => {
+    const onUnread = (e: Event) => setUnread((e as CustomEvent<number>).detail);
+    window.addEventListener("darna:unread", onUnread);
+    return () => window.removeEventListener("darna:unread", onUnread);
+  }, []);
 
   // Fermeture au changement de route.
   useEffect(() => setOpen(false), [pathname]);
@@ -58,7 +71,7 @@ export function AccountMenu({
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-haspopup="menu"
-        className="accent-transition flex items-center gap-2 rounded-full bg-[var(--color-accent)] py-1.5 pe-3 ps-1.5 text-sm font-semibold text-[var(--color-accent-contrast)] hover:bg-[var(--color-accent-strong)]"
+        className="accent-transition relative flex items-center gap-2 rounded-full bg-[var(--color-accent)] py-1.5 pe-3 ps-1.5 text-sm font-semibold text-[var(--color-accent-contrast)] hover:bg-[var(--color-accent-strong)]"
       >
         <span className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-white/30 text-xs font-bold">
           {image ? (
@@ -69,6 +82,11 @@ export function AccountMenu({
           )}
         </span>
         {label}
+        {unread > 0 ? (
+          <span className="absolute -end-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 text-[10px] font-bold text-white ring-2 ring-darna">
+            {unread > 99 ? "99+" : unread}
+          </span>
+        ) : null}
         <svg
           width="12"
           height="12"
@@ -90,8 +108,11 @@ export function AccountMenu({
         >
           <p className="truncate px-4 pb-2 pt-1 text-xs text-ink/50">{name}</p>
           <ul className="text-start">
-            {links.map(({ href, label: l, icon }) => {
+            {links.map(({ href, label: l, icon, badge }) => {
               const Icon = ICONS[icon];
+              // La pastille « Messagerie » suit le compteur live ; les autres
+              // gardent leur valeur serveur.
+              const count = href === "/dashboard/messagerie" ? unread : badge ?? 0;
               return (
                 <li key={href}>
                   <Link
@@ -101,6 +122,11 @@ export function AccountMenu({
                   >
                     <Icon width={16} height={16} />
                     {l}
+                    {count > 0 ? (
+                      <span className="ms-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-darna px-1.5 text-[10px] font-bold text-white">
+                        {count > 99 ? "99+" : count}
+                      </span>
+                    ) : null}
                   </Link>
                 </li>
               );
