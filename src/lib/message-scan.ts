@@ -45,6 +45,13 @@ const APP_RE =
 const SOLICIT_RE =
   /\b(t[eé]l[eé]?fou?n|t[eé]l[eé]phone|num[eé]ro|numro|nimero|ra9?am|ra9?mi|raqam|raqmi|3ay?tili|3ayetli|kalamni|klamni|sonni|sonnili|appelle|appel|a3tini|a3tik|hatli)\b/i;
 
+// Un nombre suivi d'une unité monétaire (1200 dinars, 1200 DT/TND, 50 €…) ou
+// précédé d'un mot d'argent (caution/prix/solde…) est un MONTANT, pas un numéro :
+// on ne le masque jamais (sinon on casserait une discussion de prix/caution).
+const CURRENCY_AFTER_RE = /^\s*(?:dinars?|dt|tnd|millimes?|euros?|€|dh)\b/i;
+const MONEY_BEFORE_RE =
+  /(?:caution|prix|solde|total|acompte|montant|reste|loyer|tarif|payer)\s+$/i;
+
 /**
  * Masque les coordonnées d'un message et signale les tentatives de bypass.
  * @returns
@@ -68,12 +75,21 @@ export function scanForContactInfo(
     return CONTACT_MASK;
   };
 
-  // Ordre : e-mails d'abord (leur partie chiffrée ne doit pas être prise pour
-  // un numéro), puis numéros, puis apps.
+  // Masque une suite de chiffres SAUF si c'est un montant monétaire (prix/caution).
+  const maskNumber = (m: string, offset: number, full: string): string => {
+    const after = full.slice(offset + m.length);
+    const before = full.slice(0, offset);
+    if (CURRENCY_AFTER_RE.test(after) || MONEY_BEFORE_RE.test(before)) return m;
+    masked = true;
+    return CONTACT_MASK;
+  };
+
+  // Ordre : e-mails et apps d'abord (leur éventuelle partie chiffrée ne doit pas
+  // être prise pour un numéro), puis les numéros (montants exemptés).
   let clean = body
     .replace(EMAIL_RE, mask)
-    .replace(PHONE_RE, mask)
-    .replace(APP_RE, mask);
+    .replace(APP_RE, mask)
+    .replace(PHONE_RE, maskNumber);
 
   // Ce message porte-t-il lui-même une sollicitation (« appelle-moi »…) ?
   const ownSolicited = SOLICIT_RE.test(body);
@@ -82,7 +98,7 @@ export function scanForContactInfo(
   // même expéditeur dans le fil (opts.contextSolicited) — on masque aussi les
   // suites courtes de chiffres : parade au numéro découpé sur plusieurs messages.
   if (ownSolicited || opts.contextSolicited) {
-    clean = clean.replace(PHONE_SHORT_RE, mask);
+    clean = clean.replace(PHONE_SHORT_RE, maskNumber);
   }
 
   // `flagged` ne dépend QUE de ce message (sollicitation propre ou masquage) :

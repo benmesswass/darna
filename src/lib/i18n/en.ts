@@ -419,6 +419,19 @@ export const en: Dictionary = {
     payeLe: (date: string) => `Paid on ${date}`,
     contactVoyageurMasque:
       "Guest's contact details become visible once their deposit is paid.",
+    suspenduJusqu: (date: string) => `Account suspended until ${date}`,
+    suspenduIndefini: "Account suspended",
+    suspenduDetail:
+      "You stay protected: you can still view and manage your ongoing bookings, contact the host of a confirmed stay, and cancel/get refunded. While suspended, you can't make a new booking or send messages.",
+    enSavoirPlus: "Learn more",
+    suspenduPourquoiTitre: "Why?",
+    suspenduPourquoi:
+      "Several attempts to share contact details off Darna (phone or email) were detected in your messages, which isn't allowed until the booking is firm.",
+    suspenduConsequencesTitre: "Consequences:",
+    suspenduProchaine: (jours: number) =>
+      `If you try again, the next suspension will last ${jours} days.`,
+    suspenduProchaineIndefinie:
+      "If you try again, your account will be suspended indefinitely (subject to admin review).",
     aucuneDemande: "No requests received yet.",
     aucunFavori: "No favourites yet.",
     reservationDe: (nom: string) => `Booking from ${nom}`,

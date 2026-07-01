@@ -45,6 +45,23 @@ describe("scanForContactInfo", () => {
     expect(r.flagged).toBe(false);
   });
 
+  it("n'masque PAS un montant monétaire, même en contexte (caution 1200 dinars)", () => {
+    const r = scanForContactInfo("la caution 1200 dinars", { contextSolicited: true });
+    expect(r.masked).toBe(false);
+    expect(r.clean).toContain("1200");
+  });
+
+  it("n'masque PAS « 1500 TND » même avec une sollicitation dans le message", () => {
+    const r = scanForContactInfo("appelle l'agence, le prix est 1500 TND");
+    expect(r.clean).toContain("1500");
+  });
+
+  it("masque bien un vrai numéro en contexte (sans unité monétaire)", () => {
+    const r = scanForContactInfo("appelle moi sur 1234", { contextSolicited: true });
+    expect(r.masked).toBe(true);
+    expect(r.clean).not.toContain("1234");
+  });
+
   it("masque un numéro international espacé (+216 …)", () => {
     const r = scanForContactInfo("mon num +216 20 123 456");
     expect(r.flagged).toBe(true);

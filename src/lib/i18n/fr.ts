@@ -420,6 +420,19 @@ export const fr = {
     payeLe: (date: string) => `Payé le ${date}`,
     contactVoyageurMasque:
       "Coordonnées du voyageur visibles dès que son acompte est réglé.",
+    suspenduJusqu: (date: string) => `Compte suspendu jusqu'au ${date}`,
+    suspenduIndefini: "Compte suspendu",
+    suspenduDetail:
+      "Vous restez protégé : vous pouvez consulter et gérer vos réservations en cours, contacter l'hôte d'un séjour confirmé, et annuler/être remboursé. Pendant la suspension, vous ne pouvez pas faire de nouvelle réservation ni envoyer de messages.",
+    enSavoirPlus: "En savoir plus",
+    suspenduPourquoiTitre: "Pourquoi ?",
+    suspenduPourquoi:
+      "Plusieurs tentatives de partage de coordonnées hors Darna (numéro ou e-mail) ont été détectées dans vos messages, ce qui n'est pas autorisé tant que la réservation n'est pas ferme.",
+    suspenduConsequencesTitre: "Conséquences :",
+    suspenduProchaine: (jours: number) =>
+      `En cas de nouvelle tentative, la prochaine suspension durera ${jours} jours.`,
+    suspenduProchaineIndefinie:
+      "En cas de nouvelle tentative, votre compte sera suspendu de façon indéfinie (revue par un administrateur).",
     aucuneDemande: "Aucune demande reçue pour le moment.",
     aucunFavori: "Aucun favori pour le moment.",
     reservationDe: (nom: string) => `Réservation de ${nom}`,

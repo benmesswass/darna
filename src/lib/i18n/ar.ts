@@ -440,6 +440,19 @@ export const ar: Dictionary = {
     payeLe: (date: string) => `تخلّص في ${date}`,
     contactVoyageurMasque:
       "معلومات الاتصال متاع المسافر تتبيّن كيف يخلّص التسبقة.",
+    suspenduJusqu: (date: string) => `الحساب معلّق حتى ${date}`,
+    suspenduIndefini: "الحساب معلّق",
+    suspenduDetail:
+      "تبقى محمي : تنجّم تشوف وتسيّر حجوزاتك الجارية، تتواصل مع صاحب الدار متاع إقامة مؤكّدة، وتلغي/يتردّلك. وقت التعليق، ما تنجّمش تعمل حجز جديد ولا تبعث رسائل.",
+    enSavoirPlus: "اعرف أكثر",
+    suspenduPourquoiTitre: "علاش ؟",
+    suspenduPourquoi:
+      "تلقّاو برشة محاولات باش تبعث معلومات اتصال برّة دارنا (رقم ولا إيميل) في الرسائل متاعك، وهذا ممنوع قبل ما يولّي الحجز نهائي.",
+    suspenduConsequencesTitre: "العواقب :",
+    suspenduProchaine: (jours: number) =>
+      `كان تعاود، التعليق الجاي باش يدوم ${jours} أيّام.`,
+    suspenduProchaineIndefinie:
+      "كان تعاود، حسابك باش يتعلّق بلا أجل (يراجعو أدمين).",
     aucuneDemande: "حتى طلب للتوّ.",
     aucunFavori: "حتى مفضّلة للتوّ.",
     reservationDe: (nom: string) => `حجز من ${nom}`,
