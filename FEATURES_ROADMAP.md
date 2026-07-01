@@ -21,7 +21,7 @@
 |---|-------|------|--------|--------|
 | F1 | Avis bidirectionnels (hôte → voyageur, pas seulement voyageur → annonce) | P1 | ❌ | Modèle `Review` (`prisma/schema.prisma:334`) est à sens unique (`bookingId @unique`). Ajouter une deuxième relation ou un modèle `GuestReview` distinct. |
 | F2 | Sous-notes d'avis (propreté, communication, conformité à l'annonce, rapport qualité/prix) en plus de la note globale | P2 | ❌ | `Review.rating` est un entier unique. `ReviewForm`/`ReviewsList` (`src/components/property/`) à étendre. |
-| F3 | Fiche hôte publique (annonces du même hôte, ancienneté, note moyenne, taux de réponse) | P1 | ❌ | `property.owner.name` est du texte brut, jamais un lien (`src/modules/core/listing/ListingDetail.tsx:350`). |
+| F3 | Fiche hôte publique (annonces du même hôte, ancienneté, note moyenne, taux de réponse) | P1 | ✅ | PR #73. Page `/hote/[id]` (`getHostProfile` dans `src/lib/listings.ts`) : annonces actives, ancienneté, note moyenne agrégée, badge KYC. Lien depuis `ListingDetail.tsx` (masqué si `anonymizeOwner`). **Taux de réponse non inclus** (hors scope de cette PR — reste à faire si jugé utile). |
 
 ## 2. Recherche & découverte
 
@@ -36,7 +36,7 @@
 
 | # | Tâche | Prio | Statut | Détail |
 |---|-------|------|--------|--------|
-| F8 | Bouton "Partager" (lien copié + WhatsApp) sur la fiche annonce | P1 | ❌ | Absent du code (`navigator.share` introuvable dans `src/`) — fort pour la cible diaspora qui partage en groupe familial. |
+| F8 | Bouton "Partager" (lien copié + WhatsApp) sur la fiche annonce | P1 | ✅ | PR #74. `ShareButton` (`src/components/property/ShareButton.tsx`) : `navigator.share` natif sinon menu Copier le lien / WhatsApp, branché sur `ListingDetail.tsx`. |
 | F9 | Centre de notifications in-app générique (au-delà des messages) | P2 | ❌ | `MessagesNotifier` (`src/components/messages/MessagesNotifier.tsx`) ne couvre que la messagerie ; rien pour statut réservation changé, avis reçu, annonce bientôt expirée. |
 
 ## 4. Parcours réservation
@@ -51,8 +51,8 @@
 
 **Maintenant (P0/P1) :**
 1. ✅ F4 — filtre équipements (PR #72).
-2. F3 — fiche hôte publique.
-3. F8 — bouton Partager.
+2. ✅ F3 — fiche hôte publique (PR #73).
+3. ✅ F8 — bouton Partager (PR #74).
 4. F6 — annonces similaires.
 5. F10 — vérifier/exposer l'annulation self-service.
 6. F1 — avis bidirectionnels.
