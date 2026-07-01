@@ -809,6 +809,22 @@ export const ar: Dictionary = {
         : "") +
       `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — السكن المضمون.</p>` +
       `</div>`,
+    newMessageSujet: (titre: string) => `Darna — رسالة جديدة · ${titre}`,
+    newMessageHtml: (p: {
+      recipientName: string;
+      senderName: string;
+      propertyTitle: string;
+      preview: string;
+      url: string;
+    }) =>
+      `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937" dir="rtl">` +
+      `<h1 style="color:#0f766e;font-size:20px">رسالة جديدة 💬</h1>` +
+      `<p>أهلا ${p.recipientName}،</p>` +
+      `<p><strong>${p.senderName}</strong> بعثلك رسالة على <strong>${p.propertyTitle}</strong> :</p>` +
+      `<blockquote style="margin:16px 0;padding:12px 16px;background:#f3f4f6;border-inline-start:3px solid #0f766e;border-radius:8px;color:#374151">${p.preview}</blockquote>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">جاوب على Darna</a></p>` +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">لسلامتك، جاوب ديما عبر مراسلة Darna. Darna — السكن المضمون.</p>` +
+      `</div>`,
   },
   verifications: {
     navLabel: "التثبّت",
@@ -1013,6 +1029,13 @@ export const ar: Dictionary = {
   messages: {
     titre: "المراسلة",
     lien: "المراسلة",
+    hubTitre: "المراسلة",
+    hubSousTitre: "الأحاديث الكل متاعك مع أصحاب الديار والمسافرين.",
+    hubVide: "ما فمّاش أحاديث توّا. المراسلات متاعك مع أصحاب الديار والمسافرين باش تظهر هوني.",
+    notifTitre: "رسالة جديدة",
+    notifCorps: (n: number) =>
+      n > 1 ? `عندك ${n} رسائل ما قريتهمش.` : "وصلتك رسالة جديدة.",
+    notifVoir: "افتح المراسلة",
     banniere:
       "لسلامتك، الأرقام والإيميلات متغطّيين. باش تتبادلو معلومات الاتصال المباشرة كيف يولّي الحجز نهائي.",
     placeholder: "اكتب رسالتك…",

@@ -795,6 +795,22 @@ export const fr = {
         : "") +
       `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Le logement vérifié.</p>` +
       `</div>`,
+    newMessageSujet: (titre: string) => `Darna — nouveau message · ${titre}`,
+    newMessageHtml: (p: {
+      recipientName: string;
+      senderName: string;
+      propertyTitle: string;
+      preview: string;
+      url: string;
+    }) =>
+      `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
+      `<h1 style="color:#0f766e;font-size:20px">Nouveau message 💬</h1>` +
+      `<p>Bonjour ${p.recipientName},</p>` +
+      `<p><strong>${p.senderName}</strong> vous a envoyé un message au sujet de <strong>${p.propertyTitle}</strong> :</p>` +
+      `<blockquote style="margin:16px 0;padding:12px 16px;background:#f3f4f6;border-inline-start:3px solid #0f766e;border-radius:8px;color:#374151">${p.preview}</blockquote>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">Répondre sur Darna</a></p>` +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Pour votre sécurité, répondez toujours via la messagerie Darna. Darna — Le logement vérifié.</p>` +
+      `</div>`,
   },
   verifications: {
     navLabel: "Vérifications",
@@ -1005,6 +1021,13 @@ export const fr = {
   messages: {
     titre: "Messagerie",
     lien: "Messagerie",
+    hubTitre: "Messagerie",
+    hubSousTitre: "Toutes vos conversations avec hôtes et voyageurs.",
+    hubVide: "Aucune conversation pour le moment. Vos échanges avec vos hôtes et voyageurs apparaîtront ici.",
+    notifTitre: "Nouveau message",
+    notifCorps: (n: number) =>
+      n > 1 ? `Vous avez ${n} messages non lus.` : "Vous avez reçu un nouveau message.",
+    notifVoir: "Voir la messagerie",
     banniere:
       "Pour votre sécurité, les numéros et e-mails sont masqués. Vous échangerez vos coordonnées directes une fois la réservation ferme.",
     placeholder: "Écrivez votre message…",

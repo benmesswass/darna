@@ -8,6 +8,7 @@ import { getSessionUser } from "@/lib/session";
 import { stayEnabled } from "@/lib/modes";
 import { formatDateShortFr, formatDateFr } from "@/lib/format";
 import { MessageComposer } from "@/components/booking/MessageComposer";
+import { markThreadRead } from "@/lib/messages";
 import { isSuspended } from "@/lib/suspension";
 import { CONTACT_MASK } from "@/lib/message-scan";
 import { contactRevealState } from "@/lib/contact-reveal";
@@ -53,6 +54,10 @@ export default async function MessagesPage({
           ? "host"
           : null;
   if (!booking || !viewer) notFound();
+
+  // Ouvrir le fil = lire ses messages : on marque comme lus tous ceux reçus de
+  // l'autre partie (vide la pastille « Messagerie » à la prochaine navigation).
+  await markThreadRead(booking.id, user.id);
 
   const isOpen = booking.status === "CONFIRMEE" || booking.status === "TERMINEE";
   const otherLabel = viewer === "guest" ? fr.messages.hote : fr.messages.voyageur;
