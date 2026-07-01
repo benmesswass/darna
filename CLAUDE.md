@@ -12,6 +12,10 @@ Projet **personnel** de Wassim. Tout commit, push et opération GitHub se fait a
 
 Jamais livrer du code sans dire à Wassim comment le vérifier. Si une migration est ajoutée, donner aussi la commande de mise à jour de la base (et le `migrate reset` pour une base démo).
 
+## Roadmaps produit (règle absolue)
+
+`FEATURES_ROADMAP.md` (fonctionnel) et `DESIGN_ROADMAP.md` (UI/UX/animations) sont la référence permanente des prochaines étapes produit, au même titre que `QA_ROADMAP.md` pour la qualité/sécurité. **Dès que Wassim demande « quelle est la prochaine étape / étape suivante / quoi coder ensuite »** (formulation similaire, dans n'importe quelle session y compris une toute nouvelle), **TOUJOURS consulter ces deux fichiers en premier** avant de proposer quoi que ce soit — ne pas re-improviser une liste de tâches de zéro. Proposer les tâches non cochées de priorité la plus haute (`P0`/`P1` d'abord). **Dès qu'une tâche listée dans l'un de ces fichiers est livrée (mergée)**, mettre à jour le fichier correspondant dans la même PR : cocher/passer le statut à `✅` et noter le fichier/la PR concernée — ne jamais laisser ces roadmaps dériver de l'état réel du code.
+
 ## Workflow PR (règle absolue)
 
 1. **Jamais de push direct sur `main`** — toujours travailler sur une branche feature.
