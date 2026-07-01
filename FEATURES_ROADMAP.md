@@ -36,7 +36,7 @@
 
 | # | Tâche | Prio | Statut | Détail |
 |---|-------|------|--------|--------|
-| F8 | Bouton "Partager" (lien copié + WhatsApp) sur la fiche annonce | P1 | ❌ | Absent du code (`navigator.share` introuvable dans `src/`) — fort pour la cible diaspora qui partage en groupe familial. |
+| F8 | Bouton "Partager" (lien copié + WhatsApp) sur la fiche annonce | P1 | ✅ | PR #74. `ShareButton` (`src/components/property/ShareButton.tsx`) : `navigator.share` natif sinon menu Copier le lien / WhatsApp, branché sur `ListingDetail.tsx`. |
 | F9 | Centre de notifications in-app générique (au-delà des messages) | P2 | ❌ | `MessagesNotifier` (`src/components/messages/MessagesNotifier.tsx`) ne couvre que la messagerie ; rien pour statut réservation changé, avis reçu, annonce bientôt expirée. |
 
 ## 4. Parcours réservation
@@ -52,7 +52,7 @@
 **Maintenant (P0/P1) :**
 1. ✅ F4 — filtre équipements (PR #72).
 2. ✅ F3 — fiche hôte publique (PR #73).
-3. F8 — bouton Partager.
+3. ✅ F8 — bouton Partager (PR #74).
 4. F6 — annonces similaires.
 5. F10 — vérifier/exposer l'annulation self-service.
 6. F1 — avis bidirectionnels.
