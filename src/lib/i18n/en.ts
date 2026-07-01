@@ -293,6 +293,10 @@ export const en: Dictionary = {
     favoriSansDossier: "No folder",
     partagerWhatsapp: (titre: string, prix: string) =>
       `Hello, I'm interested in your listing “${titre}” (${prix}) seen on Darna. Is it still available?`,
+    partager: "Share",
+    copierLien: "Copy link",
+    lienCopie: "Link copied!",
+    partagerMessage: (titre: string) => `Check out “${titre}” on Darna:`,
     politiqueAnnulation: "Cancellation policy",
     cancelPolicy: {
       FLEXIBLE: "Flexible",

@@ -294,6 +294,10 @@ export const fr = {
     favoriSansDossier: "Sans dossier",
     partagerWhatsapp: (titre: string, prix: string) =>
       `Bonjour, je suis intéressé(e) par votre annonce « ${titre} » (${prix}) vue sur Darna. Est-elle toujours disponible ?`,
+    partager: "Partager",
+    copierLien: "Copier le lien",
+    lienCopie: "Lien copié !",
+    partagerMessage: (titre: string) => `Découvrez « ${titre} » sur Darna :`,
     politiqueAnnulation: "Politique d'annulation",
     cancelPolicy: {
       FLEXIBLE: "Flexible",

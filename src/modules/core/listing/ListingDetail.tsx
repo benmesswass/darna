@@ -2,7 +2,9 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { getT } from "@/lib/i18n/server";
 import { FavoriteButton } from "@/components/property/FavoriteButton";
+import { ShareButton } from "@/components/property/ShareButton";
 import { markerPriceLabel } from "@/lib/format";
+import { SITE_URL } from "@/lib/config";
 import { Price } from "@/components/currency/Price";
 import { PropertyMap } from "@/components/map/PropertyMap";
 import { PropertyGallery } from "@/components/property/PropertyGallery";
@@ -122,6 +124,10 @@ export async function ListingDetail({
           </div>
           <div className="mt-3 flex items-center gap-3">
             <h1 className="text-3xl font-bold text-darna">{property.title}</h1>
+            <ShareButton
+              title={property.title}
+              url={`${SITE_URL}/annonce/${property.slug}`}
+            />
             {favCtx ? (
               <FavoriteButton
                 propertyId={property.id}

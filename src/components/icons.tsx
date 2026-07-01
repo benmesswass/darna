@@ -329,3 +329,24 @@ export function MailIcon(props: IconProps) {
     </svg>
   );
 }
+
+export function ShareIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <circle cx="18" cy="5" r="2.5" />
+      <circle cx="6" cy="12" r="2.5" />
+      <circle cx="18" cy="19" r="2.5" />
+      <path d="m8.3 10.7 7.4-4.4M8.3 13.3l7.4 4.4" />
+    </svg>
+  );
+}
+
+export function LinkIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M9.5 14.5 14.5 9.5" />
+      <path d="M11 7.5 12.5 6a3.5 3.5 0 0 1 5 5L16 12.5" />
+      <path d="M13 16.5 11.5 18a3.5 3.5 0 0 1-5-5L8 11.5" />
+    </svg>
+  );
+}

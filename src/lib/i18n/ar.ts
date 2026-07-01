@@ -316,6 +316,10 @@ export const ar: Dictionary = {
     favoriSansDossier: "بلا مجلّد",
     partagerWhatsapp: (titre: string, prix: string) =>
       `عسلامة، مهتم بالإعلان متاعك « ${titre} » (${prix}) اللي شفتو على دارنا. مازال متوفّر؟`,
+    partager: "شارك",
+    copierLien: "انسخ الرابط",
+    lienCopie: "الرابط تنسخ!",
+    partagerMessage: (titre: string) => `شوف « ${titre} » في دارنا:`,
     politiqueAnnulation: "سياسة الإلغاء",
     cancelPolicy: {
       FLEXIBLE: "مرنة",
