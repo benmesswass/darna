@@ -20,7 +20,7 @@ export async function Pagination({
   total: number;
   pageSize: number;
   basePath: string;
-  params: Record<string, string | undefined>;
+  params: Record<string, string | string[] | undefined>;
 }) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   if (totalPages <= 1) return null;
@@ -30,7 +30,8 @@ export async function Pagination({
   const href = (p: number) => {
     const qs = new URLSearchParams();
     for (const [key, value] of Object.entries(params)) {
-      if (value && key !== "page") qs.set(key, value);
+      if (!value || key === "page") continue;
+      for (const v of Array.isArray(value) ? value : [value]) qs.append(key, v);
     }
     qs.set("page", String(p));
     return `${basePath}?${qs.toString()}`;

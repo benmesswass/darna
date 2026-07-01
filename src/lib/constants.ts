@@ -131,3 +131,15 @@ export const AMENITIES = [
   "Lave-linge",
   "Proche plage",
 ] as const;
+export type Amenity = (typeof AMENITIES)[number];
+
+/**
+ * Normalise le paramètre `equipements` de l'URL (case à cocher répétée → string
+ * ou string[] selon Next.js) en liste d'équipements valides, sans doublons.
+ * Rejette toute valeur hors référentiel (le filtre de recherche l'utilise
+ * ensuite dans un `contains` Prisma — on ne veut filtrer que sur du connu).
+ */
+export function parseAmenitiesParam(value: string | string[] | undefined): Amenity[] {
+  const raw = value === undefined ? [] : Array.isArray(value) ? value : [value];
+  return [...new Set(raw.filter((v): v is Amenity => (AMENITIES as readonly string[]).includes(v)))];
+}

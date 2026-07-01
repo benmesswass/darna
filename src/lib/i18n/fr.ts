@@ -200,6 +200,7 @@ export const fr = {
     triAvisDesc: "Mieux notés",
     triAvisAsc: "Moins bien notés",
     triRecent: "Plus récent",
+    equipements: "Équipements",
   },
   destination: {
     chargement: "Chargement de la destination…",

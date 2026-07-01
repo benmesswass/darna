@@ -18,7 +18,7 @@ export function SortSelect({
   sorts = SEARCH_SORTS,
 }: {
   basePath: string;
-  params: Record<string, string | undefined>;
+  params: Record<string, string | string[] | undefined>;
   value: SortKey;
   /** Sous-ensemble de tris à proposer (déf. tous). L'immo masque les tris par
    *  avis : ses annonces n'ont jamais d'avis (un avis exige une réservation). */
@@ -36,10 +36,12 @@ export function SortSelect({
 
   return (
     <form method="GET" action={basePath} className="flex items-center gap-2">
-      {Object.entries(params).map(([k, v]) =>
-        v && k !== "tri" && k !== "page" ? (
-          <input key={k} type="hidden" name={k} value={v} />
-        ) : null
+      {Object.entries(params).flatMap(([k, v]) =>
+        v && k !== "tri" && k !== "page"
+          ? (Array.isArray(v) ? v : [v]).map((value, i) => (
+              <input key={`${k}-${i}`} type="hidden" name={k} value={value} />
+            ))
+          : []
       )}
       <label className="flex items-center gap-2 text-sm text-ink/60">
         <span className="font-medium">{fr.search.trier}</span>

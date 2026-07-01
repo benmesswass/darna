@@ -199,6 +199,7 @@ export const en: Dictionary = {
     triAvisDesc: "Top rated",
     triAvisAsc: "Lowest rated",
     triRecent: "Most recent",
+    equipements: "Amenities",
   },
   destination: {
     chargement: "Loading destination…",

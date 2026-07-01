@@ -213,6 +213,7 @@ export const ar: Dictionary = {
     triAvisDesc: "الأعلى تقييمًا",
     triAvisAsc: "الأدنى تقييمًا",
     triRecent: "الأحدث",
+    equipements: "التجهيزات",
   },
   destination: {
     chargement: "جاري تحميل الوجهة…",
