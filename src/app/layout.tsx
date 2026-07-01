@@ -12,6 +12,7 @@ import { SectionTheme } from "@/components/layout/SectionTheme";
 import { SectionOverrideProvider } from "@/components/layout/ActiveSection";
 import { CurrencyProvider } from "@/components/currency/CurrencyProvider";
 import { LocaleProvider } from "@/components/i18n/LocaleProvider";
+import { CookieConsent } from "@/components/legal/CookieConsent";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -55,6 +56,7 @@ export default async function RootLayout({
               <main className="min-h-[70vh]">{children}</main>
               <Footer />
               <HistoryNav />
+              <CookieConsent />
             </SectionOverrideProvider>
           </CurrencyProvider>
         </LocaleProvider>

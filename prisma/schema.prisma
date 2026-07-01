@@ -47,16 +47,37 @@ model User {
   cinHash       String?  @unique
   // PR2 — Wakil : agent vérifié sur le terrain.
   isWakil       Boolean  @default(false)
+  // Incrémenté à chaque changement de mot de passe : invalide les JWT précédents.
+  tokenVersion  Int      @default(0)
+  // Suspension anti-bypass : posée quand l'utilisateur dépasse le seuil de
+  // tentatives de partage de coordonnées hors plateforme (cf. messages). Un
+  // compte suspendu ne peut plus réserver ni envoyer de messages ; un admin
+  // peut le réactiver. Cf. MESSAGE_FLAG_SUSPENSION_THRESHOLD.
+  suspended     Boolean  @default(false)
+  suspendedAt   DateTime?
+  // Suspension PROGRESSIVE : `suspendedUntil` = fin de la suspension temporaire
+  // (null + suspended=true = suspension indéfinie, levée par un admin).
+  // `suspensionCount` = nombre de suspensions subies → palier de durée croissant
+  // (cf. SUSPENSION_DURATIONS_DAYS). Une suspension est ACTIVE si suspended ET
+  // (suspendedUntil null OU suspendedUntil > now) — cf. src/lib/suspension.ts.
+  suspendedUntil  DateTime?
+  suspensionCount Int       @default(0)
+  // Pays de résidence déclaré à l'inscription (libellé FR, cf. PHONE_COUNTRIES) —
+  // clé du pilotage diaspora (north-star marketing : cible France). Null tant
+  // que non renseigné (comptes historiques ou inscription sans choix).
+  country       String?
   createdAt     DateTime @default(now())
 
   properties         Property[]
   bookings           Booking[]
+  messages           Message[]
   reviews            Review[]
   contactRequests    ContactRequest[]
   favorites          Favorite[]
   favoriteFolders    FavoriteFolder[]
   auditLogs          AuditLog[]
   otpChallenges      OtpChallenge[]
+  passwordResetTokens PasswordResetToken[]
   // PR1 — back-relation : annonces vérifiées par cet utilisateur (admin/wakil).
   verifiedProperties   Property[]          @relation("PropertyVerifiedBy")
   // PR2 — candidatures Wakil liées à ce compte.
@@ -83,6 +104,24 @@ model OtpChallenge {
   @@index([userId, purpose])
 }
 
+// Jeton de réinitialisation de mot de passe : token aléatoire haché (jamais en
+// clair), TTL court, usage unique (supprimé à la consommation). Une seule
+// demande active par utilisateur (les précédentes sont purgées à l'émission).
+// Flux 100 % démo-compatible : sans provider e-mail réel, le lien est affiché
+// à l'écran (cf. src/actions/auth.ts) ; bascule prod = EMAIL_PROVIDER=resend.
+// Cf. src/lib/reset-token.ts.
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
 model Property {
   id          String   @id @default(cuid())
   slug        String   @unique
@@ -103,6 +142,12 @@ model Property {
   verifiedBy   User?     @relation("PropertyVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
   // Prix en TND : nuitée (SEJOUR), loyer mensuel (LOCATION), prix total (VENTE)
   price       Int
+  // Agrégats d'avis DÉNORMALISÉS (maintenus à chaque avis, cf. submitReviewAction
+  // + seed). Servent le tri « mieux/moins notés » : Prisma ne sait pas trier par
+  // moyenne d'une relation (et le projet s'interdit le SQL brut), d'où ce cache.
+  // ratingAvg null = aucun avis → relégué en fin de tri (nulls: "last").
+  ratingAvg   Float?
+  ratingCount Int      @default(0)
   surface     Int?
   rooms       Int?
   maxGuests   Int?
@@ -118,6 +163,7 @@ model Property {
   // L'annonce est à la une tant que featuredUntil > now ; le champ est remis
   // à null paresseusement une fois expiré (cf. clearExpiredFeatured()).
   featuredUntil DateTime?
+  cancelPolicy  String   @default("MODEREE") // FLEXIBLE | MODEREE | STRICTE
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -216,6 +262,15 @@ model Booking {
   nightlyPrice Int  // TND, figé à la réservation
   serviceFee   Int  // TND, affiché au récapitulatif — zéro frais caché
   totalPrice   Int  // TND
+  // Gating acompte (anti-bypass) : acompte MINIMUM dû en ligne, figé à la
+  // création = max(10 % du total, commission Darna) et ≤ total. La commission
+  // Darna y est entièrement contenue (revenu garanti). Cf. computeDepositAmount.
+  depositAmount Int      @default(0)
+  // Montant RÉELLEMENT choisi par le voyageur puis encaissé (entre depositAmount
+  // et totalPrice). Posé à l'init du paiement → source de vérité serveur pour la
+  // vérif du montant reçu (settleKonnectBooking). Solde dû en cash à l'arrivée =
+  // totalPrice - amountPaid (jamais stocké, toujours recalculé).
+  amountPaid    Int      @default(0)
   status       String    @default("EN_ATTENTE") // EN_ATTENTE | CONFIRMEE | ANNULEE | TERMINEE
   escrow       String    @default("AUCUN")      // AUCUN | EN_SEQUESTRE | LIBERE
   // true = confirmée via paiement SIMULÉ (PAYMENT_MODE=demo) : aucun argent réel
@@ -229,7 +284,10 @@ model Booking {
   expiresAt    DateTime?
   // Date de règlement : posée quand le paiement est confirmé (fonds sous
   // séquestre). Null tant que la réservation n'est pas payée.
-  paidAt       DateTime?
+  paidAt        DateTime?
+  // Annulation : date + montant remboursable figé au moment de l'annulation.
+  cancelledAt   DateTime?
+  refundAmount  Int?      // TND ; null si non annulée ou politique 0 %
   createdAt    DateTime  @default(now())
 
   propertyId String
@@ -237,11 +295,38 @@ model Booking {
   guestId    String
   guest      User     @relation(fields: [guestId], references: [id], onDelete: Cascade)
 
-  review Review?
+  review   Review?
+  messages Message[]
 
   @@index([propertyId, status])
   @@index([guestId])
   @@index([status, expiresAt]) // Pour le cleanup des EN_ATTENTE expirées
+}
+
+// Messagerie interne Darna, attachée à une réservation (Phase 2 anti-bypass).
+// Permet à l'hôte et au voyageur de coordonner AVANT la révélation du contact
+// direct (cf. contactRevealState), sans échanger de PII : `body` est scanné et
+// les numéros/e-mails sont masqués à l'écriture (cf. src/lib/message-scan.ts).
+// `flagged` = true quand des coordonnées ont été détectées et masquées.
+model Message {
+  id        String   @id @default(cuid())
+  body      String
+  flagged   Boolean  @default(false)
+  // Lu/non lu : posé quand le DESTINATAIRE (l'autre participant de la
+  // réservation, jamais l'auteur) ouvre le fil. Null = non lu → alimente le
+  // compteur de la pastille « Messagerie » et la notification. Le fil n'a que
+  // deux parties, donc un seul horodatage par message suffit.
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+
+  bookingId String
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  senderId  String
+  sender    User    @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId, createdAt])
+  // Compteur de non-lus par destinataire (senderId ≠ moi, readAt null).
+  @@index([senderId, readAt])
 }
 
 // Un avis sans réservation est impossible au niveau du schéma :

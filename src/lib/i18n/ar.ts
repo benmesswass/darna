@@ -34,7 +34,7 @@ export const ar: Dictionary = {
     heroLine2: "السوم اللي تشوفو هو اللي تخلّصو.",
     heroLine3: "فلوسك محميّة.",
     heroSub:
-      "دارنا هي أول منصة تونسية وين كل إعلان موثّق، كل سوم شفّاف، وكل خلاص محمي بنظام الضمان.",
+      "دارنا هي أول منصة تونسية وين كل إعلان موثّق، كل سوم شفّاف، وكل خلاص محمي حتّى تكمّل الإقامة.",
     ctaSejours: "لوّج على إقامة",
     ctaImmobilier: "اكتشف العقارات",
   },
@@ -56,7 +56,7 @@ export const ar: Dictionary = {
     heroQuestion: "شنوّة تلوّج عليه؟",
     diffTitle: "إقامات ولا عقارات؟",
     diffSejours:
-      "للعطلة: أحجز مسكن موثوق وخلّص بأمان (ضمان) — الفلوس ما تتعطاش للمضيف كان بعد ما توصل.",
+      "للعطلة: أحجز مسكن موثوق وخلّص بأمان — الفلوس ما تتعطاش للمضيف كان بعد ما تكمّل إقامتك.",
     diffImmo:
       "باش تسكن طول العام: شراء ولا كراء طويل الأمد، اتصال مباشر بالمالك ولا الوكالة — بلا خلاص أونلاين.",
     trustTitle: "كيفاش دارنا تحميك",
@@ -66,9 +66,9 @@ export const ar: Dictionary = {
     trust2Title: "حتى مليم مخبّي",
     trust2Desc:
       "الملخّص يفصّللك كل دينار قبل الخلاص: السوم، الليالي، ومعلوم الخدمة. حتى معلوم زيارة، أبدًا.",
-    trust3Title: "فلوسك في الضمان",
+    trust3Title: "خلاص محمي",
     trust3Desc:
-      "خلاصك ما يوصلش للمضيف كان بعد 24 ساعة من وصولك. كان صار مشكل، ترجعلك فلوسك الكل.",
+      "خلاصك ما يوصلش للمضيف كان بعد ما تكمّل إقامتك: يبقى محمي عند دارنا حتّى تمشي.",
     featuredTitle: "آخر الإعلانات الموثّقة",
     featuredAll: "شوف الإعلانات الكل",
     alaUneTitle: "في الواجهة",
@@ -93,6 +93,7 @@ export const ar: Dictionary = {
     aPropos: "من نحن",
     cgu: "شروط الاستعمال",
     mentionsLegales: "إعلامات قانونية",
+    confidentialite: "سياسة الخصوصية",
     contact: "اتصل بنا",
     copyright: "دارنا — صُنعت بكل عناية في تونس.",
   },
@@ -153,8 +154,15 @@ export const ar: Dictionary = {
     acheter: "شراء",
     gouvernorat: "الولاية",
     tousGouvernorats: "الولايات الكل",
+    prix: "السوم",
     prixMin: "أدنى سوم",
     prixMax: "أقصى سوم",
+    min: "أدنى",
+    max: "أقصى",
+    totalSejour: (n: number) =>
+      `الإجمالي · ${n === 1 ? "ليلة" : n === 2 ? "ليلتين" : n <= 10 ? `${n} ليالي` : `${n} ليلة`}`,
+    equivSejour: (n: number) =>
+      `يعني لـ ${n === 1 ? "ليلة" : n === 2 ? "ليلتين" : n <= 10 ? `${n} ليالي` : `${n} ليلة`} :`,
     surfaceMin: "أدنى مساحة (م²)",
     piecesMin: "أدنى عدد بيوت",
     indifferent: "الكل",
@@ -198,6 +206,13 @@ export const ar: Dictionary = {
     noteMinimale: "أدنى تقييم",
     toutesNotes: "كل التقييمات",
     noteMinPlus: (n: number) => `${n}★ فما فوق`,
+    trier: "ترتيب",
+    triRecommande: "مقترح",
+    triPrixAsc: "السوم من الأرخص للأغلى",
+    triPrixDesc: "السوم من الأغلى للأرخص",
+    triAvisDesc: "الأعلى تقييمًا",
+    triAvisAsc: "الأدنى تقييمًا",
+    triRecent: "الأحدث",
   },
   destination: {
     chargement: "جاري تحميل الوجهة…",
@@ -269,6 +284,7 @@ export const ar: Dictionary = {
       "العقار هذا مازال ما تثبّتناش منو في عين المكان. ما تخلّص حتى تسبقة خارج دارنا.",
     proprietaire: "المالك",
     agence: "وكالة",
+    hoteMasque: "صاحب دار متثبّت — الهويّة تتبيّن وقت الحجز",
     annonceIndisponible:
       "الإعلان هذا ما عادش نشيط. محفوظ كأرشيف فقط.",
     annonceEnAttente:
@@ -299,6 +315,20 @@ export const ar: Dictionary = {
     favoriSansDossier: "بلا مجلّد",
     partagerWhatsapp: (titre: string, prix: string) =>
       `عسلامة، مهتم بالإعلان متاعك « ${titre} » (${prix}) اللي شفتو على دارنا. مازال متوفّر؟`,
+    politiqueAnnulation: "سياسة الإلغاء",
+    cancelPolicy: {
+      FLEXIBLE: "مرنة",
+      MODEREE: "معتدلة",
+      FERME: "حازمة",
+      STRICTE: "صارمة",
+    } as Record<string, string>,
+    cancelPolicyDesc: {
+      FLEXIBLE: "إلغاء مجاني حتى 24 ساعة قبل الوصول.",
+      MODEREE: "إلغاء مجاني حتى 5 أيام قبل الوصول.",
+      FERME:
+        "إلغاء مجاني حتى 30 يوم قبل؛ استرجاع 50% بين 7 و30 يوم؛ لا استرجاع في أقل من 7 أيام.",
+      STRICTE: "استرجاع 50% عند الإلغاء 14 يوم على الأقل قبل؛ لا استرجاع بعد ذلك.",
+    } as Record<string, string>,
     gallery: {
       ouvrir: "حلّ المعرض",
       voirToutes: (n: number) => `شوف ${n} تصاور`,
@@ -331,15 +361,38 @@ export const ar: Dictionary = {
     dejaCompte: "عندك حساب؟",
     pasDeCompte: "مازال ما عندكش حساب؟",
     identifiantsInvalides: "معطيات الدخول غالطة.",
-    emailDejaUtilise: "فمّا حساب موجود بالإيميل هذا. أدخل.",
+    captchaEchec: "فشل التحقق ضد الروبوتات. عاود من فضلك.",
+    emailDejaUtilise: "ما نجمناش ننشئو الحساب بالمعطيات هاذي.",
     inscriptionReussie: "الحساب تعمل! تنجم تدخل توا.",
     motDePasseRegle: "8 أحرف كحد أدنى",
-    confirmerMotDePasse: "أكّد كلمة السر",
+    afficherMotDePasse: "أظهر كلمة السر",
+    masquerMotDePasse: "خبي كلمة السر",
+    confirmerMotDePasse: "أكد كلمة السر",
     motDePasseNonIdentiques: "كلمات السر ما متطابقاش.",
     compteCreeConnectezVous: "الحساب تعمل! أدخل باش تكمّل.",
-    afficherMotDePasse: "أظهر كلمة السر",
-    masquerMotDePasse: "أخفي كلمة السر",
-    captchaEchec: "فشل التحقق ضد الروبوتات. عاود من فضلك.",
+    pays: "بلد الإقامة",
+    motDePasseOublie: "نسيت كلمة السر؟",
+    resetTitre: "إعادة تعيين كلمة السر",
+    resetSousTitre:
+      "أدخل البريد الإلكتروني لحسابك وسنرسل لك رابط إعادة التعيين.",
+    resetEnvoyer: "إرسال الرابط",
+    resetEmailEnvoye:
+      "إذا كان هناك حساب بهذا العنوان، فقد تم إرسال رابط إعادة التعيين للتو.",
+    resetModeDemo: "وضع التجربة — رابط إعادة التعيين:",
+    resetOuvrirLien: "فتح رابط إعادة التعيين",
+    resetNouveauMdp: "كلمة سر جديدة",
+    resetValider: "إعادة تعيين كلمة السر",
+    resetReussi: "تم إعادة تعيين كلمة السر. يمكنك الآن تسجيل الدخول.",
+    resetLienInvalide:
+      "رابط غير صالح أو منتهي الصلاحية. يرجى طلب إعادة تعيين جديدة.",
+    resetMotDePasseInvalide:
+      "يجب أن تتكوّن كلمة السر من 8 أحرف على الأقل وأن تحتوي على رقم.",
+    resetRetourConnexion: "العودة إلى تسجيل الدخول",
+    resetMailSujet: "Darna — إعادة تعيين كلمة السر",
+    resetMailCorpsHtml: (url: string) =>
+      `<p>لقد طلبت إعادة تعيين كلمة سر حسابك في Darna.</p>` +
+      `<p><a href="${url}">اضغط هنا لاختيار كلمة سر جديدة</a>.</p>` +
+      `<p>تنتهي صلاحية هذا الرابط خلال 30 دقيقة. إذا لم تكن صاحب الطلب، تجاهل هذا البريد.</p>`,
   },
   dashboard: {
     titre: "حسابي",
@@ -387,6 +440,21 @@ export const ar: Dictionary = {
     aucuneReservationHoteCta: "كي يحجز مسافر إعلان من إعلاناتك، يبان هوني.",
     reservePar: (nom: string) => `محجوز من ${nom}`,
     payeLe: (date: string) => `تخلّص في ${date}`,
+    contactVoyageurMasque:
+      "معلومات الاتصال متاع المسافر تتبيّن كيف يخلّص التسبقة.",
+    suspenduJusqu: (date: string) => `الحساب معلّق حتى ${date}`,
+    suspenduIndefini: "الحساب معلّق",
+    suspenduDetail:
+      "تبقى محمي : تنجّم تشوف وتسيّر حجوزاتك الجارية، تتواصل مع صاحب الدار متاع إقامة مؤكّدة، وتلغي/يتردّلك. وقت التعليق، ما تنجّمش تعمل حجز جديد ولا تبعث رسائل.",
+    enSavoirPlus: "اعرف أكثر",
+    suspenduPourquoiTitre: "علاش ؟",
+    suspenduPourquoi:
+      "تلقّاو برشة محاولات باش تبعث معلومات اتصال برّة دارنا (رقم ولا إيميل) في الرسائل متاعك، وهذا ممنوع قبل ما يولّي الحجز نهائي.",
+    suspenduConsequencesTitre: "العواقب :",
+    suspenduProchaine: (jours: number) =>
+      `كان تعاود، التعليق الجاي باش يدوم ${jours} أيّام.`,
+    suspenduProchaineIndefinie:
+      "كان تعاود، حسابك باش يتعلّق بلا أجل (يراجعو أدمين).",
     aucuneDemande: "حتى طلب للتوّ.",
     aucunFavori: "حتى مفضّلة للتوّ.",
     reservationDe: (nom: string) => `حجز من ${nom}`,
@@ -394,10 +462,32 @@ export const ar: Dictionary = {
     contratBail: "عقد الكراء",
     statutReservation: {
       EN_ATTENTE: "في انتظار الخلاص",
-      CONFIRMEE: "مؤكّد — الفلوس في الضمان",
+      CONFIRMEE: "مؤكّد — الخلاص محمي",
       ANNULEE: "ملغى",
       TERMINEE: "مكمّل",
     } as Record<string, string>,
+    annulerReservation: "الغ هذا الحجز",
+    annulerConfirm: "أكّد الإلغاء",
+    annulerAnnuler: "اِحفظ حجزي",
+    remboursement: (montant: number) =>
+      montant > 0 ? `استرجاع: ${montant} دينار` : "لا استرجاع حسب السياسة",
+    cancelledAt: (date: string) => `ملغى في ${date}`,
+    rembourseLabel: (montant: number) => `مُسترجع: ${montant} دينار`,
+    revenus: "المداخيل",
+    revenusTitre: "مداخيلي",
+    revenusSousTitre:
+      "المسافر يخلّص وقت الحجز؛ دارنا تحفظ المبلغ وتعطيهولك كان بعد ما يكمّل إقامتو. هاذي ضمانة « الخلاص المحمي » اللي تطمّن المسافرين وتخلّيهم يحجزو.",
+    revenusTotal: "مداخيل مؤكّدة",
+    revenusEnAttente: "في انتظار الصرف",
+    revenusVerse: "متصرّف",
+    revenusAucun: "ما فماش مداخيل للتوّ.",
+    revenusAucunCta:
+      "كان يخلّص مسافر حجز، المبلغ يبان هنا — الأول في انتظار الصرف، ومن بعد يتصرّفلك بعد ما يمشي.",
+    revenusBadgeEnAttente: "في انتظار الصرف",
+    revenusBadgeVerse: "متصرّف",
+    revenusVersementPrevu: (date: string) =>
+      `يتصرّف بعد ما يمشي المسافر (${date})`,
+    revenusVerseApres: (date: string) => `متصرّف — الإقامة كمّلت في ${date}`,
   },
   annonceForm: {
     titre: "عنوان الإعلان",
@@ -416,6 +506,9 @@ export const ar: Dictionary = {
     surface: "المساحة (م²)",
     pieces: "عدد البيوت",
     capacite: "السعة (مسافرين)",
+    politiqueAnnulation: "سياسة الإلغاء",
+    politiqueAnnulationAide:
+      "تحدّد شنوّة يرجع للمسافر كان يلغي. كل ما كانت مرنة أكثر، كل ما طمأنت المسافر؛ وكل ما كانت صارمة، كل ما حميت مداخيلك.",
     equipements: "التجهيزات",
     description: "الوصف",
     genererDescription: "ولّد الوصف",
@@ -526,6 +619,17 @@ export const ar: Dictionary = {
     annonces: "الإعلانات",
     navAnnonces: "مراجعة الإعلانات",
     navWakils: "مراجعة الوكلاء",
+    navSignalements: "البلاغات",
+    signalementsTitre: "بلاغات تجاوز دارنا",
+    signalementsSousTitre:
+      "الرسائل اللي تلقّاو فيها معلومات اتصال وتغطّات. شوف محاولات الخروج برّة دارنا واللي يعاودو.",
+    signalementsVide: "ما فمّاش بلاغات توّا.",
+    signalementsCompte: (n: number) => (n === 1 ? "محاولة وحدة" : `${n} محاولات`),
+    signalementsEscalade: (n: number) => `يعاود — ${n} محاولات`,
+    signalementsSuspendu: "حساب معلّق",
+    signalementsSuspenduJusqu: (date: string) => `معلّق حتى ${date}`,
+    reactiver: "إرجاع الحساب",
+    navAnalytics: "لوحة القيادة",
     wakils: "الوكلاء",
     fileModeration: "قائمة مراجعة الإعلانات",
     fileModerationDesc:
@@ -572,6 +676,106 @@ export const ar: Dictionary = {
     supprimerDefinitivement: "حذف",
     aucuneCandidatureSupprimee: "لا توجد طلبات مؤرشفة.",
   },
+  analytics: {
+    titre: "لوحة القيادة",
+    sousTitre:
+      "متابعة اعتماد المنصة: الاكتساب، التفعيل، الحجوزات والاحتفاظ. بيانات محسوبة مباشرة.",
+    genereLe: (date: string) => `محدّث في ${date}`,
+    pourcent: (v: number) => `٪${Math.round(v * 100)}`,
+    rolesLabel: {
+      VOYAGEUR: "المسافرون",
+      HOTE: "المضيفون",
+      AGENCE: "الوكالات",
+      ADMIN: "المدراء",
+    } as Record<string, string>,
+
+    periodeLabel: "الفترة",
+    periodes: { "7": "7 أيام", "30": "30 يومًا", "90": "90 يومًا", all: "الكل" } as Record<
+      string,
+      string
+    >,
+    periodeNom: (p: number | null) =>
+      p === null ? "منذ البداية" : `آخر ${p} يومًا`,
+    surPeriode: (label: string) => `خلال ${label}`,
+
+    sectionVerticales: "حسب القطاع — إقامة مقابل عقارات",
+    verticalesDesc:
+      "نموذجان لا يُخلطان: الإقامة معاملاتية (دفع محمي)، والعقارات وساطة (عملاء محتملون، دون دفع إلكتروني).",
+    verticalLabel: { STAY: "إقامة", IMMO: "عقارات" } as Record<string, string>,
+    vStayBadge: "معاملاتي",
+    vImmoBadge: "وساطة",
+    vActives: "إعلانات نشطة",
+    vVerifiees: "موثّقة نشطة",
+    vTaux: "نسبة التوثيق",
+    vReservations: "حجوزات مدفوعة",
+    vGmv: "GMV",
+    vLeads: "عملاء محتملون",
+
+    sectionNorthStar: "نظرة عامة",
+    annoncesVerifieesActives: "إعلانات موثّقة نشطة",
+    annoncesVerifieesActivesDesc: "النجم الشمالي للمنتج",
+    annoncesActives: "إعلانات نشطة",
+    tauxVerification: "نسبة التوثيق",
+    gmv: "حجم الحجوزات (GMV)",
+    gmvDesc: "الحجوزات المدفوعة، بما فيها التجريبية",
+    gmvReelle: "منها الحقيقي (دون التجريبي)",
+    reservationsConfirmees: "حجوزات مؤكَّدة",
+    utilisateursTotal: "حسابات منشأة",
+
+    sectionAcquisition: "الاكتساب والتفعيل",
+    inscriptions7j: "تسجيلات (7 أيام)",
+    inscriptions30j: "تسجيلات (30 يومًا)",
+    inscriptionsParJour: (n: number) => `تسجيلات / يوم — آخر ${n} يومًا`,
+    repartitionRoles: "التوزيع حسب الدور",
+    repartitionPays: "التوزيع حسب البلد",
+    repartitionPaysDesc: "الحسابات حسب البلد المُصرَّح — متابعة الجالية.",
+    paysNonRenseigne: "غير محدَّد",
+    tauxEmailVerifie: "بريد موثّق",
+    tauxKyc: "هوية موثّقة (المعلنون)",
+    annonceursActifs: "معلنون لديهم إعلان",
+    annonceursActifsDesc: "نسبة المضيفين/الوكالات الذين نشروا",
+
+    sectionFunnel: "مسار الحجز",
+    funnelDesc:
+      "من الحجز المنشأ إلى الدفع المؤكَّد. المراحل تعكس جدول الحجوزات.",
+    funnelCreees: "منشأة",
+    funnelInitiees: "بدأ الدفع",
+    funnelConfirmees: "مؤكَّدة",
+    funnelAnnulees: "ملغاة",
+    funnelExpirees: "منتهية (15 دقيقة)",
+    funnelEnAttente: "قيد الانتظار",
+    tauxConversion: "نسبة التحويل",
+    tauxAbandon: "نسبة التخلي",
+
+    sectionRetention: "الاحتفاظ والتسرّب",
+    retentionDesc:
+      "متى يتوقف المسافرون عن الحجز. تقسيم حسب تاريخ آخر حجز.",
+    voyageursAyantReserve: "مسافرون حجزوا",
+    actifs30j: "نشطون (≤ 30 يومًا)",
+    aRisque: "في خطر (30–90 يومًا)",
+    perdus: "مفقودون (> 90 يومًا)",
+    cohortes: "أفواج التفعيل",
+    cohortesDesc:
+      "حسب شهر التسجيل: نسبة الحسابات التي حجزت مرة واحدة على الأقل.",
+    moisInscription: "الشهر",
+    inscrits: "تسجيلات",
+    actives: "مفعّلون",
+    tauxActivation: "التفعيل",
+
+    sectionWakil: "شبكة الوكلاء",
+    candidaturesParStatut: "الطلبات حسب الحالة",
+    verificationsSurPlace: "توثيقات ميدانية",
+    topWakils: "أبرز الوكلاء (توثيقات)",
+
+    sectionEvenements: "النشاط الأخير",
+    evenementsDesc: "آخر أحداث سجل التدقيق.",
+    evenement: "الحدث",
+    utilisateur: "المستخدم",
+    quand: "متى",
+    systeme: "النظام",
+    echec: "فشل",
+    aucuneDonnee: "لا توجد بيانات بعد.",
+  },
   email: {
     titre: "تثبّت الإيميل",
     sousTitre:
@@ -590,6 +794,52 @@ export const ar: Dictionary = {
     mailCorpsHtml: (code: string) =>
       `<p>رمز التثبّت متاعك في Darna: <strong>${code}</strong></p>` +
       `<p>الرمز هذا يفنى بعد 10 دقايق.</p>`,
+    bookingConfirmSujet: (titre: string) =>
+      `Darna — تأكّد الحجز: ${titre}`,
+    bookingConfirmHtml: (p: {
+      guestName: string;
+      propertyTitle: string;
+      checkIn: string;
+      checkOut: string;
+      guests: number;
+      nights: number;
+      total: string;
+      url: string;
+      demo: boolean;
+    }) =>
+      `<div dir="rtl" style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
+      `<h1 style="color:#0f766e;font-size:20px">تأكّد الحجز ✅</h1>` +
+      `<p>أهلا ${p.guestName}،</p>` +
+      `<p>الحجز متاعك في <strong>${p.propertyTitle}</strong> تأكّد. فلوسك محميّة عند Darna: ما تتعطاش للمضيف كان بعد ما تكمّل إقامتك.</p>` +
+      `<table style="width:100%;border-collapse:collapse;margin:16px 0">` +
+      `<tr><td style="padding:6px 0;color:#6b7280">الدخول</td><td style="padding:6px 0;text-align:left;font-weight:600">${p.checkIn}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">الخروج</td><td style="padding:6px 0;text-align:left;font-weight:600">${p.checkOut}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">الليالي</td><td style="padding:6px 0;text-align:left;font-weight:600">${p.nights}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">المسافرين</td><td style="padding:6px 0;text-align:left;font-weight:600">${p.guests}</td></tr>` +
+      `<tr><td style="padding:10px 0;border-top:1px solid #e5e7eb;color:#6b7280">المجموع المدفوع</td><td style="padding:10px 0;border-top:1px solid #e5e7eb;text-align:left;font-weight:700;color:#0f766e">${p.total}</td></tr>` +
+      `</table>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">شوف الحجز متاعي</a></p>` +
+      (p.demo
+        ? `<p style="background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:10px;font-size:13px;color:#92400e">وضع التجربة: ما صار حتّى خلاص حقيقي.</p>`
+        : "") +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — السكن المضمون.</p>` +
+      `</div>`,
+    newMessageSujet: (titre: string) => `Darna — رسالة جديدة · ${titre}`,
+    newMessageHtml: (p: {
+      recipientName: string;
+      senderName: string;
+      propertyTitle: string;
+      preview: string;
+      url: string;
+    }) =>
+      `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937" dir="rtl">` +
+      `<h1 style="color:#0f766e;font-size:20px">رسالة جديدة 💬</h1>` +
+      `<p>أهلا ${p.recipientName}،</p>` +
+      `<p><strong>${p.senderName}</strong> بعثلك رسالة على <strong>${p.propertyTitle}</strong> :</p>` +
+      `<blockquote style="margin:16px 0;padding:12px 16px;background:#f3f4f6;border-inline-start:3px solid #0f766e;border-radius:8px;color:#374151">${p.preview}</blockquote>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">جاوب على Darna</a></p>` +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">لسلامتك، جاوب ديما عبر مراسلة Darna. Darna — السكن المضمون.</p>` +
+      `</div>`,
   },
   verifications: {
     navLabel: "التثبّت",
@@ -689,6 +939,11 @@ export const ar: Dictionary = {
     total: "المبلغ الجملي",
     aucunFraisCache: "حتى معلوم آخر ما يتطلب منك. أبدًا.",
     continuerPaiement: "كمّل للخلاص",
+    holdLabel: "بلاصتك محجوزة — خلّص في ظرف",
+    holdExpireTitre: "وقت الخلاص فات",
+    holdExpireDetail:
+      "حجزك ما تأكّدش في الوقت: التواريخ ولّاو متاحة من جديد.",
+    holdExpireCta: "اعمل حجز جديد",
     datesInvalides: "التواريخ غالطة — تاريخ المغادرة لازم يجي بعد الوصول.",
     datesIndisponibles:
       "التواريخ هاذي ما عادتش متوفّرة. اختار غيرها من فضلك.",
@@ -699,18 +954,19 @@ export const ar: Dictionary = {
       `الدار هاذي تسع ${max} مسافرين كحد أقصى.`,
     connexionRequise: "ادخل لحسابك باش تحجز.",
     verifRequise: "ثبّت حسابك (إيميل + تيليفون) قبل ما تحجز.",
+    compteSuspendu: "حسابك معلّق. ما تنجّمش تحجز توّا.",
     verifRequiseTitre: "ثبّت حسابك باش تحجز",
     verifRequiseDesc:
       "باش تكون الثقة بين الكل في دارنا، كان الحسابات الموثّقة (إيميل + تيليفون) تنجّم تحجز. ياخذلك أقلّ من دقيقتين.",
     verifRequiseCta: "ثبّت حسابي",
-    paiementTitre: "خلاص مؤمّن — ضمان دارنا",
+    paiementTitre: "خلاص مؤمّن — محمي عند دارنا",
     sequestreExplication:
-      "فلوسك محميّة: تقعد في الضمان عند دارنا وما توصل للمضيف كان بعد 24 ساعة من الوصول. كان صار مشكل عند الوصول، ترجعلك فلوسك الكل.",
+      "فلوسك محميّة: دارنا تحفظها طول إقامتك وما تعطيهاش للمضيف كان بعد ما تمشي. عمرك ما تتخلّص للمضيف قبل ما تقيم.",
     paiementMockInfo:
       "الخلاص عبر Konnect / Flouci قريبًا. وضع تجريبي: حتى خصم حقيقي ما يصير.",
     payerSimulation: "اخلص (تجربة)",
     paiementKonnectInfo:
-      "خلاص مؤمّن عبر Konnect — كارت بنكية، e-DINAR ولا wallet. فلوسك تبقى محميّة بضمان دارنا.",
+      "خلاص مؤمّن عبر Konnect — كارت بنكية، e-DINAR ولا wallet. فلوسك تبقى محميّة عند دارنا حتّى تكمّل إقامتك.",
     payerKonnect: "اخلص بـ Konnect",
     redirectionKonnect: "توجيه للخلاص المؤمّن…",
     paiementEchoue:
@@ -722,7 +978,7 @@ export const ar: Dictionary = {
     reservationExpiree: "الحجز هذا فات وقتو. عاود اطلب من فضلك.",
     paiementConfirme: "الحجز تأكّد!",
     paiementConfirmeDetail:
-      "فلوسك في الضمان. المضيف تعلّم — تلقى التفاصيل في « حجوزاتي ».",
+      "خلاصك محمي حتّى تكمّل إقامتك. المضيف تعلّم — تلقى التفاصيل في « حجوزاتي ».",
     voirMesReservations: "شوف حجوزاتي",
     sejourDates: (arrivee: string, depart: string) =>
       `من ${arrivee} إلى ${depart}`,
@@ -735,6 +991,99 @@ export const ar: Dictionary = {
     moisSuivant: "الشهور الجايين",
     placeholderPrix: "اختار التواريخ متاعك في الروزنامة باش تشوف السوم الكامل — بلا حتى مليم مخبّي.",
     selectionnezDates: "اختار التواريخ متاعك",
+    annulationImpossible: "هذا الحجز ما ينجّمش يتلغى.",
+    annulationConfirmee: "الحجز متاعك تلغى.",
+    // ── حجز التسبقة (ضد التحويل خارج المنصّة) : قدّاش تخلّص توّا ──────────
+    totalSejour: "إجمالي الإقامة",
+    payerMaintenant: "تخلّص توّا",
+    montantAPayer: "قدّاش تحبّ تخلّص توّا ؟",
+    montantAPayerAide:
+      "خلّص أونلاين على الأقلّ التسبقة (10٪) — عمولة دارنا داخلة فيها. تنجّم تخلّص أكثر حتى للمبلغ الكامل ؛ الباقي يتخلّص كاش لصاحب الدار وقت الوصول.",
+    acompteMin: "التسبقة الدنيا",
+    raccourciAcompte: (pct: number) => `تسبقة (${pct}٪)`,
+    raccourciMoitie: "النصف",
+    raccourciTotalite: "المبلغ الكامل",
+    pourcentDuTotal: (pct: number) => `${pct}٪ من الإجمالي`,
+    dontCommission: "فيها عمولة دارنا",
+    soldeArrivee: "الباقي يتخلّص كاش وقت الوصول",
+    soldeArriveeAide:
+      "تخلّص الباقي مباشرةً لصاحب الدار، كاش، نهار الوصول متاعك.",
+    acompteSequestreInfo:
+      "التسبقة متاعك محجوزة في الضمان عند دارنا. معلومات الاتصال متاع صاحب الدار يتبعثولك كيف يفوت أجل الإلغاء المجّاني — ساعتها الحجز يولّي نهائي.",
+    commissionNonRemboursable:
+      "الإلغاء المجّاني: يتردّلك المبلغ الكامل، عمولة دارنا داخلة فيه. بعد فوات الأجل المجّاني، العمولة تبقى عند دارنا والباقي يتبع سياسة الإلغاء متاعة الإعلان.",
+    annulationGratuiteJusqu: (date: string) => `إلغاء مجّاني حتى ${date}`,
+    annulationRembJusqu: (pct: number, date: string) =>
+      `${pct}٪ يتردّو حتى ${date}`,
+    annulationNonRembApres: (date: string) => `ما فمّاش ترجيع بعد ${date}`,
+    verifieWakil: "متثبّت من وكيل",
+    verifieWakilAide:
+      "الدار تثبّت منها على عين المكان عون وكيل موثوق.",
+    montantInvalide:
+      "مبلغ غير صحيح — خلّص بين التسبقة الدنيا وإجمالي الإقامة.",
+    // ── معلومات الاتصال تتبيّن بعد تأكيد الحجز (التسبقة تخلّصت) ──────────
+    contactHoteTitre: "معلومات الاتصال متاع صاحب الدار",
+    contactHoteAide:
+      "الحجز تأكّد : اتّصل بصاحب الدار مباشرةً باش تنظّم وصولك.",
+    contactVoyageurTitre: "معلومات الاتصال متاع المسافر",
+    contactVoyageurAide:
+      "اتّصل بالمسافر باش تحضّر وصولو والباقي الكاش.",
+    contactNom: "الاسم",
+    contactEmail: "البريد الإلكتروني",
+    contactTelephone: "الهاتف",
+    contactVerrouilleTitre: "معلومات الاتصال متاع صاحب الدار مخفيّة",
+    contactVerrouilleAide:
+      "لسلامة الجميع، معلومات الاتصال متاع صاحب الدار يتبعثولك كيف تخلّص التسبقة ويتأكّد الحجز.",
+    // ── الاتصال مقفول حتى يفوت أجل الإلغاء المجّاني ──────────────────────
+    contactLockedTitreHote: "معلومات الاتصال متاع صاحب الدار قريب تتوفّر",
+    contactLockedTitreVoyageur: "معلومات الاتصال متاع المسافر قريب تتوفّر",
+    contactDebloqueLe: (date: string) => `تتفكّ نهار ${date}`,
+    contactLockedAide:
+      "لسلامة الجميع، معلومات الاتصال المباشرة يتبادلوها كيف يفوت أجل الإلغاء المجّاني — ساعتها الحجز يولّي نهائي.",
+  },
+  messages: {
+    titre: "المراسلة",
+    lien: "المراسلة",
+    hubTitre: "المراسلة",
+    hubSousTitre: "الأحاديث الكل متاعك مع أصحاب الديار والمسافرين.",
+    hubVide: "ما فمّاش أحاديث توّا. المراسلات متاعك مع أصحاب الديار والمسافرين باش تظهر هوني.",
+    notifTitre: "رسالة جديدة",
+    notifCorps: (n: number) =>
+      n > 1 ? `عندك ${n} رسائل ما قريتهمش.` : "وصلتك رسالة جديدة.",
+    notifVoir: "افتح المراسلة",
+    banniere:
+      "لسلامتك، الأرقام والإيميلات متغطّيين. باش تتبادلو معلومات الاتصال المباشرة كيف يولّي الحجز نهائي.",
+    placeholder: "اكتب رسالتك…",
+    vide: "ما فمّاش رسائل توّا. ابدا الحديث.",
+    vous: "إنت",
+    hote: "صاحب الدار",
+    voyageur: "المسافر",
+    masque: "معلومات الاتصال متغطّية",
+    indisponible: "المراسلة تتحلّ كيف يتأكّد الحجز.",
+    depuisVerrouille: "تراسلو عبر مراسلة دارنا",
+    banniereLibre:
+      "الحجز متاعك ولّى نهائي : تنجّمو تتبادلو معلومات الاتصال بكل حرّية.",
+    avertissementMasque:
+      "معلومات الاتصال متاعك تغطّات. ممنوع تبعث رقم ولا إيميل برّة دارنا قبل ما يولّي الحجز نهائي — باش تتربطو ببعضكم أوتوماتيكي. ⚠️ المحاولات المتكرّرة تنجّم تأدّي لتعليق حسابك.",
+    avertissementSollicitation:
+      "⚠️ ممنوع تطلب تبادل معلومات الاتصال برّة دارنا قبل ما يولّي الحجز نهائي. المحاولات المتكرّرة تنجّم تأدّي لتعليق حسابك.",
+    avertissementEscalade:
+      "⚠️ آخر تنبيه : تلقّاو برشة محاولات باش تبعث معلومات اتصال برّة دارنا في حسابك. أيّ محاولة جديدة تنجّم تأدّي لتعليق حسابك.",
+    compteSuspendu:
+      "حسابك معلّق على خاطر محاولات متكرّرة باش تبعث معلومات اتصال برّة دارنا. اتّصل بالدعم باش يرجّعولك الحساب.",
+    compteSuspenduJusqu: (date: string) =>
+      `حسابك معلّق حتى ${date} على خاطر محاولات باش تبعث معلومات اتصال برّة دارنا. ابقى في دارنا باش تحمي حجوزاتك وتقييماتك.`,
+    pourquoiTitre: "اعرف أكثر — علاش تبقى في دارنا ؟",
+    pourquoi1:
+      "الخلاص محمي : التسبقة متاعك في الضمان متاع دارنا. برّة المنصّة، ما فمّاش ضمان — الباب مفتوح للنصب.",
+    pourquoi2:
+      "التقييمات موثوقة : كان الإقامات اللي تحجزو في دارنا تنجّم تتقيّم. هكا تتبنى سمعة صاحب الدار وثقة المسافر. برّة : لا دليل لا سمعة.",
+    pourquoi3:
+      "النزاعات : كان صار مشكل، دارنا تفصل وتحميك. برّة المنصّة، تبقى وحدك في المشكل.",
+    pourquoi4:
+      "لصاحب الدار : الظهور، شارة « متثبّت »، الحجوزات الجاية — الكلّ يعدّي عبر دارنا. اللي يحاول يتفادى، يقطع رزقو الجاي.",
+    pourquoiConclusion:
+      "دارنا، أوّل منصّة حجز تونسية موثوقة. يدّ في يدّ، نبنيو نظام فيه الكلّ محمي.",
   },
   alaUne: {
     titre: "حطّ إعلانك في الواجهة",
@@ -846,7 +1195,7 @@ export const ar: Dictionary = {
       "إعلانات موثّقة في عين المكان من وكلائنا: اللي تشوفو من باريس ولا مونريال موجود فعلًا في الحمامات.",
     arg2Titre: "اخلص بكل أمان",
     arg2Desc:
-      "ضمان دارنا: فلوسك ما تتخلّصش كان بعد وصولك. الخلاص بالبطاقة البنكية العالمية قريبًا.",
+      "خلاص محمي مع دارنا: فلوسك ما تتعطاش للمضيف كان بعد إقامتك. الخلاص بالبطاقة البنكية العالمية قريبًا.",
     arg3Titre: "زيارات بالفيديو (قريبًا)",
     arg3Desc: "وكيل يزور العقار معاك بالفيديو، قبل أي التزام.",
     toggleTitre: "اعرض الأسعار بعملتك",
@@ -882,8 +1231,166 @@ export const ar: Dictionary = {
   pagesLegales: {
     cguTitre: "شروط الاستعمال العامة",
     mentionsTitre: "إعلامات قانونية",
+    confidentialiteTitre: "سياسة الخصوصية",
     aRediger:
       "الوثيقة قيد التحرير — باش تتنشر قبل الإطلاق الرسمي للمنصة.",
+    miseAJour: "آخر تحديث: جوان 2026",
+    avertissement:
+      "هاذي الوثيقة موفّرة على سبيل الإعلام في مرحلة العرض التجريبي لدارنا. لازم تتراجع وتتصادق عليها من طرف مستشار قانوني قبل الإطلاق العلني للمنصة.",
+    cgu: {
+      intro:
+        "شروط الاستعمال هاذي («الشروط») تنظّم الوصول لمنصة دارنا واستعمالها، وهي منصة تربط بين المسافرين والمعلنين لكراء الإقامات والعقارات في تونس. بإنشائك لحساب ولا استعمالك للخدمة، إنت تقبل بالشروط هاذي.",
+      sections: [
+        {
+          titre: "1. الموضوع",
+          corps: [
+            "دارنا هي سوق للوساطة والربط. دارنا لا تملك ولا تكري ولا تتصرّف كوكيل للعقارات المنشورة: المنصة توفّر أدوات للبحث والحجز والتثبّت من الثقة.",
+          ],
+        },
+        {
+          titre: "2. الحساب والتسجيل",
+          corps: [
+            "إنشاء الحساب يتطلّب عنوان بريد إلكتروني صحيح وكلمة سر. إنت تتعهّد بتوفير معلومات صحيحة وتحيينها.",
+            "بعض العمليات تتطلّب التثبّت من بريدك وهاتفك، وحتى من هويّتك (بطاقة التعريف). إنت مسؤول على سرّية معطيات الدخول متاعك وعلى كل نشاط يتم من حسابك.",
+          ],
+        },
+        {
+          titre: "3. الإعلانات والتثبّت",
+          corps: [
+            "الإعلانات تتنشر تحت مسؤولية المعلن وحدو (مضيّف ولا وكالة). كل إعلان يخضع للتثبّت (شبكة الوكيل) قبل نشرو ومنحو شارة «مثبَّت من دارنا».",
+            "دارنا تحتفظ بحق رفض ولا تعليق ولا سحب أي إعلان غير مطابق ولا احتيالي ولا مضلّل.",
+          ],
+        },
+        {
+          titre: "4. الحجوزات والخلاص",
+          corps: [
+            "طلب الحجز يحجز الموعد لمدة 15 دقيقة. الأثمنة والمصاريف (بما فيها مصاريف الخدمة) يتم احتسابها دائماً من جهة الخادم؛ ما تتستعملش أي قيمة مبعوثة من المتصفّح كمبلغ يتخلّص.",
+            "في مرحلة العرض التجريبي، حجز الأموال (السيكستر) يكون محاكى بصفة افتراضية: ما فمّاش أي حركة مال حقيقية. كي يتفعّل الخلاص الحقيقي (Konnect)، المبلغ المخصوم يكون ديما بالدينار التونسي (TND)، والعرض باليورو هو مجرّد تحويل إرشادي.",
+          ],
+        },
+        {
+          titre: "5. واجبات المستعملين",
+          corps: [
+            "إنت تتعهّد باستعمال دارنا بنزاهة، وعدم الالتفاف على آليات الأمان ولا التثبّت، وعدم نشر محتوى غير قانوني، واحترام التشريع التونسي الجاري بيه العمل.",
+          ],
+        },
+        {
+          titre: "6. المسؤولية",
+          corps: [
+            "دارنا تتصرّف كوسيط. المنصة موفّرة «كما هي» في مرحلة العرض التجريبي وما تتحمّلش المسؤولية على النزاعات بين المسافرين والمعلنين، في حدود ما يسمح بيه القانون.",
+          ],
+        },
+        {
+          titre: "7. التعليق وإنهاء الخدمة",
+          corps: [
+            "دارنا تنجّم تعلّق ولا تغلق حساب في صورة الإخلال بالشروط هاذي، ولا الاحتيال، ولا الاستعمال التعسّفي. إنت تنجّم تغلق حسابك في أي وقت.",
+          ],
+        },
+        {
+          titre: "8. القانون المنطبق",
+          corps: [
+            "الشروط هاذي تخضع للقانون التونسي. كل نزاع يرجع لاختصاص محاكم تونس، مع مراعاة القواعد الإلزامية اللي تحمي المستهلكين المقيمين في الاتحاد الأوروبي.",
+          ],
+        },
+      ],
+    },
+    mentions: {
+      intro:
+        "تماشياً مع واجبات الشفافية، المعلومات المتعلّقة بناشر منصة دارنا واستضافتها مبيّنة في الأسفل.",
+      sections: [
+        {
+          titre: "الناشر",
+          corps: [
+            "دارنا مشروع ناشرو وسيم بن مسعود. لأي سؤال، تنجّم تكتب لـ: contact@darna.tn.",
+            "المعطيات القانونية الكاملة (الشكل القانوني، الترسيم، المقر) باش تتنشر قبل الإطلاق التجاري للمنصة.",
+          ],
+        },
+        {
+          titre: "الاستضافة",
+          corps: [
+            "المنصة مستضافة عند مزوّد بنية تحتية سحابية. معطيات المستضيف باش تتحدّد قبل الدخول في الإنتاج.",
+          ],
+        },
+        {
+          titre: "الملكية الفكرية",
+          corps: [
+            "علامة دارنا وشعارها ونصوصها وواجهتها محمية. كل استنساخ بدون ترخيص ممنوع. محتوى الإعلانات يبقى ملك أصحابو.",
+          ],
+        },
+        {
+          titre: "الاتصال",
+          corps: [
+            "لأي طلب يخص الإعلامات القانونية: contact@darna.tn.",
+          ],
+        },
+      ],
+    },
+    confidentialite: {
+      intro:
+        "دارنا تعطي أهمية خاصة لحماية معطياتك الشخصية. السياسة هاذي تشرح شنوّة المعطيات اللي نجمعوها، علاش، وشنوّة حقوقك — بما في ذلك المستعملين المقيمين في الاتحاد الأوروبي (RGPD).",
+      sections: [
+        {
+          titre: "1. المسؤول عن المعالجة",
+          corps: [
+            "المسؤول عن معالجة المعطيات هو ناشر دارنا. لأي سؤال يخص معطياتك، اكتب لـ: privacy@darna.tn.",
+          ],
+        },
+        {
+          titre: "2. المعطيات المجموعة",
+          corps: [
+            "معطيات الحساب: الاسم، البريد الإلكتروني، رقم الهاتف، الدور (مسافر، مضيّف، وكالة).",
+            "معطيات التثبّت (KYC): رقم بطاقة التعريف الوطنية، مخزّن مشفّر وما يتعرضش بصفة واضحة أبداً.",
+            "معطيات الاستعمال والتقنية: الحجوزات، المفضّلات، رسائل الاتصال، سجلّات الأمان (عنوان IP، التوقيت) لأغراض التدقيق.",
+          ],
+        },
+        {
+          titre: "3. الأغراض",
+          corps: [
+            "معطياتك تُستعمل لتوفير الخدمة (الحساب، البحث، الحجز)، ولضمان الثقة والأمان (التثبّت، الوقاية من الاحتيال، التدقيق)، وللاتصال بيك بخصوص حجوزاتك.",
+          ],
+        },
+        {
+          titre: "4. الأساس القانوني",
+          corps: [
+            "المعالجة ترتكز على تنفيذ العقد (توفير الخدمة)، ومصلحتنا المشروعة (الأمان والوقاية من الاحتيال)، واحترام الالتزامات القانونية، وموافقتك كي تكون مطلوبة (مثلاً للكوكيز غير الضرورية).",
+          ],
+        },
+        {
+          titre: "5. الكوكيز",
+          corps: [
+            "دارنا ما تستعملش كان كوكيز ضرورية بالقدر اللازم: جلسة الدخول، تفضيل اللغة، تفضيل العملة، وتذكّر اختيارك للموافقة. ما يتستعملش أي كوكي إشهاري ولا متتبّع طرف ثالث في مرحلة العرض التجريبي.",
+            "تنجّم تمسح الكوكيز من المتصفّح متاعك في أي وقت؛ الكوكيز الضرورية لا غنى عنها باش تخدم الخدمة كيف يلزم.",
+          ],
+        },
+        {
+          titre: "6. مدّة الحفظ",
+          corps: [
+            "معطيات الحساب تتحفظ ما دام حسابك نشيط. سجلّات التدقيق تتحفظ لمدة محدودة لأغراض الأمان. معطياتك تتمحى ولا تتجهّل كي ما تبقاش ضرورية.",
+          ],
+        },
+        {
+          titre: "7. الأمان",
+          corps: [
+            "كلمات السر متاعك تتخزّن في شكل بصمة آمنة (bcrypt)؛ بطاقة التعريف متاعك مشفّرة عند التخزين (AES-256-GCM). الوصول للمعطيات الحسّاسة محدود ومسجّل.",
+          ],
+        },
+        {
+          titre: "8. حقوقك",
+          corps: [
+            "طبقاً للـ RGPD، عندك حق الوصول، التصحيح، المحو، التحديد والاعتراض على معالجة معطياتك، وكذلك حق النقل. لممارسة الحقوق هاذي، اتصل بـ: privacy@darna.tn.",
+            "تنجّم زادة تقدّم شكاية لدى سلطة حماية المعطيات المختصة.",
+          ],
+        },
+      ],
+    },
+  },
+  cookieConsent: {
+    titre: "كوكيزك، اختيارك",
+    message:
+      "دارنا ما تستعملش كان كوكيز ضرورية بالقدر اللازم باش تخدم (الدخول، اللغة، العملة). ما فمّاش متتبّعات إشهارية.",
+    enSavoirPlus: "اعرف أكثر",
+    accepter: "فهمت",
+    refuser: "كمّل بدون موافقة",
   },
   notFound: {
     titre: "الصفحة موش موجودة",

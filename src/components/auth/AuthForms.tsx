@@ -6,10 +6,13 @@ import { useRouter } from "next/navigation";
 import {
   loginAction,
   registerAction,
+  requestPasswordResetAction,
+  resetPasswordAction,
   type AuthFormState,
 } from "@/actions/auth";
 import { useT } from "@/components/i18n/LocaleProvider";
 import { TurnstileWidget } from "@/components/auth/TurnstileWidget";
+import { COUNTRY_LABELS } from "@/lib/constants";
 
 const inputClass =
   "w-full rounded-xl border border-darna/15 bg-cream px-3.5 py-2.5 text-sm outline-none focus:border-darna";
@@ -62,10 +65,12 @@ function PasswordInput({
   name,
   autoComplete,
   minLength,
+  hasError,
 }: {
   name: string;
   autoComplete: string;
   minLength?: number;
+  hasError?: boolean;
 }) {
   const fr = useT();
   const [show, setShow] = useState(false);
@@ -77,7 +82,7 @@ function PasswordInput({
         required
         minLength={minLength}
         autoComplete={autoComplete}
-        className={`${inputClass} pe-11`}
+        className={`${inputClass} pe-11 ${hasError ? "border-red-400" : ""}`}
       />
       <button
         type="button"
@@ -138,8 +143,6 @@ export function LoginForm({
 }) {
   const fr = useT();
   const [state, action, pending] = useActionState(loginAction, undefined);
-  // On propage le callbackUrl vers l'inscription pour ne pas perdre la cible
-  // (ex. « devenir hôte ») si l'utilisateur n'a pas encore de compte.
   const inscriptionHref = callbackUrl
     ? `/inscription?callbackUrl=${encodeURIComponent(callbackUrl)}`
     : "/inscription";
@@ -171,12 +174,114 @@ export function LoginForm({
       </label>
       <TurnstileWidget siteKey={captchaSiteKey} />
       <SubmitButton label={fr.auth.seConnecter} pending={pending} />
+      <p className="text-center text-sm">
+        <Link
+          href="/mot-de-passe-oublie"
+          className="font-semibold text-darna underline underline-offset-2"
+        >
+          {fr.auth.motDePasseOublie}
+        </Link>
+      </p>
       <p className="text-center text-sm text-ink/60">
         {fr.auth.pasDeCompte}{" "}
         <Link href={inscriptionHref} className="font-semibold text-darna underline">
           {fr.auth.sInscrire}
         </Link>
       </p>
+    </form>
+  );
+}
+
+/** Demande de réinitialisation (saisie e-mail). En démo, affiche le lien renvoyé. */
+export function ForgotPasswordForm() {
+  const fr = useT();
+  const [state, action, pending] = useActionState(requestPasswordResetAction, undefined);
+
+  return (
+    <form action={action} className="space-y-4">
+      <Feedback state={state} />
+      {state?.resetUrl ? (
+        <div className="rounded-xl bg-sand-light/40 px-4 py-3 text-sm text-darna-dark">
+          <p className="font-semibold">{fr.auth.resetModeDemo}</p>
+          <Link
+            href={state.resetUrl}
+            className="mt-1 block break-all font-semibold text-darna underline"
+          >
+            {fr.auth.resetOuvrirLien}
+          </Link>
+        </div>
+      ) : null}
+      <p className="text-sm text-ink/70">{fr.auth.resetSousTitre}</p>
+      <label className="block space-y-1.5">
+        <span className="text-sm font-semibold text-ink/70">{fr.auth.email}</span>
+        <input name="email" type="email" required autoComplete="email" className={inputClass} />
+      </label>
+      <SubmitButton label={fr.auth.resetEnvoyer} pending={pending} />
+      <p className="text-center text-sm text-ink/60">
+        <Link href="/connexion" className="font-semibold text-darna underline">
+          {fr.auth.resetRetourConnexion}
+        </Link>
+      </p>
+    </form>
+  );
+}
+
+/** Choix d'un nouveau mot de passe à partir du jeton (lien reçu / affiché). */
+export function ResetPasswordForm({ token }: { token: string }) {
+  const fr = useT();
+  const [state, action, pending] = useActionState(resetPasswordAction, undefined);
+  const done = Boolean(state?.success);
+  const [confirmError, setConfirmError] = useState("");
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    const data = new FormData(e.currentTarget);
+    if (data.get("password") !== data.get("confirmPassword")) {
+      e.preventDefault();
+      setConfirmError(fr.profil.mdpConfirmationInvalide);
+    } else {
+      setConfirmError("");
+    }
+  }
+
+  return (
+    <form action={action} onSubmit={handleSubmit} className="space-y-4">
+      <Feedback state={state} />
+      {done ? (
+        <p className="text-center text-sm">
+          <Link
+            href="/connexion"
+            className="font-semibold text-darna underline underline-offset-2"
+          >
+            {fr.auth.seConnecter}
+          </Link>
+        </p>
+      ) : (
+        <>
+          <input type="hidden" name="token" value={token} />
+          <label className="block space-y-1.5">
+            <span className="text-sm font-semibold text-ink/70">
+              {fr.auth.resetNouveauMdp}{" "}
+              <span className="font-normal text-ink/40">({fr.auth.motDePasseRegle})</span>
+            </span>
+            <PasswordInput name="password" autoComplete="new-password" minLength={8} />
+          </label>
+          <label className="block space-y-1.5">
+            <span className="text-sm font-semibold text-ink/70">
+              {fr.auth.confirmerMotDePasse}
+            </span>
+            <PasswordInput
+              name="confirmPassword"
+              autoComplete="new-password"
+              minLength={8}
+              hasError={!!confirmError}
+            />
+            {confirmError ? (
+              <p className="text-xs text-red-600">{confirmError}</p>
+            ) : null}
+          </label>
+          <SubmitButton label={fr.auth.resetValider} pending={pending} />
+        </>
+      )}
     </form>
   );
 }
@@ -193,11 +298,22 @@ export function RegisterForm({
   const fr = useT();
   const router = useRouter();
   const [state, action, pending] = useActionState(registerAction, undefined);
-  // Après inscription, le compte n'est pas connecté automatiquement : on dirige
-  // vers la connexion en conservant la cible (callbackUrl) pour y revenir.
+  const [confirmError, setConfirmError] = useState("");
   const connexionHref = callbackUrl
     ? `/connexion?callbackUrl=${encodeURIComponent(callbackUrl)}`
     : "/connexion";
+
+  // Validation client immédiate : bloque la soumission si les deux mots de
+  // passe diffèrent (la validation serveur `.refine()` reste le garde-fou).
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    const data = new FormData(e.currentTarget);
+    if (data.get("password") !== data.get("confirmPassword")) {
+      e.preventDefault();
+      setConfirmError(fr.profil.mdpConfirmationInvalide);
+    } else {
+      setConfirmError("");
+    }
+  }
 
   // Inscription réussie → on ouvre directement la page de connexion, e-mail
   // pré-rempli, pour que l'utilisateur se logue sans ressaisir son adresse.
@@ -215,7 +331,7 @@ export function RegisterForm({
   const values = state?.values;
 
   return (
-    <form action={action} className="space-y-4">
+    <form action={action} onSubmit={handleSubmit} className="space-y-4">
       <Feedback state={state} />
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold text-ink/70">{fr.auth.nom}</span>
@@ -247,8 +363,18 @@ export function RegisterForm({
         <PasswordInput name="password" autoComplete="new-password" minLength={8} />
       </label>
       <label className="block space-y-1.5">
-        <span className="text-sm font-semibold text-ink/70">{fr.auth.confirmerMotDePasse}</span>
-        <PasswordInput name="confirmPassword" autoComplete="new-password" minLength={8} />
+        <span className="text-sm font-semibold text-ink/70">
+          {fr.auth.confirmerMotDePasse}
+        </span>
+        <PasswordInput
+          name="confirmPassword"
+          autoComplete="new-password"
+          minLength={8}
+          hasError={!!confirmError}
+        />
+        {confirmError ? (
+          <p className="text-xs text-red-600">{confirmError}</p>
+        ) : null}
       </label>
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold text-ink/70">
@@ -261,6 +387,20 @@ export function RegisterForm({
           defaultValue={values?.phone ?? ""}
           className={inputClass}
         />
+      </label>
+      <label className="block space-y-1.5">
+        <span className="text-sm font-semibold text-ink/70">
+          {fr.auth.pays}{" "}
+          <span className="font-normal text-ink/40">({fr.common.optionnel})</span>
+        </span>
+        <select name="country" defaultValue="" className={inputClass}>
+          <option value="">—</option>
+          {COUNTRY_LABELS.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
       </label>
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold text-ink/70">{fr.auth.role}</span>

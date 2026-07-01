@@ -23,6 +23,30 @@ export const PROPERTY_TYPES = ["SEJOUR", "LOCATION", "VENTE"] as const;
 export type PropertyType = (typeof PROPERTY_TYPES)[number];
 
 /**
+ * Tris proposés à la recherche (séjours + immo). Référentiel client-safe (pas
+ * d'env) : partagé par le sélecteur de tri (client) et le calcul du `orderBy`
+ * Prisma (serveur, src/lib/listings.ts). `recommande` (défaut) = mise en avant
+ * payante puis vérifiées puis récentes.
+ */
+export const SEARCH_SORTS = [
+  "recommande",
+  "prix-asc",
+  "prix-desc",
+  "avis-desc",
+  "avis-asc",
+  "recent",
+] as const;
+export type SortKey = (typeof SEARCH_SORTS)[number];
+
+/** Normalise un `tri` reçu de l'URL en clé valide (défaut : recommande). */
+export function parseSortKey(value: string | undefined): SortKey {
+  return SEARCH_SORTS.includes((value ?? "") as SortKey)
+    ? (value as SortKey)
+    : "recommande";
+}
+
+
+/**
  * Indicatifs téléphoniques proposés au KYC (Tunisie + diaspora ciblée).
  * Tunisie en tête (propriétaire = souvent sur place) ; France ensuite (cible
  * diaspora prioritaire). Données de référentiel — libellés en français, comme
@@ -39,6 +63,17 @@ export const PHONE_COUNTRIES = [
   { code: "1", label: "USA / Canada", flag: "🇺🇸" },
 ] as const;
 export const DEFAULT_PHONE_COUNTRY = "216";
+
+/**
+ * Libellés de pays proposés à l'inscription (= référentiel PHONE_COUNTRIES).
+ * Stockés tels quels en base (libellés FR), comme les villes/équipements.
+ * Servent au pilotage diaspora dans le tableau de bord founder.
+ */
+export const COUNTRY_LABELS = PHONE_COUNTRIES.map((c) => c.label);
+export const DEFAULT_COUNTRY = "Tunisie";
+export function isValidCountry(value: string): boolean {
+  return (COUNTRY_LABELS as readonly string[]).includes(value);
+}
 
 /**
  * Verticales du produit — frontière de module ET de feature-flag (cf.
@@ -77,6 +112,9 @@ export type BookingStatus = (typeof BOOKING_STATUSES)[number];
 
 export const ESCROW_STATUSES = ["AUCUN", "EN_SEQUESTRE", "LIBERE"] as const;
 export type EscrowStatus = (typeof ESCROW_STATUSES)[number];
+
+export const CANCEL_POLICIES = ["FLEXIBLE", "MODEREE", "FERME", "STRICTE"] as const;
+export type CancelPolicy = (typeof CANCEL_POLICIES)[number];
 
 /** Équipements proposés à la création d'annonce (libellés FR stockés tels quels). */
 export const AMENITIES = [

@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import {
   BuildingIcon,
   CalendarIcon,
+  ChartIcon,
+  CoinsIcon,
   HeartIcon,
   MailIcon,
   ShieldIcon,
@@ -14,9 +16,11 @@ import {
   UsersIcon,
 } from "@/components/icons";
 
-const ICONS = {
+export const ICONS = {
   BuildingIcon,
   CalendarIcon,
+  ChartIcon,
+  CoinsIcon,
   HeartIcon,
   MailIcon,
   ShieldIcon,

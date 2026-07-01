@@ -6,11 +6,34 @@ import { HouseIcon } from "@/components/icons";
 import { MobileMenu } from "./MobileMenu";
 import { NavLink } from "./NavLink";
 import { PrimaryNav } from "./PrimaryNav";
+import { AccountMenu } from "./AccountMenu";
+import { buildDashboardLinks } from "@/lib/dashboard-nav";
+import { countUnreadMessages } from "@/lib/messages";
+import { MessagesNotifier } from "@/components/messages/MessagesNotifier";
 import { CurrencyToggle } from "@/components/currency/CurrencyToggle";
 import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 
+/** Initiales (1 à 2 lettres) pour l'avatar du menu « Mon espace ». */
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
 export async function Header() {
   const [user, fr] = await Promise.all([getSessionUser(), getT()]);
+
+  // Pages de l'espace personnel (menu « Mon espace » du header). On injecte la
+  // pastille des messages non lus sur le lien « Messagerie ».
+  const unreadMessages = user ? await countUnreadMessages(user.id) : 0;
+  const navLinks = user
+    ? buildDashboardLinks(user, fr).map((l) =>
+        l.href === "/dashboard/messagerie" && unreadMessages > 0
+          ? { ...l, badge: unreadMessages }
+          : l
+      )
+    : [];
 
   // Navigation des verticales : seules les verticales activées sont proposées
   // (cf. src/lib/modes.ts). En démo, les deux sont actives → nav inchangée.
@@ -80,12 +103,15 @@ export async function Header() {
           <CurrencyToggle />
 
           {user ? (
-            <Link
-              href="/dashboard"
-              className="accent-transition hidden rounded-full bg-[var(--color-accent)] px-4 py-2 text-sm font-semibold text-[var(--color-accent-contrast)] hover:bg-[var(--color-accent-strong)] md:block"
-            >
-              {fr.nav.dashboard}
-            </Link>
+            <AccountMenu
+              name={user.name}
+              image={user.image}
+              initials={initials(user.name)}
+              links={navLinks}
+              label={fr.nav.dashboard}
+              logoutLabel={fr.nav.deconnexion}
+              initialUnread={unreadMessages}
+            />
           ) : (
             <Link
               href="/connexion"
@@ -95,9 +121,17 @@ export async function Header() {
             </Link>
           )}
 
-          <MobileMenu items={mobileItems} />
+          <MobileMenu
+            items={mobileItems}
+            loggedIn={Boolean(user)}
+            logoutLabel={fr.nav.deconnexion}
+          />
         </div>
       </div>
+
+      {/* Notification in-app : sonde le nombre de non-lus et prévient (toast +
+          notification navigateur) à l'arrivée d'un nouveau message. */}
+      {user ? <MessagesNotifier initialCount={unreadMessages} /> : null}
     </header>
   );
 }

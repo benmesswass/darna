@@ -13,6 +13,7 @@
 import { prisma } from "@/lib/prisma";
 import { getKonnectPayment, tndToMillimes } from "@/lib/konnect";
 import { logAudit, logStructured } from "@/lib/audit";
+import { sendBookingConfirmationEmail } from "@/lib/notifications";
 
 export type SettleResult =
   | "CONFIRMEE" // payée et sous séquestre
@@ -42,6 +43,9 @@ export async function settleKonnectBooking(
       status: true,
       expiresAt: true,
       totalPrice: true,
+      // Montant ATTENDU pour CE paiement (choix du voyageur, clampé et figé à
+      // l'init côté serveur). Source de vérité de la vérif du montant reçu.
+      amountPaid: true,
       paymentRef: true,
     },
   });
@@ -73,8 +77,12 @@ export async function settleKonnectBooking(
   if (payment.status !== "completed") return "EN_ATTENTE";
 
   // Contrôle d'intégrité : on ne confirme JAMAIS si le montant réellement reçu
-  // est inférieur au total dû (recalculé en millimes côté serveur).
-  const expectedMillimes = tndToMillimes(booking.totalPrice);
+  // est inférieur au montant ATTENDU pour ce paiement — le choix du voyageur
+  // figé à l'init (amountPaid), PAS le total. Filet : si aucun montant attendu
+  // n'a été mémorisé (cas anormal), on retombe sur le total dû. Recalcul en
+  // millimes côté serveur.
+  const expectedTND = booking.amountPaid > 0 ? booking.amountPaid : booking.totalPrice;
+  const expectedMillimes = tndToMillimes(expectedTND);
   if (payment.reachedAmount < expectedMillimes) {
     logStructured("warn", "konnect.amount_mismatch", {
       bookingId: booking.id,
@@ -121,10 +129,16 @@ export async function settleKonnectBooking(
     metadata: {
       bookingId: booking.id,
       paymentRef: booking.paymentRef,
+      amountPaid: expectedTND,
       totalPrice: booking.totalPrice,
       provider: "konnect",
     },
   });
+
+  // Notification transactionnelle (non bloquante) : on ne l'envoie qu'ici,
+  // après la transition réelle EN_ATTENTE → CONFIRMEE (count === 1), donc une
+  // seule fois même si webhook et page de retour règlent en concurrence.
+  await sendBookingConfirmationEmail(booking.id);
 
   return "CONFIRMEE";
 }

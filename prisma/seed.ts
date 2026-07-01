@@ -6,7 +6,8 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { getCity } from "../src/lib/geo";
 import { buildPropertySlug } from "../src/lib/slug";
-import { verticalOfType } from "../src/lib/constants";
+import { verticalOfType, CANCEL_POLICIES } from "../src/lib/constants";
+import { computeDepositAmount } from "../src/lib/config";
 import { hashCin } from "../src/lib/crypto";
 
 const prisma = new PrismaClient();
@@ -801,6 +802,7 @@ async function main() {
         email: "voyageur@darna.tn",
         passwordHash,
         name: "Yassine Trabelsi",
+        country: "Tunisie",
         phone: "+216 22 345 678",
         role: "VOYAGEUR",
       },
@@ -810,6 +812,7 @@ async function main() {
         email: "hote@darna.tn",
         passwordHash,
         name: "Leïla Ben Salem",
+        country: "Tunisie",
         phone: "+216 98 123 456",
         role: "HOTE",
         phoneVerified: true,
@@ -823,6 +826,7 @@ async function main() {
         email: "agence@darna.tn",
         passwordHash,
         name: "Agence Carthage Immobilier",
+        country: "Tunisie",
         phone: "+216 71 860 200",
         role: "AGENCE",
         phoneVerified: true,
@@ -836,6 +840,7 @@ async function main() {
         email: "sami@darna.tn",
         passwordHash,
         name: "Sami Gharbi",
+        country: "Tunisie",
         phone: "+216 55 778 899",
         role: "HOTE",
         kycStatus: "NON_VERIFIE",
@@ -846,6 +851,7 @@ async function main() {
         email: "amira@darna.tn",
         passwordHash,
         name: "Amira Bouazizi",
+        country: "France",
         phone: "+216 29 001 122",
         role: "VOYAGEUR",
       },
@@ -855,6 +861,7 @@ async function main() {
         email: "karim@darna.tn",
         passwordHash,
         name: "Karim Jlassi",
+        country: "Belgique",
         phone: "+216 52 663 314",
         role: "VOYAGEUR",
       },
@@ -864,6 +871,7 @@ async function main() {
         email: "nour@darna.tn",
         passwordHash,
         name: "Nour Cherif",
+        country: "Tunisie",
         phone: "+216 23 445 667",
         role: "VOYAGEUR",
       },
@@ -873,6 +881,7 @@ async function main() {
         email: "mehdi@darna.tn",
         passwordHash,
         name: "Mehdi Ben Romdhane",
+        country: "Allemagne",
         phone: "+216 50 112 990",
         role: "VOYAGEUR",
       },
@@ -882,6 +891,7 @@ async function main() {
         email: "sonia@darna.tn",
         passwordHash,
         name: "Sonia Lahmar",
+        country: "Italie",
         phone: "+216 27 884 201",
         role: "VOYAGEUR",
       },
@@ -891,6 +901,7 @@ async function main() {
         email: "walid@darna.tn",
         passwordHash,
         name: "Walid Khelifi",
+        country: "France",
         phone: "+33 6 12 44 87 03",
         role: "VOYAGEUR",
       },
@@ -900,6 +911,7 @@ async function main() {
         email: "ines@darna.tn",
         passwordHash,
         name: "Inès Maaloul",
+        country: "Tunisie",
         phone: "+216 24 556 778",
         role: "VOYAGEUR",
       },
@@ -909,6 +921,7 @@ async function main() {
         email: "hatem@darna.tn",
         passwordHash,
         name: "Hatem Zouari",
+        country: "France",
         phone: "+216 53 667 889",
         role: "VOYAGEUR",
       },
@@ -918,6 +931,7 @@ async function main() {
         email: "rania@darna.tn",
         passwordHash,
         name: "Rania Belhadj",
+        country: "France",
         phone: "+33 7 88 21 09 14",
         role: "VOYAGEUR",
       },
@@ -927,6 +941,7 @@ async function main() {
         email: "fares@darna.tn",
         passwordHash,
         name: "Farès Guesmi",
+        country: "Tunisie",
         phone: "+216 26 330 447",
         role: "VOYAGEUR",
       },
@@ -939,6 +954,7 @@ async function main() {
       email: "admin@darna.tn",
       passwordHash,
       name: "Admin Darna",
+      country: "Tunisie",
       phone: "+216 71 000 000",
       role: "ADMIN",
       kycStatus: "DEMO_VERIFIE",
@@ -1083,6 +1099,12 @@ async function main() {
         latitude: cityRef.latitude + p.jitter[0],
         longitude: cityRef.longitude + p.jitter[1],
         amenities: p.amenities.join("|"),
+        // Variété de démo : chaque séjour adopte une politique différente en
+        // tournant sur les 4 niveaux (les non-séjours gardent le défaut).
+        cancelPolicy:
+          p.type === "SEJOUR"
+            ? CANCEL_POLICIES[i % CANCEL_POLICIES.length]
+            : "MODEREE",
         publishedAt,
         expiresAt,
         featuredUntil: p.featuredDaysLeft
@@ -1150,6 +1172,7 @@ async function main() {
     const checkIn = daysAgo(r.daysAgoCheckIn);
     const checkOut = new Date(checkIn.getTime() + r.nights * DAY);
     const serviceFee = Math.round(target.price * r.nights * 0.08);
+    const totalPrice = target.price * r.nights + serviceFee;
 
     const booking = await prisma.booking.create({
       data: {
@@ -1160,7 +1183,10 @@ async function main() {
         guests: 2,
         nightlyPrice: target.price,
         serviceFee,
-        totalPrice: target.price * r.nights + serviceFee,
+        totalPrice,
+        depositAmount: computeDepositAmount(totalPrice, serviceFee),
+        // Séjour passé : réglé en totalité (historique cohérent pour les avis).
+        amountPaid: totalPrice,
         status: "TERMINEE",
         escrow: "LIBERE",
         // Payé quelques jours avant l'arrivée (réaliste pour un séjour).
@@ -1187,7 +1213,9 @@ async function main() {
   const villaHammamet = sejours[0];
   const nights = 5;
   const fee = Math.round(villaHammamet.price * nights * 0.08);
-  await prisma.booking.create({
+  const villaTotal = villaHammamet.price * nights + fee;
+  const villaDeposit = computeDepositAmount(villaTotal, fee);
+  const villaBooking = await prisma.booking.create({
     data: {
       propertyId: villaHammamet.id,
       guestId: voyageur.id,
@@ -1196,11 +1224,45 @@ async function main() {
       guests: 4,
       nightlyPrice: villaHammamet.price,
       serviceFee: fee,
-      totalPrice: villaHammamet.price * nights + fee,
+      totalPrice: villaTotal,
+      depositAmount: villaDeposit,
+      // Démo du gating : seul l'acompte minimum a été réglé en ligne ; le solde
+      // se paie en cash à l'arrivée. Arrivée dans 20 j → politique MODÉRÉE :
+      // les coordonnées directes restent VERROUILLÉES jusqu'à J-5 (cf. Phase 1),
+      // la coordination se fait en attendant via la messagerie interne.
+      amountPaid: villaDeposit,
       status: "CONFIRMEE",
       escrow: "EN_SEQUESTRE",
       paidAt: daysAgo(3),
     },
+  });
+
+  // Quelques messages de démo dans la messagerie interne (Phase 2) — coordonnées
+  // déjà masquées à l'écriture en prod ; ici on insère du texte « propre ».
+  await prisma.message.createMany({
+    data: [
+      {
+        bookingId: villaBooking.id,
+        senderId: voyageur.id,
+        body: "Bonjour ! On arrive vers 16 h le jour J. Le solde en cash à l'arrivée, c'est bien ça ?",
+        createdAt: daysAgo(2),
+      },
+      {
+        bookingId: villaBooking.id,
+        senderId: owners.hote.id,
+        body: "Bonjour et bienvenue ! Oui, le solde se règle en espèces à l'arrivée. À très vite !",
+        createdAt: daysAgo(2),
+      },
+      {
+        // Tentative de partage de coordonnées (déjà masquée à l'écriture) :
+        // alimente la page admin « Signalements ».
+        bookingId: villaBooking.id,
+        senderId: voyageur.id,
+        body: "On peut s'arranger en direct ? Mon numéro c'est ●●●",
+        flagged: true,
+        createdAt: daysAgo(1),
+      },
+    ],
   });
 
   // Périodes bloquées par les hôtes sur quelques séjours.
@@ -1239,6 +1301,22 @@ async function main() {
         "Agent immobilier depuis cinq ans à Sousse, je connais chaque quartier. L'idée d'un réseau de vérification terrain est exactement ce qui manque au marché.",
     },
   });
+
+  // Agrégats d'avis dénormalisés (ratingAvg / ratingCount) : indispensables au
+  // tri « mieux / moins notés ». Le backfill de la migration ne couvre PAS les
+  // avis créés ici (le seed tourne APRÈS migrate), d'où ce recalcul explicite.
+  console.log("Recalcul des agrégats d'avis…");
+  const grouped = await prisma.review.groupBy({
+    by: ["propertyId"],
+    _avg: { rating: true },
+    _count: { rating: true },
+  });
+  for (const g of grouped) {
+    await prisma.property.update({
+      where: { id: g.propertyId },
+      data: { ratingAvg: g._avg.rating, ratingCount: g._count.rating },
+    });
+  }
 
   const counts = {
     utilisateurs: await prisma.user.count(),

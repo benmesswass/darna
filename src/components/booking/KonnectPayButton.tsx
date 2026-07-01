@@ -15,7 +15,14 @@ import { useT } from "@/components/i18n/LocaleProvider";
  * du middleware : le formulaire poste vers notre propre origine, et la
  * navigation externe est une navigation de document, pas une soumission de form.
  */
-export function KonnectPayButton({ bookingId }: { bookingId: string }) {
+export function KonnectPayButton({
+  bookingId,
+  payAmount,
+}: {
+  bookingId: string;
+  /** Montant choisi par le voyageur (TND) — reborné serveur dans [acompte, total]. */
+  payAmount: number;
+}) {
   const fr = useT();
   const [state, action, pending] = useActionState<PaymentFormState, FormData>(
     startKonnectPaymentAction,
@@ -40,6 +47,7 @@ export function KonnectPayButton({ bookingId }: { bookingId: string }) {
         </p>
       ) : null}
       <input type="hidden" name="bookingId" value={bookingId} />
+      <input type="hidden" name="payAmount" value={payAmount} />
       <button
         type="submit"
         disabled={pending || redirecting}

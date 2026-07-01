@@ -18,6 +18,9 @@ import { SplitView } from "@/components/search/SplitView";
 import { Pagination } from "@/components/search/Pagination";
 import { CityAutocomplete } from "@/components/search/CityAutocomplete";
 import { SearchDateRange } from "@/components/search/SearchDateRange";
+import { SortSelect } from "@/components/search/SortSelect";
+import { AutoSubmitCheckbox } from "@/components/search/AutoSubmitCheckbox";
+import { PriceRangeFilter } from "@/components/search/PriceRangeFilter";
 import { SectionHero } from "@/components/layout/SectionHero";
 import { getCityWeather, getCityForecast } from "@/lib/weather";
 import { WeatherBanner } from "@/components/search/WeatherBanner";
@@ -38,7 +41,7 @@ export default async function SejoursPage({
 
   const fr = await getT();
   const params = await searchParams;
-  const { results, resolvedCity, unknownCity, total, page, pageSize, suggestions } =
+  const { results, resolvedCity, unknownCity, total, page, pageSize, sort, suggestions } =
     await searchSejours(params);
   const sessionUser = await getSessionUser();
   const favCtx = await getFavoriteContext(sessionUser?.id);
@@ -72,6 +75,16 @@ export default async function SejoursPage({
 
   const markers = toMapMarkers(results);
 
+  // Nombre de nuits recherché (dates valides) → affiché en coût total par carte.
+  const nightsSearched = (() => {
+    if (!params.arrivee || !params.depart) return 0;
+    const ci = Date.parse(`${params.arrivee}T00:00:00.000Z`);
+    const co = Date.parse(`${params.depart}T00:00:00.000Z`);
+    if (Number.isNaN(ci) || Number.isNaN(co)) return 0;
+    const n = Math.round((co - ci) / 86_400_000);
+    return n > 0 ? n : 0;
+  })();
+
   // Élargissement : annonces des villes proches/populaires à afficher quand la
   // ville cherchée est vide (suggestions non-null ⇒ il y a toujours ≥1 annonce).
   const suggestionListings = results.length === 0 && suggestions ? suggestions.listings : [];
@@ -96,6 +109,7 @@ export default async function SejoursPage({
           property={p}
           favorite={favoritePropFor(favCtx, p.id, params.arrivee)}
           query={dateQuery}
+          nights={nightsSearched || undefined}
         />
       ))}
     </div>
@@ -117,8 +131,9 @@ export default async function SejoursPage({
           hero (chevauchement) puis colle au scroll. */}
       <form
         method="GET"
-        className="relative -mt-8 grid gap-3 rounded-3xl bg-white p-4 shadow-lg ring-1 ring-darna/10 sm:-mt-12 sm:grid-cols-2 lg:sticky lg:top-[4.5rem] lg:z-[1040] lg:grid-cols-[2fr_1fr_1fr_1fr_auto]"
+        className="relative -mt-8 rounded-3xl bg-white p-4 shadow-lg ring-1 ring-darna/10 sm:-mt-12 lg:z-[1040]"
       >
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_auto]">
         <label className="flex flex-col gap-1">
           <span className="text-xs font-semibold text-ink/60">
             {fr.search.ouAllezVous}
@@ -155,6 +170,28 @@ export default async function SejoursPage({
           <SearchIcon width={16} height={16} />
           {fr.common.rechercher}
         </button>
+        </div>
+
+        {/* Filtres avancés sur UNE ligne : prix (min–max fusionnés dans un seul
+            champ) + cases de confiance (re-soumission auto au changement). */}
+        <div className="mt-3 flex flex-wrap items-start gap-x-5 gap-y-3">
+          <PriceRangeFilter
+            defaultMin={params.prixMin}
+            defaultMax={params.prixMax}
+            defaultArrivee={params.arrivee}
+            defaultDepart={params.depart}
+          />
+          <AutoSubmitCheckbox
+            name="verifie"
+            label={fr.badges.verifieRemote}
+            defaultChecked={params.verifie === "1"}
+          />
+          <AutoSubmitCheckbox
+            name="certifie"
+            label={fr.badges.verifieOnSite}
+            defaultChecked={params.certifie === "1"}
+          />
+        </div>
       </form>
 
       {resolvedCity && weather ? (
@@ -167,14 +204,19 @@ export default async function SejoursPage({
         />
       ) : null}
 
-      <div className="mt-4 flex items-center gap-2 text-sm text-ink/60">
-        <span className="font-semibold text-darna">
-          {fr.search.resultats(total)}
-        </span>
-        {resolvedCity ? (
-          <span className="rounded-full bg-darna/10 px-2.5 py-0.5 text-xs font-medium text-darna">
-            {resolvedCity}
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-ink/60">
+        <div className="flex items-center gap-2">
+          <span className="font-semibold text-darna">
+            {fr.search.resultats(total)}
           </span>
+          {resolvedCity ? (
+            <span className="rounded-full bg-darna/10 px-2.5 py-0.5 text-xs font-medium text-darna">
+              {resolvedCity}
+            </span>
+          ) : null}
+        </div>
+        {results.length > 0 ? (
+          <SortSelect basePath="/sejours" params={params} value={sort} />
         ) : null}
       </div>
 

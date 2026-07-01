@@ -7,8 +7,11 @@ import { getSessionUser } from "@/lib/session";
 import { completeElapsedBookings } from "@/lib/bookings";
 import { formatDateShortFr } from "@/lib/format";
 import { Price } from "@/components/currency/Price";
-import { WhatsAppIcon } from "@/components/icons";
-import { toWhatsAppNumber } from "@/components/property/PropertyCtas";
+import { computeBookingRefund } from "@/lib/cancellation";
+import { contactRevealState, type ContactGate } from "@/lib/contact-reveal";
+import type { CancelPolicy } from "@/lib/constants";
+import { CancelBookingButton } from "@/components/booking/CancelBookingButton";
+import { ContactReveal } from "@/components/booking/ContactReveal";
 
 const STATUS_STYLES: Record<string, string> = {
   EN_ATTENTE: "bg-amber-100 text-amber-800",
@@ -45,6 +48,7 @@ export default async function MesReservationsPage() {
             slug: true,
             title: true,
             city: true,
+            cancelPolicy: true,
             photos: { orderBy: { position: "asc" }, take: 1 },
           },
         },
@@ -121,36 +125,37 @@ export default async function MesReservationsPage() {
                     {fr.property.capacite(b.guests)}
                   </p>
 
-                  <p className="mt-1.5 text-sm font-semibold text-ink">
-                    {fr.dashboard.reservePar(b.guest.name)}
-                  </p>
-                  <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-                    <a
-                      href={`mailto:${b.guest.email}`}
-                      className="font-medium text-darna underline"
+                  {/* Gating anti-bypass : coordonnées du voyageur révélées
+                      seulement une fois la fenêtre d'annulation gratuite passée
+                      (sinon verrouillées avec date de déblocage). */}
+                  {(() => {
+                    const reveal = contactRevealState(
+                      b.status,
+                      b.checkIn,
+                      b.property.cancelPolicy as CancelPolicy
+                    );
+                    const gate: ContactGate =
+                      reveal.state === "revealed"
+                        ? { state: "revealed", viewer: "host", counterpart: b.guest }
+                        : reveal.state === "locked"
+                          ? { state: "locked", viewer: "host", revealAt: reveal.revealAt }
+                          : null;
+                    return (
+                      <ContactReveal
+                        contacts={gate}
+                        bookingId={b.id}
+                        className="mt-2"
+                      />
+                    );
+                  })()}
+                  {b.status === "CONFIRMEE" || b.status === "TERMINEE" ? (
+                    <Link
+                      href={`/reservation/${b.id}/messages`}
+                      className="mt-2 inline-block text-xs font-bold text-darna underline"
                     >
-                      {b.guest.email}
-                    </a>
-                    {b.guest.phone ? (
-                      <>
-                        <a
-                          href={`tel:${b.guest.phone}`}
-                          className="font-medium text-darna underline"
-                        >
-                          {b.guest.phone}
-                        </a>
-                        <a
-                          href={`https://wa.me/${toWhatsAppNumber(b.guest.phone)}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 font-bold text-[#128C7E] underline"
-                        >
-                          <WhatsAppIcon width={15} height={15} />
-                          {fr.property.whatsapp}
-                        </a>
-                      </>
-                    ) : null}
-                  </div>
+                      {fr.messages.lien} →
+                    </Link>
+                  ) : null}
 
                   <p className="mt-1.5 text-sm">
                     <Price amount={b.totalPrice} className="font-bold text-darna" />
@@ -173,7 +178,11 @@ export default async function MesReservationsPage() {
           slug: true,
           title: true,
           city: true,
+          cancelPolicy: true,
           photos: { orderBy: { position: "asc" }, take: 1 },
+          // Coordonnées de l'hôte : récupérées ici mais RENDUES uniquement pour
+          // les réservations confirmées (gating anti-bypass ci-dessous).
+          owner: { select: { name: true, email: true, phone: true } },
         },
       },
       review: { select: { id: true } },
@@ -235,6 +244,28 @@ export default async function MesReservationsPage() {
                 <p className="mt-0.5 text-sm">
                   <Price amount={b.totalPrice} className="font-bold text-darna" />
                 </p>
+                {/* Coordonnées de l'hôte — révélées au voyageur une fois la
+                    fenêtre d'annulation gratuite passée (sinon verrouillées). */}
+                {(() => {
+                  const reveal = contactRevealState(
+                    b.status,
+                    b.checkIn,
+                    b.property.cancelPolicy as CancelPolicy
+                  );
+                  const gate: ContactGate =
+                    reveal.state === "revealed"
+                      ? { state: "revealed", viewer: "guest", counterpart: b.property.owner }
+                      : reveal.state === "locked"
+                        ? { state: "locked", viewer: "guest", revealAt: reveal.revealAt }
+                        : null;
+                  return (
+                    <ContactReveal
+                      contacts={gate}
+                      bookingId={b.id}
+                      className="mt-3"
+                    />
+                  );
+                })()}
               </div>
               <div className="flex flex-col gap-2">
                 <Link
@@ -250,6 +281,38 @@ export default async function MesReservationsPage() {
                   >
                     {fr.booking.continuerPaiement}
                   </Link>
+                ) : null}
+                {b.status === "CONFIRMEE" || b.status === "TERMINEE" ? (
+                  <Link
+                    href={`/reservation/${b.id}/messages`}
+                    className="rounded-xl border border-darna/15 px-3.5 py-2 text-center text-xs font-semibold text-darna hover:bg-darna/5"
+                  >
+                    {fr.messages.lien}
+                  </Link>
+                ) : null}
+                {b.status === "CONFIRMEE" ? (
+                  <CancelBookingButton
+                    bookingId={b.id}
+                    refundAmount={
+                      computeBookingRefund(
+                        b.amountPaid,
+                        b.serviceFee,
+                        b.checkIn,
+                        b.property.cancelPolicy as CancelPolicy,
+                        b.createdAt
+                      ).refundAmount
+                    }
+                  />
+                ) : null}
+                {b.status === "ANNULEE" && b.cancelledAt ? (
+                  <div className="space-y-0.5 text-[11px] text-ink/50">
+                    <p>{fr.dashboard.cancelledAt(formatDateShortFr(b.cancelledAt))}</p>
+                    {b.refundAmount != null && b.refundAmount > 0 ? (
+                      <p className="font-semibold text-emerald-700">
+                        {fr.dashboard.rembourseLabel(b.refundAmount)}
+                      </p>
+                    ) : null}
+                  </div>
                 ) : null}
               </div>
             </li>

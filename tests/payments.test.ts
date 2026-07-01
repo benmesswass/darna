@@ -18,16 +18,23 @@ vi.mock("@/lib/audit", () => ({
   logAudit: vi.fn(),
   logStructured: vi.fn(),
 }));
+// Notification isolée : on vérifie seulement qu'elle est déclenchée au bon
+// moment (transition réelle vers CONFIRMEE), pas son rendu d'e-mail.
+vi.mock("@/lib/notifications", () => ({
+  sendBookingConfirmationEmail: vi.fn(),
+}));
 
 import { settleKonnectBooking } from "@/lib/payments";
 import { prisma } from "@/lib/prisma";
 import { getKonnectPayment, type KonnectPayment } from "@/lib/konnect";
 import { logAudit } from "@/lib/audit";
+import { sendBookingConfirmationEmail } from "@/lib/notifications";
 
 const findFirst = prisma.booking.findFirst as unknown as Mock;
 const updateMany = prisma.booking.updateMany as unknown as Mock;
 const getPayment = getKonnectPayment as unknown as Mock;
 const audit = logAudit as unknown as Mock;
+const notify = sendBookingConfirmationEmail as unknown as Mock;
 
 type BookingRow = {
   id: string;
@@ -128,6 +135,9 @@ describe("settleKonnectBooking", () => {
     expect(audit).toHaveBeenCalledWith(
       expect.objectContaining({ action: "PAYMENT_CONFIRMED", userId: "u_1", success: true })
     );
+    // L'e-mail de confirmation est envoyé exactement une fois, pour cette résa.
+    expect(notify).toHaveBeenCalledTimes(1);
+    expect(notify).toHaveBeenCalledWith("bk_1");
   });
 
   it("gère la course webhook/retour : si une autre requête a déjà confirmé, pas de double effet", async () => {
@@ -137,6 +147,7 @@ describe("settleKonnectBooking", () => {
 
     expect(await settleKonnectBooking({ paymentRef: "pay_1" })).toBe("CONFIRMEE");
     expect(audit).not.toHaveBeenCalled(); // pas de re-log ni d'effet de bord
+    expect(notify).not.toHaveBeenCalled(); // pas de double e-mail
   });
 
   it("annule (et ne confirme jamais) un paiement abouti après expiration du créneau", async () => {

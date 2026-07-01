@@ -26,7 +26,7 @@ vi.mock("next-auth", () => ({ AuthError: class AuthError extends Error {} }));
 
 vi.mock("@/lib/rate-limit", () => ({
   assertRateLimit: vi.fn().mockResolvedValue(true),
-  clientIp: vi.fn().mockResolvedValue("dev-local"),
+  clientIp: vi.fn().mockResolvedValue("127.0.0.1"),
 }));
 
 vi.mock("@/lib/turnstile", () => ({

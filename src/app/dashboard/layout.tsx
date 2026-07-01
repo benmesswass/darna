@@ -4,8 +4,11 @@ import { redirect } from "next/navigation";
 import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
-import { logoutAction } from "@/actions/auth";
-import { DashboardNav, type IconName } from "@/components/dashboard/DashboardNav";
+import { DashboardNav } from "@/components/dashboard/DashboardNav";
+import { buildDashboardLinks } from "@/lib/dashboard-nav";
+import { isSuspended, nextSuspensionDays } from "@/lib/suspension";
+import { formatDateFr } from "@/lib/format";
+import { countUnreadMessages } from "@/lib/messages";
 import { CheckIcon } from "@/components/icons";
 
 /** Initiales (1 à 2 lettres) pour l'avatar par défaut de l'en-tête. */
@@ -39,57 +42,34 @@ export default async function DashboardLayout({
   // Fetch pending counts for admin/wakil nav badges (skip for regular users)
   let pendingAnnonces = 0;
   let pendingWakils = 0;
+  let flaggedMessages = 0;
   if (isAdminOrWakil) {
-    [pendingAnnonces, pendingWakils] = await Promise.all([
+    [pendingAnnonces, pendingWakils, flaggedMessages] = await Promise.all([
       prisma.property.count({ where: { status: "EN_ATTENTE_VALIDATION" } }),
       user.role === "ADMIN"
         ? prisma.wakilApplication.count({ where: { status: "RECUE", deletedAt: null } })
         : Promise.resolve(0),
+      user.role === "ADMIN"
+        ? prisma.message.count({ where: { flagged: true } })
+        : Promise.resolve(0),
     ]);
   }
 
-  const links: { href: string; label: string; icon: IconName; badge?: number }[] = [
-    ...(isLister
-      ? [
-          { href: "/dashboard/annonces", label: fr.dashboard.mesAnnonces, icon: "BuildingIcon" as IconName },
-          { href: "/dashboard/demandes", label: fr.dashboard.demandesRecues, icon: "UsersIcon" as IconName },
-          { href: "/dashboard/yield", label: fr.dashboard.yieldAdvisor, icon: "SparklesIcon" as IconName },
-        ]
-      : []),
-    {
-      href: "/dashboard/reservations",
-      label: isLister ? fr.dashboard.mesVoyageurs : fr.dashboard.mesReservations,
-      icon: "CalendarIcon" as IconName,
-    },
-    { href: "/dashboard/favoris", label: fr.dashboard.favoris, icon: "HeartIcon" as IconName },
-    { href: "/dashboard/profil", label: fr.dashboard.monProfil, icon: "UserIcon" as IconName },
-    {
-      href: "/dashboard/verifications",
-      label: fr.verifications.navLabel,
-      icon: "ShieldIcon" as IconName,
-      badge: verifsRestantes > 0 ? verifsRestantes : undefined,
-    },
-    ...(isAdminOrWakil
-      ? [
-          {
-            href: "/dashboard/admin/annonces",
-            label: fr.admin.navAnnonces,
-            icon: "StarIcon" as IconName,
-            badge: pendingAnnonces > 0 ? pendingAnnonces : undefined,
-          },
-          ...(user.role === "ADMIN"
-            ? [
-                {
-                  href: "/dashboard/admin/wakils",
-                  label: fr.admin.navWakils,
-                  icon: "UsersIcon" as IconName,
-                  badge: pendingWakils > 0 ? pendingWakils : undefined,
-                },
-              ]
-            : []),
-        ]
-      : []),
-  ];
+  // Messages non lus (tous fils confondus) → pastille « Messagerie », pour tous.
+  const unreadMessages = await countUnreadMessages(user.id);
+
+  // Compteurs (badges) injectés sur les liens partagés, par href.
+  const badges: Record<string, number | undefined> = {
+    "/dashboard/messagerie": unreadMessages > 0 ? unreadMessages : undefined,
+    "/dashboard/verifications": verifsRestantes > 0 ? verifsRestantes : undefined,
+    "/dashboard/admin/annonces": pendingAnnonces > 0 ? pendingAnnonces : undefined,
+    "/dashboard/admin/wakils": pendingWakils > 0 ? pendingWakils : undefined,
+    "/dashboard/admin/signalements": flaggedMessages > 0 ? flaggedMessages : undefined,
+  };
+  const links = buildDashboardLinks(user, fr).map((l) => ({
+    ...l,
+    badge: badges[l.href],
+  }));
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
@@ -137,15 +117,44 @@ export default async function DashboardLayout({
             </p>
           </div>
         </div>
-        <form action={logoutAction}>
-          <button
-            type="submit"
-            className="rounded-full border border-darna/20 px-4 py-2 text-sm font-semibold text-darna transition hover:bg-darna hover:text-white"
-          >
-            {fr.nav.deconnexion}
-          </button>
-        </form>
       </div>
+
+      {isSuspended(user) ? (
+        <div className="mt-4 rounded-2xl bg-red-50 p-4 ring-1 ring-red-200">
+          <p className="text-sm font-bold text-red-700">
+            {user.suspendedUntil
+              ? fr.dashboard.suspenduJusqu(formatDateFr(user.suspendedUntil))
+              : fr.dashboard.suspenduIndefini}
+          </p>
+          <details className="mt-1.5 text-start">
+            <summary className="cursor-pointer text-xs font-bold text-red-700 underline">
+              {fr.dashboard.enSavoirPlus}
+            </summary>
+            <div className="mt-2 space-y-2 text-xs leading-relaxed text-ink/70">
+              <p>
+                <span className="font-semibold text-ink">
+                  {fr.dashboard.suspenduPourquoiTitre}
+                </span>{" "}
+                {fr.dashboard.suspenduPourquoi}
+              </p>
+              <p>
+                <span className="font-semibold text-ink">
+                  {fr.dashboard.suspenduConsequencesTitre}
+                </span>{" "}
+                {fr.dashboard.suspenduDetail}
+              </p>
+              <p className="font-semibold text-red-700">
+                {(() => {
+                  const days = nextSuspensionDays(user.suspensionCount);
+                  return days
+                    ? fr.dashboard.suspenduProchaine(days)
+                    : fr.dashboard.suspenduProchaineIndefinie;
+                })()}
+              </p>
+            </div>
+          </details>
+        </div>
+      ) : null}
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[230px_minmax(0,1fr)]">
         <nav className="flex gap-1.5 overflow-x-auto lg:flex-col">

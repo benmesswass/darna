@@ -73,6 +73,11 @@ export async function Footer() {
                 {fr.footer.mentionsLegales}
               </Link>
             </li>
+            <li>
+              <Link href="/confidentialite" className="text-white/80 hover:text-sand">
+                {fr.footer.confidentialite}
+              </Link>
+            </li>
           </ul>
         </div>
       </div>

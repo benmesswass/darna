@@ -27,6 +27,15 @@ export function HouseIcon(props: IconProps) {
   );
 }
 
+export function ChartIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M3 3v18h18" />
+      <path d="M7 14l3-4 3 3 4-6" />
+    </svg>
+  );
+}
+
 export function SunIcon(props: IconProps) {
   return (
     <svg {...base(props)}>
@@ -102,6 +111,15 @@ export function CalendarIcon(props: IconProps) {
     <svg {...base(props)}>
       <rect x="4" y="5" width="16" height="16" rx="2" />
       <path d="M8 3v4M16 3v4M4 11h16" />
+    </svg>
+  );
+}
+
+export function ClockIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
     </svg>
   );
 }

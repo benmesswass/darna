@@ -30,7 +30,7 @@ export const en: Dictionary = {
     heroLine2: "The price you see is the price you pay.",
     heroLine3: "Your money is protected.",
     heroSub:
-      "Darna is the first Tunisian platform where every listing is verifiable, every price is transparent and every payment is secured in escrow.",
+      "Darna is the first Tunisian platform where every listing is verifiable, every price is transparent and every payment is protected until the stay is over.",
     ctaSejours: "Find a stay",
     ctaImmobilier: "Explore real estate",
   },
@@ -53,7 +53,7 @@ export const en: Dictionary = {
     heroQuestion: "What are you looking for?",
     diffTitle: "Stays or Real estate?",
     diffSejours:
-      "For your holidays: book a verified place and pay securely (escrow) — funds are released to the host only after check-in.",
+      "For your holidays: book a verified place and pay securely — funds are released to the host only after your stay.",
     diffImmo:
       "To live year-round: buy or rent long-term, in direct contact with the owner or agency — no online payment.",
     trustTitle: "How Darna protects you",
@@ -63,9 +63,9 @@ export const en: Dictionary = {
     trust2Title: "Zero hidden fees",
     trust2Desc:
       "The summary breaks down every dinar before payment: price, nights, service fee. No viewing fees, ever.",
-    trust3Title: "Money held in escrow",
+    trust3Title: "Protected payment",
     trust3Desc:
-      "Your payment is only released to the host 24 hours after your arrival. If anything goes wrong, you are refunded.",
+      "Your payment is only released to the host after your stay: it stays protected by Darna until you have checked out.",
     featuredTitle: "Recent verified listings",
     featuredAll: "See all listings",
     alaUneTitle: "Featured",
@@ -90,6 +90,7 @@ export const en: Dictionary = {
     aPropos: "About",
     cgu: "Terms of use",
     mentionsLegales: "Legal notice",
+    confidentialite: "Privacy policy",
     contact: "Contact",
     copyright: "Darna — made with care in Tunisia.",
   },
@@ -149,8 +150,13 @@ export const en: Dictionary = {
     acheter: "Buy",
     gouvernorat: "Governorate",
     tousGouvernorats: "All governorates",
+    prix: "Price",
     prixMin: "Min price",
     prixMax: "Max price",
+    min: "min",
+    max: "max",
+    totalSejour: (n: number) => `total · ${n === 1 ? "1 night" : `${n} nights`}`,
+    equivSejour: (n: number) => `That's for ${n === 1 ? "1 night" : `${n} nights`}:`,
     surfaceMin: "Min area (m²)",
     piecesMin: "Min rooms",
     indifferent: "Any",
@@ -186,6 +192,13 @@ export const en: Dictionary = {
     noteMinimale: "Minimum rating",
     toutesNotes: "All ratings",
     noteMinPlus: (n: number) => `${n}★ & up`,
+    trier: "Sort",
+    triRecommande: "Recommended",
+    triPrixAsc: "Price: low to high",
+    triPrixDesc: "Price: high to low",
+    triAvisDesc: "Top rated",
+    triAvisAsc: "Lowest rated",
+    triRecent: "Most recent",
   },
   destination: {
     chargement: "Loading destination…",
@@ -248,6 +261,7 @@ export const en: Dictionary = {
       "This property has not been verified on the ground yet. Never pay a deposit outside Darna.",
     proprietaire: "Owner",
     agence: "Agency",
+    hoteMasque: "Verified host — identity revealed at booking",
     annonceIndisponible:
       "This listing is no longer active. It is kept for archive purposes only.",
     annonceEnAttente:
@@ -278,6 +292,20 @@ export const en: Dictionary = {
     favoriSansDossier: "No folder",
     partagerWhatsapp: (titre: string, prix: string) =>
       `Hello, I'm interested in your listing “${titre}” (${prix}) seen on Darna. Is it still available?`,
+    politiqueAnnulation: "Cancellation policy",
+    cancelPolicy: {
+      FLEXIBLE: "Flexible",
+      MODEREE: "Moderate",
+      FERME: "Firm",
+      STRICTE: "Strict",
+    } as Record<string, string>,
+    cancelPolicyDesc: {
+      FLEXIBLE: "Free cancellation up to 24 hours before check-in.",
+      MODEREE: "Free cancellation up to 5 days before check-in.",
+      FERME:
+        "Free cancellation up to 30 days before; 50% refund between 7 and 30 days; no refund within 7 days.",
+      STRICTE: "50% refund if cancelled at least 14 days before; no refund after.",
+    } as Record<string, string>,
     gallery: {
       ouvrir: "Open gallery",
       voirToutes: (n: number) => `View all ${n} photos`,
@@ -310,15 +338,38 @@ export const en: Dictionary = {
     dejaCompte: "Already have an account?",
     pasDeCompte: "No account yet?",
     identifiantsInvalides: "Invalid credentials.",
-    emailDejaUtilise: "An account already exists with this email. Please sign in.",
+    captchaEchec: "Anti-bot check failed. Please try again.",
+    emailDejaUtilise: "Unable to create an account with this information.",
     inscriptionReussie: "Account created! You can now sign in.",
     motDePasseRegle: "8 characters minimum",
+    afficherMotDePasse: "Show password",
+    masquerMotDePasse: "Hide password",
     confirmerMotDePasse: "Confirm password",
     motDePasseNonIdentiques: "Passwords do not match.",
     compteCreeConnectezVous: "Account created! Sign in to continue.",
-    afficherMotDePasse: "Show password",
-    masquerMotDePasse: "Hide password",
-    captchaEchec: "Anti-bot check failed. Please try again.",
+    pays: "Country of residence",
+    motDePasseOublie: "Forgot your password?",
+    resetTitre: "Reset your password",
+    resetSousTitre:
+      "Enter your account email address and we'll send you a reset link.",
+    resetEnvoyer: "Send the link",
+    resetEmailEnvoye:
+      "If an account exists for this address, a reset link has just been sent.",
+    resetModeDemo: "Demo mode — reset link:",
+    resetOuvrirLien: "Open the reset link",
+    resetNouveauMdp: "New password",
+    resetValider: "Reset password",
+    resetReussi: "Password reset. You can now sign in.",
+    resetLienInvalide:
+      "Invalid or expired link. Please request a new reset.",
+    resetMotDePasseInvalide:
+      "The password must be at least 8 characters and contain a digit.",
+    resetRetourConnexion: "Back to sign in",
+    resetMailSujet: "Darna — reset your password",
+    resetMailCorpsHtml: (url: string) =>
+      `<p>You requested to reset your Darna password.</p>` +
+      `<p><a href="${url}">Click here to choose a new password</a>.</p>` +
+      `<p>This link expires in 30 minutes. If you didn't request this, ignore this email.</p>`,
   },
   dashboard: {
     titre: "My account",
@@ -368,6 +419,21 @@ export const en: Dictionary = {
       "As soon as a traveler books one of your listings, they'll show up here.",
     reservePar: (nom: string) => `Booked by ${nom}`,
     payeLe: (date: string) => `Paid on ${date}`,
+    contactVoyageurMasque:
+      "Guest's contact details become visible once their deposit is paid.",
+    suspenduJusqu: (date: string) => `Account suspended until ${date}`,
+    suspenduIndefini: "Account suspended",
+    suspenduDetail:
+      "You stay protected: you can still view and manage your ongoing bookings, contact the host of a confirmed stay, and cancel/get refunded. While suspended, you can't make a new booking or send messages.",
+    enSavoirPlus: "Learn more",
+    suspenduPourquoiTitre: "Why?",
+    suspenduPourquoi:
+      "Several attempts to share contact details off Darna (phone or email) were detected in your messages, which isn't allowed until the booking is firm.",
+    suspenduConsequencesTitre: "Consequences:",
+    suspenduProchaine: (jours: number) =>
+      `If you try again, the next suspension will last ${jours} days.`,
+    suspenduProchaineIndefinie:
+      "If you try again, your account will be suspended indefinitely (subject to admin review).",
     aucuneDemande: "No requests received yet.",
     aucunFavori: "No favourites yet.",
     reservationDe: (nom: string) => `Booking from ${nom}`,
@@ -375,10 +441,32 @@ export const en: Dictionary = {
     contratBail: "Lease agreement",
     statutReservation: {
       EN_ATTENTE: "Awaiting payment",
-      CONFIRMEE: "Confirmed — funds in escrow",
+      CONFIRMEE: "Confirmed — payment protected",
       ANNULEE: "Cancelled",
       TERMINEE: "Completed",
     } as Record<string, string>,
+    annulerReservation: "Cancel this booking",
+    annulerConfirm: "Confirm cancellation",
+    annulerAnnuler: "Keep my booking",
+    remboursement: (montant: number) =>
+      montant > 0 ? `Refund: ${montant} TND` : "No refund under this policy",
+    cancelledAt: (date: string) => `Cancelled on ${date}`,
+    rembourseLabel: (montant: number) => `Refunded: ${montant} TND`,
+    revenus: "Earnings",
+    revenusTitre: "My earnings",
+    revenusSousTitre:
+      "The guest pays when booking; Darna holds the amount and pays it out to you once their stay is over. That protected-payment guarantee is what reassures guests and drives bookings.",
+    revenusTotal: "Confirmed earnings",
+    revenusEnAttente: "Awaiting payout",
+    revenusVerse: "Already paid out",
+    revenusAucun: "No earnings yet.",
+    revenusAucunCta:
+      "As soon as a guest pays for a booking, the amount appears here — awaiting payout, then paid out after they check out.",
+    revenusBadgeEnAttente: "Awaiting payout",
+    revenusBadgeVerse: "Paid out",
+    revenusVersementPrevu: (date: string) =>
+      `Paid out after the guest checks out (${date})`,
+    revenusVerseApres: (date: string) => `Paid out — stay ended on ${date}`,
   },
   annonceForm: {
     titre: "Listing title",
@@ -397,6 +485,9 @@ export const en: Dictionary = {
     surface: "Area (m²)",
     pieces: "Number of rooms",
     capacite: "Capacity (guests)",
+    politiqueAnnulation: "Cancellation policy",
+    politiqueAnnulationAide:
+      "Sets what guests get back if they cancel. The more flexible, the more reassuring; the stricter, the more your income is protected.",
     equipements: "Amenities",
     description: "Description",
     genererDescription: "Generate description",
@@ -508,6 +599,17 @@ export const en: Dictionary = {
     annonces: "Listings",
     navAnnonces: "Verify listings",
     navWakils: "Verify Wakils",
+    navSignalements: "Flags",
+    signalementsTitre: "Anti-bypass flags",
+    signalementsSousTitre:
+      "Messages where contact details were detected and hidden. Spot attempts to go off Darna and repeat offenders.",
+    signalementsVide: "No flags yet.",
+    signalementsCompte: (n: number) => (n === 1 ? "1 attempt" : `${n} attempts`),
+    signalementsEscalade: (n: number) => `Repeat offender — ${n} attempts`,
+    signalementsSuspendu: "Account suspended",
+    signalementsSuspenduJusqu: (date: string) => `Suspended until ${date}`,
+    reactiver: "Reactivate account",
+    navAnalytics: "Dashboard",
     wakils: "Wakils",
     fileModeration: "Listing moderation queue",
     fileModerationDesc:
@@ -554,6 +656,106 @@ export const en: Dictionary = {
     supprimerDefinitivement: "Delete",
     aucuneCandidatureSupprimee: "No archived applications.",
   },
+  analytics: {
+    titre: "Dashboard",
+    sousTitre:
+      "Track platform adoption: acquisition, activation, bookings and retention. Computed live.",
+    genereLe: (date: string) => `Updated ${date}`,
+    pourcent: (v: number) => `${Math.round(v * 100)}%`,
+    rolesLabel: {
+      VOYAGEUR: "Travelers",
+      HOTE: "Hosts",
+      AGENCE: "Agencies",
+      ADMIN: "Admins",
+    } as Record<string, string>,
+
+    periodeLabel: "Period",
+    periodes: { "7": "7d", "30": "30d", "90": "90d", all: "All" } as Record<
+      string,
+      string
+    >,
+    periodeNom: (p: number | null) =>
+      p === null ? "all time" : `the last ${p} days`,
+    surPeriode: (label: string) => `Over ${label}`,
+
+    sectionVerticales: "By vertical — Stay vs Real estate",
+    verticalesDesc:
+      "Two models that should not be mixed: stays are transactional (escrowed payment), real estate is lead generation (no online payment).",
+    verticalLabel: { STAY: "Stay", IMMO: "Real estate" } as Record<string, string>,
+    vStayBadge: "Transactional",
+    vImmoBadge: "Lead generation",
+    vActives: "Active listings",
+    vVerifiees: "Verified active",
+    vTaux: "Verif. rate",
+    vReservations: "Paid bookings",
+    vGmv: "GMV",
+    vLeads: "Leads received",
+
+    sectionNorthStar: "Overview",
+    annoncesVerifieesActives: "Verified active listings",
+    annoncesVerifieesActivesDesc: "Product north-star",
+    annoncesActives: "Active listings",
+    tauxVerification: "Verification rate",
+    gmv: "Booked volume (GMV)",
+    gmvDesc: "Paid bookings, demo included",
+    gmvReelle: "of which real (excl. demo)",
+    reservationsConfirmees: "Confirmed bookings",
+    utilisateursTotal: "Accounts created",
+
+    sectionAcquisition: "Acquisition & activation",
+    inscriptions7j: "Signups (7d)",
+    inscriptions30j: "Signups (30d)",
+    inscriptionsParJour: (n: number) => `Signups / day — last ${n} days`,
+    repartitionRoles: "Breakdown by role",
+    repartitionPays: "Breakdown by country",
+    repartitionPaysDesc: "Accounts by declared country — diaspora tracking.",
+    paysNonRenseigne: "Not provided",
+    tauxEmailVerifie: "Verified emails",
+    tauxKyc: "Verified identity (listers)",
+    annonceursActifs: "Listers with a listing",
+    annonceursActifsDesc: "Share of hosts/agencies who published",
+
+    sectionFunnel: "Booking funnel",
+    funnelDesc:
+      "From created booking to confirmed payment. Steps reflect the bookings table.",
+    funnelCreees: "Created",
+    funnelInitiees: "Payment started",
+    funnelConfirmees: "Confirmed",
+    funnelAnnulees: "Cancelled",
+    funnelExpirees: "Expired (15 min)",
+    funnelEnAttente: "Pending",
+    tauxConversion: "Conversion rate",
+    tauxAbandon: "Abandon rate",
+
+    sectionRetention: "Retention & churn",
+    retentionDesc:
+      "When travelers stop booking. Segmented on last booking date.",
+    voyageursAyantReserve: "Travelers who booked",
+    actifs30j: "Active (≤ 30d)",
+    aRisque: "At risk (30–90d)",
+    perdus: "Lost (> 90d)",
+    cohortes: "Activation cohorts",
+    cohortesDesc:
+      "By signup month: share of accounts that booked at least once.",
+    moisInscription: "Month",
+    inscrits: "Signups",
+    actives: "Activated",
+    tauxActivation: "Activation",
+
+    sectionWakil: "Wakil network",
+    candidaturesParStatut: "Applications by status",
+    verificationsSurPlace: "On-site verifications",
+    topWakils: "Top Wakils (verifications)",
+
+    sectionEvenements: "Recent activity",
+    evenementsDesc: "Latest audit trail events.",
+    evenement: "Event",
+    utilisateur: "User",
+    quand: "When",
+    systeme: "System",
+    echec: "failure",
+    aucuneDonnee: "No data yet.",
+  },
   email: {
     titre: "Email verification",
     sousTitre:
@@ -572,6 +774,52 @@ export const en: Dictionary = {
     mailCorpsHtml: (code: string) =>
       `<p>Your Darna verification code: <strong>${code}</strong></p>` +
       `<p>This code expires in 10 minutes.</p>`,
+    bookingConfirmSujet: (titre: string) =>
+      `Darna — booking confirmed: ${titre}`,
+    bookingConfirmHtml: (p: {
+      guestName: string;
+      propertyTitle: string;
+      checkIn: string;
+      checkOut: string;
+      guests: number;
+      nights: number;
+      total: string;
+      url: string;
+      demo: boolean;
+    }) =>
+      `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
+      `<h1 style="color:#0f766e;font-size:20px">Booking confirmed ✅</h1>` +
+      `<p>Hello ${p.guestName},</p>` +
+      `<p>Your booking for <strong>${p.propertyTitle}</strong> is confirmed. Your payment is protected by Darna: it will only be released to the host once your stay is over.</p>` +
+      `<table style="width:100%;border-collapse:collapse;margin:16px 0">` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Check-in</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.checkIn}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Check-out</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.checkOut}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Nights</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.nights}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Guests</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.guests}</td></tr>` +
+      `<tr><td style="padding:10px 0;border-top:1px solid #e5e7eb;color:#6b7280">Total paid</td><td style="padding:10px 0;border-top:1px solid #e5e7eb;text-align:right;font-weight:700;color:#0f766e">${p.total}</td></tr>` +
+      `</table>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">View my booking</a></p>` +
+      (p.demo
+        ? `<p style="background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:10px;font-size:13px;color:#92400e">Demo mode: no real payment was made.</p>`
+        : "") +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Verified stays.</p>` +
+      `</div>`,
+    newMessageSujet: (titre: string) => `Darna — new message · ${titre}`,
+    newMessageHtml: (p: {
+      recipientName: string;
+      senderName: string;
+      propertyTitle: string;
+      preview: string;
+      url: string;
+    }) =>
+      `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
+      `<h1 style="color:#0f766e;font-size:20px">New message 💬</h1>` +
+      `<p>Hello ${p.recipientName},</p>` +
+      `<p><strong>${p.senderName}</strong> sent you a message about <strong>${p.propertyTitle}</strong>:</p>` +
+      `<blockquote style="margin:16px 0;padding:12px 16px;background:#f3f4f6;border-inline-start:3px solid #0f766e;border-radius:8px;color:#374151">${p.preview}</blockquote>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">Reply on Darna</a></p>` +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">For your safety, always reply through Darna messaging. Darna — Verified stays.</p>` +
+      `</div>`,
   },
   verifications: {
     navLabel: "Verification",
@@ -669,6 +917,11 @@ export const en: Dictionary = {
     total: "Total to pay",
     aucunFraisCache: "No other fee will ever be asked of you. Ever.",
     continuerPaiement: "Continue to payment",
+    holdLabel: "Spot held — pay within",
+    holdExpireTitre: "Payment window expired",
+    holdExpireDetail:
+      "Your booking wasn't confirmed in time: the dates have been released.",
+    holdExpireCta: "Start a new booking",
     datesInvalides: "Invalid dates — check-out must come after check-in.",
     datesIndisponibles:
       "These dates are no longer available. Please choose different ones.",
@@ -679,18 +932,19 @@ export const en: Dictionary = {
       `This accommodation hosts a maximum of ${max} guests.`,
     connexionRequise: "Sign in to book.",
     verifRequise: "Verify your account (email + phone) before booking.",
+    compteSuspendu: "Your account is suspended. You can't book right now.",
     verifRequiseTitre: "Verify your account to book",
     verifRequiseDesc:
       "For everyone's trust on Darna, only verified accounts (email + phone) can book. It takes less than two minutes.",
     verifRequiseCta: "Verify my account",
-    paiementTitre: "Secure payment — Darna escrow",
+    paiementTitre: "Secure payment — protected by Darna",
     sequestreExplication:
-      "Your money is protected: it is held in escrow by Darna and released to the host 24 hours after check-in. If there is a problem on arrival, you are fully refunded.",
+      "Your money is protected: Darna holds it throughout your stay and only releases it to the host after you check out. You are never charged to the host's benefit before you have stayed.",
     paiementMockInfo:
       "Konnect / Flouci payment coming soon. Demo mode: no real charge.",
     payerSimulation: "Pay (simulation)",
     paiementKonnectInfo:
-      "Secure payment via Konnect — bank card, e-DINAR or wallet. Your funds stay protected by the Darna escrow.",
+      "Secure payment via Konnect — bank card, e-DINAR or wallet. Your funds stay protected by Darna until the end of your stay.",
     payerKonnect: "Pay with Konnect",
     redirectionKonnect: "Redirecting to secure payment…",
     paiementEchoue:
@@ -702,7 +956,7 @@ export const en: Dictionary = {
     reservationExpiree: "This booking has expired. Please start a new request.",
     paiementConfirme: "Booking confirmed!",
     paiementConfirmeDetail:
-      "Your funds are in escrow. The host has been notified — find the details in “My bookings”.",
+      "Your payment is protected until the end of your stay. The host has been notified — find the details in “My bookings”.",
     voirMesReservations: "View my bookings",
     sejourDates: (arrivee: string, depart: string) =>
       `From ${arrivee} to ${depart}`,
@@ -716,6 +970,100 @@ export const en: Dictionary = {
     placeholderPrix:
       "Pick your dates on the calendar to see the total price — with no hidden fees.",
     selectionnezDates: "Select your dates",
+    annulationImpossible: "This booking can no longer be cancelled.",
+    annulationConfirmee: "Your booking has been cancelled.",
+    // ── Deposit gating (anti-bypass): choosing how much to pay now ─────────
+    totalSejour: "Stay total",
+    payerMaintenant: "You pay now",
+    montantAPayer: "How much would you like to pay now?",
+    montantAPayerAide:
+      "Pay at least the deposit (10%) online — the Darna commission is included. You can pay more, up to the full amount; the rest is settled in cash to the host on arrival.",
+    acompteMin: "Minimum deposit",
+    raccourciAcompte: (pct: number) => `Deposit (${pct}%)`,
+    raccourciMoitie: "Half",
+    raccourciTotalite: "Full amount",
+    pourcentDuTotal: (pct: number) => `${pct}% of total`,
+    dontCommission: "incl. Darna commission",
+    soldeArrivee: "Balance to pay in cash on arrival",
+    soldeArriveeAide:
+      "You pay the remainder directly to the host, in cash, on the day you arrive.",
+    acompteSequestreInfo:
+      "Your deposit is held in escrow by Darna. The host's contact details are shared with you once the free-cancellation window has passed — your booking is then firm.",
+    commissionNonRemboursable:
+      "Free cancellation: you're fully refunded, Darna commission included. After the free window, the commission is retained and the rest follows the listing's cancellation policy.",
+    annulationGratuiteJusqu: (date: string) =>
+      `Free cancellation until ${date}`,
+    annulationRembJusqu: (pct: number, date: string) =>
+      `${pct}% refunded until ${date}`,
+    annulationNonRembApres: (date: string) => `No refund after ${date}`,
+    verifieWakil: "Verified by Wakil",
+    verifieWakilAide:
+      "Property checked on site by a trusted Wakil agent.",
+    montantInvalide:
+      "Invalid amount — pay between the minimum deposit and the stay total.",
+    // ── Contacts revealed AFTER confirmation (deposit paid) ────────────────
+    contactHoteTitre: "Your host's contact details",
+    contactHoteAide:
+      "Booking confirmed: contact your host directly to organise your arrival.",
+    contactVoyageurTitre: "Guest's contact details",
+    contactVoyageurAide:
+      "Contact your guest to prepare their arrival and the cash balance.",
+    contactNom: "Name",
+    contactEmail: "Email",
+    contactTelephone: "Phone",
+    contactVerrouilleTitre: "Host contact details hidden",
+    contactVerrouilleAide:
+      "For everyone's safety, the host's contact details are shared once your deposit is paid and the booking is confirmed.",
+    // ── Contact locked until the free-cancellation window closes ───────────
+    contactLockedTitreHote: "Host contact details available soon",
+    contactLockedTitreVoyageur: "Guest contact details available soon",
+    contactDebloqueLe: (date: string) => `Unlocked on ${date}`,
+    contactLockedAide:
+      "For everyone's safety, direct contact details are exchanged once the free-cancellation window has passed — your booking is then firm.",
+  },
+  messages: {
+    titre: "Messages",
+    lien: "Messages",
+    hubTitre: "Messages",
+    hubSousTitre: "All your conversations with hosts and guests.",
+    hubVide: "No conversations yet. Your exchanges with hosts and guests will appear here.",
+    notifTitre: "New message",
+    notifCorps: (n: number) =>
+      n > 1 ? `You have ${n} unread messages.` : "You've received a new message.",
+    notifVoir: "Open messages",
+    banniere:
+      "For your safety, phone numbers and emails are hidden. You'll exchange direct contact details once the booking is firm.",
+    placeholder: "Write your message…",
+    vide: "No messages yet. Start the conversation.",
+    vous: "You",
+    hote: "Host",
+    voyageur: "Guest",
+    masque: "contact details hidden",
+    indisponible: "Messaging opens once the booking is confirmed.",
+    depuisVerrouille: "Chat via Darna messaging",
+    banniereLibre:
+      "Your booking is firm: you can now freely exchange your contact details.",
+    avertissementMasque:
+      "Your contact details were hidden. Sharing a phone number or email off Darna isn't allowed until the booking is firm — you'll be connected automatically. ⚠️ Repeated attempts may lead to your account being suspended.",
+    avertissementSollicitation:
+      "⚠️ Asking to take contact off Darna isn't allowed until the booking is firm. Repeated attempts may lead to your account being suspended.",
+    avertissementEscalade:
+      "⚠️ Final warning: several attempts to share contact details off Darna have been detected on your account. Any further attempt may result in your account being suspended.",
+    compteSuspendu:
+      "Your account is suspended following repeated attempts to share contact details off Darna. Contact support to reactivate it.",
+    compteSuspenduJusqu: (date: string) =>
+      `Your account is suspended until ${date} following attempts to share contact details off Darna. Stay on Darna to protect your bookings and reviews.`,
+    pourquoiTitre: "Learn more — why stay on Darna?",
+    pourquoi1:
+      "Protected payment: your deposit is held in Darna escrow. Off-platform, no guarantee — an open door to scams.",
+    pourquoi2:
+      "Verified reviews: only stays booked on Darna can be reviewed. That's what builds a host's reputation and a guest's trust. Off-platform: no proof, no reputation.",
+    pourquoi3:
+      "Disputes: if something goes wrong, Darna steps in and protects you. Off-platform, you're on your own.",
+    pourquoi4:
+      "For hosts: visibility, the “Verified” badge, future bookings — it all runs through Darna. Going around it cuts you off from your next guests.",
+    pourquoiConclusion:
+      "Darna, Tunisia's first trusted booking platform. Together, let's build an ecosystem where everyone is protected.",
   },
   alaUne: {
     titre: "Feature your listing",
@@ -820,7 +1168,7 @@ export const en: Dictionary = {
       "Listings verified on the ground by our Wakils: what you see from Paris or Montreal really exists in Hammamet.",
     arg2Titre: "Pay safely",
     arg2Desc:
-      "Darna escrow: your money is only released after your arrival. International card payment coming soon.",
+      "Darna protected payment: your money is only released to the host after your stay. International card payment coming soon.",
     arg3Titre: "Video visits (soon)",
     arg3Desc:
       "A Wakil visits the property with you by video call, before any commitment.",
@@ -857,8 +1205,166 @@ export const en: Dictionary = {
   pagesLegales: {
     cguTitre: "Terms of use",
     mentionsTitre: "Legal notice",
+    confidentialiteTitre: "Privacy policy",
     aRediger:
       "Document being drafted — it will be published before the platform's official launch.",
+    miseAJour: "Last updated: June 2026",
+    avertissement:
+      "This document is provided for information purposes during Darna's demonstration phase. It must be reviewed and validated by legal counsel before the platform's public launch.",
+    cgu: {
+      intro:
+        "These terms of use (the “Terms”) govern access to and use of the Darna platform, which connects travellers and advertisers for short stays and real-estate listings in Tunisia. By creating an account or using the service, you accept these Terms.",
+      sections: [
+        {
+          titre: "1. Purpose",
+          corps: [
+            "Darna is a matchmaking marketplace. Darna neither owns, rents out, nor acts as agent for the listed properties: the platform provides search, booking and trust-verification tools.",
+          ],
+        },
+        {
+          titre: "2. Account and registration",
+          corps: [
+            "Creating an account requires a valid email address and a password. You agree to provide accurate information and to keep it up to date.",
+            "Some actions require verification of your email and phone, and possibly your identity (national ID). You are responsible for keeping your credentials confidential and for any activity carried out from your account.",
+          ],
+        },
+        {
+          titre: "3. Listings and verification",
+          corps: [
+            "Listings are published under the sole responsibility of the advertiser (host or agency). Every listing is subject to verification (the Wakil network) before going live and being granted the “Verified by Darna” badge.",
+            "Darna reserves the right to refuse, suspend or remove any listing that is non-compliant, fraudulent or misleading.",
+          ],
+        },
+        {
+          titre: "4. Bookings and payments",
+          corps: [
+            "A booking request holds the slot for 15 minutes. Prices and fees (including the service fee) are always recomputed server-side; no value sent by the browser is used as the charged amount.",
+            "During the demonstration phase, fund escrow is simulated by default: no real money movement takes place. When real payment (Konnect) is enabled, the charged amount is always expressed in Tunisian dinars (TND); the euro display is only an indicative conversion.",
+          ],
+        },
+        {
+          titre: "5. User obligations",
+          corps: [
+            "You agree to use Darna fairly, not to circumvent security or verification mechanisms, not to publish unlawful content, and to comply with applicable Tunisian law.",
+          ],
+        },
+        {
+          titre: "6. Liability",
+          corps: [
+            "Darna acts as an intermediary. The platform is provided “as is” during the demonstration phase and cannot be held liable for disputes between travellers and advertisers, to the extent permitted by law.",
+          ],
+        },
+        {
+          titre: "7. Suspension and termination",
+          corps: [
+            "Darna may suspend or close an account in the event of a breach of these Terms, fraud or abusive use. You may close your account at any time.",
+          ],
+        },
+        {
+          titre: "8. Governing law",
+          corps: [
+            "These Terms are governed by Tunisian law. Any dispute falls under the jurisdiction of the courts of Tunis, subject to the mandatory rules protecting consumers residing in the European Union.",
+          ],
+        },
+      ],
+    },
+    mentions: {
+      intro:
+        "In line with transparency obligations, information about the publisher and hosting of the Darna platform is provided below.",
+      sections: [
+        {
+          titre: "Publisher",
+          corps: [
+            "Darna is a project published by Wassim Ben Messaoud. For any question, you can write to: contact@darna.tn.",
+            "Full legal details (legal form, registration, registered office) will be published before the platform's commercial launch.",
+          ],
+        },
+        {
+          titre: "Hosting",
+          corps: [
+            "The platform is hosted by a cloud infrastructure provider. The host's details will be specified before going to production.",
+          ],
+        },
+        {
+          titre: "Intellectual property",
+          corps: [
+            "The Darna brand, logo, texts and interface are protected. Any reproduction without authorisation is prohibited. Listing content remains the property of its authors.",
+          ],
+        },
+        {
+          titre: "Contact",
+          corps: [
+            "For any request regarding the legal notice: contact@darna.tn.",
+          ],
+        },
+      ],
+    },
+    confidentialite: {
+      intro:
+        "Darna places particular importance on protecting your personal data. This policy explains what data we collect, why, and what your rights are — including for users residing in the European Union (GDPR).",
+      sections: [
+        {
+          titre: "1. Data controller",
+          corps: [
+            "The data controller is the publisher of Darna. For any question about your data, write to: privacy@darna.tn.",
+          ],
+        },
+        {
+          titre: "2. Data collected",
+          corps: [
+            "Account data: name, email address, phone number, role (traveller, host, agency).",
+            "Verification (KYC) data: your national ID number, stored encrypted and never displayed in clear text.",
+            "Usage and technical data: bookings, favourites, contact messages, security logs (IP address, timestamp) for audit purposes.",
+          ],
+        },
+        {
+          titre: "3. Purposes",
+          corps: [
+            "Your data is used to provide the service (account, search, booking), to ensure trust and security (verification, fraud prevention, audit) and to contact you about your bookings.",
+          ],
+        },
+        {
+          titre: "4. Legal basis",
+          corps: [
+            "Processing is based on the performance of the contract (providing the service), our legitimate interest (security and fraud prevention), compliance with legal obligations, and your consent where required (for example for non-essential cookies).",
+          ],
+        },
+        {
+          titre: "5. Cookies",
+          corps: [
+            "Darna only uses strictly necessary cookies: login session, language preference, currency preference, and remembering your consent choice. No advertising cookie or third-party tracker is used during the demonstration phase.",
+            "You can clear cookies from your browser at any time; necessary cookies are essential for the service to work properly.",
+          ],
+        },
+        {
+          titre: "6. Retention",
+          corps: [
+            "Account data is kept for as long as your account is active. Audit logs are kept for a limited period for security purposes. Your data is deleted or anonymised when no longer needed.",
+          ],
+        },
+        {
+          titre: "7. Security",
+          corps: [
+            "Your passwords are stored as a secure hash (bcrypt); your national ID is encrypted at rest (AES-256-GCM). Access to sensitive data is restricted and logged.",
+          ],
+        },
+        {
+          titre: "8. Your rights",
+          corps: [
+            "Under the GDPR, you have the right to access, rectify, erase, restrict and object to the processing of your data, as well as the right to portability. To exercise these rights, contact: privacy@darna.tn.",
+            "You may also lodge a complaint with the competent data protection authority.",
+          ],
+        },
+      ],
+    },
+  },
+  cookieConsent: {
+    titre: "Your cookies, your choice",
+    message:
+      "Darna only uses cookies strictly necessary for it to work (login, language, currency). No advertising trackers.",
+    enSavoirPlus: "Learn more",
+    accepter: "Got it",
+    refuser: "Continue without accepting",
   },
   notFound: {
     titre: "Page not found",

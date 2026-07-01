@@ -11,6 +11,7 @@ export type AuditAction =
   | "PAYMENT_INITIATED"
   | "PAYMENT_CONFIRMED"
   | "PAYMENT_FAILED"
+  | "BOOKING_CANCELLED"
   | "REVIEW_SUBMITTED"
   | "PROPERTY_CREATED"
   | "PROPERTY_UPDATED"
@@ -27,6 +28,8 @@ export type AuditAction =
   | "CIN_VERIFIED"
   | "PROFILE_UPDATED"
   | "PASSWORD_CHANGED"
+  | "PASSWORD_RESET_REQUESTED"
+  | "PASSWORD_RESET"
   | "AVATAR_UPDATED"
   | "CONTACT_REQUEST"
   | "WAKIL_APPLY"
@@ -36,7 +39,13 @@ export type AuditAction =
   | "PROPERTY_VERIFIED"
   | "PROPERTY_UNVERIFIED"
   | "EMAIL_OTP_REQUESTED"
-  | "EMAIL_VERIFIED";
+  | "EMAIL_VERIFIED"
+  // Anti-bypass messagerie : coordonnées masquées dans un message, et escalade
+  // lorsqu'un même utilisateur répète les tentatives.
+  | "MESSAGE_FLAGGED"
+  | "MESSAGE_BYPASS_ESCALATION"
+  | "ACCOUNT_SUSPENDED"
+  | "ACCOUNT_REACTIVATED";
 
 /**
  * Audit trail — chaque événement sensible est enregistré avec userId, IP et

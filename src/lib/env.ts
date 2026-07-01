@@ -42,6 +42,11 @@ const envSchema = z
     KONNECT_API_KEY: z.string().optional(),
     KONNECT_RECEIVER_WALLET_ID: z.string().optional(),
     KONNECT_API_URL: z.string().url().optional(),
+    // Secret de signature du webhook Konnect (HMAC de l'URL qu'on fournit à
+    // l'init — Konnect ne signe pas ses webhooks). OPTIONNEL : à défaut, dérivé
+    // d'AUTH_SECRET (cf. src/lib/konnect.ts). À poser pour une rotation
+    // indépendante du secret d'auth. ≥16 caractères s'il est fourni.
+    KONNECT_WEBHOOK_SECRET: z.string().min(16).optional(),
 
     S3_ENDPOINT: z.string().url().optional(),
     S3_BUCKET: z.string().optional(),
@@ -55,6 +60,11 @@ const envSchema = z
     KYC_ENC_KEY: z.string().min(16).optional(),
     // Provider SMS réel (Twilio, passerelle TN…). Requis dès KYC_MODE=production.
     SMS_PROVIDER: z.string().optional(),
+    // Identifiants Twilio. Requis (boot fail-fast) si SMS_PROVIDER=twilio.
+    // TWILIO_FROM : numéro expéditeur E.164 OU Messaging Service SID (préfixe "MG").
+    TWILIO_ACCOUNT_SID: z.string().optional(),
+    TWILIO_AUTH_TOKEN: z.string().optional(),
+    TWILIO_FROM: z.string().optional(),
 
     // PR3 — Gating KYC sur la création d'annonces.
     // "on" = seuls les utilisateurs vérifiés peuvent publier.
@@ -117,6 +127,19 @@ const envSchema = z
       });
     }
 
+    // CAPTCHA réel : les deux clés Turnstile sont exigées (sinon widget côté
+    // client OU vérification serveur inopérants → fail-closed silencieux).
+    if (
+      e.CAPTCHA_MODE === "turnstile" &&
+      !(e.TURNSTILE_SECRET_KEY && e.NEXT_PUBLIC_TURNSTILE_SITE_KEY)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "CAPTCHA_MODE=turnstile requiert TURNSTILE_SECRET_KEY et NEXT_PUBLIC_TURNSTILE_SITE_KEY.",
+      });
+    }
+
     // B3 — CIN jamais en clair en prod KYC : clé de chiffrement obligatoire.
     if (kycProd && !e.KYC_ENC_KEY) {
       ctx.addIssue({
@@ -131,6 +154,19 @@ const envSchema = z
         code: z.ZodIssueCode.custom,
         message:
           "KYC_MODE=production requiert SMS_PROVIDER (envoi SMS réel ; le code OTP ne doit jamais être renvoyé au client).",
+      });
+    }
+
+    // B2b — provider Twilio : identifiants complets exigés (sinon l'envoi réel
+    // planterait au runtime). Couvre aussi le repli WhatsApp→SMS (otp-channel.ts).
+    if (
+      e.SMS_PROVIDER === "twilio" &&
+      !(e.TWILIO_ACCOUNT_SID && e.TWILIO_AUTH_TOKEN && e.TWILIO_FROM)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "SMS_PROVIDER=twilio requiert TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN et TWILIO_FROM (numéro E.164 ou Messaging Service SID).",
       });
     }
 

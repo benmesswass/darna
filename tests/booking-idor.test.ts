@@ -14,6 +14,10 @@ vi.mock("@/lib/prisma", () => ({
     review: { create: vi.fn() },
   },
 }));
+// L'action recalcule les agrégats d'avis après création : on stub le helper
+// (testé ailleurs) pour isoler le contrôle d'autorisation IDOR.
+vi.mock("@/lib/listings", () => ({ recomputePropertyRating: vi.fn() }));
+vi.mock("@/lib/notifications", () => ({ sendBookingConfirmationEmail: vi.fn() }));
 vi.mock("@/lib/session", () => ({ requireUser: vi.fn() }));
 vi.mock("@/lib/audit", () => ({ logAudit: vi.fn(), logStructured: vi.fn() }));
 vi.mock("@/lib/konnect", () => ({
@@ -28,6 +32,8 @@ vi.mock("@/lib/i18n/server", () => ({
       datesIndisponibles: "Dates indisponibles.",
       reservationExpiree: "Réservation expirée.",
       paiementKonnectErreur: "Erreur de paiement.",
+      annulationImpossible: "Annulation impossible.",
+      annulationConfirmee: "Réservation annulée.",
     },
     property: { avisRefuse: "Avis refusé.", avisEnvoye: "Avis envoyé." },
     common: { erreurInconnue: "Erreur inconnue.", champsRequis: "Champs requis." },
@@ -38,6 +44,7 @@ import {
   confirmPaymentAction,
   startKonnectPaymentAction,
   submitReviewAction,
+  cancelBookingAction,
 } from "@/actions/bookings";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
@@ -165,5 +172,51 @@ describe("submitReviewAction — IDOR", () => {
 
     expect(result).toEqual({ success: "Avis envoyé." });
     expect(reviewCreate).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("cancelBookingAction — IDOR", () => {
+  const confirmedBooking = (guestId: string) => ({
+    id: BOOKING_ID,
+    guestId,
+    status: "CONFIRMEE",
+    checkIn: new Date(Date.now() + 10 * 86_400_000),
+    totalPrice: 300,
+    createdAt: new Date(Date.now() - 10 * 86_400_000),
+    property: { slug: "villa-hammamet", cancelPolicy: "MODEREE" },
+  });
+
+  it("refuse d'annuler la réservation d'un autre utilisateur", async () => {
+    requireUserMock.mockResolvedValue(ATTACKER);
+    bookingFindUnique.mockResolvedValue(confirmedBooking(OWNER.id));
+
+    const result = await cancelBookingAction(undefined, idForm());
+
+    expect(result).toEqual({ error: "Erreur inconnue." });
+    expect(bookingUpdate).not.toHaveBeenCalled();
+  });
+
+  it("refuse d'annuler une réservation déjà terminée", async () => {
+    requireUserMock.mockResolvedValue(OWNER);
+    bookingFindUnique.mockResolvedValue({ ...confirmedBooking(OWNER.id), status: "TERMINEE" });
+
+    const result = await cancelBookingAction(undefined, idForm());
+
+    expect(result).toEqual({ error: "Annulation impossible." });
+    expect(bookingUpdate).not.toHaveBeenCalled();
+  });
+
+  it("autorise le voyageur titulaire à annuler (contrôle positif)", async () => {
+    requireUserMock.mockResolvedValue(OWNER);
+    bookingFindUnique.mockResolvedValue(confirmedBooking(OWNER.id));
+
+    const result = await cancelBookingAction(undefined, idForm());
+
+    expect(result).toEqual({ success: "Réservation annulée." });
+    expect(bookingUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ status: "ANNULEE", escrow: "AUCUN" }),
+      })
+    );
   });
 });
