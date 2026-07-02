@@ -20,6 +20,7 @@ import { AutoSubmitCheckbox } from "@/components/search/AutoSubmitCheckbox";
 import { SectionHero } from "@/components/layout/SectionHero";
 import { GouvernoratAutocomplete } from "@/components/search/GouvernoratAutocomplete";
 import { SearchIcon } from "@/components/icons";
+import { AnimatedGrid } from "@/components/ui/AnimatedGrid";
 
 export const metadata: Metadata = {
   title: frMeta.nav.immobilier,
@@ -214,7 +215,10 @@ export default async function ImmobilierPage({
         ) : (
           <SplitView
             list={
-              <div className="grid gap-5 sm:grid-cols-2">
+              <AnimatedGrid
+                key={results.map((p) => p.id).join(",")}
+                className="grid gap-5 sm:grid-cols-2"
+              >
                 {results.map((p) => (
                   <PropertyCard
                     key={p.id}
@@ -222,7 +226,7 @@ export default async function ImmobilierPage({
                     favorite={favoritePropFor(favCtx, p.id)}
                   />
                 ))}
-              </div>
+              </AnimatedGrid>
             }
             map={<PropertyMap markers={markers} />}
           />

@@ -31,8 +31,8 @@
 
 | # | Tâche | Prio | Statut | Détail |
 |---|-------|------|--------|--------|
-| D1 | Installer une lib d'animation légère (`framer-motion`/`motion`) | P0 | ❌ | Prérequis aux tâches D2-D5. |
-| D2 | Fade + slide au montage des grilles de résultats (`stagger` sur `PropertyCard`) | P0 | ❌ | `src/components/property/PropertyCard.tsx`, grilles dans `src/app/sejours/page.tsx` / `src/app/immobilier/page.tsx`. |
+| D1 | Installer une lib d'animation légère (`framer-motion`/`motion`) | P0 | ✅ | `motion` (npm), via `LazyMotion`+`domAnimation` (~15 Ko) plutôt que le bundle complet — voir `src/components/ui/AnimatedGrid.tsx`. |
+| D2 | Fade + slide au montage des grilles de résultats (`stagger` sur `PropertyCard`) | P0 | ✅ | `AnimatedGrid` (`src/components/ui/AnimatedGrid.tsx`) branché sur les grilles de `src/app/sejours/page.tsx` et `src/app/immobilier/page.tsx`. `key` dérivée des ids affichés pour rejouer l'anim à chaque changement de page/filtre. `MotionConfig reducedMotion="user"` respecte `prefers-reduced-motion` (suppression du slide, le fade reste — comportement standard de la lib). |
 | D3 | Généraliser `Skeleton.tsx` à toutes les zones de données dynamiques (grille filtrée, dashboard revenus, messagerie) | P1 | ❌ | `src/components/ui/Skeleton.tsx` — actuellement 3 usages seulement. |
 | D4 | Optimiser les 2 images hero (compression + WebP/AVIF, cible <150 Ko chacune) | P1 | ❌ | `public/images/sejours-hero.jpg`, `public/images/immobilier-hero.jpg`, rendu via `src/components/layout/HomeHero.tsx`. |
 | D5 | État de succès animé (check qui se dessine / micro-célébration) sur réservation confirmée, annonce publiée, avis publié | P1 | ❌ | Flux dans `src/actions/bookings.ts`, `src/actions/properties.ts`, `ReviewForm`. |
@@ -58,8 +58,8 @@
 ## Exécution (prioritisée)
 
 **Maintenant (P0/P1) :**
-1. D1 — installer la lib d'animation.
-2. D2 — animation des grilles de résultats.
+1. ✅ D1 — installer la lib d'animation.
+2. ✅ D2 — animation des grilles de résultats.
 3. D4 — optimisation des heros.
 4. D3 — skeletons généralisés.
 5. D5 — feedback de succès animé.
