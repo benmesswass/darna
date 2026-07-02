@@ -231,6 +231,7 @@ export const en: Dictionary = {
     avis: "Traveller reviews",
     nbAvis: (n: number) => (n === 1 ? "1 review" : `${n} reviews`),
     voirAvis: "See reviews",
+    annoncesSimilaires: "Similar listings",
     avisGarantie:
       "Every review comes from a confirmed booking on Darna — it is impossible to post one without having stayed.",
     aucunAvis: "No reviews yet — be the first after your stay.",

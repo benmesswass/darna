@@ -23,9 +23,12 @@ import {
   StarIcon,
 } from "@/components/icons";
 import { ReviewsSection } from "@/components/property/ReviewsSection";
+import { PropertyCard } from "@/components/property/PropertyCard";
 import { ActiveSection } from "@/components/layout/ActiveSection";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { buildPropertyJsonLd } from "@/lib/structured-data";
+import { getSimilarListings } from "@/lib/listings";
+import { favoritePropFor } from "@/lib/favorites";
 import { Caracteristique } from "@/modules/core/listing/Caracteristique";
 import type {
   ListingData,
@@ -91,6 +94,7 @@ export async function ListingDetail({
       ? property.reviews.reduce((sum, r) => sum + r.rating, 0) /
         property.reviews.length
       : null;
+  const similarListings = await getSimilarListings(property);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
@@ -381,6 +385,26 @@ export async function ListingDetail({
           </div>
         </aside>
       </div>
+
+      {/* Annonces similaires : même ville + même type, hors l'annonce
+          courante — invite à continuer de parcourir sans repartir de la
+          recherche. Masquée s'il n'y a rien de comparable. */}
+      {similarListings.length > 0 ? (
+        <section className="mt-12">
+          <h2 className="text-xl font-bold text-darna">
+            {fr.property.annoncesSimilaires}
+          </h2>
+          <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {similarListings.map((p) => (
+              <PropertyCard
+                key={p.id}
+                property={p}
+                favorite={favoritePropFor(favCtx, p.id, arrivee)}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

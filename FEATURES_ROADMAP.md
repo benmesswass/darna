@@ -29,7 +29,7 @@
 |---|-------|------|--------|--------|
 | F4 | Filtre par équipements (wifi, piscine, climatisation…) sur la recherche séjours | P1 | ✅ | PR #72. `parseAmenitiesParam` (`src/lib/constants.ts`), filtre dans `searchSejours` (`src/lib/listings.ts`), `AmenitiesFilter` (`src/components/search/AmenitiesFilter.tsx`) branché sur `/sejours`. |
 | F5 | Filtre chambres / capacité voyageurs / type de bien sur la recherche séjours | P2 | ❌ | `maxGuests`/`rooms` existent en base, absents des query params de recherche. |
-| F6 | Section "annonces similaires" en fin de fiche annonce | P1 | ❌ | Aucune requête de biens comparables (même ville/type) dans `ListingDetail.tsx`. |
+| F6 | Section "annonces similaires" en fin de fiche annonce | P1 | ✅ | `getSimilarListings` (`src/lib/listings.ts`, même ville + même type) branché en pleine largeur en fin de `ListingDetail.tsx` (masqué si rien de comparable). |
 | F7 | Alertes de recherche sauvegardée (email quand une annonce matche ville/dates/budget) | P2 | ❌ | Fonctionnalité à créer de zéro (modèle + cron/job + email). |
 
 ## 3. Partage & rétention
@@ -43,7 +43,7 @@
 
 | # | Tâche | Prio | Statut | Détail |
 |---|-------|------|--------|--------|
-| F10 | Vérifier/exposer clairement un flux d'annulation self-service côté voyageur dans le dashboard | P1 | ❌ | `cancellation.test.ts` existe côté tests mais aucun bouton "Annuler ma réservation" identifié dans `src/app/dashboard/reservations/`. À confirmer puis exposer en UI si le flux serveur existe déjà. |
+| F10 | Vérifier/exposer clairement un flux d'annulation self-service côté voyageur dans le dashboard | P1 | ✅ | **Déjà livré avant cette roadmap** (PR #56) : `CancelBookingButton` (`src/components/booking/CancelBookingButton.tsx`) est bien branché dans `src/app/dashboard/reservations/page.tsx` pour toute réservation `CONFIRMEE` (confirmation + calcul du remboursement via `computeBookingRefund`). Entrée corrigée après vérification — aucun code écrit ici. |
 
 ---
 
@@ -53,8 +53,8 @@
 1. ✅ F4 — filtre équipements (PR #72).
 2. ✅ F3 — fiche hôte publique (PR #73).
 3. ✅ F8 — bouton Partager (PR #74).
-4. F6 — annonces similaires.
-5. F10 — vérifier/exposer l'annulation self-service.
+4. ✅ F6 — annonces similaires.
+5. ✅ F10 — annulation self-service (déjà livré, PR #56 — vérifié).
 6. F1 — avis bidirectionnels.
 
 **Ensuite (P2) :**
