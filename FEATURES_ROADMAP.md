@@ -37,7 +37,7 @@
 | # | Tâche | Prio | Statut | Détail |
 |---|-------|------|--------|--------|
 | F8 | Bouton "Partager" (lien copié + WhatsApp) sur la fiche annonce | P1 | ✅ | PR #74. `ShareButton` (`src/components/property/ShareButton.tsx`) : `navigator.share` natif sinon menu Copier le lien / WhatsApp, branché sur `ListingDetail.tsx`. |
-| F9 | Centre de notifications in-app générique (au-delà des messages) | P2 | ❌ | `MessagesNotifier` (`src/components/messages/MessagesNotifier.tsx`) ne couvre que la messagerie ; rien pour statut réservation changé, avis reçu, annonce bientôt expirée. |
+| F9 | Centre de notifications in-app générique (au-delà des messages) | P2 | ✅ | Nouveau modèle `Notification` (migration `20260702170000_add_notification`, `src/lib/notification-center.ts`) : réservation confirmée/annulée, avis reçu (les deux sens), annonce bientôt expirée (détection paresseuse dédupliquée par index unique partiel, pas de cron). `NotificationBell` (`src/components/notifications/`) dans le Header, distinct de `MessagesNotifier`. |
 
 ## 4. Parcours réservation
 
@@ -59,7 +59,7 @@
 
 **Ensuite (P2) :**
 7. ✅ F5 — filtres chambres/capacité/type.
-8. F9 — centre de notifications in-app.
+8. ✅ F9 — centre de notifications in-app.
 9. F7 — alertes de recherche sauvegardée.
 10. F2 — sous-notes d'avis.
 

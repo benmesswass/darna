@@ -81,6 +81,9 @@ model User {
   auditLogs          AuditLog[]
   otpChallenges      OtpChallenge[]
   passwordResetTokens PasswordResetToken[]
+  // Centre de notifications in-app (F9) : réservation confirmée/annulée, avis
+  // reçu, annonce bientôt expirée.
+  notifications      Notification[]
   // PR1 — back-relation : annonces vérifiées par cet utilisateur (admin/wakil).
   verifiedProperties   Property[]          @relation("PropertyVerifiedBy")
   // PR2 — candidatures Wakil liées à ce compte.
@@ -375,6 +378,32 @@ model GuestReview {
   author   User   @relation("GuestReviewAuthor", fields: [authorId], references: [id], onDelete: Cascade)
 
   @@index([targetId])
+}
+
+// Centre de notifications in-app (F9) : générique, au-delà de la messagerie
+// (déjà gérée par MessagesNotifier/countUnreadMessages). Le texte affiché
+// n'est JAMAIS figé en base (convention i18n du projet) : seul `propertyTitle`
+// est stocké, le libellé complet est composé à l'affichage via le dictionnaire
+// de la locale courante (cf. src/lib/notification-text.ts).
+model Notification {
+  id            String    @id @default(cuid())
+  type          String // RESERVATION_CONFIRMEE | RESERVATION_ANNULEE | AVIS_RECU | AVIS_HOTE_RECU | ANNONCE_EXPIRE_BIENTOT
+  propertyTitle String?
+  href          String?
+  readAt        DateTime?
+  createdAt     DateTime  @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
+  // NB : un index UNIQUE PARTIEL supplémentaire existe en base — (userId, href)
+  // WHERE type = 'ANNONCE_EXPIRE_BIENTOT' — pour dédoublonner les alertes
+  // d'expiration sous requêtes concurrentes. Non représentable dans le DSL
+  // Prisma (pas de clause WHERE sur @@unique) ; ajouté à la main dans la
+  // migration 20260702170000_add_notification. Ne PAS le supprimer via
+  // `migrate dev` sans le recréer manuellement (cf. src/lib/notification-center.ts).
 }
 
 model ContactRequest {

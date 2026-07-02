@@ -1098,6 +1098,18 @@ export const ar: Dictionary = {
     pourquoiConclusion:
       "دارنا، أوّل منصّة حجز تونسية موثوقة. يدّ في يدّ، نبنيو نظام فيه الكلّ محمي.",
   },
+  notifications: {
+    titre: "الإشعارات",
+    aucune: "ما فماش إشعارات توا.",
+    toutMarquerLu: "علّم الكل مقروي",
+    reservationConfirmee: (titre: string) => `الحجز متاعك لـ« ${titre} » تأكّد.`,
+    reservationAnnulee: (titre: string) =>
+      `حجز على « ${titre} » تلغى من طرف المسافر.`,
+    avisRecu: (titre: string) => `جالك تقييم جديد على « ${titre} ».`,
+    avisHoteRecu: "المضيف متاعك حط تقييم على السكن متاعك.",
+    annonceExpireBientot: (titre: string) =>
+      `« ${titre} » قريب توليش صالحة — فكّر تجدّدها.`,
+  },
   alaUne: {
     titre: "حطّ إعلانك في الواجهة",
     sousTitre:

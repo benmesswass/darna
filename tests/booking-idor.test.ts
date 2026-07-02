@@ -18,6 +18,12 @@ vi.mock("@/lib/prisma", () => ({
 // (testé ailleurs) pour isoler le contrôle d'autorisation IDOR.
 vi.mock("@/lib/listings", () => ({ recomputePropertyRating: vi.fn() }));
 vi.mock("@/lib/notifications", () => ({ sendBookingConfirmationEmail: vi.fn() }));
+vi.mock("@/lib/notification-center", () => ({
+  notifyBookingConfirmed: vi.fn(),
+  notifyBookingCancelled: vi.fn(),
+  notifyReviewReceived: vi.fn(),
+  notifyGuestReviewReceived: vi.fn(),
+}));
 vi.mock("@/lib/session", () => ({ requireUser: vi.fn() }));
 vi.mock("@/lib/audit", () => ({ logAudit: vi.fn(), logStructured: vi.fn() }));
 vi.mock("@/lib/konnect", () => ({

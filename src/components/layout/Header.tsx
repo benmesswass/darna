@@ -10,6 +10,7 @@ import { AccountMenu } from "./AccountMenu";
 import { buildDashboardLinks } from "@/lib/dashboard-nav";
 import { countUnreadMessages } from "@/lib/messages";
 import { MessagesNotifier } from "@/components/messages/MessagesNotifier";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { CurrencyToggle } from "@/components/currency/CurrencyToggle";
 import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 
@@ -101,6 +102,8 @@ export async function Header() {
           <LanguageSwitcher />
 
           <CurrencyToggle />
+
+          {user ? <NotificationBell /> : null}
 
           {user ? (
             <AccountMenu
