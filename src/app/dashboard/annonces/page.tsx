@@ -18,6 +18,7 @@ import { isListingFeatured } from "@/lib/listings";
 import { formatDateFr } from "@/lib/format";
 import { Price } from "@/components/currency/Price";
 import { StarIcon } from "@/components/icons";
+import { SuccessCheck } from "@/components/ui/SuccessCheck";
 
 export default async function MesAnnoncesPage({
   searchParams,
@@ -46,7 +47,8 @@ export default async function MesAnnoncesPage({
       <h2 className="text-xl font-bold text-darna">{fr.dashboard.mesAnnonces}</h2>
 
       {creee ? (
-        <p className="mt-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+        <p className="mt-4 flex items-center gap-3 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+          <SuccessCheck size={28} />
           {fr.annonceForm.annonceCreee}
         </p>
       ) : null}

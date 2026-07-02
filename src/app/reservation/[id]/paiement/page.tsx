@@ -17,6 +17,7 @@ import { ActiveSection } from "@/components/layout/ActiveSection";
 import { formatDateFr } from "@/lib/format";
 import { Price } from "@/components/currency/Price";
 import { CheckIcon, CloseIcon, ShieldIcon } from "@/components/icons";
+import { SuccessCheck } from "@/components/ui/SuccessCheck";
 import type { CancelPolicy } from "@/lib/constants";
 
 export const metadata: Metadata = { title: frMeta.booking.paiementTitre };
@@ -152,9 +153,7 @@ export default async function PaiementPage({
       <ActiveSection name="sejours" />
       {confirmed ? (
         <div className="rounded-3xl bg-white p-8 text-center ring-1 ring-emerald-200">
-          <span className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-emerald-600 text-white">
-            <CheckIcon width={32} height={32} strokeWidth={2.5} />
-          </span>
+          <SuccessCheck size={64} />
           <h1 className="mt-5 text-2xl font-bold text-darna">
             {fr.booking.paiementConfirme}
           </h1>
