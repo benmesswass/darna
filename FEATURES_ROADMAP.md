@@ -43,7 +43,7 @@
 
 | # | Tâche | Prio | Statut | Détail |
 |---|-------|------|--------|--------|
-| F10 | Vérifier/exposer clairement un flux d'annulation self-service côté voyageur dans le dashboard | P1 | ❌ | `cancellation.test.ts` existe côté tests mais aucun bouton "Annuler ma réservation" identifié dans `src/app/dashboard/reservations/`. À confirmer puis exposer en UI si le flux serveur existe déjà. |
+| F10 | Vérifier/exposer clairement un flux d'annulation self-service côté voyageur dans le dashboard | P1 | ✅ | **Déjà livré avant cette roadmap** (PR #56) : `CancelBookingButton` (`src/components/booking/CancelBookingButton.tsx`) est bien branché dans `src/app/dashboard/reservations/page.tsx` pour toute réservation `CONFIRMEE` (confirmation + calcul du remboursement via `computeBookingRefund`). Entrée corrigée après vérification — aucun code écrit ici. |
 
 ---
 
@@ -54,7 +54,7 @@
 2. ✅ F3 — fiche hôte publique (PR #73).
 3. ✅ F8 — bouton Partager (PR #74).
 4. ✅ F6 — annonces similaires.
-5. F10 — vérifier/exposer l'annulation self-service.
+5. ✅ F10 — annulation self-service (déjà livré, PR #56 — vérifié).
 6. F1 — avis bidirectionnels.
 
 **Ensuite (P2) :**
