@@ -1091,6 +1091,19 @@ export const fr = {
     pourquoiConclusion:
       "Darna, la première plateforme tunisienne de réservation de confiance. Ensemble, construisons un écosystème où chacun est protégé.",
   },
+  notifications: {
+    titre: "Notifications",
+    aucune: "Aucune notification pour le moment.",
+    toutMarquerLu: "Tout marquer comme lu",
+    reservationConfirmee: (titre: string) =>
+      `Votre réservation pour « ${titre} » est confirmée.`,
+    reservationAnnulee: (titre: string) =>
+      `Une réservation sur « ${titre} » a été annulée par le voyageur.`,
+    avisRecu: (titre: string) => `Vous avez reçu un nouvel avis sur « ${titre} ».`,
+    avisHoteRecu: "Votre hôte a laissé un avis sur votre séjour.",
+    annonceExpireBientot: (titre: string) =>
+      `« ${titre} » expire bientôt — pensez à la republier.`,
+  },
   alaUne: {
     titre: "Mettez votre annonce à la une",
     sousTitre:

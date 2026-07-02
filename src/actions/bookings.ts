@@ -19,6 +19,12 @@ import { recomputePropertyRating } from "@/lib/listings";
 import { initKonnectPayment, isKonnectEnabled, signKonnectWebhook } from "@/lib/konnect";
 import { sendBookingConfirmationEmail } from "@/lib/notifications";
 import { computeBookingRefund } from "@/lib/cancellation";
+import {
+  notifyBookingCancelled,
+  notifyBookingConfirmed,
+  notifyGuestReviewReceived,
+  notifyReviewReceived,
+} from "@/lib/notification-center";
 import { isSuspended } from "@/lib/suspension";
 import type { CancelPolicy } from "@/lib/constants";
 
@@ -406,6 +412,7 @@ export async function confirmPaymentAction(formData: FormData): Promise<void> {
   });
 
   await sendBookingConfirmationEmail(booking.id);
+  await notifyBookingConfirmed(booking.id);
 
   revalidatePath(`/reservation/${booking.id}/paiement`);
   revalidatePath("/dashboard/reservations");
@@ -586,6 +593,7 @@ export async function submitReviewAction(
 
   // Met à jour les agrégats d'avis dénormalisés (tri « mieux/moins notés »).
   await recomputePropertyRating(booking.propertyId);
+  await notifyReviewReceived(booking.propertyId);
 
   await logAudit({
     action: "REVIEW_SUBMITTED",
@@ -653,6 +661,7 @@ export async function submitGuestReviewAction(
       comment: parsed.data.comment,
     },
   });
+  await notifyGuestReviewReceived(booking.guestId);
 
   await logAudit({
     action: "GUEST_REVIEW_SUBMITTED",
@@ -719,6 +728,7 @@ export async function cancelBookingAction(
       refundAmount: refundAmount > 0 ? refundAmount : null,
     },
   });
+  await notifyBookingCancelled(booking.id);
 
   await logAudit({
     action: "BOOKING_CANCELLED",

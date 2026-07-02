@@ -43,6 +43,10 @@ export function clampPayAmount(
 /** Durée de vie d'une annonce avant expiration (fraîcheur des données). */
 export const LISTING_LIFETIME_DAYS = 30;
 
+/** Seuil (jours restants) à partir duquel une annonce active est signalée
+ *  « bientôt expirée » dans le centre de notifications (F9). */
+export const LISTING_EXPIRE_SOON_DAYS = 5;
+
 /** Mise en avant payante (« à la une ») : durée du boost et prix unique. */
 export const FEATURED_DURATION_DAYS = 7;
 /** Prix en TND du boost « à la une » pour une semaine (paiement mock). */

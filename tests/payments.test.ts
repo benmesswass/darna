@@ -23,6 +23,9 @@ vi.mock("@/lib/audit", () => ({
 vi.mock("@/lib/notifications", () => ({
   sendBookingConfirmationEmail: vi.fn(),
 }));
+vi.mock("@/lib/notification-center", () => ({
+  notifyBookingConfirmed: vi.fn(),
+}));
 
 import { settleKonnectBooking } from "@/lib/payments";
 import { prisma } from "@/lib/prisma";

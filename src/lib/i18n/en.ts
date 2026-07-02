@@ -1078,6 +1078,19 @@ export const en: Dictionary = {
     pourquoiConclusion:
       "Darna, Tunisia's first trusted booking platform. Together, let's build an ecosystem where everyone is protected.",
   },
+  notifications: {
+    titre: "Notifications",
+    aucune: "No notifications yet.",
+    toutMarquerLu: "Mark all as read",
+    reservationConfirmee: (titre: string) =>
+      `Your booking for “${titre}” is confirmed.`,
+    reservationAnnulee: (titre: string) =>
+      `A booking on “${titre}” was cancelled by the guest.`,
+    avisRecu: (titre: string) => `You received a new review on “${titre}”.`,
+    avisHoteRecu: "Your host left a review about your stay.",
+    annonceExpireBientot: (titre: string) =>
+      `“${titre}” is expiring soon — consider republishing it.`,
+  },
   alaUne: {
     titre: "Feature your listing",
     sousTitre:
