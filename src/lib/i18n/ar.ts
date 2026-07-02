@@ -315,6 +315,7 @@ export const ar: Dictionary = {
     filtreToutes: "كل التقييمات",
     filtreParNote: (n: number) => (n === 1 ? "نجمة واحدة" : `${n} نجوم`),
     aucunAvisFiltre: "ما فماش تقييم يطابق هذا الفلتر.",
+    afficherPlusAvis: (n: number) => `شوف الـ ${n} تقييمات الباقيين`,
     favoriAjouter: "زيد للمفضّلة",
     favoriRetirer: "نحّي من المفضّلة",
     favoriChoisirDossier: "سجّل في مجلّد",

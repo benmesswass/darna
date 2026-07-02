@@ -292,6 +292,7 @@ export const en: Dictionary = {
     filtreToutes: "All ratings",
     filtreParNote: (n: number) => (n === 1 ? "1 star" : `${n} stars`),
     aucunAvisFiltre: "No review matches this filter.",
+    afficherPlusAvis: (n: number) => `Show ${n} more reviews`,
     favoriAjouter: "Add to favourites",
     favoriRetirer: "Remove from favourites",
     favoriChoisirDossier: "Save to a folder",

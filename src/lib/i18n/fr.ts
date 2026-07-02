@@ -293,6 +293,7 @@ export const fr = {
     filtreToutes: "Toutes les notes",
     filtreParNote: (n: number) => (n === 1 ? "1 étoile" : `${n} étoiles`),
     aucunAvisFiltre: "Aucun avis ne correspond à ce filtre.",
+    afficherPlusAvis: (n: number) => `Afficher les ${n} autres avis`,
     favoriAjouter: "Ajouter aux favoris",
     favoriRetirer: "Retirer des favoris",
     favoriChoisirDossier: "Enregistrer dans un dossier",
