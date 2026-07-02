@@ -459,6 +459,10 @@ export const fr = {
       montant > 0 ? `Remboursement : ${montant} TND` : "Aucun remboursement selon la politique",
     cancelledAt: (date: string) => `Annulée le ${date}`,
     rembourseLabel: (montant: number) => `Remboursé : ${montant} TND`,
+    noterVoyageur: "Noter ce voyageur",
+    avisVoyageurEnvoye: "Avis envoyé — merci !",
+    votreAvisSurCeVoyageur: "Votre avis sur ce voyageur :",
+    avisHoteSurVous: "Ce que l'hôte a dit de votre séjour :",
     revenus: "Revenus",
     revenusTitre: "Mes revenus",
     revenusSousTitre:

@@ -598,6 +598,73 @@ export async function submitReviewAction(
   return { success: fr.property.avisEnvoye };
 }
 
+export type GuestReviewFormState = { error?: string; success?: string } | undefined;
+
+const guestReviewSchema = z.object({
+  bookingId: z.string().cuid(),
+  rating: z.coerce.number().int().min(1).max(5),
+  comment: z.string().trim().min(10).max(2000),
+});
+
+/**
+ * Avis symétrique « hôte → voyageur » (F1) : uniquement par le PROPRIÉTAIRE de
+ * l'annonce concernée, sur une réservation confirmée/terminée dont le séjour
+ * est passé — mêmes conditions que submitReviewAction côté voyageur. La FK
+ * du schéma (GuestReview.bookingId @unique) rend tout avis orphelin ou
+ * dupliqué impossible ; on vérifie ici le statut, l'auteur et l'unicité.
+ */
+export async function submitGuestReviewAction(
+  _prev: GuestReviewFormState,
+  formData: FormData
+): Promise<GuestReviewFormState> {
+  const fr = await getT();
+  const user = await requireUser();
+
+  const parsed = guestReviewSchema.safeParse({
+    bookingId: formData.get("bookingId"),
+    rating: formData.get("rating"),
+    comment: formData.get("comment"),
+  });
+  if (!parsed.success) return { error: fr.common.champsRequis };
+
+  const booking = await prisma.booking.findUnique({
+    where: { id: parsed.data.bookingId },
+    include: {
+      guestReview: { select: { id: true } },
+      property: { select: { slug: true, ownerId: true } },
+    },
+  });
+
+  const eligible =
+    booking &&
+    booking.property.ownerId === user.id &&
+    (booking.status === "CONFIRMEE" || booking.status === "TERMINEE") &&
+    booking.checkOut.getTime() < Date.now() &&
+    !booking.guestReview;
+
+  if (!eligible) return { error: fr.property.avisRefuse };
+
+  await prisma.guestReview.create({
+    data: {
+      bookingId: booking.id,
+      targetId: booking.guestId,
+      authorId: user.id,
+      rating: parsed.data.rating,
+      comment: parsed.data.comment,
+    },
+  });
+
+  await logAudit({
+    action: "GUEST_REVIEW_SUBMITTED",
+    userId: user.id,
+    success: true,
+    metadata: { bookingId: booking.id, rating: parsed.data.rating },
+  });
+
+  revalidatePath("/dashboard/reservations");
+  return { success: fr.dashboard.avisVoyageurEnvoye };
+}
+
 export type CancelBookingState = { error?: string; success?: string } | undefined;
 
 const cancelSchema = z.object({ bookingId: z.string().cuid() });

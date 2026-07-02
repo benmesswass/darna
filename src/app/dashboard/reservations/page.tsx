@@ -12,6 +12,8 @@ import { contactRevealState, type ContactGate } from "@/lib/contact-reveal";
 import type { CancelPolicy } from "@/lib/constants";
 import { CancelBookingButton } from "@/components/booking/CancelBookingButton";
 import { ContactReveal } from "@/components/booking/ContactReveal";
+import { GuestReviewForm } from "@/components/booking/GuestReviewForm";
+import { GuestReviewDisplay } from "@/components/booking/GuestReviewDisplay";
 
 const STATUS_STYLES: Record<string, string> = {
   EN_ATTENTE: "bg-amber-100 text-amber-800",
@@ -53,6 +55,7 @@ export default async function MesReservationsPage() {
           },
         },
         guest: { select: { name: true, email: true, phone: true } },
+        guestReview: { select: { rating: true, comment: true } },
       },
       orderBy: { checkIn: "desc" },
     });
@@ -157,6 +160,20 @@ export default async function MesReservationsPage() {
                     </Link>
                   ) : null}
 
+                  {/* Avis hôte → voyageur (F1) : possible seulement une fois le
+                      séjour passé, une seule fois par réservation. */}
+                  {b.guestReview ? (
+                    <GuestReviewDisplay
+                      rating={b.guestReview.rating}
+                      comment={b.guestReview.comment}
+                      label={fr.dashboard.votreAvisSurCeVoyageur}
+                      className="mt-2"
+                    />
+                  ) : (b.status === "CONFIRMEE" || b.status === "TERMINEE") &&
+                    b.checkOut.getTime() < Date.now() ? (
+                    <GuestReviewForm bookingId={b.id} />
+                  ) : null}
+
                   <p className="mt-1.5 text-sm">
                     <Price amount={b.totalPrice} className="font-bold text-darna" />
                   </p>
@@ -186,6 +203,7 @@ export default async function MesReservationsPage() {
         },
       },
       review: { select: { id: true } },
+      guestReview: { select: { rating: true, comment: true } },
     },
     orderBy: { checkIn: "desc" },
   });
@@ -266,6 +284,16 @@ export default async function MesReservationsPage() {
                     />
                   );
                 })()}
+                {/* Avis reçu de l'hôte (F1, avis bidirectionnels) — visible dès
+                    que l'hôte l'a publié. */}
+                {b.guestReview ? (
+                  <GuestReviewDisplay
+                    rating={b.guestReview.rating}
+                    comment={b.guestReview.comment}
+                    label={fr.dashboard.avisHoteSurVous}
+                    className="mt-3"
+                  />
+                ) : null}
               </div>
               <div className="flex flex-col gap-2">
                 <Link
