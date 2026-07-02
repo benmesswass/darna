@@ -24,6 +24,7 @@ import {
 } from "@/components/icons";
 import { ReviewsSection } from "@/components/property/ReviewsSection";
 import { PropertyCard } from "@/components/property/PropertyCard";
+import { SimilarListingsCarousel } from "@/components/property/SimilarListingsCarousel";
 import { ActiveSection } from "@/components/layout/ActiveSection";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { buildPropertyJsonLd } from "@/lib/structured-data";
@@ -398,7 +399,7 @@ export async function ListingDetail({
           <h2 className="text-xl font-bold text-darna">
             {fr.property.annoncesSimilaires}
           </h2>
-          <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <SimilarListingsCarousel className="mt-4">
             {similarListings.map((p) => (
               <PropertyCard
                 key={p.id}
@@ -406,7 +407,7 @@ export async function ListingDetail({
                 favorite={favoritePropFor(favCtx, p.id, arrivee)}
               />
             ))}
-          </div>
+          </SimilarListingsCarousel>
         </section>
       ) : null}
     </div>
