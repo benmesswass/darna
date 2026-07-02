@@ -24,6 +24,7 @@ import {
 } from "@/components/icons";
 import { ReviewsSection } from "@/components/property/ReviewsSection";
 import { PropertyCard } from "@/components/property/PropertyCard";
+import { SimilarListingsCarousel } from "@/components/property/SimilarListingsCarousel";
 import { ActiveSection } from "@/components/layout/ActiveSection";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { buildPropertyJsonLd } from "@/lib/structured-data";
@@ -373,6 +374,15 @@ export async function ListingDetail({
                 {property.owner.name}
               </Link>
             )}
+            {/* Réputation : affichée même hôte masqué, ce n'est pas une
+                donnée d'identité (contrairement au nom/contact). */}
+            {property.owner.ratingCount > 0 ? (
+              <p className="mt-1 flex items-center gap-1 text-sm text-ink/70">
+                <StarIcon width={14} height={14} fill="currentColor" className="text-sand" />
+                {property.owner.ratingAvg!.toFixed(1)} ·{" "}
+                {fr.property.nbAvis(property.owner.ratingCount)}
+              </p>
+            ) : null}
             {property.owner.kycStatus === "VERIFIE" ? (
               <p className="mt-2 inline-flex items-center gap-1 rounded-full bg-darna/5 px-2.5 py-1 text-xs font-medium text-darna">
                 <CheckIcon width={12} height={12} strokeWidth={3} />
@@ -398,7 +408,7 @@ export async function ListingDetail({
           <h2 className="text-xl font-bold text-darna">
             {fr.property.annoncesSimilaires}
           </h2>
-          <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <SimilarListingsCarousel className="mt-4">
             {similarListings.map((p) => (
               <PropertyCard
                 key={p.id}
@@ -406,7 +416,7 @@ export async function ListingDetail({
                 favorite={favoritePropFor(favCtx, p.id, arrivee)}
               />
             ))}
-          </div>
+          </SimilarListingsCarousel>
         </section>
       ) : null}
     </div>

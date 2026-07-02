@@ -15,6 +15,9 @@ export type ReviewItem = {
   comment: string;
   authorName: string;
   createdAt: string;
+  // Annonce concernée — utile seulement dans un contexte multi-annonces
+  // (fiche hôte, qui agrège les avis de toutes les annonces de l'hôte).
+  property?: { title: string; slug: string };
 };
 
 export async function ReviewsSection({

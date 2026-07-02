@@ -9,6 +9,7 @@ import {
   type SortKey,
 } from "@/lib/constants";
 import type { MapMarker } from "@/components/map/types";
+import type { ReviewItem } from "@/components/property/ReviewsSection";
 
 /** Taille de page pour les listings (protection DoS + UX). */
 const PAGE_SIZE = 24;
@@ -443,7 +444,7 @@ export async function searchImmobilier(params: ImmobilierSearchParams) {
 }
 
 export async function getPropertyBySlug(slug: string) {
-  return prisma.property.findUnique({
+  const property = await prisma.property.findUnique({
     where: { slug },
     include: {
       photos: { orderBy: { position: "asc" } },
@@ -471,6 +472,26 @@ export async function getPropertyBySlug(slug: string) {
       },
     },
   });
+  if (!property) return null;
+
+  // Note de l'hôte (réputation) — agrégée sur TOUTES ses annonces, comme
+  // getHostProfile(). Affichée même quand le nom est masqué (anonymizeOwner) :
+  // la réputation n'est pas une donnée d'identité, rien ne justifie de la
+  // cacher avant paiement.
+  const rating = await prisma.review.aggregate({
+    where: { property: { ownerId: property.owner.id } },
+    _avg: { rating: true },
+    _count: { rating: true },
+  });
+
+  return {
+    ...property,
+    owner: {
+      ...property.owner,
+      ratingAvg: rating._count.rating > 0 ? rating._avg.rating : null,
+      ratingCount: rating._count.rating,
+    },
+  };
 }
 
 export type HostProfile = {
@@ -483,6 +504,7 @@ export type HostProfile = {
   listings: ListingWithPhoto[];
   ratingAvg: number | null;
   ratingCount: number;
+  reviews: ReviewItem[];
 };
 
 /**
@@ -498,7 +520,7 @@ export async function getHostProfile(id: string): Promise<HostProfile | null> {
   });
   if (!user || (user.role !== "HOTE" && user.role !== "AGENCE")) return null;
 
-  const [listings, rating] = await Promise.all([
+  const [listings, rating, reviews] = await Promise.all([
     prisma.property.findMany({
       where: { ...activeListingWhere(), ownerId: id },
       include: listingCardInclude,
@@ -509,6 +531,16 @@ export async function getHostProfile(id: string): Promise<HostProfile | null> {
       _avg: { rating: true },
       _count: { rating: true },
     }),
+    // Avis reçus sur TOUTES les annonces de l'hôte (actives ou non), avec le
+    // titre de l'annonce concernée — plusieurs annonces possibles par hôte.
+    prisma.review.findMany({
+      where: { property: { ownerId: id } },
+      orderBy: { createdAt: "desc" },
+      include: {
+        author: { select: { name: true } },
+        property: { select: { title: true, slug: true } },
+      },
+    }),
   ]);
 
   return {
@@ -516,6 +548,18 @@ export async function getHostProfile(id: string): Promise<HostProfile | null> {
     listings,
     ratingAvg: rating._count.rating > 0 ? rating._avg.rating : null,
     ratingCount: rating._count.rating,
+    reviews: reviews.map((r) => ({
+      id: r.id,
+      rating: r.rating,
+      proprete: r.proprete,
+      communication: r.communication,
+      conformite: r.conformite,
+      qualitePrix: r.qualitePrix,
+      comment: r.comment,
+      authorName: r.author.name,
+      createdAt: r.createdAt.toISOString(),
+      property: { title: r.property.title, slug: r.property.slug },
+    })),
   };
 }
 

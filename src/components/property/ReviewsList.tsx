@@ -1,11 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { CloseIcon, StarIcon } from "@/components/icons";
 import { useLocale, useT } from "@/components/i18n/LocaleProvider";
 import type { ReviewItem } from "./ReviewsSection";
 
 type SortKey = "recent" | "old" | "high" | "low";
+
+/** Nombre d'avis affichés par défaut avant « Afficher plus » (partout dans Darna). */
+const PAGE_SIZE = 3;
 
 /** Mapping locale interne → tag BCP-47 pour le formatage des dates. */
 const LOCALE_TAG: Record<string, string> = {
@@ -40,6 +44,7 @@ export function ReviewsList({ reviews }: { reviews: ReviewItem[] }) {
   const locale = useLocale();
   const [sort, setSort] = useState<SortKey>("recent");
   const [ratingFilter, setRatingFilter] = useState<number | null>(null);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const total = reviews.length;
 
@@ -92,6 +97,15 @@ export function ReviewsList({ reviews }: { reviews: ReviewItem[] }) {
     });
     return filtered;
   }, [reviews, ratingFilter, sort]);
+
+  // Revient à PAGE_SIZE quand le filtre/tri change — sinon un "Afficher plus"
+  // gardé ouvert sur l'ancien filtre resterait ouvert sur le nouveau, incohérent.
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [ratingFilter, sort]);
+
+  const shown = visible.slice(0, visibleCount);
+  const remaining = visible.length - shown.length;
 
   if (total === 0) {
     return (
@@ -221,7 +235,7 @@ export function ReviewsList({ reviews }: { reviews: ReviewItem[] }) {
         </p>
       ) : (
         <ul className="mt-4 space-y-4">
-          {visible.map((review) => (
+          {shown.map((review) => (
             <li
               key={review.id}
               className="rounded-2xl bg-white p-5 ring-1 ring-darna/10"
@@ -246,6 +260,16 @@ export function ReviewsList({ reviews }: { reviews: ReviewItem[] }) {
                 </div>
                 <Stars rating={review.rating} />
               </div>
+              {/* Annonce concernée — uniquement en contexte multi-annonces
+                  (fiche hôte agrégeant plusieurs biens). */}
+              {review.property ? (
+                <Link
+                  href={`/annonce/${review.property.slug}`}
+                  className="mt-2 inline-block text-xs font-medium text-darna hover:underline"
+                >
+                  {review.property.title}
+                </Link>
+              ) : null}
               <p className="mt-3 text-sm leading-relaxed text-ink/80">
                 {review.comment}
               </p>
@@ -270,6 +294,24 @@ export function ReviewsList({ reviews }: { reviews: ReviewItem[] }) {
           ))}
         </ul>
       )}
+
+      {remaining > 0 ? (
+        <button
+          type="button"
+          onClick={() => setVisibleCount(visible.length)}
+          className="mt-4 w-full rounded-2xl bg-white py-3 text-sm font-semibold text-darna ring-1 ring-darna/10 transition hover:bg-cream"
+        >
+          {fr.property.afficherPlusAvis(remaining)}
+        </button>
+      ) : visible.length > PAGE_SIZE ? (
+        <button
+          type="button"
+          onClick={() => setVisibleCount(PAGE_SIZE)}
+          className="mt-4 w-full rounded-2xl bg-white py-3 text-sm font-semibold text-darna ring-1 ring-darna/10 transition hover:bg-cream"
+        >
+          {fr.property.afficherMoinsAvis}
+        </button>
+      ) : null}
     </div>
   );
 }

@@ -42,8 +42,8 @@
 
 | # | Tâche | Prio | Statut | Détail |
 |---|-------|------|--------|--------|
-| D7 | Page/carte "profil hôte" avec effet de présence (photo, badge vérifié, note, annonces) | P1 | ❌ | Lié à F3 de `FEATURES_ROADMAP.md` — combine gain fonctionnel + design. |
-| D8 | Carrousel "annonces similaires" en fin de fiche, avec léger effet de scroll horizontal | P1 | ❌ | Lié à F6 de `FEATURES_ROADMAP.md` (`embla-carousel` ou équivalent léger). |
+| D7 | Page/carte "profil hôte" avec effet de présence (photo, badge vérifié, note, annonces) | P1 | ✅ | `AnimatedGrid` (déjà utilisé en D2) réutilisé sur `/hote/[id]` : en-tête (avatar/nom + badges) et grille d'annonces entrent en fondu/glissement à l'ouverture. |
+| D8 | Carrousel "annonces similaires" en fin de fiche, avec léger effet de scroll horizontal | P1 | ✅ | `SimilarListingsCarousel` (`src/components/property/`) : scroll-snap CSS natif (pas de lib externe — suffisant pour 4 cartes max) + boutons précédent/suivant (desktop) + fondu d'entrée au scroll (`whileInView`). Branché sur `ListingDetail.tsx`. |
 | D9 | Micro-interactions de formulaire (validation live animée, focus states plus expressifs) sur les formulaires clés (réservation, inscription, publication d'annonce) | P2 | ❌ | `src/components/booking/`, `src/app/inscription/`, `src/app/dashboard/annonces/nouvelle/`. |
 
 ## 3. Second cercle
@@ -63,7 +63,7 @@
 3. ✅ D4 — optimisation des heros.
 4. ✅ D3 — skeletons généralisés.
 5. ✅ D5 — feedback de succès animé.
-6. D7 / D8 — profil hôte + annonces similaires (couplés aux tâches fonctionnelles F3/F6).
+6. ✅ D7 / D8 — profil hôte + annonces similaires (couplés aux tâches fonctionnelles F3/F6).
 
 **Ensuite (P2/P3) :**
 7. D9 — micro-interactions formulaires.

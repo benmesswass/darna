@@ -199,7 +199,7 @@ export default async function MesReservationsPage() {
           photos: { orderBy: { position: "asc" }, take: 1 },
           // Coordonnées de l'hôte : récupérées ici mais RENDUES uniquement pour
           // les réservations confirmées (gating anti-bypass ci-dessous).
-          owner: { select: { name: true, email: true, phone: true } },
+          owner: { select: { id: true, name: true, email: true, phone: true } },
         },
       },
       review: { select: { id: true } },
@@ -316,6 +316,17 @@ export default async function MesReservationsPage() {
                     className="rounded-xl border border-darna/15 px-3.5 py-2 text-center text-xs font-semibold text-darna hover:bg-darna/5"
                   >
                     {fr.messages.lien}
+                  </Link>
+                ) : null}
+                {/* Fiche hôte publique : réservée aux séjours confirmés/terminés
+                    (paiement engagé) — jamais accessible avant, cohérent avec le
+                    masquage anti-contournement de ListingDetail. */}
+                {b.status === "CONFIRMEE" || b.status === "TERMINEE" ? (
+                  <Link
+                    href={`/hote/${b.property.owner.id}`}
+                    className="rounded-xl border border-darna/15 px-3.5 py-2 text-center text-xs font-semibold text-darna hover:bg-darna/5"
+                  >
+                    {fr.dashboard.voirProfilHote}
                   </Link>
                 ) : null}
                 {b.status === "CONFIRMEE" ? (
