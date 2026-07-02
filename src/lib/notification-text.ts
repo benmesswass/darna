@@ -30,6 +30,8 @@ export function notificationMessage(
       return fr.notifications.avisHoteRecu;
     case "ANNONCE_EXPIRE_BIENTOT":
       return fr.notifications.annonceExpireBientot(n.propertyTitle ?? "");
+    case "ALERTE_NOUVELLE_ANNONCE":
+      return fr.notifications.alerteNouvelleAnnonce(n.propertyTitle ?? "");
     default:
       return "";
   }

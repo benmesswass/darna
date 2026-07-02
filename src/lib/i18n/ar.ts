@@ -168,6 +168,9 @@ export const ar: Dictionary = {
     chambresMin: "أدنى عدد غرف",
     typeBien: "نوع السكن",
     indifferent: "الكل",
+    creerAlerte: "أنشئ تنبيه",
+    alerteEnregistree: "التنبيه اتسجّل — بش نعلموك بالإيمايل.",
+    alerteExisteDeja: "عندك تنبيه من قبل لهذا البحث.",
     resultats: (n: number) =>
       n === 0
         ? "حتى نتيجة"
@@ -413,6 +416,15 @@ export const ar: Dictionary = {
     kyc: "توثيق الهوية",
     email: "تثبّت الإيميل",
     monProfil: "معلوماتي",
+    mesAlertes: "تنبيهاتي",
+    alertesTitre: "تنبيهات البحث متاعي",
+    alertesAucune:
+      "ما فماش تنبيهات محفوظة. من صفحة البحث على السكن، اضغط على « أنشئ تنبيه » باش نعلموك بالإيمايل كي يتنشر إعلان يوافق.",
+    alerteSupprimer: "إمحي",
+    alerteBudget: (min: number, max: number) => `${min} – ${max} دينار`,
+    alerteBudgetMin: (min: number) => `من ${min} دينار`,
+    alerteBudgetMax: (max: number) => `لحد ${max} دينار`,
+    alerteBudgetLibre: "كل الميزانيات",
     favoris: "المفضّلة",
     favorisSansDossier: "بلا مجلّد",
     favorisNbLogements: (n: number) => `${n} مسكن`,
@@ -853,6 +865,23 @@ export const ar: Dictionary = {
       `<p><a href="${p.url}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">جاوب على Darna</a></p>` +
       `<p style="font-size:12px;color:#9ca3af;margin-top:24px">لسلامتك، جاوب ديما عبر مراسلة Darna. Darna — السكن المضمون.</p>` +
       `</div>`,
+    savedSearchMatchSujet: (ville: string) =>
+      `Darna — إعلان جديد في ${ville} يوافق التنبيه متاعك`,
+    savedSearchMatchHtml: (p: {
+      recipientName: string;
+      propertyTitle: string;
+      city: string;
+      price: string;
+      url: string;
+    }) =>
+      `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937" dir="rtl">` +
+      `<h1 style="color:#0f766e;font-size:20px">إعلان جديد متوفّر 🔔</h1>` +
+      `<p>أهلا ${p.recipientName}،</p>` +
+      `<p>إعلان جديد في <strong>${p.city}</strong> يوافق التنبيه اللي سجّلتو :</p>` +
+      `<p style="padding:12px 16px;background:#f3f4f6;border-inline-start:3px solid #0f766e;border-radius:8px"><strong>${p.propertyTitle}</strong><br/>${p.price}</p>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">شوف الإعلان</a></p>` +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — السكن المضمون.</p>` +
+      `</div>`,
   },
   verifications: {
     navLabel: "التثبّت",
@@ -1109,6 +1138,8 @@ export const ar: Dictionary = {
     avisHoteRecu: "المضيف متاعك حط تقييم على السكن متاعك.",
     annonceExpireBientot: (titre: string) =>
       `« ${titre} » قريب توليش صالحة — فكّر تجدّدها.`,
+    alerteNouvelleAnnonce: (titre: string) =>
+      `إعلان جديد يوافق التنبيه متاعك : « ${titre} ».`,
   },
   alaUne: {
     titre: "حطّ إعلانك في الواجهة",

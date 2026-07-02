@@ -6,6 +6,7 @@ import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin, requireWakilOrAdmin } from "@/lib/session";
 import { logAudit } from "@/lib/audit";
+import { notifyMatchingSavedSearches } from "@/lib/saved-search";
 
 export type AdminActionState = { error?: string; success?: string } | undefined;
 
@@ -73,6 +74,10 @@ export async function verifyPropertyAction(
     userId: actor.id,
     metadata: { propertyId: property.id, ownerId: property.ownerId },
   });
+
+  // Alertes de recherche sauvegardée (F7) : l'annonce vient de devenir active,
+  // c'est le moment où elle devient trouvable en recherche.
+  await notifyMatchingSavedSearches(property.id);
 
   revalidatePath("/dashboard/admin/annonces");
   return { success: fr.admin.annonceMiseAVerifiee };

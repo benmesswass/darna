@@ -84,6 +84,8 @@ model User {
   // Centre de notifications in-app (F9) : réservation confirmée/annulée, avis
   // reçu, annonce bientôt expirée.
   notifications      Notification[]
+  // Alertes de recherche sauvegardée (F7) : ville + budget.
+  savedSearches      SavedSearch[]
   // PR1 — back-relation : annonces vérifiées par cet utilisateur (admin/wakil).
   verifiedProperties   Property[]          @relation("PropertyVerifiedBy")
   // PR2 — candidatures Wakil liées à ce compte.
@@ -387,7 +389,7 @@ model GuestReview {
 // de la locale courante (cf. src/lib/notification-text.ts).
 model Notification {
   id            String    @id @default(cuid())
-  type          String // RESERVATION_CONFIRMEE | RESERVATION_ANNULEE | AVIS_RECU | AVIS_HOTE_RECU | ANNONCE_EXPIRE_BIENTOT
+  type          String // RESERVATION_CONFIRMEE | RESERVATION_ANNULEE | AVIS_RECU | AVIS_HOTE_RECU | ANNONCE_EXPIRE_BIENTOT | ALERTE_NOUVELLE_ANNONCE
   propertyTitle String?
   href          String?
   readAt        DateTime?
@@ -404,6 +406,27 @@ model Notification {
   // Prisma (pas de clause WHERE sur @@unique) ; ajouté à la main dans la
   // migration 20260702170000_add_notification. Ne PAS le supprimer via
   // `migrate dev` sans le recréer manuellement (cf. src/lib/notification-center.ts).
+}
+
+// Alerte de recherche sauvegardée (F7) : ville + fourchette de prix. Un
+// voyageur est alerté (in-app + e-mail) dès qu'une annonce séjour correspondante
+// devient active — déclenché à l'événement (verifyPropertyAction), PAS par
+// cron (cf. src/lib/saved-search.ts). Volontairement SANS dates : une annonce
+// tout juste publiée n'a quasiment jamais de réservation existante, donc le
+// filtre dates d'une recherche n'apporterait rien à ce stade (il reste
+// pertinent pour la recherche live sur /sejours, pas pour cette alerte).
+model SavedSearch {
+  id        String   @id @default(cuid())
+  city      String
+  prixMin   Int?
+  prixMax   Int?
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, city, prixMin, prixMax])
+  @@index([city])
 }
 
 model ContactRequest {

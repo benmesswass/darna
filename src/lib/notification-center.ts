@@ -15,7 +15,8 @@ export type NotificationType =
   | "RESERVATION_ANNULEE"
   | "AVIS_RECU"
   | "AVIS_HOTE_RECU"
-  | "ANNONCE_EXPIRE_BIENTOT";
+  | "ANNONCE_EXPIRE_BIENTOT"
+  | "ALERTE_NOUVELLE_ANNONCE";
 
 async function createNotification(
   userId: string,
@@ -84,6 +85,15 @@ export async function notifyReviewReceived(propertyId: string): Promise<void> {
 /** Notifie le VOYAGEUR que son hôte a laissé un avis (hôte → voyageur) sur son séjour. */
 export async function notifyGuestReviewReceived(guestId: string): Promise<void> {
   await createNotification(guestId, "AVIS_HOTE_RECU", { href: "/dashboard/reservations" });
+}
+
+/** Notifie un voyageur qu'une nouvelle annonce correspond à son alerte enregistrée (F7). */
+export async function notifyNewListingMatch(
+  userId: string,
+  propertyTitle: string,
+  href: string
+): Promise<void> {
+  await createNotification(userId, "ALERTE_NOUVELLE_ANNONCE", { propertyTitle, href });
 }
 
 /**

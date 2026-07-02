@@ -162,6 +162,9 @@ export const en: Dictionary = {
     chambresMin: "Min bedrooms",
     typeBien: "Property type",
     indifferent: "Any",
+    creerAlerte: "Create alert",
+    alerteEnregistree: "Alert created — we'll email you.",
+    alerteExisteDeja: "You already have an alert for this search.",
     resultats: (n: number) =>
       n === 0 ? "No results" : n === 1 ? "1 listing" : `${n} listings`,
     precedent: "Previous",
@@ -390,6 +393,15 @@ export const en: Dictionary = {
     kyc: "Identity verification",
     email: "Email verification",
     monProfil: "My details",
+    mesAlertes: "My alerts",
+    alertesTitre: "My search alerts",
+    alertesAucune:
+      "No saved alerts yet. From the stays search, click “Create alert” to get an email as soon as a matching listing is published.",
+    alerteSupprimer: "Delete",
+    alerteBudget: (min: number, max: number) => `${min} – ${max} TND`,
+    alerteBudgetMin: (min: number) => `From ${min} TND`,
+    alerteBudgetMax: (max: number) => `Up to ${max} TND`,
+    alerteBudgetLibre: "Any budget",
     favoris: "My favourites",
     favorisSansDossier: "No folder",
     favorisNbLogements: (n: number) =>
@@ -833,6 +845,23 @@ export const en: Dictionary = {
       `<p><a href="${p.url}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">Reply on Darna</a></p>` +
       `<p style="font-size:12px;color:#9ca3af;margin-top:24px">For your safety, always reply through Darna messaging. Darna — Verified stays.</p>` +
       `</div>`,
+    savedSearchMatchSujet: (ville: string) =>
+      `Darna — new listing in ${ville} matching your alert`,
+    savedSearchMatchHtml: (p: {
+      recipientName: string;
+      propertyTitle: string;
+      city: string;
+      price: string;
+      url: string;
+    }) =>
+      `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
+      `<h1 style="color:#0f766e;font-size:20px">New listing available 🔔</h1>` +
+      `<p>Hello ${p.recipientName},</p>` +
+      `<p>A new listing in <strong>${p.city}</strong> matches your saved alert:</p>` +
+      `<p style="padding:12px 16px;background:#f3f4f6;border-inline-start:3px solid #0f766e;border-radius:8px"><strong>${p.propertyTitle}</strong><br/>${p.price}</p>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">View listing</a></p>` +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Verified stays.</p>` +
+      `</div>`,
   },
   verifications: {
     navLabel: "Verification",
@@ -1090,6 +1119,8 @@ export const en: Dictionary = {
     avisHoteRecu: "Your host left a review about your stay.",
     annonceExpireBientot: (titre: string) =>
       `“${titre}” is expiring soon — consider republishing it.`,
+    alerteNouvelleAnnonce: (titre: string) =>
+      `A new listing matches your saved search: “${titre}”.`,
   },
   alaUne: {
     titre: "Feature your listing",

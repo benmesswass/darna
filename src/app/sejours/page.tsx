@@ -22,6 +22,7 @@ import { SortSelect } from "@/components/search/SortSelect";
 import { AutoSubmitCheckbox } from "@/components/search/AutoSubmitCheckbox";
 import { PriceRangeFilter } from "@/components/search/PriceRangeFilter";
 import { AmenitiesFilter } from "@/components/search/AmenitiesFilter";
+import { SaveSearchButton } from "@/components/search/SaveSearchButton";
 import { parseAmenitiesParam, STAY_KINDS } from "@/lib/constants";
 import { SectionHero } from "@/components/layout/SectionHero";
 import { getCityWeather, getCityForecast } from "@/lib/weather";
@@ -250,6 +251,13 @@ export default async function SejoursPage({
             <span className="rounded-full bg-darna/10 px-2.5 py-0.5 text-xs font-medium text-darna">
               {resolvedCity}
             </span>
+          ) : null}
+          {resolvedCity && sessionUser ? (
+            <SaveSearchButton
+              ville={resolvedCity}
+              prixMin={params.prixMin}
+              prixMax={params.prixMax}
+            />
           ) : null}
         </div>
         {results.length > 0 ? (
