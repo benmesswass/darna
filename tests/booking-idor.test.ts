@@ -145,7 +145,10 @@ describe("submitReviewAction — IDOR", () => {
   function reviewForm(): FormData {
     const fd = new FormData();
     fd.set("bookingId", BOOKING_ID);
-    fd.set("rating", "5");
+    fd.set("proprete", "5");
+    fd.set("communication", "5");
+    fd.set("conformite", "5");
+    fd.set("qualitePrix", "5");
     fd.set("comment", "Séjour vraiment parfait, je recommande.");
     return fd;
   }

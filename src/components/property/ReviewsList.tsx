@@ -43,14 +43,33 @@ export function ReviewsList({ reviews }: { reviews: ReviewItem[] }) {
 
   const total = reviews.length;
 
-  const { average, counts } = useMemo(() => {
+  const { average, counts, subAverages } = useMemo(() => {
     const counts = [0, 0, 0, 0, 0]; // index 0 → 1 étoile, index 4 → 5 étoiles
     let sum = 0;
+    let proprete = 0;
+    let communication = 0;
+    let conformite = 0;
+    let qualitePrix = 0;
     for (const r of reviews) {
       counts[r.rating - 1]++;
       sum += r.rating;
+      proprete += r.proprete;
+      communication += r.communication;
+      conformite += r.conformite;
+      qualitePrix += r.qualitePrix;
     }
-    return { average: total ? sum / total : 0, counts };
+    return {
+      average: total ? sum / total : 0,
+      counts,
+      subAverages: total
+        ? {
+            proprete: proprete / total,
+            communication: communication / total,
+            conformite: conformite / total,
+            qualitePrix: qualitePrix / total,
+          }
+        : null,
+    };
   }, [reviews, total]);
 
   const visible = useMemo(() => {
@@ -142,6 +161,25 @@ export function ReviewsList({ reviews }: { reviews: ReviewItem[] }) {
             })}
           </div>
         </div>
+
+        {/* Sous-notes (F2) : moyenne par critère, sur l'ensemble des avis. */}
+        {subAverages ? (
+          <div className="mt-5 grid grid-cols-2 gap-x-6 gap-y-2 border-t border-darna/10 pt-4 sm:grid-cols-4">
+            {(
+              [
+                [fr.property.sousNoteProprete, subAverages.proprete],
+                [fr.property.sousNoteCommunication, subAverages.communication],
+                [fr.property.sousNoteConformite, subAverages.conformite],
+                [fr.property.sousNoteQualitePrix, subAverages.qualitePrix],
+              ] as const
+            ).map(([label, value]) => (
+              <div key={label}>
+                <p className="text-xs text-ink/55">{label}</p>
+                <p className="text-sm font-bold text-darna">{value.toFixed(1)}</p>
+              </div>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       {/* Barre d'outils : filtre actif + tri */}
@@ -211,6 +249,23 @@ export function ReviewsList({ reviews }: { reviews: ReviewItem[] }) {
               <p className="mt-3 text-sm leading-relaxed text-ink/80">
                 {review.comment}
               </p>
+              <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-darna/5 pt-2.5 text-xs text-ink/50">
+                <span>
+                  {fr.property.sousNoteProprete} <b className="text-ink/70">{review.proprete}/5</b>
+                </span>
+                <span>
+                  {fr.property.sousNoteCommunication}{" "}
+                  <b className="text-ink/70">{review.communication}/5</b>
+                </span>
+                <span>
+                  {fr.property.sousNoteConformite}{" "}
+                  <b className="text-ink/70">{review.conformite}/5</b>
+                </span>
+                <span>
+                  {fr.property.sousNoteQualitePrix}{" "}
+                  <b className="text-ink/70">{review.qualitePrix}/5</b>
+                </span>
+              </div>
             </li>
           ))}
         </ul>

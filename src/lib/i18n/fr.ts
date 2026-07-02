@@ -277,7 +277,10 @@ export const fr = {
     legende: "Indisponible",
     jourLibre: "Libre",
     publierAvis: "Laisser un avis",
-    votreNote: "Votre note",
+    sousNoteProprete: "Propreté",
+    sousNoteCommunication: "Communication",
+    sousNoteConformite: "Conformité à l'annonce",
+    sousNoteQualitePrix: "Rapport qualité/prix",
     votreCommentaire: "Votre commentaire",
     avisEnvoye: "Merci ! Votre avis a été publié.",
     avisRefuse:

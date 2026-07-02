@@ -1188,10 +1188,18 @@ async function main() {
     { property: 2, guest: fares, daysAgoCheckIn: 220, nights: 2, rating: 2, comment: "Le cadre est carte postale mais le rapport qualité-prix laisse à désirer, et la climatisation peinait. En deçà de mes attentes." },
   ];
 
+  // Sous-notes (F2) : variation déterministe autour de la note globale plutôt
+  // que 4 valeurs identiques partout — plus représentatif d'un vrai jeu de
+  // données, sans avoir à saisir les 23 avis à la main.
+  const clamp15 = (n: number) => Math.max(1, Math.min(5, n));
+
   for (const r of reviewSeeds) {
     const target = sejours[r.property];
     const checkIn = daysAgo(r.daysAgoCheckIn);
     const checkOut = new Date(checkIn.getTime() + r.nights * DAY);
+    const proprete = clamp15(r.rating + ((r.daysAgoCheckIn % 3) - 1));
+    const communication = clamp15(r.rating + ((r.comment.length % 3) - 1));
+    const conformite = clamp15(r.rating + ((r.nights % 3) - 1));
     const serviceFee = Math.round(target.price * r.nights * 0.08);
     const totalPrice = target.price * r.nights + serviceFee;
 
@@ -1221,6 +1229,10 @@ async function main() {
         propertyId: target.id,
         authorId: r.guest.id,
         rating: r.rating,
+        proprete,
+        communication,
+        conformite,
+        qualitePrix: r.rating,
         comment: r.comment,
         // Avis rédigé peu après le départ : donne des dates réalistes et
         // variées (sinon tous les avis porteraient la date du seed).

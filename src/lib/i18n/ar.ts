@@ -299,7 +299,10 @@ export const ar: Dictionary = {
     legende: "موش متوفّر",
     jourLibre: "متوفّر",
     publierAvis: "خلّي تقييم",
-    votreNote: "تقييمك",
+    sousNoteProprete: "النظافة",
+    sousNoteCommunication: "التواصل",
+    sousNoteConformite: "مطابقة الإعلان",
+    sousNoteQualitePrix: "جودة/سعر",
     votreCommentaire: "تعليقك",
     avisEnvoye: "يعطيك الصحة! تقييمك تنشر.",
     avisRefuse:
