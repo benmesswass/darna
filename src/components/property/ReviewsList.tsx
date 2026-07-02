@@ -303,6 +303,14 @@ export function ReviewsList({ reviews }: { reviews: ReviewItem[] }) {
         >
           {fr.property.afficherPlusAvis(remaining)}
         </button>
+      ) : visible.length > PAGE_SIZE ? (
+        <button
+          type="button"
+          onClick={() => setVisibleCount(PAGE_SIZE)}
+          className="mt-4 w-full rounded-2xl bg-white py-3 text-sm font-semibold text-darna ring-1 ring-darna/10 transition hover:bg-cream"
+        >
+          {fr.property.afficherMoinsAvis}
+        </button>
       ) : null}
     </div>
   );

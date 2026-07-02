@@ -294,6 +294,7 @@ export const fr = {
     filtreParNote: (n: number) => (n === 1 ? "1 étoile" : `${n} étoiles`),
     aucunAvisFiltre: "Aucun avis ne correspond à ce filtre.",
     afficherPlusAvis: (n: number) => `Afficher les ${n} autres avis`,
+    afficherMoinsAvis: "Afficher moins",
     favoriAjouter: "Ajouter aux favoris",
     favoriRetirer: "Retirer des favoris",
     favoriChoisirDossier: "Enregistrer dans un dossier",
