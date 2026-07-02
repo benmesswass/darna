@@ -450,7 +450,7 @@ export const ar: Dictionary = {
     republier: "عاود انشر (+30 يوم)",
     annonceMarquee: "الإعلان تحدّث.",
     voirAnnonce: "شوف الإعلان",
-    voirProfilHote: "شوف بروفايل الوكيل",
+    voirProfilHote: "شوف بروفايل المالك",
     mettreALaUne: "حطّه في الواجهة",
     prolongerALaUne: "طوّل في الواجهة",
     alaUneActif: (date: string) => `في الواجهة حتى ${date}`,
