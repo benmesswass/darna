@@ -323,6 +323,10 @@ export async function ListingDetail({
             reviews={property.reviews.map((r) => ({
               id: r.id,
               rating: r.rating,
+              proprete: r.proprete,
+              communication: r.communication,
+              conformite: r.conformite,
+              qualitePrix: r.qualitePrix,
               comment: r.comment,
               authorName: r.author.name,
               createdAt: r.createdAt.toISOString(),

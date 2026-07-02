@@ -344,9 +344,17 @@ model Message {
 // bookingId est obligatoire et unique (un seul avis par séjour).
 model Review {
   id        String   @id @default(cuid())
-  rating    Int // 1 à 5
+  rating    Int // 1 à 5 — moyenne arrondie des 4 sous-notes ci-dessous
   comment   String
   createdAt DateTime @default(now())
+
+  // Sous-notes (F2 roadmap), 1 à 5 chacune. `rating` reste la moyenne arrondie,
+  // calculée serveur (submitReviewAction) — jamais saisie séparément par le
+  // voyageur, pour éviter toute incohérence entre note globale et détail.
+  proprete      Int
+  communication Int
+  conformite    Int
+  qualitePrix   Int
 
   bookingId String  @unique
   booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)

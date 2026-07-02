@@ -276,7 +276,10 @@ export const en: Dictionary = {
     legende: "Unavailable",
     jourLibre: "Available",
     publierAvis: "Leave a review",
-    votreNote: "Your rating",
+    sousNoteProprete: "Cleanliness",
+    sousNoteCommunication: "Communication",
+    sousNoteConformite: "Accuracy",
+    sousNoteQualitePrix: "Value for money",
     votreCommentaire: "Your comment",
     avisEnvoye: "Thank you! Your review has been published.",
     avisRefuse:

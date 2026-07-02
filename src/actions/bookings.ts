@@ -544,7 +544,12 @@ export type ReviewFormState = { error?: string; success?: string } | undefined;
 
 const reviewSchema = z.object({
   bookingId: z.string().cuid(),
-  rating: z.coerce.number().int().min(1).max(5),
+  // Sous-notes (F2) : la note globale n'est jamais saisie séparément, elle
+  // est calculée serveur (moyenne arrondie) pour rester toujours cohérente.
+  proprete: z.coerce.number().int().min(1).max(5),
+  communication: z.coerce.number().int().min(1).max(5),
+  conformite: z.coerce.number().int().min(1).max(5),
+  qualitePrix: z.coerce.number().int().min(1).max(5),
   comment: z.string().trim().min(10).max(2000),
 });
 
@@ -562,7 +567,10 @@ export async function submitReviewAction(
 
   const parsed = reviewSchema.safeParse({
     bookingId: formData.get("bookingId"),
-    rating: formData.get("rating"),
+    proprete: formData.get("proprete"),
+    communication: formData.get("communication"),
+    conformite: formData.get("conformite"),
+    qualitePrix: formData.get("qualitePrix"),
     comment: formData.get("comment"),
   });
   if (!parsed.success) return { error: fr.common.champsRequis };
@@ -581,12 +589,25 @@ export async function submitReviewAction(
 
   if (!eligible) return { error: fr.property.avisRefuse };
 
+  // Note globale = moyenne arrondie des 4 sous-notes (jamais saisie à part).
+  const rating = Math.round(
+    (parsed.data.proprete +
+      parsed.data.communication +
+      parsed.data.conformite +
+      parsed.data.qualitePrix) /
+      4
+  );
+
   await prisma.review.create({
     data: {
       bookingId: booking.id,
       propertyId: booking.propertyId,
       authorId: user.id,
-      rating: parsed.data.rating,
+      rating,
+      proprete: parsed.data.proprete,
+      communication: parsed.data.communication,
+      conformite: parsed.data.conformite,
+      qualitePrix: parsed.data.qualitePrix,
       comment: parsed.data.comment,
     },
   });
@@ -599,7 +620,7 @@ export async function submitReviewAction(
     action: "REVIEW_SUBMITTED",
     userId: user.id,
     success: true,
-    metadata: { bookingId: booking.id, rating: parsed.data.rating },
+    metadata: { bookingId: booking.id, rating },
   });
 
   revalidatePath(`/annonce/${booking.property.slug}`);

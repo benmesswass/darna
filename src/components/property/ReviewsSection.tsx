@@ -6,6 +6,12 @@ import { ReviewsList } from "./ReviewsList";
 export type ReviewItem = {
   id: string;
   rating: number;
+  // Sous-notes (F2) : propreté, communication, conformité à l'annonce,
+  // rapport qualité/prix — chacune 1 à 5.
+  proprete: number;
+  communication: number;
+  conformite: number;
+  qualitePrix: number;
   comment: string;
   authorName: string;
   createdAt: string;
