@@ -6,7 +6,7 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { getCity } from "../src/lib/geo";
 import { buildPropertySlug } from "../src/lib/slug";
-import { verticalOfType, CANCEL_POLICIES } from "../src/lib/constants";
+import { verticalOfType, CANCEL_POLICIES, STAY_KINDS } from "../src/lib/constants";
 import { computeDepositAmount } from "../src/lib/config";
 import { hashCin } from "../src/lib/crypto";
 
@@ -49,6 +49,8 @@ type SeedProperty = {
   surface?: number;
   rooms?: number;
   maxGuests?: number;
+  /** Type de bien séjour (F5 roadmap) — requis pour type SEJOUR. */
+  stayKind?: (typeof STAY_KINDS)[number];
   verified: boolean;
   status?: string;
   publishedDaysAgo: number;
@@ -72,6 +74,7 @@ const PROPERTIES: SeedProperty[] = [
     surface: 220,
     rooms: 5,
     maxGuests: 8,
+    stayKind: "Villa",
     verified: true,
     publishedDaysAgo: 3,
     featuredDaysLeft: 4,
@@ -90,6 +93,7 @@ const PROPERTIES: SeedProperty[] = [
     surface: 38,
     rooms: 1,
     maxGuests: 2,
+    stayKind: "Studio",
     verified: true,
     publishedDaysAgo: 7,
     address: "Médina de Hammamet",
@@ -107,6 +111,7 @@ const PROPERTIES: SeedProperty[] = [
     surface: 140,
     rooms: 3,
     maxGuests: 6,
+    stayKind: "Maison d'hôtes",
     verified: true,
     publishedDaysAgo: 1,
     featuredDaysLeft: 6,
@@ -125,6 +130,7 @@ const PROPERTIES: SeedProperty[] = [
     surface: 85,
     rooms: 3,
     maxGuests: 4,
+    stayKind: "Appartement",
     verified: false,
     publishedDaysAgo: 12,
     address: "Marsa Plage",
@@ -142,6 +148,7 @@ const PROPERTIES: SeedProperty[] = [
     surface: 180,
     rooms: 4,
     maxGuests: 7,
+    stayKind: "Maison d'hôtes",
     verified: true,
     publishedDaysAgo: 5,
     address: "Erriadh, près de Djerbahood",
@@ -159,6 +166,7 @@ const PROPERTIES: SeedProperty[] = [
     surface: 70,
     rooms: 2,
     maxGuests: 4,
+    stayKind: "Appartement",
     verified: true,
     publishedDaysAgo: 9,
     address: "Boujaafar, front de mer",
@@ -176,6 +184,7 @@ const PROPERTIES: SeedProperty[] = [
     surface: 160,
     rooms: 4,
     maxGuests: 8,
+    stayKind: "Villa",
     verified: false,
     publishedDaysAgo: 18,
     address: "Route de la Falaise",
@@ -193,6 +202,7 @@ const PROPERTIES: SeedProperty[] = [
     surface: 90,
     rooms: 3,
     maxGuests: 5,
+    stayKind: "Maison",
     verified: true,
     publishedDaysAgo: 2,
     address: "Quartier du vieux port",
@@ -210,6 +220,7 @@ const PROPERTIES: SeedProperty[] = [
     surface: 65,
     rooms: 2,
     maxGuests: 3,
+    stayKind: "Maison d'hôtes",
     verified: true,
     publishedDaysAgo: 14,
     address: "Route de la palmeraie",
@@ -227,6 +238,7 @@ const PROPERTIES: SeedProperty[] = [
     surface: 130,
     rooms: 3,
     maxGuests: 6,
+    stayKind: "Appartement",
     verified: true,
     publishedDaysAgo: 4,
     address: "Marina El Kantaoui",
@@ -244,6 +256,7 @@ const PROPERTIES: SeedProperty[] = [
     surface: 30,
     rooms: 1,
     maxGuests: 2,
+    stayKind: "Maison d'hôtes",
     verified: false,
     publishedDaysAgo: 22,
     address: "Col des Ruines",
@@ -261,6 +274,7 @@ const PROPERTIES: SeedProperty[] = [
     surface: 110,
     rooms: 3,
     maxGuests: 6,
+    stayKind: "Maison d'hôtes",
     verified: true,
     publishedDaysAgo: 6,
     address: "Route du Fort",
@@ -581,6 +595,7 @@ const PROPERTIES: SeedProperty[] = [
     surface: 70,
     rooms: 2,
     maxGuests: 4,
+    stayKind: "Appartement",
     verified: false,
     publishedDaysAgo: 2,
     amenities: ["Piscine", "Climatisation", "Wifi", "Parking"],
@@ -596,6 +611,7 @@ const PROPERTIES: SeedProperty[] = [
     surface: 35,
     rooms: 1,
     maxGuests: 2,
+    stayKind: "Studio",
     verified: false,
     publishedDaysAgo: 5,
     amenities: ["Climatisation", "Wifi", "Proche plage"],
@@ -613,6 +629,7 @@ const PROPERTIES: SeedProperty[] = [
     surface: 180,
     rooms: 4,
     maxGuests: 8,
+    stayKind: "Villa",
     verified: false,
     publishedDaysAgo: 4,
     address: "Zone touristique Nord",
@@ -660,6 +677,7 @@ const PROPERTIES: SeedProperty[] = [
     surface: 20,
     rooms: 1,
     maxGuests: 1,
+    stayKind: "Maison d'hôtes",
     verified: false,
     publishedDaysAgo: 8,
     amenities: ["Wifi", "Climatisation", "Proche métro"],
@@ -677,6 +695,7 @@ const PROPERTIES: SeedProperty[] = [
     surface: 280,
     rooms: 5,
     maxGuests: 10,
+    stayKind: "Villa",
     verified: false,
     status: "EN_ATTENTE_VALIDATION",
     publishedDaysAgo: 0,
@@ -708,6 +727,7 @@ const PROPERTIES: SeedProperty[] = [
     surface: 120,
     rooms: 3,
     maxGuests: 5,
+    stayKind: "Maison d'hôtes",
     verified: false,
     status: "EN_ATTENTE_VALIDATION",
     publishedDaysAgo: 2,
@@ -756,6 +776,7 @@ const PROPERTIES: SeedProperty[] = [
     surface: 100,
     rooms: 3,
     maxGuests: 6,
+    stayKind: "Villa",
     verified: false,
     status: "EXPIREE",
     publishedDaysAgo: 45,
@@ -1090,8 +1111,8 @@ async function main() {
         rooms: p.rooms ?? null,
         maxGuests: p.maxGuests ?? null, // shadow (M2)
         stay:
-          p.type === "SEJOUR" && p.maxGuests
-            ? { create: { maxGuests: p.maxGuests } }
+          p.type === "SEJOUR" && p.maxGuests && p.stayKind
+            ? { create: { maxGuests: p.maxGuests, kind: p.stayKind } }
             : undefined,
         city: cityRef.name,
         gouvernorat: cityRef.gouvernorat,

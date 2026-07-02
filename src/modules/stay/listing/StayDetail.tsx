@@ -4,7 +4,7 @@ import { buildUnavailableDates } from "@/lib/listings";
 import { markerPriceLabel } from "@/lib/format";
 import { PropertyCtas } from "@/components/property/PropertyCtas";
 import { StayDatesPicker } from "@/modules/stay/listing/StayDatesPicker";
-import { UsersIcon } from "@/components/icons";
+import { HouseIcon, UsersIcon } from "@/components/icons";
 import { ListingDetail } from "@/modules/core/listing/ListingDetail";
 import { Caracteristique } from "@/modules/core/listing/Caracteristique";
 import type { CancelPolicy } from "@/lib/constants";
@@ -67,12 +67,17 @@ export async function StayDetail({
       priceSuffix={fr.common.parNuit}
       eligibleBookingId={eligibleBooking?.id}
       characteristicsExtra={
-        property.stay?.maxGuests ? (
-          <Caracteristique
-            icon={<UsersIcon />}
-            label={fr.property.capacite(property.stay.maxGuests)}
-          />
-        ) : null
+        <>
+          {property.stay?.kind ? (
+            <Caracteristique icon={<HouseIcon />} label={property.stay.kind} />
+          ) : null}
+          {property.stay?.maxGuests ? (
+            <Caracteristique
+              icon={<UsersIcon />}
+              label={fr.property.capacite(property.stay.maxGuests)}
+            />
+          ) : null}
+        </>
       }
       afterAmenities={
         <section>

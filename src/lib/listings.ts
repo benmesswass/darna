@@ -2,7 +2,12 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { resolveCity, nearbyCities } from "@/lib/geo";
 import { markerPriceLabel } from "@/lib/format";
-import { parseSortKey, parseAmenitiesParam, type SortKey } from "@/lib/constants";
+import {
+  parseSortKey,
+  parseAmenitiesParam,
+  parseStayKindParam,
+  type SortKey,
+} from "@/lib/constants";
 import type { MapMarker } from "@/components/map/types";
 
 /** Taille de page pour les listings (protection DoS + UX). */
@@ -153,6 +158,9 @@ export type SejoursSearchParams = {
   // Cases à cocher répétées → Next.js donne une string si une seule est
   // cochée, un string[] si plusieurs (cf. parseAmenitiesParam).
   equipements?: string | string[];
+  // Chambres minimum (Property.rooms) et type de bien (StayDetails.kind, F5).
+  chambres?: string;
+  typeBien?: string;
   tri?: string;
   page?: string;
 };
@@ -274,11 +282,20 @@ export async function searchSejours(params: SejoursSearchParams) {
     type: "SEJOUR",
   };
 
-  // Filtre capacité sur la table satellite (M2) : un séjour matche s'il a une
-  // ligne StayDetails dont maxGuests ≥ voyageurs (équivalent à l'ancien filtre
-  // sur Property.maxGuests, les valeurs étant synchronisées en shadow).
+  // Filtres sur la table satellite (M2) StayDetails : capacité (maxGuests) et
+  // type de bien (kind, F5). Fusionnés dans un seul `stay` pour ne pas
+  // s'écraser l'un l'autre.
   const voyageurs = parsePositiveInt(params.voyageurs);
-  if (voyageurs) baseWhere.stay = { maxGuests: { gte: voyageurs } };
+  const typeBien = parseStayKindParam(params.typeBien);
+  const stayWhere: Prisma.StayDetailsWhereInput = {};
+  if (voyageurs) stayWhere.maxGuests = { gte: voyageurs };
+  if (typeBien) stayWhere.kind = typeBien;
+  if (Object.keys(stayWhere).length) baseWhere.stay = stayWhere;
+
+  // Chambres minimum (Property.rooms, F5) — même logique que le filtre
+  // « pièces » de searchImmobilier.
+  const chambres = parsePositiveInt(params.chambres);
+  if (chambres) baseWhere.rooms = { gte: chambres };
 
   // Fourchette de prix à la nuitée (TND). Réutilisée pour les suggestions à
   // filtres égaux (baseWhere), comme la capacité et la disponibilité.
@@ -430,8 +447,8 @@ export async function getPropertyBySlug(slug: string) {
     where: { slug },
     include: {
       photos: { orderBy: { position: "asc" } },
-      // Capacité séjour depuis la table satellite (M2).
-      stay: { select: { maxGuests: true } },
+      // Capacité + type de bien séjour depuis la table satellite (M2).
+      stay: { select: { maxGuests: true, kind: true } },
       owner: {
         select: {
           id: true,

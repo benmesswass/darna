@@ -206,6 +206,8 @@ model StayDetails {
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   // Capacité d'accueil (migrée depuis Property.maxGuests en PR4).
   maxGuests  Int
+  // Type de bien (F5 roadmap) : libellé FR stocké tel quel (cf. AMENITIES).
+  kind       String
 }
 
 // Détails spécifiques à la verticale IMMO (1:1 avec Property). Écriture/lecture

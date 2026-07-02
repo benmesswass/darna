@@ -159,6 +159,8 @@ export const en: Dictionary = {
     equivSejour: (n: number) => `That's for ${n === 1 ? "1 night" : `${n} nights`}:`,
     surfaceMin: "Min area (m²)",
     piecesMin: "Min rooms",
+    chambresMin: "Min bedrooms",
+    typeBien: "Property type",
     indifferent: "Any",
     resultats: (n: number) =>
       n === 0 ? "No results" : n === 1 ? "1 listing" : `${n} listings`,
@@ -495,6 +497,7 @@ export const en: Dictionary = {
     surface: "Area (m²)",
     pieces: "Number of rooms",
     capacite: "Capacity (guests)",
+    typeBien: "Property type",
     politiqueAnnulation: "Cancellation policy",
     politiqueAnnulationAide:
       "Sets what guests get back if they cancel. The more flexible, the more reassuring; the stricter, the more your income is protected.",

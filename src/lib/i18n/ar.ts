@@ -165,6 +165,8 @@ export const ar: Dictionary = {
       `يعني لـ ${n === 1 ? "ليلة" : n === 2 ? "ليلتين" : n <= 10 ? `${n} ليالي` : `${n} ليلة`} :`,
     surfaceMin: "أدنى مساحة (م²)",
     piecesMin: "أدنى عدد بيوت",
+    chambresMin: "أدنى عدد غرف",
+    typeBien: "نوع السكن",
     indifferent: "الكل",
     resultats: (n: number) =>
       n === 0
@@ -516,6 +518,7 @@ export const ar: Dictionary = {
     surface: "المساحة (م²)",
     pieces: "عدد البيوت",
     capacite: "السعة (مسافرين)",
+    typeBien: "نوع السكن",
     politiqueAnnulation: "سياسة الإلغاء",
     politiqueAnnulationAide:
       "تحدّد شنوّة يرجع للمسافر كان يلغي. كل ما كانت مرنة أكثر، كل ما طمأنت المسافر؛ وكل ما كانت صارمة، كل ما حميت مداخيلك.",
