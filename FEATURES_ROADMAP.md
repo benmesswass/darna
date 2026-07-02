@@ -19,7 +19,7 @@
 
 | # | Tâche | Prio | Statut | Détail |
 |---|-------|------|--------|--------|
-| F1 | Avis bidirectionnels (hôte → voyageur, pas seulement voyageur → annonce) | P1 | ❌ | Modèle `Review` (`prisma/schema.prisma:334`) est à sens unique (`bookingId @unique`). Ajouter une deuxième relation ou un modèle `GuestReview` distinct. |
+| F1 | Avis bidirectionnels (hôte → voyageur, pas seulement voyageur → annonce) | P1 | ✅ | Nouveau modèle `GuestReview` (`prisma/schema.prisma`, migration `20260702120000_add_guest_review`) : avis hôte→voyageur, un par réservation. `submitGuestReviewAction` (`src/actions/bookings.ts`), `GuestReviewForm`/`GuestReviewDisplay` (`src/components/booking/`) branchés dans `src/app/dashboard/reservations/page.tsx` (formulaire côté hôte pour un séjour terminé, affichage lecture seule côté voyageur). Pas de page profil voyageur publique (hors scope — l'avis reste visible seulement au voyageur concerné). |
 | F2 | Sous-notes d'avis (propreté, communication, conformité à l'annonce, rapport qualité/prix) en plus de la note globale | P2 | ❌ | `Review.rating` est un entier unique. `ReviewForm`/`ReviewsList` (`src/components/property/`) à étendre. |
 | F3 | Fiche hôte publique (annonces du même hôte, ancienneté, note moyenne, taux de réponse) | P1 | ✅ | PR #73. Page `/hote/[id]` (`getHostProfile` dans `src/lib/listings.ts`) : annonces actives, ancienneté, note moyenne agrégée, badge KYC. Lien depuis `ListingDetail.tsx` (masqué si `anonymizeOwner`). **Taux de réponse non inclus** (hors scope de cette PR — reste à faire si jugé utile). |
 
@@ -55,7 +55,7 @@
 3. ✅ F8 — bouton Partager (PR #74).
 4. ✅ F6 — annonces similaires.
 5. ✅ F10 — annulation self-service (déjà livré, PR #56 — vérifié).
-6. F1 — avis bidirectionnels.
+6. ✅ F1 — avis bidirectionnels.
 
 **Ensuite (P2) :**
 7. F5 — filtres chambres/capacité/type.

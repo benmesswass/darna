@@ -458,6 +458,10 @@ export const en: Dictionary = {
       montant > 0 ? `Refund: ${montant} TND` : "No refund under this policy",
     cancelledAt: (date: string) => `Cancelled on ${date}`,
     rembourseLabel: (montant: number) => `Refunded: ${montant} TND`,
+    noterVoyageur: "Rate this guest",
+    avisVoyageurEnvoye: "Review submitted — thank you!",
+    votreAvisSurCeVoyageur: "Your review of this guest:",
+    avisHoteSurVous: "What the host said about your stay:",
     revenus: "Earnings",
     revenusTitre: "My earnings",
     revenusSousTitre:

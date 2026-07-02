@@ -68,11 +68,14 @@ model User {
   country       String?
   createdAt     DateTime @default(now())
 
-  properties         Property[]
-  bookings           Booking[]
-  messages           Message[]
-  reviews            Review[]
-  contactRequests    ContactRequest[]
+  properties           Property[]
+  bookings             Booking[]
+  messages             Message[]
+  reviews              Review[]
+  // Avis « hôte → voyageur » (F1) : reçus par ce voyageur / rédigés par cet hôte.
+  guestReviewsReceived GuestReview[] @relation("GuestReviewTarget")
+  guestReviewsAuthored GuestReview[] @relation("GuestReviewAuthor")
+  contactRequests      ContactRequest[]
   favorites          Favorite[]
   favoriteFolders    FavoriteFolder[]
   auditLogs          AuditLog[]
@@ -295,8 +298,9 @@ model Booking {
   guestId    String
   guest      User     @relation(fields: [guestId], references: [id], onDelete: Cascade)
 
-  review   Review?
-  messages Message[]
+  review      Review?
+  guestReview GuestReview?
+  messages    Message[]
 
   @@index([propertyId, status])
   @@index([guestId])
@@ -346,6 +350,29 @@ model Review {
   author     User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   @@index([propertyId])
+}
+
+// Avis symétrique « hôte → voyageur » (F1 roadmap) : note le COMPORTEMENT du
+// voyageur, distinct de Review (voyageur → annonce). Modèle séparé plutôt
+// qu'un flag sur Review : auteur/cible inversés (User↔User, pas User↔Property)
+// et cycle de vie indépendant — un avis n'implique jamais l'autre. Un seul
+// avis hôte par réservation (bookingId @unique), publié par le PROPRIÉTAIRE
+// de l'annonce concernée (vérifié côté action, cf. submitGuestReviewAction).
+model GuestReview {
+  id        String   @id @default(cuid())
+  rating    Int // 1 à 5
+  comment   String
+  createdAt DateTime @default(now())
+
+  bookingId String  @unique
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  targetId String // voyageur noté
+  target   User   @relation("GuestReviewTarget", fields: [targetId], references: [id], onDelete: Cascade)
+  authorId String // hôte auteur
+  author   User   @relation("GuestReviewAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([targetId])
 }
 
 model ContactRequest {

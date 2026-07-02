@@ -479,6 +479,10 @@ export const ar: Dictionary = {
       montant > 0 ? `استرجاع: ${montant} دينار` : "لا استرجاع حسب السياسة",
     cancelledAt: (date: string) => `ملغى في ${date}`,
     rembourseLabel: (montant: number) => `مُسترجع: ${montant} دينار`,
+    noterVoyageur: "قيّم هذا المسافر",
+    avisVoyageurEnvoye: "تنبعث التقييم — شكرًا!",
+    votreAvisSurCeVoyageur: "تقييمك لهذا المسافر:",
+    avisHoteSurVous: "شنوة قال المضيف على السكن متاعك:",
     revenus: "المداخيل",
     revenusTitre: "مداخيلي",
     revenusSousTitre:
