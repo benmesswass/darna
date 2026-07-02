@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { submitGuestReviewAction, type GuestReviewFormState } from "@/actions/bookings";
 import { useT } from "@/components/i18n/LocaleProvider";
 import { StarIcon } from "@/components/icons";
+import { SuccessCheck } from "@/components/ui/SuccessCheck";
 
 /** Symétrique de ReviewForm : l'hôte note le voyageur (F1, avis bidirectionnels). */
 export function GuestReviewForm({ bookingId }: { bookingId: string }) {
@@ -18,8 +19,9 @@ export function GuestReviewForm({ bookingId }: { bookingId: string }) {
     return (
       <p
         role="status"
-        className="mt-2 rounded-xl bg-emerald-50 px-3.5 py-2.5 text-xs font-medium text-emerald-700"
+        className="mt-2 flex items-center gap-2.5 rounded-xl bg-emerald-50 px-3.5 py-2.5 text-xs font-medium text-emerald-700"
       >
+        <SuccessCheck size={22} />
         {state.success}
       </p>
     );

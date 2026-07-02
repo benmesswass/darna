@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { submitReviewAction, type ReviewFormState } from "@/actions/bookings";
 import { useT } from "@/components/i18n/LocaleProvider";
 import { StarIcon } from "@/components/icons";
+import { SuccessCheck } from "@/components/ui/SuccessCheck";
 
 /** Un sous-critère noté de 1 à 5 (F2) : propreté, communication, conformité, qualité/prix. */
 function SubRatingPicker({
@@ -53,8 +54,9 @@ export function ReviewForm({ bookingId }: { bookingId: string }) {
     return (
       <p
         role="status"
-        className="mt-4 rounded-2xl bg-emerald-50 px-5 py-4 text-sm font-medium text-emerald-700"
+        className="mt-4 flex items-center gap-3 rounded-2xl bg-emerald-50 px-5 py-4 text-sm font-medium text-emerald-700"
       >
+        <SuccessCheck size={32} />
         {state.success}
       </p>
     );
