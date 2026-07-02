@@ -9,7 +9,13 @@ import { prisma } from "@/lib/prisma";
 import { requireLister, requireUser } from "@/lib/session";
 import { resolveCity, getCity } from "@/lib/geo";
 import { buildPropertySlug } from "@/lib/slug";
-import { AMENITIES, CANCEL_POLICIES, PROPERTY_TYPES, verticalOfType } from "@/lib/constants";
+import {
+  AMENITIES,
+  CANCEL_POLICIES,
+  PROPERTY_TYPES,
+  STAY_KINDS,
+  verticalOfType,
+} from "@/lib/constants";
 import { verticalEnabled, kycGatingEnabled } from "@/lib/modes";
 import { FEATURED_DURATION_DAYS, LISTING_LIFETIME_DAYS } from "@/lib/config";
 import { logAudit } from "@/lib/audit";
@@ -32,6 +38,7 @@ const createSchema = z
     surface: z.coerce.number().int().min(10).max(10_000).optional().or(z.literal("")),
     rooms: z.coerce.number().int().min(1).max(30).optional().or(z.literal("")),
     maxGuests: z.coerce.number().int().min(1).max(30).optional().or(z.literal("")),
+    stayKind: z.enum(STAY_KINDS).optional().or(z.literal("")),
     latitude: z.coerce.number().min(30).max(38),
     longitude: z.coerce.number().min(7).max(12),
     description: z.string().trim().min(40).max(4000),
@@ -40,6 +47,9 @@ const createSchema = z
   })
   .refine((data) => data.type !== "SEJOUR" || Number(data.maxGuests) >= 1, {
     message: "capacite",
+  })
+  .refine((data) => data.type !== "SEJOUR" || Boolean(data.stayKind), {
+    message: "typeBien",
   });
 
 export async function createPropertyAction(
@@ -58,6 +68,7 @@ export async function createPropertyAction(
     surface: formData.get("surface") || "",
     rooms: formData.get("rooms") || "",
     maxGuests: formData.get("maxGuests") || "",
+    stayKind: formData.get("stayKind") || "",
     latitude: formData.get("latitude"),
     longitude: formData.get("longitude"),
     description: formData.get("description"),
@@ -147,8 +158,8 @@ export async function createPropertyAction(
       photos: { create: photoRecords },
       // Détails séjour (table satellite, M2) : source de vérité des lectures.
       stay:
-        data.type === "SEJOUR" && data.maxGuests
-          ? { create: { maxGuests: Number(data.maxGuests) } }
+        data.type === "SEJOUR" && data.maxGuests && data.stayKind
+          ? { create: { maxGuests: Number(data.maxGuests), kind: data.stayKind } }
           : undefined,
     },
   });
@@ -196,6 +207,7 @@ const updateSchema = z.object({
   surface: z.coerce.number().int().min(10).max(10_000).optional().or(z.literal("")),
   rooms: z.coerce.number().int().min(1).max(30).optional().or(z.literal("")),
   maxGuests: z.coerce.number().int().min(1).max(30).optional().or(z.literal("")),
+  stayKind: z.enum(STAY_KINDS).optional().or(z.literal("")),
   latitude: z.coerce.number().min(30).max(38),
   longitude: z.coerce.number().min(7).max(12),
   description: z.string().trim().min(40).max(4000),
@@ -219,6 +231,7 @@ export async function updatePropertyAction(
     surface: formData.get("surface") || "",
     rooms: formData.get("rooms") || "",
     maxGuests: formData.get("maxGuests") || "",
+    stayKind: formData.get("stayKind") || "",
     latitude: formData.get("latitude"),
     longitude: formData.get("longitude"),
     description: formData.get("description"),
@@ -255,11 +268,11 @@ export async function updatePropertyAction(
       cancelPolicy: property.type === "SEJOUR" ? data.cancelPolicy : "MODEREE",
       // Détails séjour (table satellite, M2) : tenu synchrone avec le shadow.
       stay:
-        property.type === "SEJOUR" && data.maxGuests
+        property.type === "SEJOUR" && data.maxGuests && data.stayKind
           ? {
               upsert: {
-                create: { maxGuests: Number(data.maxGuests) },
-                update: { maxGuests: Number(data.maxGuests) },
+                create: { maxGuests: Number(data.maxGuests), kind: data.stayKind },
+                update: { maxGuests: Number(data.maxGuests), kind: data.stayKind },
               },
             }
           : undefined,

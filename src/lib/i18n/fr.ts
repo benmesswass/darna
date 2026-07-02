@@ -160,6 +160,8 @@ export const fr = {
     equivSejour: (n: number) => `Soit pour ${n === 1 ? "1 nuit" : `${n} nuits`} :`,
     surfaceMin: "Surface min (m²)",
     piecesMin: "Pièces min",
+    chambresMin: "Chambres min",
+    typeBien: "Type de bien",
     indifferent: "Indifférent",
     resultats: (n: number) =>
       n === 0 ? "Aucun résultat" : n === 1 ? "1 annonce" : `${n} annonces`,
@@ -496,6 +498,7 @@ export const fr = {
     surface: "Surface (m²)",
     pieces: "Nombre de pièces",
     capacite: "Capacité (voyageurs)",
+    typeBien: "Type de bien",
     politiqueAnnulation: "Politique d'annulation",
     politiqueAnnulationAide:
       "Définit ce que le voyageur récupère s'il annule. Plus elle est souple, plus vous rassurez ; plus elle est stricte, plus vous protégez vos revenus.",

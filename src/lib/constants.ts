@@ -133,6 +133,15 @@ export const AMENITIES = [
 ] as const;
 export type Amenity = (typeof AMENITIES)[number];
 
+/** Types de bien séjour (F5 roadmap) — libellés FR stockés tels quels (cf. AMENITIES). */
+export const STAY_KINDS = ["Villa", "Appartement", "Studio", "Maison d'hôtes", "Maison"] as const;
+export type StayKind = (typeof STAY_KINDS)[number];
+
+/** Normalise le paramètre `typeBien` de l'URL en valeur valide, ou null. */
+export function parseStayKindParam(value: string | undefined): StayKind | null {
+  return value && (STAY_KINDS as readonly string[]).includes(value) ? (value as StayKind) : null;
+}
+
 /**
  * Normalise le paramètre `equipements` de l'URL (case à cocher répétée → string
  * ou string[] selon Next.js) en liste d'équipements valides, sans doublons.

@@ -14,6 +14,7 @@ import {
   AMENITIES,
   CANCEL_POLICIES,
   PROPERTY_TYPES,
+  STAY_KINDS,
   type PropertyType,
 } from "@/lib/constants";
 import { CITIES, getCity, nearestCity, resolveCity } from "@/lib/geo";
@@ -44,6 +45,7 @@ export type PropertyFormInitial = {
   surface: number | null;
   rooms: number | null;
   maxGuests: number | null;
+  stayKind: string | null;
   latitude: number;
   longitude: number;
   description: string;
@@ -81,6 +83,8 @@ export function PropertyForm({
   // Vide à la création : l'hôte DOIT choisir (champ essentiel). En édition,
   // on préremplit avec la politique déjà enregistrée.
   const [cancelPolicy, setCancelPolicy] = useState(initial?.cancelPolicy ?? "");
+  // Idem pour le type de bien séjour (F5 roadmap).
+  const [stayKind, setStayKind] = useState(initial?.stayKind ?? "");
   // URLs d'aperçu des photos sélectionnées (création), dans l'ordre choisi.
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   // Instantané des champs au moment d'ouvrir l'aperçu (null = aperçu fermé).
@@ -310,6 +314,33 @@ export function PropertyForm({
           </label>
         ) : null}
       </div>
+
+      {type === "SEJOUR" ? (
+        <fieldset className="space-y-2">
+          <legend className={labelClass}>
+            {fr.annonceForm.typeBien} <span className="text-red-600">*</span>
+          </legend>
+          <div className="flex flex-wrap gap-2">
+            {STAY_KINDS.map((k) => (
+              <label
+                key={k}
+                className="flex cursor-pointer items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-sm ring-1 ring-darna/15 has-[:checked]:bg-darna has-[:checked]:text-white"
+              >
+                <input
+                  type="radio"
+                  name="stayKind"
+                  value={k}
+                  required
+                  checked={stayKind === k}
+                  onChange={(e) => setStayKind(e.target.value)}
+                  className="sr-only"
+                />
+                {k}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      ) : null}
 
       {type === "SEJOUR" ? (
         <fieldset className="space-y-3 rounded-2xl bg-cream/50 p-4 ring-1 ring-darna/15">

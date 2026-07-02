@@ -22,7 +22,7 @@ import { SortSelect } from "@/components/search/SortSelect";
 import { AutoSubmitCheckbox } from "@/components/search/AutoSubmitCheckbox";
 import { PriceRangeFilter } from "@/components/search/PriceRangeFilter";
 import { AmenitiesFilter } from "@/components/search/AmenitiesFilter";
-import { parseAmenitiesParam } from "@/lib/constants";
+import { parseAmenitiesParam, STAY_KINDS } from "@/lib/constants";
 import { SectionHero } from "@/components/layout/SectionHero";
 import { getCityWeather, getCityForecast } from "@/lib/weather";
 import { WeatherBanner } from "@/components/search/WeatherBanner";
@@ -183,6 +183,40 @@ export default async function SejoursPage({
             defaultArrivee={params.arrivee}
             defaultDepart={params.depart}
           />
+          <label className="flex flex-col gap-1">
+            <span className="text-xs font-semibold text-ink/60">
+              {fr.search.chambresMin}
+            </span>
+            <select
+              name="chambres"
+              defaultValue={params.chambres ?? ""}
+              className="rounded-xl border border-darna/15 bg-cream px-3 py-2.5 text-sm outline-none focus:border-darna"
+            >
+              <option value="">{fr.search.indifferent}</option>
+              {[1, 2, 3, 4, 5].map((n) => (
+                <option key={n} value={n}>
+                  {n}+
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-xs font-semibold text-ink/60">
+              {fr.search.typeBien}
+            </span>
+            <select
+              name="typeBien"
+              defaultValue={params.typeBien ?? ""}
+              className="rounded-xl border border-darna/15 bg-cream px-3 py-2.5 text-sm outline-none focus:border-darna"
+            >
+              <option value="">{fr.search.indifferent}</option>
+              {STAY_KINDS.map((k) => (
+                <option key={k} value={k}>
+                  {k}
+                </option>
+              ))}
+            </select>
+          </label>
           <AutoSubmitCheckbox
             name="verifie"
             label={fr.badges.verifieRemote}
