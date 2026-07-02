@@ -29,6 +29,9 @@ const nextConfig: NextConfig = {
   images: {
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    // AVIF essayé en premier (meilleure compression), repli WebP puis JPEG
+    // d'origine selon le support navigateur (négociation via Accept).
+    formats: ["image/avif", "image/webp"],
   },
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
