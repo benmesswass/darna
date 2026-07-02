@@ -9,6 +9,7 @@ import { getFavoriteContext, favoritePropFor } from "@/lib/favorites";
 import { PropertyCard } from "@/components/property/PropertyCard";
 import { CheckIcon, StarIcon } from "@/components/icons";
 import { AnimatedGrid } from "@/components/ui/AnimatedGrid";
+import { ReviewsList } from "@/components/property/ReviewsList";
 
 /** Initiales (1 à 2 lettres) dérivées du nom, pour l'avatar par défaut. */
 function initials(name: string): string {
@@ -127,6 +128,13 @@ export default async function HostPage({
           {fr.host.aucuneAnnonceActive}
         </p>
       )}
+
+      {host.reviews.length > 0 ? (
+        <div className="mt-8">
+          <h2 className="text-lg font-semibold text-darna">{fr.property.avis}</h2>
+          <ReviewsList reviews={host.reviews} />
+        </div>
+      ) : null}
     </div>
   );
 }

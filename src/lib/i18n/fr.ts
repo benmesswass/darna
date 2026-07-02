@@ -429,6 +429,7 @@ export const fr = {
     republier: "Republier (+30 j)",
     annonceMarquee: "Annonce mise à jour.",
     voirAnnonce: "Voir l'annonce",
+    voirProfilHote: "Voir le profil de l'hôte",
     mettreALaUne: "Mettre à la une",
     prolongerALaUne: "Prolonger à la une",
     alaUneActif: (date: string) => `À la une jusqu'au ${date}`,

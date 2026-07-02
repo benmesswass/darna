@@ -428,6 +428,7 @@ export const en: Dictionary = {
     republier: "Republish (+30 d)",
     annonceMarquee: "Listing updated.",
     voirAnnonce: "View listing",
+    voirProfilHote: "View host profile",
     mettreALaUne: "Feature this listing",
     prolongerALaUne: "Extend featuring",
     alaUneActif: (date: string) => `Featured until ${date}`,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { CloseIcon, StarIcon } from "@/components/icons";
 import { useLocale, useT } from "@/components/i18n/LocaleProvider";
 import type { ReviewItem } from "./ReviewsSection";
@@ -246,6 +247,16 @@ export function ReviewsList({ reviews }: { reviews: ReviewItem[] }) {
                 </div>
                 <Stars rating={review.rating} />
               </div>
+              {/* Annonce concernée — uniquement en contexte multi-annonces
+                  (fiche hôte agrégeant plusieurs biens). */}
+              {review.property ? (
+                <Link
+                  href={`/annonce/${review.property.slug}`}
+                  className="mt-2 inline-block text-xs font-medium text-darna hover:underline"
+                >
+                  {review.property.title}
+                </Link>
+              ) : null}
               <p className="mt-3 text-sm leading-relaxed text-ink/80">
                 {review.comment}
               </p>
