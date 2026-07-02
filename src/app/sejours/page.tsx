@@ -28,6 +28,7 @@ import { SectionHero } from "@/components/layout/SectionHero";
 import { getCityWeather, getCityForecast } from "@/lib/weather";
 import { WeatherBanner } from "@/components/search/WeatherBanner";
 import { SearchIcon, UsersIcon } from "@/components/icons";
+import { AnimatedGrid } from "@/components/ui/AnimatedGrid";
 
 export const metadata: Metadata = {
   title: frMeta.nav.sejours,
@@ -105,7 +106,10 @@ export default async function SejoursPage({
   };
 
   const listingGrid = (items: ListingWithPhoto[]) => (
-    <div className="grid gap-5 sm:grid-cols-2">
+    <AnimatedGrid
+      key={items.map((p) => p.id).join(",")}
+      className="grid gap-5 sm:grid-cols-2"
+    >
       {items.map((p) => (
         <PropertyCard
           key={p.id}
@@ -115,7 +119,7 @@ export default async function SejoursPage({
           nights={nightsSearched || undefined}
         />
       ))}
-    </div>
+    </AnimatedGrid>
   );
 
   return (
