@@ -75,3 +75,15 @@
 - [ ] **RGPD**: data export + right-to-erasure flows + tests.
 - [ ] Cookie consent + privacy policy + ToS versioning.
 - [ ] Audit-trail integrity (tamper-evidence) for regulated events.
+
+## Legal posture — "pure intermediary" / liability (BLOCKER before commercial launch)
+> Goal: Darna must operate and *read* as a pure technical intermediary — never as owner,
+> lessor, agent/mandataire, guarantor or fund-holder. Source: liability audit (2026-07-01),
+> cross-checked against `AUDIT_V1.md`. Legal texts to be reviewed by a Tunisian lawyer
+> (loi 2000-83 e-commerce, loi 92-117 consumer, COC, loi 2004-63 data, BCT payment rules).
+- [ ] **Publish real ToS/CGU** (FR + EN + AR). ✍️ Full pure-intermediary text WRITTEN 2026-07-01 into `src/lib/i18n/{fr,en,ar}.ts` (`pagesLegales.cgu`, 16 articles: intermediary role, verification-is-not-a-guarantee, PSP-handles-funds/no fund custody, caution off-platform, liability cap = commission, droit tunisien + tribunaux). Type-checks clean. STILL PENDING: Tunisian lawyer review + fill `[À COMPLÉTER]` (PSP name, venue) + versioning/consent.
+- [ ] Complete **Mentions légales** (forme juridique, capital, siège, RNE, matricule fiscal, gérant, hébergeur) — currently "à préciser avant lancement".
+- [ ] **Purge liability-increasing wording** from i18n (FR/EN/AR): remove "garantit / paiement protégé par Darna / votre argent est protégé / séquestre Darna / notre agent" and reframe "Vérifié Darna / Certifié Wakil" as a factual declarative check, NOT a guarantee. Key offenders: `fr.ts:30-31,62,252,460,941,987,1002,1199`; meta `fr.ts:10` / `en.ts:11`.
+- [ ] **Stop holding third-party funds**: migrate off "all funds → Darna Konnect wallet" (`src/lib/konnect.ts` `KONNECT_RECEIVER_WALLET_ID`). Target = PSP split / marketplace (host receives directly, Darna keeps only commission). Verify Konnect split-payment/multi-wallet + host-KYC feasibility. Removes BCT fund-holding exposure. Then the "escrow/protégé" copy can be dropped honestly.
+- [ ] Reframe **Wakil as independent partner** (not "notre agent" / salaried); record verification evidence (visit date, photos reviewed, notes) so "verified" is defensible; role-enforce REMOTE (admin) vs ON_SITE (Wakil).
+- [ ] Anticipate **diaspora / EU-consumer jurisdiction** conflict (euro pricing) in the dispute clause.

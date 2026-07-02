@@ -1218,57 +1218,113 @@ export const en: Dictionary = {
       "This document is provided for information purposes during Darna's demonstration phase. It must be reviewed and validated by legal counsel before the platform's public launch.",
     cgu: {
       intro:
-        "These terms of use (the “Terms”) govern access to and use of the Darna platform, which connects travellers and advertisers for short stays and real-estate listings in Tunisia. By creating an account or using the service, you accept these Terms.",
+        "These terms of use (the “Terms”) govern access to and use of the Darna platform, which connects travellers/clients and hosts/advertisers for short stays, long-term rentals and real-estate sales in Tunisia. By creating an account or using the service, you accept these Terms. [Draft to be reviewed by a Tunisian lawyer before public launch.]",
       sections: [
         {
-          titre: "1. Purpose",
+          titre: "1. Purpose and Darna's role",
           corps: [
-            "Darna is a matchmaking marketplace. Darna neither owns, rents out, nor acts as agent for the listed properties: the platform provides search, booking and trust-verification tools.",
+            "Darna is a technical-intermediary marketplace connecting hosts and travellers. Darna is neither owner, lessor, seller, real-estate agent, mandatary, stay organiser, nor guarantor of users.",
+            "Darna is not a party to the contracts entered into between users. The rental or sale contract is formed solely between the host and the traveller; Darna merely provides search, matching, booking and messaging tools and access to a licensed payment provider.",
           ],
         },
         {
-          titre: "2. Account and registration",
+          titre: "2. Account and identity verification",
           corps: [
-            "Creating an account requires a valid email address and a password. You agree to provide accurate information and to keep it up to date.",
-            "Some actions require verification of your email and phone, and possibly your identity (national ID). You are responsible for keeping your credentials confidential and for any activity carried out from your account.",
+            "Creating an account requires a valid email address and a password. You agree to provide accurate, up-to-date information and to keep your credentials confidential.",
+            "Any verification of email, phone or identity (national ID / KYC) aims at community safety and is not a guarantee of a user's solvency or good faith.",
           ],
         },
         {
-          titre: "3. Listings and verification",
+          titre: "3. Listings and listing control",
           corps: [
-            "Listings are published under the sole responsibility of the advertiser (host or agency). Every listing is subject to verification (the Wakil network) before going live and being granted the “Verified by Darna” badge.",
-            "Darna reserves the right to refuse, suspend or remove any listing that is non-compliant, fraudulent or misleading.",
+            "Listings are created, described and published under the host's sole responsibility; the host warrants having the necessary rights and complying with applicable regulations.",
+            "“Darna control” is a limited declarative check (documents, identity and, where applicable, a Wakil observation). It is neither a guarantee nor a certification of the property's existence, condition, compliance, safety or availability.",
+            "The traveller remains bound to verify the property themselves before paying and before arrival; images and descriptions are indicative. Darna may refuse, suspend or remove any non-compliant, fraudulent or misleading listing.",
           ],
         },
         {
-          titre: "4. Bookings and payments",
+          titre: "4. Wakil network",
           corps: [
-            "A booking request holds the slot for 15 minutes. Prices and fees (including the service fee) are always recomputed server-side; no value sent by the browser is used as the charged amount.",
-            "During the demonstration phase, fund escrow is simulated by default: no real money movement takes place. When real payment (Konnect) is enabled, the charged amount is always expressed in Tunisian dinars (TND); the euro display is only an indicative conversion.",
+            "Wakils are independent partners, not Darna employees. A Wakil observation is a factual, one-off statement with no obligation of result. Darna is not liable for Wakils' acts or omissions beyond what the law requires.",
           ],
         },
         {
-          titre: "5. User obligations",
+          titre: "5. Reviews and ratings",
           corps: [
-            "You agree to use Darna fairly, not to circumvent security or verification mechanisms, not to publish unlawful content, and to comply with applicable Tunisian law.",
+            "Reviews come from users, are not systematically verified by Darna, and are binding only on their authors.",
           ],
         },
         {
-          titre: "6. Liability",
+          titre: "6. Payment",
           corps: [
-            "Darna acts as an intermediary. The platform is provided “as is” during the demonstration phase and cannot be held liable for disputes between travellers and advertisers, to the extent permitted by law.",
+            "Online payments are processed by a licensed payment service provider. Darna does not hold users' funds and only collects its intermediation commission. Amounts are recomputed server-side; no value sent by the browser is used as the charged amount.",
+            "Online payment may be a deposit; any balance is paid directly between traveller and host. Amounts are expressed in Tunisian dinars (TND); any euro display is only an indicative conversion.",
+            "Any security deposit is agreed and handled directly between host and traveller, off-platform. Darna neither holds nor manages the security deposit.",
           ],
         },
         {
-          titre: "7. Suspension and termination",
+          titre: "7. Cancellation and refund",
           corps: [
-            "Darna may suspend or close an account in the event of a breach of these Terms, fraud or abusive use. You may close your account at any time.",
+            "Each listing states its cancellation policy, which is binding between host and traveller. Any refunds are executed by the payment provider under that policy.",
+            "Darna does not guarantee payment of the balance or the performance of the host's obligations. Mandatory consumer-protection rights remain reserved.",
           ],
         },
         {
-          titre: "8. Governing law",
+          titre: "8. Darna's commission",
           corps: [
-            "These Terms are governed by Tunisian law. Any dispute falls under the jurisdiction of the courts of Tunis, subject to the mandatory rules protecting consumers residing in the European Union.",
+            "Darna collects an intermediation commission whose basis and rate are shown at booking. Circumventing the platform to avoid the commission after a match made via Darna is prohibited.",
+          ],
+        },
+        {
+          titre: "9. User obligations",
+          corps: [
+            "The host warrants the right to rent or sell, the accuracy of the listing, and compliance with legal, tax and insurance obligations.",
+            "The traveller undertakes to use the property lawfully and to respect it and its rules. Each party agrees to fair use of the platform and compliance with applicable Tunisian law.",
+          ],
+        },
+        {
+          titre: "10. Limitation of liability",
+          corps: [
+            "The platform is provided “as is” and “as available”. Darna is not liable for users' acts, omissions and content, for the condition or compliance of properties, or for disputes between host and traveller.",
+            "To the extent permitted by law, Darna's total liability for a transaction is capped at the commission actually collected on it. These limitations do not apply in cases of gross negligence or fraud and do not reduce mandatory consumer-protection rights.",
+          ],
+        },
+        {
+          titre: "11. Indemnification",
+          corps: [
+            "Users indemnify Darna against any third-party claim arising from their listing, content or use of the platform.",
+          ],
+        },
+        {
+          titre: "12. Intellectual property",
+          corps: [
+            "The Darna brand, logo, texts and interface are protected; any reproduction without authorisation is prohibited. Listing content remains the property of its authors, who grant Darna a licence to use it solely for operating the platform.",
+          ],
+        },
+        {
+          titre: "13. Personal data",
+          corps: [
+            "Processing of personal data is described in the Privacy Policy, compliant with Law No. 2004-63 on the protection of personal data.",
+          ],
+        },
+        {
+          titre: "14. Force majeure",
+          corps: [
+            "No party is liable for a failure resulting from an event of force majeure.",
+          ],
+        },
+        {
+          titre: "15. Amendment, suspension and termination",
+          corps: [
+            "Darna may amend these Terms; the applicable version is the one in force at the time of use, with substantial changes notified.",
+            "Darna may suspend or close an account in the event of a breach, fraud or abusive use. You may close your account at any time.",
+          ],
+        },
+        {
+          titre: "16. Governing law and disputes",
+          corps: [
+            "These Terms are governed by Tunisian law. The parties shall first seek an amicable settlement.",
+            "Failing that, any dispute falls under the jurisdiction of the competent Tunisian courts, subject to the mandatory rules protecting consumers, in particular those residing in the European Union.",
           ],
         },
       ],

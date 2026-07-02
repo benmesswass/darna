@@ -1230,57 +1230,113 @@ export const fr = {
       "Ce document est fourni à titre informatif pour la phase de démonstration de Darna. Il devra être revu et validé par un conseil juridique avant le lancement public de la plateforme.",
     cgu: {
       intro:
-        "Les présentes conditions générales d'utilisation (« CGU ») régissent l'accès et l'usage de la plateforme Darna, qui met en relation des voyageurs et des annonceurs pour la location de séjours et de biens immobiliers en Tunisie. En créant un compte ou en utilisant le service, vous acceptez ces CGU.",
+        "Les présentes conditions générales d'utilisation (« CGU ») régissent l'accès et l'usage de la plateforme Darna, qui met en relation des voyageurs/clients et des hôtes/annonceurs pour la location de séjours, la location longue durée et la vente de biens immobiliers en Tunisie. En créant un compte ou en utilisant le service, vous acceptez ces CGU. [Projet de texte à faire valider par un conseil juridique tunisien avant le lancement public.]",
       sections: [
         {
-          titre: "1. Objet",
+          titre: "1. Objet et rôle de Darna",
           corps: [
-            "Darna est une place de marché de mise en relation. Darna n'est ni propriétaire, ni loueur, ni agent des biens publiés : la plateforme fournit des outils de recherche, de réservation et de vérification de confiance.",
+            "Darna est une place de marché d'intermédiation technique qui met en relation des hôtes et des voyageurs. Darna n'est ni propriétaire, ni loueur, ni vendeur, ni agent immobilier, ni mandataire, ni organisateur de séjour, ni garant des utilisateurs.",
+            "Darna n'est pas partie aux contrats conclus entre utilisateurs. Le contrat de location ou de vente se forme exclusivement entre l'hôte et le voyageur ; Darna se limite à fournir des outils de recherche, de mise en relation, de réservation, de messagerie et le recours à un prestataire de paiement agréé.",
           ],
         },
         {
-          titre: "2. Compte et inscription",
+          titre: "2. Compte et vérification d'identité",
           corps: [
-            "La création d'un compte requiert une adresse e-mail valide et un mot de passe. Vous vous engagez à fournir des informations exactes et à les tenir à jour.",
-            "Certaines actions exigent la vérification de votre e-mail et de votre téléphone, voire de votre identité (CIN). Vous êtes responsable de la confidentialité de vos identifiants et de toute activité réalisée depuis votre compte.",
+            "La création d'un compte requiert une adresse e-mail valide et un mot de passe. Vous vous engagez à fournir des informations exactes, à les tenir à jour et à préserver la confidentialité de vos identifiants.",
+            "La vérification éventuelle de l'e-mail, du téléphone ou de l'identité (CIN/KYC) vise la sécurité de la communauté ; elle ne constitue pas une garantie de la solvabilité ni de la bonne foi d'un utilisateur.",
           ],
         },
         {
-          titre: "3. Annonces et vérification",
+          titre: "3. Annonces et contrôle des annonces",
           corps: [
-            "Les annonces sont publiées sous la seule responsabilité de l'annonceur (hôte ou agence). Toute annonce est soumise à une vérification (réseau Wakil) avant sa mise en ligne et l'attribution du badge « Vérifié Darna ».",
-            "Darna se réserve le droit de refuser, suspendre ou retirer toute annonce non conforme, frauduleuse ou trompeuse.",
+            "Les annonces sont créées, décrites et publiées sous la seule responsabilité de l'hôte, qui garantit disposer des droits nécessaires et respecter la réglementation applicable.",
+            "Le « contrôle Darna » est une vérification déclarative limitée (contrôle documentaire, identité et, le cas échéant, constat d'un Wakil). Il ne constitue ni une garantie ni une certification de l'existence, de l'état, de la conformité, de la sécurité, de la salubrité ou de la disponibilité du bien.",
+            "Le voyageur demeure tenu de vérifier par lui-même les caractéristiques du bien avant de payer et avant l'arrivée ; les visuels et descriptions sont indicatifs. Darna peut refuser, suspendre ou retirer toute annonce non conforme, frauduleuse ou trompeuse.",
           ],
         },
         {
-          titre: "4. Réservations et paiements",
+          titre: "4. Réseau Wakil",
           corps: [
-            "Une demande de réservation bloque le créneau pendant 15 minutes. Les prix et frais (dont les frais de service) sont systématiquement recalculés côté serveur ; aucune valeur transmise par le navigateur n'est utilisée comme montant facturé.",
-            "Pendant la phase de démonstration, le séquestre des fonds est simulé par défaut : aucun mouvement d'argent réel n'a lieu. Lorsque le paiement réel (Konnect) est activé, le montant débité est toujours exprimé en dinars tunisiens (TND), l'affichage en euros n'étant qu'une conversion indicative.",
+            "Les Wakils sont des partenaires indépendants, non salariés de Darna. Un constat Wakil est une observation factuelle et ponctuelle, sans obligation de résultat. Darna n'est pas responsable des actes ou omissions des Wakils au-delà de ce que la loi impose.",
           ],
         },
         {
-          titre: "5. Obligations des utilisateurs",
+          titre: "5. Avis et notations",
           corps: [
-            "Vous vous engagez à utiliser Darna de manière loyale, à ne pas contourner les mécanismes de sécurité ou de vérification, à ne pas publier de contenu illicite et à respecter la législation tunisienne en vigueur.",
+            "Les avis émanent des utilisateurs, ne sont pas systématiquement vérifiés par Darna et n'engagent que leurs auteurs.",
           ],
         },
         {
-          titre: "6. Responsabilité",
+          titre: "6. Paiement",
           corps: [
-            "Darna agit en qualité d'intermédiaire. La plateforme est fournie « en l'état » pendant la phase de démonstration et ne saurait être tenue responsable des litiges entre voyageurs et annonceurs, dans les limites permises par la loi.",
+            "Les paiements en ligne sont traités par un prestataire de services de paiement agréé. Darna ne détient pas les fonds des utilisateurs et perçoit uniquement sa commission de mise en relation. Les montants sont recalculés côté serveur ; aucune valeur transmise par le navigateur n'est utilisée comme montant facturé.",
+            "Le paiement en ligne peut porter sur un acompte ; le solde éventuel est réglé directement entre le voyageur et l'hôte. Les montants sont exprimés en dinars tunisiens (TND), tout affichage en euros n'étant qu'une conversion indicative.",
+            "Tout dépôt de garantie (caution) est convenu et géré directement entre l'hôte et le voyageur, hors plateforme. Darna ne détient ni ne gère la caution.",
           ],
         },
         {
-          titre: "7. Suspension et résiliation",
+          titre: "7. Annulation et remboursement",
           corps: [
-            "Darna peut suspendre ou clôturer un compte en cas de manquement aux présentes CGU, de fraude ou d'usage abusif. Vous pouvez fermer votre compte à tout moment.",
+            "Chaque annonce précise sa politique d'annulation, qui s'impose entre l'hôte et le voyageur. Les remboursements éventuels sont opérés par le prestataire de paiement selon cette politique.",
+            "Darna n'est pas garante du paiement du solde ni de l'exécution des obligations de l'hôte. Les droits que le consommateur tient de dispositions d'ordre public demeurent réservés.",
           ],
         },
         {
-          titre: "8. Droit applicable",
+          titre: "8. Commission de Darna",
           corps: [
-            "Les présentes CGU sont régies par le droit tunisien. Tout litige relève de la compétence des tribunaux de Tunis, sous réserve des règles impératives protégeant les consommateurs résidant dans l'Union européenne.",
+            "Darna perçoit une commission de mise en relation, dont l'assiette et le taux sont indiqués lors de la réservation. Il est interdit de contourner la plateforme pour échapper à la commission lorsqu'une mise en relation a eu lieu via Darna.",
+          ],
+        },
+        {
+          titre: "9. Obligations des utilisateurs",
+          corps: [
+            "L'hôte garantit son droit de louer ou de vendre, l'exactitude de son annonce et le respect de ses obligations légales, fiscales et d'assurance.",
+            "Le voyageur s'engage à un usage conforme et au respect du bien et de son règlement. Chacun s'engage à un usage loyal de la plateforme et au respect de la législation tunisienne en vigueur.",
+          ],
+        },
+        {
+          titre: "10. Limitation de responsabilité",
+          corps: [
+            "La plateforme est fournie « en l'état » et « selon disponibilité ». Darna n'est pas responsable des actes, omissions et contenus des utilisateurs, de l'état ou de la conformité des biens, ni des litiges entre hôte et voyageur.",
+            "Dans la limite permise par la loi, la responsabilité totale de Darna au titre d'une transaction est plafonnée au montant de la commission effectivement perçue sur cette transaction. Ces limitations ne s'appliquent pas en cas de faute lourde ou de dol et ne réduisent pas les droits d'ordre public du consommateur.",
+          ],
+        },
+        {
+          titre: "11. Garantie et indemnisation",
+          corps: [
+            "L'utilisateur garantit Darna contre toute réclamation de tiers résultant de son annonce, de son contenu ou de son usage de la plateforme.",
+          ],
+        },
+        {
+          titre: "12. Propriété intellectuelle",
+          corps: [
+            "La marque Darna, son logo, ses textes et son interface sont protégés ; toute reproduction sans autorisation est interdite. Les contenus des annonces restent la propriété de leurs auteurs, qui concèdent à Darna une licence d'usage aux seules fins d'exploitation de la plateforme.",
+          ],
+        },
+        {
+          titre: "13. Données personnelles",
+          corps: [
+            "Les traitements de données à caractère personnel sont décrits dans la Politique de confidentialité, conforme à la loi n° 2004-63 relative à la protection des données personnelles.",
+          ],
+        },
+        {
+          titre: "14. Force majeure",
+          corps: [
+            "Aucune partie n'est responsable d'un manquement résultant d'un cas de force majeure.",
+          ],
+        },
+        {
+          titre: "15. Modification, suspension et résiliation",
+          corps: [
+            "Darna peut modifier les présentes CGU ; la version applicable est celle en vigueur à la date de l'usage, les modifications substantielles étant notifiées.",
+            "Darna peut suspendre ou clôturer un compte en cas de manquement, de fraude ou d'usage abusif. Vous pouvez fermer votre compte à tout moment.",
+          ],
+        },
+        {
+          titre: "16. Droit applicable et litiges",
+          corps: [
+            "Les présentes CGU sont régies par le droit tunisien. Les parties recherchent une solution amiable préalable.",
+            "À défaut, tout litige relève de la compétence des tribunaux tunisiens compétents, sous réserve des règles impératives protégeant les consommateurs, notamment ceux résidant dans l'Union européenne.",
           ],
         },
       ],
