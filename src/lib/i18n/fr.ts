@@ -163,6 +163,9 @@ export const fr = {
     chambresMin: "Chambres min",
     typeBien: "Type de bien",
     indifferent: "Indifférent",
+    creerAlerte: "Créer une alerte",
+    alerteEnregistree: "Alerte créée — vous serez prévenu par e-mail.",
+    alerteExisteDeja: "Vous avez déjà une alerte pour cette recherche.",
     resultats: (n: number) =>
       n === 0 ? "Aucun résultat" : n === 1 ? "1 annonce" : `${n} annonces`,
     precedent: "Précédent",
@@ -391,6 +394,15 @@ export const fr = {
     kyc: "Vérification d'identité",
     email: "Vérification e-mail",
     monProfil: "Mes informations",
+    mesAlertes: "Mes alertes",
+    alertesTitre: "Mes alertes de recherche",
+    alertesAucune:
+      "Aucune alerte enregistrée. Depuis la recherche séjours, cliquez sur « Créer une alerte » pour être prévenu par e-mail dès qu'une annonce correspondante est publiée.",
+    alerteSupprimer: "Supprimer",
+    alerteBudget: (min: number, max: number) => `${min} – ${max} TND`,
+    alerteBudgetMin: (min: number) => `À partir de ${min} TND`,
+    alerteBudgetMax: (max: number) => `Jusqu'à ${max} TND`,
+    alerteBudgetLibre: "Tous budgets",
     favoris: "Mes favoris",
     favorisSansDossier: "Sans dossier",
     favorisNbLogements: (n: number) =>
@@ -839,6 +851,23 @@ export const fr = {
       `<p><a href="${p.url}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">Répondre sur Darna</a></p>` +
       `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Pour votre sécurité, répondez toujours via la messagerie Darna. Darna — Le logement vérifié.</p>` +
       `</div>`,
+    savedSearchMatchSujet: (ville: string) =>
+      `Darna — nouvelle annonce à ${ville} correspondant à votre alerte`,
+    savedSearchMatchHtml: (p: {
+      recipientName: string;
+      propertyTitle: string;
+      city: string;
+      price: string;
+      url: string;
+    }) =>
+      `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
+      `<h1 style="color:#0f766e;font-size:20px">Nouvelle annonce disponible 🔔</h1>` +
+      `<p>Bonjour ${p.recipientName},</p>` +
+      `<p>Une nouvelle annonce à <strong>${p.city}</strong> correspond à votre alerte enregistrée :</p>` +
+      `<p style="padding:12px 16px;background:#f3f4f6;border-inline-start:3px solid #0f766e;border-radius:8px"><strong>${p.propertyTitle}</strong><br/>${p.price}</p>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">Voir l'annonce</a></p>` +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Le logement vérifié.</p>` +
+      `</div>`,
   },
   verifications: {
     navLabel: "Vérifications",
@@ -1103,6 +1132,8 @@ export const fr = {
     avisHoteRecu: "Votre hôte a laissé un avis sur votre séjour.",
     annonceExpireBientot: (titre: string) =>
       `« ${titre} » expire bientôt — pensez à la republier.`,
+    alerteNouvelleAnnonce: (titre: string) =>
+      `Une nouvelle annonce correspond à votre alerte : « ${titre} ».`,
   },
   alaUne: {
     titre: "Mettez votre annonce à la une",

@@ -30,7 +30,7 @@
 | F4 | Filtre par équipements (wifi, piscine, climatisation…) sur la recherche séjours | P1 | ✅ | PR #72. `parseAmenitiesParam` (`src/lib/constants.ts`), filtre dans `searchSejours` (`src/lib/listings.ts`), `AmenitiesFilter` (`src/components/search/AmenitiesFilter.tsx`) branché sur `/sejours`. |
 | F5 | Filtre chambres / capacité voyageurs / type de bien sur la recherche séjours | P2 | ✅ | Capacité voyageurs était déjà filtrable. Ajout : filtre « chambres min » (`Property.rooms`) et **nouveau champ** `StayDetails.kind` (migration `20260702150000_add_stay_kind`, valeurs `STAY_KINDS` dans `src/lib/constants.ts`) — sélection à la création (`PropertyForm.tsx`), affiché en caractéristique (`StayDetail.tsx`) et filtrable dans `searchSejours` (`src/lib/listings.ts`) via les selects `/sejours`. |
 | F6 | Section "annonces similaires" en fin de fiche annonce | P1 | ✅ | `getSimilarListings` (`src/lib/listings.ts`, même ville + même type) branché en pleine largeur en fin de `ListingDetail.tsx` (masqué si rien de comparable). |
-| F7 | Alertes de recherche sauvegardée (email quand une annonce matche ville/dates/budget) | P2 | ❌ | Fonctionnalité à créer de zéro (modèle + cron/job + email). |
+| F7 | Alertes de recherche sauvegardée (email quand une annonce matche ville/dates/budget) | P2 | ✅ | Nouveau modèle `SavedSearch` (migration `20260702190000_add_saved_search`, ville + budget). `src/lib/saved-search.ts` : déclenché à **l'événement** (`verifyPropertyAction`, quand l'annonce devient active), jamais par cron. `SaveSearchButton` sur `/sejours`, page `/dashboard/alertes` (liste + suppression). Alerte in-app (réutilise F9) + e-mail. **Sans dates** (volontaire — une annonce tout juste publiée n'a quasiment jamais de réservation, le filtre dates n'apporterait rien à ce stade). |
 
 ## 3. Partage & rétention
 
@@ -60,7 +60,7 @@
 **Ensuite (P2) :**
 7. ✅ F5 — filtres chambres/capacité/type.
 8. ✅ F9 — centre de notifications in-app.
-9. F7 — alertes de recherche sauvegardée.
+9. ✅ F7 — alertes de recherche sauvegardée.
 10. F2 — sous-notes d'avis.
 
 ---

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  BellIcon,
   BuildingIcon,
   CalendarIcon,
   ChartIcon,
@@ -17,6 +18,7 @@ import {
 } from "@/components/icons";
 
 export const ICONS = {
+  BellIcon,
   BuildingIcon,
   CalendarIcon,
   ChartIcon,
