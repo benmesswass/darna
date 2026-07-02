@@ -374,6 +374,15 @@ export async function ListingDetail({
                 {property.owner.name}
               </Link>
             )}
+            {/* Réputation : affichée même hôte masqué, ce n'est pas une
+                donnée d'identité (contrairement au nom/contact). */}
+            {property.owner.ratingCount > 0 ? (
+              <p className="mt-1 flex items-center gap-1 text-sm text-ink/70">
+                <StarIcon width={14} height={14} fill="currentColor" className="text-sand" />
+                {property.owner.ratingAvg!.toFixed(1)} ·{" "}
+                {fr.property.nbAvis(property.owner.ratingCount)}
+              </p>
+            ) : null}
             {property.owner.kycStatus === "VERIFIE" ? (
               <p className="mt-2 inline-flex items-center gap-1 rounded-full bg-darna/5 px-2.5 py-1 text-xs font-medium text-darna">
                 <CheckIcon width={12} height={12} strokeWidth={3} />

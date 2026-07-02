@@ -443,7 +443,7 @@ export async function searchImmobilier(params: ImmobilierSearchParams) {
 }
 
 export async function getPropertyBySlug(slug: string) {
-  return prisma.property.findUnique({
+  const property = await prisma.property.findUnique({
     where: { slug },
     include: {
       photos: { orderBy: { position: "asc" } },
@@ -471,6 +471,26 @@ export async function getPropertyBySlug(slug: string) {
       },
     },
   });
+  if (!property) return null;
+
+  // Note de l'hôte (réputation) — agrégée sur TOUTES ses annonces, comme
+  // getHostProfile(). Affichée même quand le nom est masqué (anonymizeOwner) :
+  // la réputation n'est pas une donnée d'identité, rien ne justifie de la
+  // cacher avant paiement.
+  const rating = await prisma.review.aggregate({
+    where: { property: { ownerId: property.owner.id } },
+    _avg: { rating: true },
+    _count: { rating: true },
+  });
+
+  return {
+    ...property,
+    owner: {
+      ...property.owner,
+      ratingAvg: rating._count.rating > 0 ? rating._avg.rating : null,
+      ratingCount: rating._count.rating,
+    },
+  };
 }
 
 export type HostProfile = {
