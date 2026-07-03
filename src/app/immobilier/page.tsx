@@ -60,13 +60,13 @@ export default async function ImmobilierPage({
       {/* Barre de recherche — flotte sur le bas du hero puis colle au scroll. */}
       <form
         method="GET"
-        className="relative -mt-8 rounded-3xl bg-white p-4 shadow-lg ring-1 ring-darna/10 sm:-mt-12 lg:z-[1040]"
+        className="relative -mt-8 rounded-3xl bg-surface p-4 shadow-lg ring-1 ring-darna/10 sm:-mt-12 lg:z-[1040]"
       >
         {/* Onglets Louer / Acheter */}
         <div className="flex w-fit rounded-full bg-cream p-1 ring-1 ring-darna/10">
           <label
             className={`cursor-pointer rounded-full px-5 py-1.5 text-sm font-semibold ${
-              !isVente ? "bg-darna text-white" : "text-ink/60"
+              !isVente ? "bg-darna text-white" : "text-body/60"
             }`}
           >
             <input
@@ -80,7 +80,7 @@ export default async function ImmobilierPage({
           </label>
           <label
             className={`cursor-pointer rounded-full px-5 py-1.5 text-sm font-semibold ${
-              isVente ? "bg-darna text-white" : "text-ink/60"
+              isVente ? "bg-darna text-white" : "text-body/60"
             }`}
           >
             <input
@@ -96,7 +96,7 @@ export default async function ImmobilierPage({
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr_auto]">
           <label className="flex flex-col gap-1">
-            <span className="text-xs font-semibold text-ink/60">
+            <span className="text-xs font-semibold text-body/60">
               {fr.search.gouvernorat}
             </span>
             <GouvernoratAutocomplete
@@ -107,7 +107,7 @@ export default async function ImmobilierPage({
             />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs font-semibold text-ink/60">
+            <span className="text-xs font-semibold text-body/60">
               {fr.search.prixMin} ({fr.common.tnd})
             </span>
             <input
@@ -120,7 +120,7 @@ export default async function ImmobilierPage({
             />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs font-semibold text-ink/60">
+            <span className="text-xs font-semibold text-body/60">
               {fr.search.prixMax} ({fr.common.tnd})
             </span>
             <input
@@ -133,7 +133,7 @@ export default async function ImmobilierPage({
             />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs font-semibold text-ink/60">
+            <span className="text-xs font-semibold text-body/60">
               {fr.search.surfaceMin}
             </span>
             <input
@@ -145,7 +145,7 @@ export default async function ImmobilierPage({
             />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs font-semibold text-ink/60">
+            <span className="text-xs font-semibold text-body/60">
               {fr.search.piecesMin}
             </span>
             <select
@@ -187,7 +187,7 @@ export default async function ImmobilierPage({
       </form>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-        <span className="text-sm font-semibold text-darna">
+        <span className="text-sm font-semibold text-heading">
           {fr.search.resultats(total)}
         </span>
         {results.length > 0 ? (
@@ -204,11 +204,11 @@ export default async function ImmobilierPage({
 
       <div className="mt-4">
         {results.length === 0 ? (
-          <div className="rounded-3xl bg-white p-10 text-center ring-1 ring-darna/10">
-            <p className="text-lg font-semibold text-darna">
+          <div className="rounded-3xl bg-surface p-10 text-center ring-1 ring-darna/10">
+            <p className="text-lg font-semibold text-heading">
               {fr.search.aucunResultatTitre}
             </p>
-            <p className="mx-auto mt-2 max-w-md text-sm text-ink/60">
+            <p className="mx-auto mt-2 max-w-md text-sm text-body/60">
               {fr.search.aucunResultatDesc}
             </p>
           </div>

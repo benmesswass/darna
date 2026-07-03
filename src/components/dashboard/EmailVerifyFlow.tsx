@@ -34,7 +34,7 @@ export function EmailVerifyFlow({
     <div className="space-y-6">
       {!hasSent ? (
         <div>
-          <p className="mb-4 text-sm text-ink/70">{fr.email.description}</p>
+          <p className="mb-4 text-sm text-body/70">{fr.email.description}</p>
           <form
             action={() => {
               startT(() => startTransition(() => requestAction()));
@@ -56,15 +56,15 @@ export function EmailVerifyFlow({
         <div>
           {demoCode ? (
             <div className="mb-4 rounded-xl border border-dashed border-darna/30 bg-sand/60 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-darna/60">
+              <p className="text-xs font-semibold uppercase tracking-wide text-heading/60">
                 {fr.email.modeDemoCode}
               </p>
-              <p className="mt-1 font-mono text-2xl font-bold tracking-widest text-darna">
+              <p className="mt-1 font-mono text-2xl font-bold tracking-widest text-heading">
                 {demoCode}
               </p>
             </div>
           ) : (
-            <p className="mb-4 text-sm text-ink/70">{fr.email.codeEnvoye}</p>
+            <p className="mb-4 text-sm text-body/70">{fr.email.codeEnvoye}</p>
           )}
 
           <form

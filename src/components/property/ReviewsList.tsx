@@ -27,7 +27,7 @@ function Stars({ rating, size = 14 }: { rating: number; size?: number }) {
           width={size}
           height={size}
           fill={n <= rating ? "currentColor" : "none"}
-          className={n <= rating ? "" : "text-ink/20"}
+          className={n <= rating ? "" : "text-body/20"}
         />
       ))}
     </span>
@@ -109,7 +109,7 @@ export function ReviewsList({ reviews }: { reviews: ReviewItem[] }) {
 
   if (total === 0) {
     return (
-      <p className="mt-4 rounded-2xl bg-white p-5 text-sm text-ink/60 ring-1 ring-darna/10">
+      <p className="mt-4 rounded-2xl bg-surface p-5 text-sm text-body/60 ring-1 ring-darna/10">
         {fr.property.aucunAvis}
       </p>
     );
@@ -123,16 +123,16 @@ export function ReviewsList({ reviews }: { reviews: ReviewItem[] }) {
   return (
     <div className="mt-4">
       {/* Récap : note moyenne + histogramme cliquable (filtre par note) */}
-      <div className="rounded-2xl bg-white p-5 ring-1 ring-darna/10">
+      <div className="rounded-2xl bg-surface p-5 ring-1 ring-darna/10">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-8">
           <div className="flex items-center gap-3 sm:flex-col sm:items-start sm:gap-1.5">
-            <span className="text-4xl font-bold leading-none text-darna">
+            <span className="text-4xl font-bold leading-none text-heading">
               {average.toFixed(1)}
-              <span className="text-base font-semibold text-ink/40">/5</span>
+              <span className="text-base font-semibold text-body/40">/5</span>
             </span>
             <div>
               <Stars rating={Math.round(average)} size={16} />
-              <p className="mt-1 text-xs text-ink/55">{fr.property.nbAvis(total)}</p>
+              <p className="mt-1 text-xs text-body/55">{fr.property.nbAvis(total)}</p>
             </div>
           </div>
 
@@ -152,7 +152,7 @@ export function ReviewsList({ reviews }: { reviews: ReviewItem[] }) {
                     active ? "bg-cream" : ""
                   }`}
                 >
-                  <span className="flex w-9 items-center justify-end gap-0.5 text-xs font-medium text-ink/60">
+                  <span className="flex w-9 items-center justify-end gap-0.5 text-xs font-medium text-body/60">
                     {star}
                     <StarIcon
                       width={11}
@@ -167,7 +167,7 @@ export function ReviewsList({ reviews }: { reviews: ReviewItem[] }) {
                       style={{ width: `${pct}%` }}
                     />
                   </span>
-                  <span className="w-6 text-end text-xs tabular-nums text-ink/50">
+                  <span className="w-6 text-end text-xs tabular-nums text-body/50">
                     {count}
                   </span>
                 </button>
@@ -188,8 +188,8 @@ export function ReviewsList({ reviews }: { reviews: ReviewItem[] }) {
               ] as const
             ).map(([label, value]) => (
               <div key={label}>
-                <p className="text-xs text-ink/55">{label}</p>
-                <p className="text-sm font-bold text-darna">{value.toFixed(1)}</p>
+                <p className="text-xs text-body/55">{label}</p>
+                <p className="text-sm font-bold text-heading">{value.toFixed(1)}</p>
               </div>
             ))}
           </div>
@@ -203,22 +203,22 @@ export function ReviewsList({ reviews }: { reviews: ReviewItem[] }) {
             <button
               type="button"
               onClick={() => setRatingFilter(null)}
-              className="inline-flex items-center gap-1.5 rounded-full bg-darna/10 py-1.5 pe-2 ps-3 text-xs font-medium text-darna transition hover:bg-darna/15"
+              className="inline-flex items-center gap-1.5 rounded-full bg-darna/10 py-1.5 pe-2 ps-3 text-xs font-medium text-heading transition hover:bg-darna/15"
             >
               {fr.property.filtreParNote(ratingFilter)}
               <CloseIcon width={13} height={13} />
             </button>
           ) : (
-            <span className="text-xs text-ink/50">{fr.property.filtreToutes}</span>
+            <span className="text-xs text-body/50">{fr.property.filtreToutes}</span>
           )}
         </div>
 
-        <label className="flex items-center gap-2 text-xs text-ink/60">
+        <label className="flex items-center gap-2 text-xs text-body/60">
           <span className="font-semibold">{fr.property.trierPar}</span>
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as SortKey)}
-            className="rounded-xl border border-darna/15 bg-cream px-3 py-2 text-sm font-medium text-ink outline-none transition focus:border-darna"
+            className="rounded-xl border border-darna/15 bg-cream px-3 py-2 text-sm font-medium text-body outline-none transition focus:border-darna"
           >
             <option value="recent">{fr.property.triRecents}</option>
             <option value="old">{fr.property.triAnciens}</option>
@@ -230,7 +230,7 @@ export function ReviewsList({ reviews }: { reviews: ReviewItem[] }) {
 
       {/* Liste filtrée / triée */}
       {visible.length === 0 ? (
-        <p className="mt-4 rounded-2xl bg-white p-5 text-sm text-ink/60 ring-1 ring-darna/10">
+        <p className="mt-4 rounded-2xl bg-surface p-5 text-sm text-body/60 ring-1 ring-darna/10">
           {fr.property.aucunAvisFiltre}
         </p>
       ) : (
@@ -238,7 +238,7 @@ export function ReviewsList({ reviews }: { reviews: ReviewItem[] }) {
           {shown.map((review) => (
             <li
               key={review.id}
-              className="rounded-2xl bg-white p-5 ring-1 ring-darna/10"
+              className="rounded-2xl bg-surface p-5 ring-1 ring-darna/10"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2.5">
@@ -246,13 +246,13 @@ export function ReviewsList({ reviews }: { reviews: ReviewItem[] }) {
                     {review.authorName.charAt(0)}
                   </span>
                   <div>
-                    <p className="text-sm font-semibold text-ink">
+                    <p className="text-sm font-semibold text-body">
                       {review.authorName}
                     </p>
-                    <p className="text-xs text-ink/50">
+                    <p className="text-xs text-body/50">
                       {dateFmt.format(new Date(review.createdAt))}
                       {" · "}
-                      <span className="font-medium text-darna">
+                      <span className="font-medium text-heading">
                         {fr.property.avisVerifie}
                       </span>
                     </p>
@@ -265,29 +265,29 @@ export function ReviewsList({ reviews }: { reviews: ReviewItem[] }) {
               {review.property ? (
                 <Link
                   href={`/annonce/${review.property.slug}`}
-                  className="mt-2 inline-block text-xs font-medium text-darna hover:underline"
+                  className="mt-2 inline-block text-xs font-medium text-heading hover:underline"
                 >
                   {review.property.title}
                 </Link>
               ) : null}
-              <p className="mt-3 text-sm leading-relaxed text-ink/80">
+              <p className="mt-3 text-sm leading-relaxed text-body/80">
                 {review.comment}
               </p>
-              <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-darna/5 pt-2.5 text-xs text-ink/50">
+              <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-darna/5 pt-2.5 text-xs text-body/50">
                 <span>
-                  {fr.property.sousNoteProprete} <b className="text-ink/70">{review.proprete}/5</b>
+                  {fr.property.sousNoteProprete} <b className="text-body/70">{review.proprete}/5</b>
                 </span>
                 <span>
                   {fr.property.sousNoteCommunication}{" "}
-                  <b className="text-ink/70">{review.communication}/5</b>
+                  <b className="text-body/70">{review.communication}/5</b>
                 </span>
                 <span>
                   {fr.property.sousNoteConformite}{" "}
-                  <b className="text-ink/70">{review.conformite}/5</b>
+                  <b className="text-body/70">{review.conformite}/5</b>
                 </span>
                 <span>
                   {fr.property.sousNoteQualitePrix}{" "}
-                  <b className="text-ink/70">{review.qualitePrix}/5</b>
+                  <b className="text-body/70">{review.qualitePrix}/5</b>
                 </span>
               </div>
             </li>
@@ -299,7 +299,7 @@ export function ReviewsList({ reviews }: { reviews: ReviewItem[] }) {
         <button
           type="button"
           onClick={() => setVisibleCount(visible.length)}
-          className="mt-4 w-full rounded-2xl bg-white py-3 text-sm font-semibold text-darna ring-1 ring-darna/10 transition hover:bg-cream"
+          className="mt-4 w-full rounded-2xl bg-surface py-3 text-sm font-semibold text-heading ring-1 ring-darna/10 transition hover:bg-cream"
         >
           {fr.property.afficherPlusAvis(remaining)}
         </button>
@@ -307,7 +307,7 @@ export function ReviewsList({ reviews }: { reviews: ReviewItem[] }) {
         <button
           type="button"
           onClick={() => setVisibleCount(PAGE_SIZE)}
-          className="mt-4 w-full rounded-2xl bg-white py-3 text-sm font-semibold text-darna ring-1 ring-darna/10 transition hover:bg-cream"
+          className="mt-4 w-full rounded-2xl bg-surface py-3 text-sm font-semibold text-heading ring-1 ring-darna/10 transition hover:bg-cream"
         >
           {fr.property.afficherMoinsAvis}
         </button>

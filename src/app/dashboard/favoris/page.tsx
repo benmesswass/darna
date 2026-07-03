@@ -47,10 +47,10 @@ export default async function FavorisPage() {
 
   return (
     <div>
-      <h2 className="text-xl font-bold text-darna">{fr.dashboard.favoris}</h2>
+      <h2 className="text-xl font-bold text-heading">{fr.dashboard.favoris}</h2>
 
       {isEmpty ? (
-        <p className="mt-6 rounded-3xl bg-white p-8 text-center text-sm text-ink/60 ring-1 ring-darna/10">
+        <p className="mt-6 rounded-3xl bg-surface p-8 text-center text-sm text-body/60 ring-1 ring-darna/10">
           {fr.dashboard.aucunFavori}
         </p>
       ) : (
@@ -83,11 +83,11 @@ export default async function FavorisPage() {
           {noFolder.length > 0 ? (
             <section>
               <div className="flex items-center gap-2">
-                <FolderIcon width={18} height={18} className="shrink-0 text-ink/40" />
-                <h3 className="font-semibold text-ink/70">
+                <FolderIcon width={18} height={18} className="shrink-0 text-body/40" />
+                <h3 className="font-semibold text-body/70">
                   {fr.dashboard.favorisSansDossier}
                 </h3>
-                <span className="text-sm text-ink/50">
+                <span className="text-sm text-body/50">
                   {fr.dashboard.favorisNbLogements(noFolder.length)}
                 </span>
               </div>

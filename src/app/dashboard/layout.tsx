@@ -95,10 +95,10 @@ export default async function DashboardLayout({
             )}
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-darna">
+            <h1 className="text-2xl font-bold text-heading">
               {fr.dashboard.bonjour(user.name)}
             </h1>
-            <p className="mt-0.5 flex items-center gap-2 text-sm text-ink/60">
+            <p className="mt-0.5 flex items-center gap-2 text-sm text-body/60">
               {user.email}
               {user.kycStatus === "VERIFIE" || user.kycStatus === "DEMO_VERIFIE" ? (
                 <span className="inline-flex items-center gap-1 rounded-full bg-sand px-2 py-0.5 text-[11px] font-semibold text-darna-dark">
@@ -130,15 +130,15 @@ export default async function DashboardLayout({
             <summary className="cursor-pointer text-xs font-bold text-red-700 underline">
               {fr.dashboard.enSavoirPlus}
             </summary>
-            <div className="mt-2 space-y-2 text-xs leading-relaxed text-ink/70">
+            <div className="mt-2 space-y-2 text-xs leading-relaxed text-body/70">
               <p>
-                <span className="font-semibold text-ink">
+                <span className="font-semibold text-body">
                   {fr.dashboard.suspenduPourquoiTitre}
                 </span>{" "}
                 {fr.dashboard.suspenduPourquoi}
               </p>
               <p>
-                <span className="font-semibold text-ink">
+                <span className="font-semibold text-body">
                   {fr.dashboard.suspenduConsequencesTitre}
                 </span>{" "}
                 {fr.dashboard.suspenduDetail}

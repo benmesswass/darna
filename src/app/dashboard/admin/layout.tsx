@@ -20,7 +20,7 @@ export default async function AdminLayout({
         <span className="rounded-lg bg-darna px-3 py-1 text-xs font-bold uppercase tracking-widest text-white">
           {fr.admin.badge}
         </span>
-        <h2 className="text-lg font-bold text-darna">{fr.admin.titre}</h2>
+        <h2 className="text-lg font-bold text-heading">{fr.admin.titre}</h2>
       </div>
       {children}
     </div>

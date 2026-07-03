@@ -108,20 +108,20 @@ export default async function PaiementPage({
   const Recap = () => (
     <dl className="mt-5 space-y-2.5 text-sm">
       <div className="flex justify-between">
-        <dt className="text-ink/70">{booking!.property.title}</dt>
-        <dd className="text-ink/70">{booking!.property.city}</dd>
+        <dt className="text-body/70">{booking!.property.title}</dt>
+        <dd className="text-body/70">{booking!.property.city}</dd>
       </div>
       <div className="flex justify-between">
-        <dt className="text-ink/70">
+        <dt className="text-body/70">
           {fr.booking.sejourDates(
             formatDateFr(booking!.checkIn),
             formatDateFr(booking!.checkOut)
           )}
         </dt>
-        <dd className="text-ink/70">{fr.property.capacite(booking!.guests)}</dd>
+        <dd className="text-body/70">{fr.property.capacite(booking!.guests)}</dd>
       </div>
       <div className="flex justify-between">
-        <dt className="text-ink/70">{fr.booking.sousTotal}</dt>
+        <dt className="text-body/70">{fr.booking.sousTotal}</dt>
         <dd>
           <Price
             amount={booking!.totalPrice - booking!.serviceFee}
@@ -130,17 +130,17 @@ export default async function PaiementPage({
         </dd>
       </div>
       <div className="flex justify-between">
-        <dt className="text-ink/70">{fr.booking.fraisService}</dt>
+        <dt className="text-body/70">{fr.booking.fraisService}</dt>
         <dd>
           <Price amount={booking!.serviceFee} className="font-semibold" />
         </dd>
       </div>
       <div className="flex justify-between border-t border-darna/10 pt-3">
-        <dt className="text-base font-bold text-darna">{fr.booking.total}</dt>
+        <dt className="text-base font-bold text-heading">{fr.booking.total}</dt>
         <dd>
           <Price
             amount={booking!.totalPrice}
-            className="text-xl font-bold text-darna"
+            className="text-xl font-bold text-heading"
           />
         </dd>
       </div>
@@ -152,17 +152,17 @@ export default async function PaiementPage({
       {/* Paiement = parcours séjours : on garde la nav en surbrillance. */}
       <ActiveSection name="sejours" />
       {confirmed ? (
-        <div className="rounded-3xl bg-white p-8 text-center ring-1 ring-emerald-200">
+        <div className="rounded-3xl bg-surface p-8 text-center ring-1 ring-emerald-200">
           <SuccessCheck size={64} />
-          <h1 className="mt-5 text-2xl font-bold text-darna">
+          <h1 className="mt-5 text-2xl font-bold text-heading">
             {fr.booking.paiementConfirme}
           </h1>
-          <p className="mx-auto mt-2 max-w-sm text-sm text-ink/70">
+          <p className="mx-auto mt-2 max-w-sm text-sm text-body/70">
             {fr.booking.paiementConfirmeDetail}
           </p>
           <div className="mt-5 rounded-2xl bg-cream p-4 text-start text-sm">
-            <p className="font-semibold text-ink">{booking.property.title}</p>
-            <p className="text-ink/60">
+            <p className="font-semibold text-body">{booking.property.title}</p>
+            <p className="text-body/60">
               {fr.booking.sejourDates(
                 formatDateFr(booking.checkIn),
                 formatDateFr(booking.checkOut)
@@ -170,22 +170,22 @@ export default async function PaiementPage({
             </p>
             <dl className="mt-3 space-y-1.5">
               <div className="flex justify-between">
-                <dt className="text-ink/60">{fr.booking.totalSejour}</dt>
+                <dt className="text-body/60">{fr.booking.totalSejour}</dt>
                 <dd>
-                  <Price amount={booking.totalPrice} className="font-semibold text-ink" />
+                  <Price amount={booking.totalPrice} className="font-semibold text-body" />
                 </dd>
               </div>
               <div className="flex justify-between">
-                <dt className="font-semibold text-darna">{fr.booking.payerMaintenant}</dt>
+                <dt className="font-semibold text-heading">{fr.booking.payerMaintenant}</dt>
                 <dd>
-                  <Price amount={booking.amountPaid} className="font-bold text-darna" />
+                  <Price amount={booking.amountPaid} className="font-bold text-heading" />
                 </dd>
               </div>
               {balanceDue > 0 ? (
                 <div className="flex justify-between border-t border-darna/10 pt-1.5">
-                  <dt className="text-ink/60">{fr.booking.soldeArrivee}</dt>
+                  <dt className="text-body/60">{fr.booking.soldeArrivee}</dt>
                   <dd>
-                    <Price amount={balanceDue} className="font-semibold text-ink" />
+                    <Price amount={balanceDue} className="font-semibold text-body" />
                   </dd>
                 </div>
               ) : null}
@@ -208,8 +208,8 @@ export default async function PaiementPage({
           </Link>
         </div>
       ) : (
-        <div className="rounded-3xl bg-white p-8 ring-1 ring-darna/10">
-          <h1 className="flex items-center gap-2 text-2xl font-bold text-darna">
+        <div className="rounded-3xl bg-surface p-8 ring-1 ring-darna/10">
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-heading">
             <ShieldIcon width={24} height={24} className="text-sand" />
             {fr.booking.paiementTitre}
           </h1>
@@ -271,13 +271,13 @@ export default async function PaiementPage({
               le voyageur sait ce qui est remboursable avant de s'engager. La
               part remboursable se calcule sur (payé − commission). */}
           <div className="mt-5 rounded-2xl bg-cream p-4 text-start text-sm">
-            <p className="font-semibold text-ink">
+            <p className="font-semibold text-body">
               {fr.property.politiqueAnnulation} :{" "}
-              <span className="text-darna">
+              <span className="text-heading">
                 {fr.property.cancelPolicy[cancelPolicy] ?? cancelPolicy}
               </span>
             </p>
-            <ul className="mt-2 space-y-1 text-xs text-ink/70">
+            <ul className="mt-2 space-y-1 text-xs text-body/70">
               {refundSchedule.map((tier) => (
                 <li key={tier.rate} className="flex items-start gap-1.5">
                   <CheckIcon

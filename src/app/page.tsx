@@ -51,29 +51,29 @@ export default async function HomePage() {
 
       {/* La différence entre les deux verticales — clarifie le produit */}
       <section className="mx-auto max-w-7xl px-4 pt-14 sm:px-6">
-        <h2 className="text-center text-2xl font-bold text-darna sm:text-3xl">
+        <h2 className="text-center text-2xl font-bold text-heading sm:text-3xl">
           {fr.home.diffTitle}
         </h2>
         <div className="mx-auto mt-6 grid max-w-4xl gap-5 md:grid-cols-2">
-          <div className="rounded-3xl bg-white p-6 ring-1 ring-darna/10">
+          <div className="rounded-3xl bg-surface p-6 ring-1 ring-darna/10">
             <div className="flex items-center gap-2.5">
-              <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sand/20 text-darna">
+              <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sand/20 text-heading">
                 <PalmIcon width={22} height={22} />
               </span>
-              <h3 className="text-lg font-bold text-darna">{fr.nav.sejours}</h3>
+              <h3 className="text-lg font-bold text-heading">{fr.nav.sejours}</h3>
             </div>
-            <p className="mt-3 text-sm leading-relaxed text-ink/70">
+            <p className="mt-3 text-sm leading-relaxed text-body/70">
               {fr.home.diffSejours}
             </p>
           </div>
-          <div className="rounded-3xl bg-white p-6 ring-1 ring-darna/10">
+          <div className="rounded-3xl bg-surface p-6 ring-1 ring-darna/10">
             <div className="flex items-center gap-2.5">
-              <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-darna/10 text-darna">
+              <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-darna/10 text-heading">
                 <BuildingIcon width={22} height={22} />
               </span>
-              <h3 className="text-lg font-bold text-darna">{fr.nav.immobilier}</h3>
+              <h3 className="text-lg font-bold text-heading">{fr.nav.immobilier}</h3>
             </div>
-            <p className="mt-3 text-sm leading-relaxed text-ink/70">
+            <p className="mt-3 text-sm leading-relaxed text-body/70">
               {fr.home.diffImmo}
             </p>
           </div>
@@ -88,8 +88,8 @@ export default async function HomePage() {
               <SparklesIcon width={18} height={18} />
             </span>
             <div>
-              <h2 className="text-3xl font-bold text-darna">{fr.home.alaUneTitle}</h2>
-              <p className="text-sm text-ink/60">{fr.home.alaUneSub}</p>
+              <h2 className="text-3xl font-bold text-heading">{fr.home.alaUneTitle}</h2>
+              <p className="text-sm text-body/60">{fr.home.alaUneSub}</p>
             </div>
           </div>
           <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -109,10 +109,10 @@ export default async function HomePage() {
       {featured.length > 0 ? (
         <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6">
           <div className="flex items-end justify-between gap-4">
-            <h2 className="text-3xl font-bold text-darna">{fr.home.featuredTitle}</h2>
+            <h2 className="text-3xl font-bold text-heading">{fr.home.featuredTitle}</h2>
             <Link
               href="/sejours"
-              className="hidden items-center gap-1.5 text-sm font-semibold text-darna hover:text-darna-light sm:flex"
+              className="hidden items-center gap-1.5 text-sm font-semibold text-heading hover:text-darna-light sm:flex"
             >
               {fr.home.featuredAll}
               <ArrowRightIcon width={16} height={16} />
@@ -132,9 +132,9 @@ export default async function HomePage() {
       ) : null}
 
       {/* La confiance est le produit */}
-      <section className="bg-white py-16">
+      <section className="bg-surface py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <h2 className="text-center text-3xl font-bold text-darna">
+          <h2 className="text-center text-3xl font-bold text-heading">
             {fr.home.trustTitle}
           </h2>
           <ScrollRevealGrid className="mt-10 grid gap-6 md:grid-cols-3">
@@ -147,8 +147,8 @@ export default async function HomePage() {
                 <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-darna text-sand">
                   <Icon width={24} height={24} />
                 </span>
-                <h3 className="mt-4 text-lg font-bold text-darna">{title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-ink/70">{desc}</p>
+                <h3 className="mt-4 text-lg font-bold text-heading">{title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-body/70">{desc}</p>
               </div>
             ))}
           </ScrollRevealGrid>
@@ -184,14 +184,14 @@ export default async function HomePage() {
             <Link
               key={href}
               href={href}
-              className="group flex h-full flex-col rounded-3xl bg-white p-7 shadow-sm ring-1 ring-darna/10 transition hover:shadow-lg"
+              className="group flex h-full flex-col rounded-3xl bg-surface p-7 shadow-sm ring-1 ring-darna/10 transition hover:shadow-lg"
             >
               <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-darna text-sand">
                 <Icon width={24} height={24} />
               </span>
-              <h3 className="mt-4 text-lg font-bold text-darna">{title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-ink/70">{desc}</p>
-              <span className="mt-auto inline-flex items-center gap-1.5 pt-4 text-sm font-semibold text-darna">
+              <h3 className="mt-4 text-lg font-bold text-heading">{title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-body/70">{desc}</p>
+              <span className="mt-auto inline-flex items-center gap-1.5 pt-4 text-sm font-semibold text-heading">
                 {cta}
                 <ArrowRightIcon
                   width={15}

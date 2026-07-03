@@ -88,21 +88,21 @@ export function VerificationsAssistant({
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-darna">
+        <h2 className="text-2xl font-bold text-heading">
           {welcome ? fr.verifications.bienvenue : fr.verifications.titre}
         </h2>
-        <p className="mt-1 text-sm text-ink/60">{fr.verifications.sousTitre}</p>
+        <p className="mt-1 text-sm text-body/60">{fr.verifications.sousTitre}</p>
       </div>
 
       {/* Pourquoi vérifier ? — la confiance comme produit */}
       <section className="mb-6 rounded-2xl border border-darna/10 bg-darna/[0.03] p-5">
-        <h3 className="flex items-center gap-2 text-sm font-bold text-darna">
+        <h3 className="flex items-center gap-2 text-sm font-bold text-heading">
           <ShieldIcon width={16} height={16} />
           {fr.verifications.pourquoiTitre}
         </h3>
         <ul className="mt-3 space-y-2">
           {why.map((line) => (
-            <li key={line} className="flex items-start gap-2 text-sm text-ink/75">
+            <li key={line} className="flex items-start gap-2 text-sm text-body/75">
               <span className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-sand text-darna-dark">
                 <CheckIcon width={10} height={10} strokeWidth={3} />
               </span>
@@ -136,7 +136,7 @@ export function VerificationsAssistant({
                     className={`flex w-full items-center gap-2.5 rounded-xl border px-3 py-2.5 text-start transition ${
                       isActive
                         ? "border-darna bg-darna text-white"
-                        : "border-darna/15 bg-white text-ink/70 hover:border-darna/30"
+                        : "border-darna/15 bg-surface text-body/70 hover:border-darna/30"
                     }`}
                   >
                     <span
@@ -178,7 +178,7 @@ export function VerificationsAssistant({
           </ol>
 
           {/* Étape active */}
-          <div className="rounded-2xl border border-darna/10 bg-white p-5">
+          <div className="rounded-2xl border border-darna/10 bg-surface p-5">
             {active.key === "email" ? (
               <EmailVerifyFlow initialVerified={emailVerified} onVerified={onEmail} />
             ) : active.key === "phone" ? (
@@ -194,11 +194,11 @@ export function VerificationsAssistant({
                 type="button"
                 onClick={handleSkip}
                 disabled={skipPending}
-                className="text-sm font-medium text-ink/50 underline-offset-2 hover:text-ink/80 hover:underline disabled:opacity-50"
+                className="text-sm font-medium text-body/50 underline-offset-2 hover:text-body/80 hover:underline disabled:opacity-50"
               >
                 {fr.verifications.passer}
               </button>
-              <p className="mt-1 text-[11px] text-ink/40">{fr.verifications.terminerPlusTard}</p>
+              <p className="mt-1 text-[11px] text-body/40">{fr.verifications.terminerPlusTard}</p>
             </div>
           ) : null}
         </>

@@ -39,7 +39,7 @@ export function LanguageSwitcher() {
           aria-pressed={l === locale}
           className={`rounded-full px-2.5 py-1 transition ${
             l === locale
-              ? "bg-white text-darna"
+              ? "bg-surface text-heading"
               : "text-white/80 hover:text-white"
           }`}
         >

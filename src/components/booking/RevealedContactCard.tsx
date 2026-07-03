@@ -21,26 +21,26 @@ export async function RevealedContactCard({
 
   return (
     <div
-      className={`rounded-2xl bg-white p-5 text-start ring-1 ring-emerald-200 ${className ?? ""}`}
+      className={`rounded-2xl bg-surface p-5 text-start ring-1 ring-emerald-200 ${className ?? ""}`}
     >
-      <p className="text-sm font-bold text-darna">
+      <p className="text-sm font-bold text-heading">
         {isGuestViewer ? fr.booking.contactHoteTitre : fr.booking.contactVoyageurTitre}
       </p>
-      <p className="mt-0.5 text-xs text-ink/60">
+      <p className="mt-0.5 text-xs text-body/60">
         {isGuestViewer ? fr.booking.contactHoteAide : fr.booking.contactVoyageurAide}
       </p>
 
       <dl className="mt-3 space-y-2 text-sm">
         <div className="flex items-center gap-2">
-          <UserIcon width={15} height={15} className="shrink-0 text-darna" />
+          <UserIcon width={15} height={15} className="shrink-0 text-heading" />
           <dt className="sr-only">{fr.booking.contactNom}</dt>
-          <dd className="font-semibold text-ink">{counterpart.name}</dd>
+          <dd className="font-semibold text-body">{counterpart.name}</dd>
         </div>
         <div className="flex items-center gap-2">
-          <MailIcon width={15} height={15} className="shrink-0 text-darna" />
+          <MailIcon width={15} height={15} className="shrink-0 text-heading" />
           <dt className="sr-only">{fr.booking.contactEmail}</dt>
           <dd>
-            <a href={`mailto:${counterpart.email}`} className="font-medium text-darna underline">
+            <a href={`mailto:${counterpart.email}`} className="font-medium text-heading underline">
               {counterpart.email}
             </a>
           </dd>
@@ -49,7 +49,7 @@ export async function RevealedContactCard({
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <dt className="sr-only">{fr.booking.contactTelephone}</dt>
             <dd>
-              <a href={`tel:${counterpart.phone}`} className="font-medium text-darna underline">
+              <a href={`tel:${counterpart.phone}`} className="font-medium text-heading underline">
                 {counterpart.phone}
               </a>
             </dd>

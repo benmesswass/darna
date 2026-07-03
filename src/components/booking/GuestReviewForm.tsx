@@ -29,7 +29,7 @@ export function GuestReviewForm({ bookingId }: { bookingId: string }) {
 
   return (
     <form action={action} className="mt-2 rounded-xl bg-cream p-3.5 ring-1 ring-sand">
-      <p className="text-xs font-bold text-darna">{fr.dashboard.noterVoyageur}</p>
+      <p className="text-xs font-bold text-heading">{fr.dashboard.noterVoyageur}</p>
       {state?.error ? (
         <p role="alert" className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-xs font-medium text-red-700">
           {state.error}
@@ -45,7 +45,7 @@ export function GuestReviewForm({ bookingId }: { bookingId: string }) {
             type="button"
             onClick={() => setRating(n)}
             aria-label={`${n}/5`}
-            className={n <= rating ? "text-sand" : "text-ink/20"}
+            className={n <= rating ? "text-sand" : "text-body/20"}
           >
             <StarIcon width={20} height={20} fill={n <= rating ? "currentColor" : "none"} />
           </button>
@@ -59,7 +59,7 @@ export function GuestReviewForm({ bookingId }: { bookingId: string }) {
         maxLength={2000}
         rows={2}
         placeholder={fr.property.votreCommentaire}
-        className="mt-2 w-full rounded-lg border border-darna/15 bg-white px-3 py-2 text-xs outline-none focus:border-darna"
+        className="mt-2 w-full rounded-lg border border-darna/15 bg-surface px-3 py-2 text-xs outline-none focus:border-darna"
       />
 
       <button

@@ -57,8 +57,8 @@ export function DepositPayment({
 
   return (
     <div className="mt-6">
-      <h2 className="text-base font-bold text-darna">{fr.booking.montantAPayer}</h2>
-      <p className="mt-1 text-xs leading-relaxed text-ink/60">
+      <h2 className="text-base font-bold text-heading">{fr.booking.montantAPayer}</h2>
+      <p className="mt-1 text-xs leading-relaxed text-body/60">
         {fr.booking.montantAPayerAide}
       </p>
 
@@ -74,7 +74,7 @@ export function DepositPayment({
               className={`rounded-xl border px-2 py-2.5 text-center text-xs font-bold transition ${
                 activeShortcut
                   ? "border-darna bg-darna text-white"
-                  : "border-darna/15 bg-white text-darna hover:bg-darna/5"
+                  : "border-darna/15 bg-surface text-heading hover:bg-darna/5"
               }`}
             >
               <span className="block">{s.label}</span>
@@ -99,7 +99,7 @@ export function DepositPayment({
           className="w-full accent-darna"
         />
         <div className="mt-2 flex items-center justify-between gap-3">
-          <span className="text-xs text-ink/55">
+          <span className="text-xs text-body/55">
             {fr.booking.acompteMin} :{" "}
             {new Intl.NumberFormat("fr-FR").format(depositAmount)} TND
           </span>
@@ -112,9 +112,9 @@ export function DepositPayment({
               value={amount}
               onChange={(e) => setAmount(Number(e.target.value))}
               onBlur={(e) => setAmount(clamp(Number(e.target.value)))}
-              className="w-24 rounded-lg border border-darna/20 px-2 py-1.5 text-end text-sm font-bold text-darna focus:border-darna focus:outline-none"
+              className="w-24 rounded-lg border border-darna/20 px-2 py-1.5 text-end text-sm font-bold text-heading focus:border-darna focus:outline-none"
             />
-            <span className="text-sm font-semibold text-ink/60">TND</span>
+            <span className="text-sm font-semibold text-body/60">TND</span>
           </label>
         </div>
       </div>
@@ -122,37 +122,37 @@ export function DepositPayment({
       {/* Récapitulatif du paiement */}
       <dl className="mt-5 space-y-2.5 rounded-2xl bg-cream p-4 text-sm">
         <div className="flex justify-between">
-          <dt className="text-ink/70">{fr.booking.totalSejour}</dt>
+          <dt className="text-body/70">{fr.booking.totalSejour}</dt>
           <dd>
-            <Price amount={totalPrice} className="font-semibold text-ink" />
+            <Price amount={totalPrice} className="font-semibold text-body" />
           </dd>
         </div>
         <div className="flex justify-between">
-          <dt className="font-semibold text-darna">
+          <dt className="font-semibold text-heading">
             {fr.booking.payerMaintenant}
-            <span className="ms-1 text-xs font-normal text-ink/50">
+            <span className="ms-1 text-xs font-normal text-body/50">
               ({fr.booking.pourcentDuTotal(pct)})
             </span>
           </dt>
           <dd>
-            <Price amount={amount} className="text-base font-bold text-darna" />
+            <Price amount={amount} className="text-base font-bold text-heading" />
           </dd>
         </div>
-        <div className="flex justify-between text-xs text-ink/55">
+        <div className="flex justify-between text-xs text-body/55">
           <dt>{fr.booking.dontCommission}</dt>
           <dd>
             <Price amount={serviceFee} />
           </dd>
         </div>
         <div className="flex justify-between border-t border-darna/10 pt-2.5">
-          <dt className="text-ink/70">
+          <dt className="text-body/70">
             {fr.booking.soldeArrivee}
-            <span className="block text-[11px] font-normal text-ink/45">
+            <span className="block text-[11px] font-normal text-body/45">
               {fr.booking.soldeArriveeAide}
             </span>
           </dt>
           <dd>
-            <Price amount={balanceDue} className="font-semibold text-ink" />
+            <Price amount={balanceDue} className="font-semibold text-body" />
           </dd>
         </div>
       </dl>

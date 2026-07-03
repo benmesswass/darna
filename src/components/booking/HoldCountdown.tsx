@@ -70,7 +70,7 @@ export function HoldCountdown({
       role="status"
       aria-live="off"
       className={`mt-5 flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold ${
-        urgent ? "bg-amber-100 text-amber-800" : "bg-cream text-darna-dark"
+        urgent ? "bg-amber-100 text-amber-800" : "bg-cream text-heading"
       }`}
     >
       <ClockIcon width={16} height={16} className="shrink-0" />

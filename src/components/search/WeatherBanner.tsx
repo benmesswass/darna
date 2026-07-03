@@ -78,8 +78,8 @@ export async function WeatherBanner({
         <div className="flex items-center gap-3">
           <WeatherIcon condition={current.condition} size={34} />
           <div>
-            <p className="text-2xl font-bold leading-none text-darna">{current.tempC}°</p>
-            <p className="mt-0.5 text-xs font-medium text-ink/65">
+            <p className="text-2xl font-bold leading-none text-heading">{current.tempC}°</p>
+            <p className="mt-0.5 text-xs font-medium text-body/65">
               {fr.destination.meteoActuelle} · {city} · {conditionLabel(current.condition)}
               {current.source === "seasonal" ? ` · ${fr.destination.meteoMoyenneSaison}` : ""}
             </p>
@@ -90,17 +90,17 @@ export async function WeatherBanner({
       {/* Prévision sur la période recherchée */}
       {forecast && rangeLabel ? (
         <div className="rounded-xl bg-white/70 px-3.5 py-2.5 ring-1 ring-darna/10">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-ink/45">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-body/45">
             {fr.destination.meteoSejour}
           </p>
-          <p className="mt-0.5 flex items-center gap-1.5 text-base font-bold text-darna">
+          <p className="mt-0.5 flex items-center gap-1.5 text-base font-bold text-heading">
             <WeatherIcon condition={forecast.condition} size={18} />
             {forecast.tempMin}–{forecast.tempMax}°
-            <span className="text-xs font-medium text-ink/55">
+            <span className="text-xs font-medium text-body/55">
               {conditionLabel(forecast.condition)}
             </span>
           </p>
-          <p className="mt-0.5 text-[11px] text-ink/50">
+          <p className="mt-0.5 text-[11px] text-body/50">
             {rangeLabel}
             {forecast.source === "seasonal" ? ` · ${fr.destination.meteoMoyenneSaison}` : ""}
           </p>

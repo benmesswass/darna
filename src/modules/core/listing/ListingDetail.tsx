@@ -128,7 +128,7 @@ export async function ListingDetail({
             <FreshnessBadge publishedAt={property.publishedAt} />
           </div>
           <div className="mt-3 flex items-center gap-3">
-            <h1 className="text-3xl font-bold text-darna">{property.title}</h1>
+            <h1 className="text-3xl font-bold text-heading">{property.title}</h1>
             <ShareButton
               title={property.title}
               url={`${SITE_URL}/annonce/${property.slug}`}
@@ -143,7 +143,7 @@ export async function ListingDetail({
               />
             ) : null}
           </div>
-          <p className="mt-1 flex items-center gap-1.5 text-ink/60">
+          <p className="mt-1 flex items-center gap-1.5 text-body/60">
             <MapPinIcon width={16} height={16} />
             {property.address ? `${property.address} — ` : ""}
             {property.city}, {property.gouvernorat}
@@ -153,14 +153,14 @@ export async function ListingDetail({
           <Price
             amount={property.price}
             suffix={priceSuffix}
-            className="text-3xl font-bold text-darna"
+            className="text-3xl font-bold text-heading"
           />
           {avgRating ? (
             <a
               href="#avis"
               aria-label={fr.property.voirAvis}
               title={fr.property.voirAvis}
-              className="mt-1 inline-flex items-center justify-end gap-1 rounded-full text-sm text-ink/70 underline-offset-4 transition hover:text-darna hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-darna/40"
+              className="mt-1 inline-flex items-center justify-end gap-1 rounded-full text-sm text-body/70 underline-offset-4 transition hover:text-heading hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-darna/40"
             >
               <StarIcon width={15} height={15} fill="currentColor" className="text-sand" />
               {avgRating.toFixed(1)} · {fr.property.nbAvis(property.reviews.length)}
@@ -193,6 +193,8 @@ export async function ListingDetail({
               {property.verificationLevel === "ON_SITE" ? "🏅" : "🛡️"}
             </span>
             <div className="flex-1">
+              {/* Texte fixe (non adaptatif) : ce bloc reste sur un fond clair
+                  (ambre/bleu) quel que soit le thème, cf. globals.css. */}
               <p className="font-bold text-ink">
                 {property.verificationLevel === "ON_SITE"
                   ? fr.badges.verifieOnSite
@@ -235,7 +237,7 @@ export async function ListingDetail({
         <div className="space-y-10">
           {/* Caractéristiques */}
           <section>
-            <h2 className="text-xl font-bold text-darna">
+            <h2 className="text-xl font-bold text-heading">
               {fr.property.caracteristiques}
             </h2>
             <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -257,8 +259,8 @@ export async function ListingDetail({
 
           {/* Description */}
           <section>
-            <h2 className="text-xl font-bold text-darna">{fr.property.description}</h2>
-            <p className="mt-3 whitespace-pre-line leading-relaxed text-ink/80">
+            <h2 className="text-xl font-bold text-heading">{fr.property.description}</h2>
+            <p className="mt-3 whitespace-pre-line leading-relaxed text-body/80">
               {property.description}
             </p>
           </section>
@@ -266,16 +268,16 @@ export async function ListingDetail({
           {/* Équipements */}
           {amenities.length > 0 ? (
             <section>
-              <h2 className="text-xl font-bold text-darna">
+              <h2 className="text-xl font-bold text-heading">
                 {fr.property.equipements}
               </h2>
               <ul className="mt-3 flex flex-wrap gap-2">
                 {amenities.map((a) => (
                   <li
                     key={a}
-                    className="flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-sm text-ink/80 ring-1 ring-darna/10"
+                    className="flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-sm text-body/80 ring-1 ring-darna/10"
                   >
-                    <CheckIcon width={14} height={14} className="text-darna" />
+                    <CheckIcon width={14} height={14} className="text-heading" />
                     {a}
                   </li>
                 ))}
@@ -289,7 +291,7 @@ export async function ListingDetail({
 
           {/* Localisation */}
           <section>
-            <h2 className="text-xl font-bold text-darna">{fr.property.localisation}</h2>
+            <h2 className="text-xl font-bold text-heading">{fr.property.localisation}</h2>
             <div className="mt-4 h-72 overflow-hidden rounded-3xl ring-1 ring-darna/10">
               <PropertyMap
                 markers={[
@@ -337,18 +339,18 @@ export async function ListingDetail({
 
         {/* Encart latéral : prix + actions + confiance */}
         <aside className="h-fit space-y-4 lg:sticky lg:top-20">
-          <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-darna/10">
+          <div className="rounded-3xl bg-surface p-6 shadow-sm ring-1 ring-darna/10">
             <Price
               amount={property.price}
               suffix={priceSuffix}
-              className="text-2xl font-bold text-darna"
+              className="text-2xl font-bold text-heading"
             />
             {belowPrice}
 
             {cta}
 
-            <div className="mt-5 flex items-start gap-2.5 rounded-2xl bg-cream p-3.5 text-xs leading-relaxed text-ink/70">
-              <ShieldIcon width={26} height={26} className="shrink-0 text-darna" />
+            <div className="mt-5 flex items-start gap-2.5 rounded-2xl bg-cream p-3.5 text-xs leading-relaxed text-body/70">
+              <ShieldIcon width={26} height={26} className="shrink-0 text-heading" />
               {property.verified
                 ? fr.property.verifieTooltip
                 : fr.property.nonVerifieTooltip}
@@ -356,20 +358,20 @@ export async function ListingDetail({
           </div>
 
           {/* Annonceur */}
-          <div className="rounded-3xl bg-white p-6 ring-1 ring-darna/10">
-            <p className="text-xs font-semibold uppercase tracking-wide text-ink/40">
+          <div className="rounded-3xl bg-surface p-6 ring-1 ring-darna/10">
+            <p className="text-xs font-semibold uppercase tracking-wide text-body/40">
               {property.owner.role === "AGENCE"
                 ? fr.property.agence
                 : fr.property.proprietaire}
             </p>
             {anonymizeOwner ? (
-              <p className="mt-1 font-semibold text-ink">{fr.property.hoteMasque}</p>
+              <p className="mt-1 font-semibold text-body">{fr.property.hoteMasque}</p>
             ) : (
               // Lien vers la fiche hôte publique — jamais affiché tant que
               // l'identité est masquée (anti-bypass, cf. anonymizeOwner).
               <Link
                 href={`/hote/${property.owner.id}`}
-                className="mt-1 inline-block font-semibold text-ink underline-offset-4 hover:text-darna hover:underline"
+                className="mt-1 inline-block font-semibold text-body underline-offset-4 hover:text-heading hover:underline"
               >
                 {property.owner.name}
               </Link>
@@ -377,21 +379,21 @@ export async function ListingDetail({
             {/* Réputation : affichée même hôte masqué, ce n'est pas une
                 donnée d'identité (contrairement au nom/contact). */}
             {property.owner.ratingCount > 0 ? (
-              <p className="mt-1 flex items-center gap-1 text-sm text-ink/70">
+              <p className="mt-1 flex items-center gap-1 text-sm text-body/70">
                 <StarIcon width={14} height={14} fill="currentColor" className="text-sand" />
                 {property.owner.ratingAvg!.toFixed(1)} ·{" "}
                 {fr.property.nbAvis(property.owner.ratingCount)}
               </p>
             ) : null}
             {property.owner.kycStatus === "VERIFIE" ? (
-              <p className="mt-2 inline-flex items-center gap-1 rounded-full bg-darna/5 px-2.5 py-1 text-xs font-medium text-darna">
+              <p className="mt-2 inline-flex items-center gap-1 rounded-full bg-darna/5 px-2.5 py-1 text-xs font-medium text-heading">
                 <CheckIcon width={12} height={12} strokeWidth={3} />
                 {fr.kyc.statutVerifie}
               </p>
             ) : property.owner.kycStatus === "DEMO_VERIFIE" ? (
               // Badge DÉMO distinct (couleur neutre, libellé explicite) : ne jamais
               // afficher une confiance « vérifié réel » pour une vérification de démo.
-              <p className="mt-2 inline-flex items-center gap-1 rounded-full bg-ink/[0.06] px-2.5 py-1 text-xs font-medium text-ink/55">
+              <p className="mt-2 inline-flex items-center gap-1 rounded-full bg-ink/[0.06] px-2.5 py-1 text-xs font-medium text-body/55">
                 <CheckIcon width={12} height={12} strokeWidth={3} />
                 {fr.kyc.statutVerifieDemo}
               </p>
@@ -405,7 +407,7 @@ export async function ListingDetail({
           recherche. Masquée s'il n'y a rien de comparable. */}
       {similarListings.length > 0 ? (
         <section className="mt-12">
-          <h2 className="text-xl font-bold text-darna">
+          <h2 className="text-xl font-bold text-heading">
             {fr.property.annoncesSimilaires}
           </h2>
           <SimilarListingsCarousel className="mt-4">

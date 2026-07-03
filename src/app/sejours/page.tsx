@@ -138,11 +138,11 @@ export default async function SejoursPage({
           hero (chevauchement) puis colle au scroll. */}
       <form
         method="GET"
-        className="relative -mt-8 rounded-3xl bg-white p-4 shadow-lg ring-1 ring-darna/10 sm:-mt-12 lg:z-[1040]"
+        className="relative -mt-8 rounded-3xl bg-surface p-4 shadow-lg ring-1 ring-darna/10 sm:-mt-12 lg:z-[1040]"
       >
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_auto]">
         <label className="flex flex-col gap-1">
-          <span className="text-xs font-semibold text-ink/60">
+          <span className="text-xs font-semibold text-body/60">
             {fr.search.ouAllezVous}
           </span>
           <CityAutocomplete
@@ -157,7 +157,7 @@ export default async function SejoursPage({
           fieldClassName="w-full rounded-xl border border-darna/15 bg-cream px-3 py-2.5 text-sm outline-none focus:border-darna"
         />
         <label className="flex flex-col gap-1">
-          <span className="flex items-center gap-1 text-xs font-semibold text-ink/60">
+          <span className="flex items-center gap-1 text-xs font-semibold text-body/60">
             <UsersIcon width={13} height={13} />
             {fr.search.voyageurs}
           </span>
@@ -189,7 +189,7 @@ export default async function SejoursPage({
             defaultDepart={params.depart}
           />
           <label className="flex flex-col gap-1">
-            <span className="text-xs font-semibold text-ink/60">
+            <span className="text-xs font-semibold text-body/60">
               {fr.search.chambresMin}
             </span>
             <select
@@ -206,7 +206,7 @@ export default async function SejoursPage({
             </select>
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs font-semibold text-ink/60">
+            <span className="text-xs font-semibold text-body/60">
               {fr.search.typeBien}
             </span>
             <select
@@ -246,13 +246,13 @@ export default async function SejoursPage({
         />
       ) : null}
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-ink/60">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-body/60">
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-darna">
+          <span className="font-semibold text-heading">
             {fr.search.resultats(total)}
           </span>
           {resolvedCity ? (
-            <span className="rounded-full bg-darna/10 px-2.5 py-0.5 text-xs font-medium text-darna">
+            <span className="rounded-full bg-darna/10 px-2.5 py-0.5 text-xs font-medium text-heading">
               {resolvedCity}
             </span>
           ) : null}
@@ -279,12 +279,12 @@ export default async function SejoursPage({
                 intégré ICI (haut de zone, visible sans scroller) plutôt qu'en
                 bas sous les cartes. */}
             <div className="rounded-2xl bg-darna/5 p-4 ring-1 ring-darna/10">
-              <p className="text-base font-semibold text-darna">
+              <p className="text-base font-semibold text-heading">
                 {resolvedCity
                   ? fr.search.aucuneAnnonceVille(resolvedCity)
                   : fr.search.aucunResultatTitre}
               </p>
-              <p className="mt-1 text-sm text-ink/70">
+              <p className="mt-1 text-sm text-body/70">
                 {suggestions.kind === "nearby"
                   ? fr.search.elargiProximiteIntro
                   : fr.search.elargirPopulaire}
@@ -294,7 +294,7 @@ export default async function SejoursPage({
                   <Link
                     key={s.city}
                     href={suggestionHref(s.city)}
-                    className="rounded-full bg-white px-4 py-1.5 text-sm font-medium text-darna ring-1 ring-darna/15 transition hover:bg-darna hover:text-white"
+                    className="rounded-full bg-surface px-4 py-1.5 text-sm font-medium text-heading ring-1 ring-darna/15 transition hover:bg-darna hover:text-white"
                   >
                     {fr.search.voirToutVille(s.city, s.count)}
                   </Link>
@@ -302,10 +302,10 @@ export default async function SejoursPage({
               </div>
               {resolvedCity ? (
                 <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-darna/10 pt-3 text-sm">
-                  <span className="text-ink/70">{fr.search.hoteAbsentTitre(resolvedCity)}</span>
+                  <span className="text-body/70">{fr.search.hoteAbsentTitre(resolvedCity)}</span>
                   <Link
                     href={hostCtaHref}
-                    className="inline-flex items-center gap-1 font-semibold text-darna hover:underline"
+                    className="inline-flex items-center gap-1 font-semibold text-heading hover:underline"
                   >
                     {fr.search.hoteCtaBouton}
                     <span aria-hidden>→</span>
@@ -354,8 +354,8 @@ async function EmptyState({
 }) {
   const fr = await getT();
   return (
-    <div className="rounded-3xl bg-white p-10 text-center ring-1 ring-darna/10">
-      <p className="text-lg font-semibold text-darna">
+    <div className="rounded-3xl bg-surface p-10 text-center ring-1 ring-darna/10">
+      <p className="text-lg font-semibold text-heading">
         {resolvedCity
           ? fr.search.aucuneAnnonceVille(resolvedCity)
           : `${fr.search.aucunResultatTitre}${unknownCity && query ? ` — « ${query} »` : ""}`}
@@ -364,7 +364,7 @@ async function EmptyState({
         <>
           {/* Ville connue mais vide partout : pas de cartes à montrer, donc
               l'amorçage de l'offre devient l'action principale, bien visible. */}
-          <p className="mx-auto mt-2 max-w-md text-sm text-ink/60">
+          <p className="mx-auto mt-2 max-w-md text-sm text-body/60">
             {fr.search.hoteAbsentDesc(resolvedCity)}
           </p>
           <Link
@@ -375,7 +375,7 @@ async function EmptyState({
           </Link>
         </>
       ) : (
-        <p className="mx-auto mt-2 max-w-md text-sm text-ink/60">
+        <p className="mx-auto mt-2 max-w-md text-sm text-body/60">
           {fr.search.aucunResultatDesc}
         </p>
       )}

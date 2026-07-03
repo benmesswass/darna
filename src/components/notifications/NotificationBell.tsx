@@ -113,15 +113,15 @@ export function NotificationBell() {
       {open ? (
         <div
           role="menu"
-          className="absolute end-0 top-full z-[1200] mt-2 w-80 overflow-hidden rounded-2xl bg-white text-start shadow-xl ring-1 ring-darna/10"
+          className="absolute end-0 top-full z-[1200] mt-2 w-80 overflow-hidden rounded-2xl bg-surface text-start shadow-xl ring-1 ring-darna/10"
         >
           <div className="flex items-center justify-between border-b border-ink/10 px-4 py-2.5">
-            <p className="text-sm font-bold text-darna">{fr.notifications.titre}</p>
+            <p className="text-sm font-bold text-heading">{fr.notifications.titre}</p>
             {count > 0 ? (
               <button
                 type="button"
                 onClick={handleMarkAllRead}
-                className="text-xs font-medium text-darna/70 hover:text-darna hover:underline"
+                className="text-xs font-medium text-heading/70 hover:text-heading hover:underline"
               >
                 {fr.notifications.toutMarquerLu}
               </button>
@@ -130,7 +130,7 @@ export function NotificationBell() {
 
           <div className="max-h-96 overflow-auto">
             {items.length === 0 ? (
-              <p className="px-4 py-6 text-center text-sm text-ink/50">
+              <p className="px-4 py-6 text-center text-sm text-body/50">
                 {fr.notifications.aucune}
               </p>
             ) : (
@@ -142,7 +142,7 @@ export function NotificationBell() {
                       role="menuitem"
                       onClick={() => handleItemClick(n)}
                       className={`flex w-full flex-col gap-0.5 px-4 py-2.5 text-start text-sm transition hover:bg-cream ${
-                        n.readAt ? "text-ink/60" : "font-medium text-ink"
+                        n.readAt ? "text-body/60" : "font-medium text-body"
                       }`}
                     >
                       <span className="flex items-start gap-2">
@@ -153,7 +153,7 @@ export function NotificationBell() {
                         )}
                         <span>{notificationMessage(fr, n)}</span>
                       </span>
-                      <span className="ps-3.5 text-[11px] text-ink/40">
+                      <span className="ps-3.5 text-[11px] text-body/40">
                         {formatDateShortFr(new Date(n.createdAt))}
                       </span>
                     </button>

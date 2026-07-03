@@ -19,7 +19,7 @@ export function AdminNav({ links }: { links: NavLink[] }) {
             className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${
               active
                 ? "bg-darna text-white shadow-sm"
-                : "border border-darna/20 text-darna hover:bg-darna hover:text-white"
+                : "border border-darna/20 text-heading hover:bg-darna hover:text-white"
             }`}
           >
             {label}

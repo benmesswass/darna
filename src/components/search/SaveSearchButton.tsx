@@ -42,7 +42,7 @@ export function SaveSearchButton({
       <button
         type="submit"
         disabled={pending}
-        className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold text-darna ring-1 ring-darna/20 transition hover:bg-darna/5 disabled:opacity-60"
+        className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold text-heading ring-1 ring-darna/20 transition hover:bg-darna/5 disabled:opacity-60"
       >
         <BellIcon width={13} height={13} />
         {fr.search.creerAlerte}

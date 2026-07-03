@@ -81,7 +81,7 @@ export async function StayDetail({
       }
       afterAmenities={
         <section>
-          <h2 className="text-xl font-bold text-darna">
+          <h2 className="text-xl font-bold text-heading">
             {fr.property.disponibilites}
           </h2>
           <div className="mt-4">
@@ -95,16 +95,16 @@ export async function StayDetail({
       }
       belowPrice={
         <>
-          <p className="mt-1 text-xs text-ink/50">{fr.property.fraisServiceInfo}</p>
+          <p className="mt-1 text-xs text-body/50">{fr.property.fraisServiceInfo}</p>
           <div className="mt-2 rounded-xl bg-cream px-3 py-2 text-xs">
-            <p className="font-semibold text-ink/80">
+            <p className="font-semibold text-body/80">
               {fr.property.politiqueAnnulation} :{" "}
-              <span className="text-darna">
+              <span className="text-heading">
                 {fr.property.cancelPolicy[property.cancelPolicy as CancelPolicy] ??
                   property.cancelPolicy}
               </span>
             </p>
-            <p className="mt-0.5 text-ink/60">
+            <p className="mt-0.5 text-body/60">
               {fr.property.cancelPolicyDesc[property.cancelPolicy as CancelPolicy]}
             </p>
           </div>

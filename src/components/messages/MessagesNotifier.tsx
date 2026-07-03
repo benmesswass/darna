@@ -95,17 +95,17 @@ export function MessagesNotifier({ initialCount }: { initialCount: number }) {
       aria-live="polite"
       className="fixed bottom-4 end-4 z-[1300] w-[min(92vw,22rem)]"
     >
-      <div className="flex items-start gap-3 rounded-2xl bg-white p-4 shadow-2xl ring-1 ring-darna/15">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cream text-darna">
+      <div className="flex items-start gap-3 rounded-2xl bg-surface p-4 shadow-2xl ring-1 ring-darna/15">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cream text-heading">
           <MailIcon width={18} height={18} />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-bold text-darna">{fr.messages.notifTitre}</p>
-          <p className="mt-0.5 text-xs text-ink/65">{fr.messages.notifCorps(toast.count)}</p>
+          <p className="text-sm font-bold text-heading">{fr.messages.notifTitre}</p>
+          <p className="mt-0.5 text-xs text-body/65">{fr.messages.notifCorps(toast.count)}</p>
           <Link
             href="/dashboard/messagerie"
             onClick={() => setToast(null)}
-            className="mt-2 inline-block text-xs font-semibold text-darna underline-offset-2 hover:underline"
+            className="mt-2 inline-block text-xs font-semibold text-heading underline-offset-2 hover:underline"
           >
             {fr.messages.notifVoir}
           </Link>
@@ -114,7 +114,7 @@ export function MessagesNotifier({ initialCount }: { initialCount: number }) {
           type="button"
           onClick={() => setToast(null)}
           aria-label={fr.common.fermer}
-          className="shrink-0 rounded-lg p-1 text-ink/40 hover:bg-cream hover:text-ink"
+          className="shrink-0 rounded-lg p-1 text-body/40 hover:bg-cream hover:text-body"
         >
           <CloseIcon width={16} height={16} />
         </button>

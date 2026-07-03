@@ -19,7 +19,7 @@ const STATUS_STYLES: Record<string, string> = {
   EN_ATTENTE: "bg-amber-100 text-amber-800",
   CONFIRMEE: "bg-emerald-100 text-emerald-800",
   ANNULEE: "bg-red-100 text-red-700",
-  TERMINEE: "bg-darna/10 text-darna",
+  TERMINEE: "bg-darna/10 text-heading",
 };
 
 const DAY = 1000 * 60 * 60 * 24;
@@ -62,14 +62,14 @@ export default async function MesReservationsPage() {
 
     return (
       <div>
-        <h2 className="text-xl font-bold text-darna">{fr.dashboard.mesVoyageurs}</h2>
+        <h2 className="text-xl font-bold text-heading">{fr.dashboard.mesVoyageurs}</h2>
 
         {bookings.length === 0 ? (
-          <div className="mt-6 rounded-3xl bg-white p-10 text-center ring-1 ring-darna/10">
-            <p className="text-lg font-semibold text-darna">
+          <div className="mt-6 rounded-3xl bg-surface p-10 text-center ring-1 ring-darna/10">
+            <p className="text-lg font-semibold text-heading">
               {fr.dashboard.aucuneReservationHote}
             </p>
-            <p className="mt-1 text-sm text-ink/60">
+            <p className="mt-1 text-sm text-body/60">
               {fr.dashboard.aucuneReservationHoteCta}
             </p>
             <Link
@@ -84,7 +84,7 @@ export default async function MesReservationsPage() {
             {bookings.map((b) => (
               <li
                 key={b.id}
-                className="flex flex-col gap-4 rounded-3xl bg-white p-4 ring-1 ring-darna/10 sm:flex-row"
+                className="flex flex-col gap-4 rounded-3xl bg-surface p-4 ring-1 ring-darna/10 sm:flex-row"
               >
                 <div className="relative h-24 w-full shrink-0 overflow-hidden rounded-2xl sm:w-36">
                   {b.property.photos[0] ? (
@@ -101,7 +101,7 @@ export default async function MesReservationsPage() {
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span
-                      className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold ${STATUS_STYLES[b.status] ?? "bg-cream text-ink"}`}
+                      className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold ${STATUS_STYLES[b.status] ?? "bg-cream text-body"}`}
                     >
                       {fr.dashboard.statutReservation[b.status] ?? b.status}
                     </span>
@@ -114,11 +114,11 @@ export default async function MesReservationsPage() {
 
                   <Link
                     href={`/annonce/${b.property.slug}`}
-                    className="mt-1.5 block truncate font-semibold text-ink hover:text-darna"
+                    className="mt-1.5 block truncate font-semibold text-body hover:text-heading"
                   >
                     {b.property.title}
                   </Link>
-                  <p className="text-sm text-ink/60">
+                  <p className="text-sm text-body/60">
                     {b.property.city} ·{" "}
                     {fr.booking.sejourDates(
                       formatDateShortFr(b.checkIn),
@@ -154,7 +154,7 @@ export default async function MesReservationsPage() {
                   {b.status === "CONFIRMEE" || b.status === "TERMINEE" ? (
                     <Link
                       href={`/reservation/${b.id}/messages`}
-                      className="mt-2 inline-block text-xs font-bold text-darna underline"
+                      className="mt-2 inline-block text-xs font-bold text-heading underline"
                     >
                       {fr.messages.lien} →
                     </Link>
@@ -175,7 +175,7 @@ export default async function MesReservationsPage() {
                   ) : null}
 
                   <p className="mt-1.5 text-sm">
-                    <Price amount={b.totalPrice} className="font-bold text-darna" />
+                    <Price amount={b.totalPrice} className="font-bold text-heading" />
                   </p>
                 </div>
               </li>
@@ -210,14 +210,14 @@ export default async function MesReservationsPage() {
 
   return (
     <div>
-      <h2 className="text-xl font-bold text-darna">{fr.dashboard.mesReservations}</h2>
+      <h2 className="text-xl font-bold text-heading">{fr.dashboard.mesReservations}</h2>
 
       {bookings.length === 0 ? (
-        <div className="mt-6 rounded-3xl bg-white p-10 text-center ring-1 ring-darna/10">
-          <p className="text-lg font-semibold text-darna">
+        <div className="mt-6 rounded-3xl bg-surface p-10 text-center ring-1 ring-darna/10">
+          <p className="text-lg font-semibold text-heading">
             {fr.dashboard.aucuneReservation}
           </p>
-          <p className="mt-1 text-sm text-ink/60">{fr.dashboard.aucuneReservationCta}</p>
+          <p className="mt-1 text-sm text-body/60">{fr.dashboard.aucuneReservationCta}</p>
           <Link
             href="/sejours"
             className="mt-5 inline-block rounded-full bg-darna px-6 py-2.5 text-sm font-semibold text-white hover:bg-darna-light"
@@ -230,7 +230,7 @@ export default async function MesReservationsPage() {
           {bookings.map((b) => (
             <li
               key={b.id}
-              className="flex flex-col gap-4 rounded-3xl bg-white p-4 ring-1 ring-darna/10 sm:flex-row sm:items-center"
+              className="flex flex-col gap-4 rounded-3xl bg-surface p-4 ring-1 ring-darna/10 sm:flex-row sm:items-center"
             >
               <div className="relative h-24 w-full shrink-0 overflow-hidden rounded-2xl sm:w-36">
                 {b.property.photos[0] ? (
@@ -245,14 +245,14 @@ export default async function MesReservationsPage() {
               </div>
               <div className="min-w-0 flex-1">
                 <span
-                  className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold ${STATUS_STYLES[b.status] ?? "bg-cream text-ink"}`}
+                  className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold ${STATUS_STYLES[b.status] ?? "bg-cream text-body"}`}
                 >
                   {fr.dashboard.statutReservation[b.status] ?? b.status}
                 </span>
-                <p className="mt-1.5 truncate font-semibold text-ink">
+                <p className="mt-1.5 truncate font-semibold text-body">
                   {b.property.title}
                 </p>
-                <p className="text-sm text-ink/60">
+                <p className="text-sm text-body/60">
                   {b.property.city} ·{" "}
                   {fr.booking.sejourDates(
                     formatDateShortFr(b.checkIn),
@@ -260,7 +260,7 @@ export default async function MesReservationsPage() {
                   )}
                 </p>
                 <p className="mt-0.5 text-sm">
-                  <Price amount={b.totalPrice} className="font-bold text-darna" />
+                  <Price amount={b.totalPrice} className="font-bold text-heading" />
                 </p>
                 {/* Coordonnées de l'hôte — révélées au voyageur une fois la
                     fenêtre d'annulation gratuite passée (sinon verrouillées). */}
@@ -298,7 +298,7 @@ export default async function MesReservationsPage() {
               <div className="flex flex-col gap-2">
                 <Link
                   href={`/annonce/${b.property.slug}`}
-                  className="rounded-xl border border-darna/15 px-3.5 py-2 text-center text-xs font-semibold text-darna hover:bg-darna/5"
+                  className="rounded-xl border border-darna/15 px-3.5 py-2 text-center text-xs font-semibold text-heading hover:bg-darna/5"
                 >
                   {fr.dashboard.voirAnnonce}
                 </Link>
@@ -313,7 +313,7 @@ export default async function MesReservationsPage() {
                 {b.status === "CONFIRMEE" || b.status === "TERMINEE" ? (
                   <Link
                     href={`/reservation/${b.id}/messages`}
-                    className="rounded-xl border border-darna/15 px-3.5 py-2 text-center text-xs font-semibold text-darna hover:bg-darna/5"
+                    className="rounded-xl border border-darna/15 px-3.5 py-2 text-center text-xs font-semibold text-heading hover:bg-darna/5"
                   >
                     {fr.messages.lien}
                   </Link>
@@ -324,7 +324,7 @@ export default async function MesReservationsPage() {
                 {b.status === "CONFIRMEE" || b.status === "TERMINEE" ? (
                   <Link
                     href={`/hote/${b.property.owner.id}`}
-                    className="rounded-xl border border-darna/15 px-3.5 py-2 text-center text-xs font-semibold text-darna hover:bg-darna/5"
+                    className="rounded-xl border border-darna/15 px-3.5 py-2 text-center text-xs font-semibold text-heading hover:bg-darna/5"
                   >
                     {fr.dashboard.voirProfilHote}
                   </Link>
@@ -344,7 +344,7 @@ export default async function MesReservationsPage() {
                   />
                 ) : null}
                 {b.status === "ANNULEE" && b.cancelledAt ? (
-                  <div className="space-y-0.5 text-[11px] text-ink/50">
+                  <div className="space-y-0.5 text-[11px] text-body/50">
                     <p>{fr.dashboard.cancelledAt(formatDateShortFr(b.cancelledAt))}</p>
                     {b.refundAmount != null && b.refundAmount > 0 ? (
                       <p className="font-semibold text-emerald-700">

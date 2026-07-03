@@ -67,12 +67,12 @@ function PropertyTable({
   showVerify: boolean;
 }) {
   if (properties.length === 0) {
-    return <p className="py-4 text-sm text-ink/50">{fr.admin.aucuneAnnonce}</p>;
+    return <p className="py-4 text-sm text-body/50">{fr.admin.aucuneAnnonce}</p>;
   }
   return (
     <div className="overflow-hidden rounded-2xl border border-ink/10">
       <table className="w-full text-sm">
-        <thead className="bg-sand text-xs font-semibold uppercase tracking-wide text-ink/50">
+        <thead className="bg-sand text-xs font-semibold uppercase tracking-wide text-darna-dark/70">
           <tr>
             <th className="px-4 py-3 text-start">{fr.admin.annonce}</th>
             <th className="px-4 py-3 text-start">{fr.admin.proprietaire}</th>
@@ -95,13 +95,13 @@ function PropertyTable({
                   <span className="line-clamp-1 font-semibold text-darna-dark underline-offset-2 group-hover:underline">
                     {p.title}
                   </span>
-                  <span className="shrink-0 text-[10px] text-ink/30 group-hover:text-darna">↗</span>
+                  <span className="shrink-0 text-[10px] text-body/30 group-hover:text-heading">↗</span>
                 </Link>
-                <div className="text-xs text-ink/50">{p.city}</div>
+                <div className="text-xs text-body/50">{p.city}</div>
               </td>
               <td className="px-4 py-3">
                 <div>{p.owner.name}</div>
-                <div className="text-xs text-ink/50">{p.owner.email}</div>
+                <div className="text-xs text-body/50">{p.owner.email}</div>
               </td>
               <td className="px-4 py-3">
                 <KycBadge kycStatus={p.owner.kycStatus} />
@@ -113,7 +113,7 @@ function PropertyTable({
                       {fr.admin.verifiee}
                     </span>
                     {p.verifiedBy ? (
-                      <div className="mt-0.5 text-xs text-ink/40">
+                      <div className="mt-0.5 text-xs text-body/40">
                         {fr.admin.verifiePar(p.verifiedBy.name)}
                       </div>
                     ) : null}
@@ -185,21 +185,21 @@ export default async function AdminAnnoncesPage() {
       {/* ── File de modération ─────────────────────────────────────── */}
       <section>
         <div className="mb-4 flex items-center gap-3">
-          <h3 className="text-xl font-bold text-darna">{fr.admin.fileModeration}</h3>
+          <h3 className="text-xl font-bold text-heading">{fr.admin.fileModeration}</h3>
           {pending.length > 0 && (
             <span className="rounded-full bg-darna px-2.5 py-0.5 text-xs font-bold text-white">
               {pending.length}
             </span>
           )}
         </div>
-        <p className="mb-6 text-sm text-ink/60">{fr.admin.fileModerationDesc}</p>
+        <p className="mb-6 text-sm text-body/60">{fr.admin.fileModerationDesc}</p>
         <PropertyTable properties={pending as Property[]} fr={fr} showVerify={true} />
       </section>
 
       {/* ── Annonces déjà vérifiées ────────────────────────────────── */}
       <section>
         <div className="mb-4 flex items-center gap-3">
-          <h3 className="text-xl font-bold text-ink/70">{fr.admin.annoncesDejVerifiees}</h3>
+          <h3 className="text-xl font-bold text-body/70">{fr.admin.annoncesDejVerifiees}</h3>
           <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-bold text-green-800">
             {verified.length}
           </span>

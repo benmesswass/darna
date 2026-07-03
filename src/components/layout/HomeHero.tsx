@@ -66,7 +66,7 @@ export function HomeHero({
       };
 
   const fieldStyle =
-    "rounded-xl bg-white px-3 py-2.5 text-sm text-ink outline-none ring-1 ring-black/5 focus:ring-2 focus:ring-current";
+    "rounded-xl bg-surface px-3 py-2.5 text-sm text-body outline-none ring-1 ring-black/5 focus:ring-2 focus:ring-current";
   const labelStyle = "mb-1 block text-xs font-semibold";
 
   function Tab({ m, icon, label, sub }: { m: Mode; icon: ReactNode; label: string; sub: string }) {
@@ -224,11 +224,11 @@ export function HomeHero({
           ) : (
             <form method="GET" action="/immobilier" className="grid gap-3">
               <div className="flex w-fit rounded-full bg-cream p-1 ring-1 ring-black/5">
-                <label className="cursor-pointer rounded-full px-5 py-1.5 text-sm font-semibold text-ink/70 has-[:checked]:bg-[#15539e] has-[:checked]:text-white">
+                <label className="cursor-pointer rounded-full px-5 py-1.5 text-sm font-semibold text-body/70 has-[:checked]:bg-[#15539e] has-[:checked]:text-white">
                   <input type="radio" name="transaction" value="location" defaultChecked className="sr-only" />
                   {fr.search.louer}
                 </label>
-                <label className="cursor-pointer rounded-full px-5 py-1.5 text-sm font-semibold text-ink/70 has-[:checked]:bg-[#15539e] has-[:checked]:text-white">
+                <label className="cursor-pointer rounded-full px-5 py-1.5 text-sm font-semibold text-body/70 has-[:checked]:bg-[#15539e] has-[:checked]:text-white">
                   <input type="radio" name="transaction" value="vente" className="sr-only" />
                   {fr.search.acheter}
                 </label>

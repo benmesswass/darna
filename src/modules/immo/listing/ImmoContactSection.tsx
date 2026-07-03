@@ -19,8 +19,8 @@ export async function ImmoContactSection({
 
   return (
     <section id="contact">
-      <h2 className="text-xl font-bold text-darna">{fr.contact.titre}</h2>
-      <div className="mt-4 rounded-3xl bg-white p-6 ring-1 ring-darna/10">
+      <h2 className="text-xl font-bold text-heading">{fr.contact.titre}</h2>
+      <div className="mt-4 rounded-3xl bg-surface p-6 ring-1 ring-darna/10">
         <ContactForm
           propertyId={property.id}
           propertyTitle={property.title}

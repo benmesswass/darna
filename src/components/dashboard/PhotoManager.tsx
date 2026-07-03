@@ -46,7 +46,7 @@ function PhotoCaptionField({ photo }: { photo: ManagedPhoto }) {
           maxLength={140}
           defaultValue={photo.caption ?? ""}
           placeholder={fr.annonceForm.legendePlaceholder}
-          className="min-w-0 flex-1 rounded-lg bg-cream px-2.5 py-1.5 text-xs text-ink ring-1 ring-darna/10 placeholder:text-ink/35 focus:outline-none focus:ring-2 focus:ring-darna/40"
+          className="min-w-0 flex-1 rounded-lg bg-cream px-2.5 py-1.5 text-xs text-body ring-1 ring-darna/10 placeholder:text-body/35 focus:outline-none focus:ring-2 focus:ring-darna/40"
         />
         <button
           type="submit"
@@ -83,8 +83,8 @@ export function PhotoManager({
 
   return (
     <div className="space-y-4">
-      <p className="text-xs text-ink/50">{fr.annonceForm.photosAide}</p>
-      <p className="text-xs text-ink/50">{fr.annonceForm.legendeAide}</p>
+      <p className="text-xs text-body/50">{fr.annonceForm.photosAide}</p>
+      <p className="text-xs text-body/50">{fr.annonceForm.legendeAide}</p>
 
       {/* Grille des photos existantes */}
       <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -108,7 +108,7 @@ export function PhotoManager({
                   <button
                     type="submit"
                     title={fr.annonceForm.definirCouverture}
-                    className="flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold text-darna opacity-0 transition group-hover:opacity-100"
+                    className="flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold text-heading opacity-0 transition group-hover:opacity-100"
                   >
                     <StarIcon width={10} height={10} />
                     {fr.annonceForm.definirCouverture}
@@ -157,7 +157,7 @@ export function PhotoManager({
             multiple
             required
             onChange={(e) => compressFileInput(e.currentTarget)}
-            className="text-sm text-ink/70 file:me-3 file:rounded-full file:border-0 file:bg-darna file:px-4 file:py-2 file:text-xs file:font-bold file:text-white hover:file:bg-darna-light"
+            className="text-sm text-body/70 file:me-3 file:rounded-full file:border-0 file:bg-darna file:px-4 file:py-2 file:text-xs file:font-bold file:text-white hover:file:bg-darna-light"
           />
           <button
             type="submit"

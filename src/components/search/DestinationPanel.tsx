@@ -59,16 +59,16 @@ export function DestinationPanel({
           {/* En-tête : destination + météo */}
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="flex items-center gap-1.5 text-lg font-bold text-darna">
-                <MapPinIcon width={16} height={16} className="shrink-0 text-darna/60" />
+              <p className="flex items-center gap-1.5 text-lg font-bold text-heading">
+                <MapPinIcon width={16} height={16} className="shrink-0 text-heading/60" />
                 <span className="truncate">{title}</span>
               </p>
             </div>
             {data.weather ? (
-              <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-white px-2.5 py-1 text-sm font-semibold text-darna ring-1 ring-darna/10">
+              <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-surface px-2.5 py-1 text-sm font-semibold text-heading ring-1 ring-darna/10">
                 {weatherIcon(data.weather.condition)}
                 {data.weather.tempC}°
-                <span className="text-xs font-medium text-ink/55">
+                <span className="text-xs font-medium text-body/55">
                   {weatherLabel(data.weather.condition)}
                 </span>
               </span>
@@ -83,7 +83,7 @@ export function DestinationPanel({
                 {fr.destination.logementsDispo(data.availableCount)}
               </p>
             ) : (
-              <p className="text-sm font-medium text-ink/60">{fr.destination.aucunIci}</p>
+              <p className="text-sm font-medium text-body/60">{fr.destination.aucunIci}</p>
             )
           ) : null}
 
@@ -94,7 +94,7 @@ export function DestinationPanel({
                 <Link
                   key={reco.slug}
                   href={`/annonce/${reco.slug}`}
-                  className="flex items-center gap-3 rounded-2xl bg-white p-2 ring-1 ring-darna/10 transition hover:ring-darna/30"
+                  className="flex items-center gap-3 rounded-2xl bg-surface p-2 ring-1 ring-darna/10 transition hover:ring-darna/30"
                 >
                   <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-darna/10">
                     {reco.imageUrl ? (
@@ -106,17 +106,17 @@ export function DestinationPanel({
                         className="object-cover"
                       />
                     ) : (
-                      <span className="flex h-full w-full items-center justify-center text-darna/40">
+                      <span className="flex h-full w-full items-center justify-center text-heading/40">
                         <MapPinIcon width={18} height={18} />
                       </span>
                     )}
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold text-ink">
+                    <span className="block truncate text-sm font-semibold text-body">
                       {reco.title}
                     </span>
-                    <span className="mt-0.5 flex items-center gap-2 text-xs text-ink/55">
-                      <span className="font-semibold text-darna">{reco.priceLabel}</span>
+                    <span className="mt-0.5 flex items-center gap-2 text-xs text-body/55">
+                      <span className="font-semibold text-heading">{reco.priceLabel}</span>
                       {reco.verified ? (
                         <span className="inline-flex items-center gap-0.5 font-semibold text-emerald-700">
                           <ShieldIcon width={12} height={12} />
@@ -133,7 +133,7 @@ export function DestinationPanel({
           {showVoirTout ? (
             <Link
               href={`/sejours?ville=${encodeURIComponent(data.resolvedCity!)}`}
-              className="inline-flex items-center gap-1 text-sm font-semibold text-darna hover:underline"
+              className="inline-flex items-center gap-1 text-sm font-semibold text-heading hover:underline"
             >
               {fr.destination.voirTout(data.availableCount)}
               <ArrowRightIcon width={14} height={14} />
@@ -143,7 +143,7 @@ export function DestinationPanel({
           {/* Alternatives / destinations populaires (cross-discovery) */}
           {data.alternatives.length > 0 ? (
             <div className="mt-auto border-t border-darna/10 pt-3">
-              <p className="mb-2 text-xs font-medium text-ink/55">
+              <p className="mb-2 text-xs font-medium text-body/55">
                 {data.resolvedCity
                   ? fr.destination.autreDestination
                   : fr.destination.destinationsPopulaires}
@@ -153,7 +153,7 @@ export function DestinationPanel({
                   <Link
                     key={alt.city}
                     href={`/sejours?ville=${encodeURIComponent(alt.city)}`}
-                    className="rounded-full bg-white px-3 py-1 text-xs font-medium text-ink ring-1 ring-darna/15 transition hover:ring-darna/40"
+                    className="rounded-full bg-surface px-3 py-1 text-xs font-medium text-body ring-1 ring-darna/15 transition hover:ring-darna/40"
                   >
                     {alt.city} · {alt.count}
                   </Link>

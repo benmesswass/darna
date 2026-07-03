@@ -67,7 +67,7 @@ function LiveRuleHint({ met, label }: { met: boolean; label: string }) {
   return (
     <p
       className={`mt-1.5 flex items-center gap-1.5 text-xs transition-colors duration-300 ${
-        met ? "text-emerald-600" : "text-ink/40"
+        met ? "text-emerald-600" : "text-body/40"
       }`}
     >
       <span
@@ -134,7 +134,7 @@ function PasswordInput({
           aria-label={show ? fr.auth.masquerMotDePasse : fr.auth.afficherMotDePasse}
           aria-pressed={show}
           tabIndex={-1}
-          className="absolute inset-y-0 end-0 flex items-center pe-3.5 text-ink/45 transition hover:text-darna focus:outline-none focus-visible:text-darna"
+          className="absolute inset-y-0 end-0 flex items-center pe-3.5 text-body/45 transition hover:text-heading focus:outline-none focus-visible:text-heading"
         >
           {show ? <EyeOffIcon /> : <EyeIcon />}
         </button>
@@ -204,7 +204,7 @@ export function LoginForm({
       ) : null}
       {callbackUrl ? <input type="hidden" name="callbackUrl" value={callbackUrl} /> : null}
       <label className="block space-y-1.5">
-        <span className="text-sm font-semibold text-ink/70">{fr.auth.email}</span>
+        <span className="text-sm font-semibold text-body/70">{fr.auth.email}</span>
         <input
           name="email"
           type="email"
@@ -215,7 +215,7 @@ export function LoginForm({
         />
       </label>
       <label className="block space-y-1.5">
-        <span className="text-sm font-semibold text-ink/70">{fr.auth.motDePasse}</span>
+        <span className="text-sm font-semibold text-body/70">{fr.auth.motDePasse}</span>
         <PasswordInput name="password" autoComplete="current-password" />
       </label>
       <TurnstileWidget siteKey={captchaSiteKey} />
@@ -223,14 +223,14 @@ export function LoginForm({
       <p className="text-center text-sm">
         <Link
           href="/mot-de-passe-oublie"
-          className="font-semibold text-darna underline underline-offset-2"
+          className="font-semibold text-heading underline underline-offset-2"
         >
           {fr.auth.motDePasseOublie}
         </Link>
       </p>
-      <p className="text-center text-sm text-ink/60">
+      <p className="text-center text-sm text-body/60">
         {fr.auth.pasDeCompte}{" "}
-        <Link href={inscriptionHref} className="font-semibold text-darna underline">
+        <Link href={inscriptionHref} className="font-semibold text-heading underline">
           {fr.auth.sInscrire}
         </Link>
       </p>
@@ -251,20 +251,20 @@ export function ForgotPasswordForm() {
           <p className="font-semibold">{fr.auth.resetModeDemo}</p>
           <Link
             href={state.resetUrl}
-            className="mt-1 block break-all font-semibold text-darna underline"
+            className="mt-1 block break-all font-semibold text-heading underline"
           >
             {fr.auth.resetOuvrirLien}
           </Link>
         </div>
       ) : null}
-      <p className="text-sm text-ink/70">{fr.auth.resetSousTitre}</p>
+      <p className="text-sm text-body/70">{fr.auth.resetSousTitre}</p>
       <label className="block space-y-1.5">
-        <span className="text-sm font-semibold text-ink/70">{fr.auth.email}</span>
+        <span className="text-sm font-semibold text-body/70">{fr.auth.email}</span>
         <input name="email" type="email" required autoComplete="email" className={inputClass} />
       </label>
       <SubmitButton label={fr.auth.resetEnvoyer} pending={pending} />
-      <p className="text-center text-sm text-ink/60">
-        <Link href="/connexion" className="font-semibold text-darna underline">
+      <p className="text-center text-sm text-body/60">
+        <Link href="/connexion" className="font-semibold text-heading underline">
           {fr.auth.resetRetourConnexion}
         </Link>
       </p>
@@ -324,7 +324,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
         <p className="text-center text-sm">
           <Link
             href="/connexion"
-            className="font-semibold text-darna underline underline-offset-2"
+            className="font-semibold text-heading underline underline-offset-2"
           >
             {fr.auth.seConnecter}
           </Link>
@@ -333,7 +333,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
         <>
           <input type="hidden" name="token" value={token} />
           <label className="block space-y-1.5">
-            <span className="text-sm font-semibold text-ink/70">{fr.auth.resetNouveauMdp}</span>
+            <span className="text-sm font-semibold text-body/70">{fr.auth.resetNouveauMdp}</span>
             <PasswordInput
               name="password"
               autoComplete="new-password"
@@ -343,7 +343,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
             />
           </label>
           <label className="block space-y-1.5">
-            <span className="text-sm font-semibold text-ink/70">
+            <span className="text-sm font-semibold text-body/70">
               {fr.auth.confirmerMotDePasse}
             </span>
             <PasswordInput
@@ -407,7 +407,7 @@ export function RegisterForm({
     <form action={action} onSubmit={handleSubmit} className="space-y-4">
       <Feedback state={state} />
       <label className="block space-y-1.5">
-        <span className="text-sm font-semibold text-ink/70">{fr.auth.nom}</span>
+        <span className="text-sm font-semibold text-body/70">{fr.auth.nom}</span>
         <input
           name="name"
           type="text"
@@ -418,7 +418,7 @@ export function RegisterForm({
         />
       </label>
       <label className="block space-y-1.5">
-        <span className="text-sm font-semibold text-ink/70">{fr.auth.email}</span>
+        <span className="text-sm font-semibold text-body/70">{fr.auth.email}</span>
         <input
           name="email"
           type="email"
@@ -429,7 +429,7 @@ export function RegisterForm({
         />
       </label>
       <label className="block space-y-1.5">
-        <span className="text-sm font-semibold text-ink/70">{fr.auth.motDePasse}</span>
+        <span className="text-sm font-semibold text-body/70">{fr.auth.motDePasse}</span>
         <PasswordInput
           name="password"
           autoComplete="new-password"
@@ -439,7 +439,7 @@ export function RegisterForm({
         />
       </label>
       <label className="block space-y-1.5">
-        <span className="text-sm font-semibold text-ink/70">
+        <span className="text-sm font-semibold text-body/70">
           {fr.auth.confirmerMotDePasse}
         </span>
         <PasswordInput
@@ -452,9 +452,9 @@ export function RegisterForm({
         <ConfirmMismatchError show={mismatch} message={fr.profil.mdpConfirmationInvalide} />
       </label>
       <label className="block space-y-1.5">
-        <span className="text-sm font-semibold text-ink/70">
+        <span className="text-sm font-semibold text-body/70">
           {fr.auth.telephone}{" "}
-          <span className="font-normal text-ink/40">({fr.common.optionnel})</span>
+          <span className="font-normal text-body/40">({fr.common.optionnel})</span>
         </span>
         <input
           name="phone"
@@ -464,9 +464,9 @@ export function RegisterForm({
         />
       </label>
       <label className="block space-y-1.5">
-        <span className="text-sm font-semibold text-ink/70">
+        <span className="text-sm font-semibold text-body/70">
           {fr.auth.pays}{" "}
-          <span className="font-normal text-ink/40">({fr.common.optionnel})</span>
+          <span className="font-normal text-body/40">({fr.common.optionnel})</span>
         </span>
         <select name="country" defaultValue="" className={inputClass}>
           <option value="">—</option>
@@ -478,7 +478,7 @@ export function RegisterForm({
         </select>
       </label>
       <label className="block space-y-1.5">
-        <span className="text-sm font-semibold text-ink/70">{fr.auth.role}</span>
+        <span className="text-sm font-semibold text-body/70">{fr.auth.role}</span>
         <select
           name="role"
           required
@@ -492,9 +492,9 @@ export function RegisterForm({
       </label>
       <TurnstileWidget siteKey={captchaSiteKey} />
       <SubmitButton label={fr.auth.sInscrire} pending={pending} />
-      <p className="text-center text-sm text-ink/60">
+      <p className="text-center text-sm text-body/60">
         {fr.auth.dejaCompte}{" "}
-        <Link href={connexionHref} className="font-semibold text-darna underline">
+        <Link href={connexionHref} className="font-semibold text-heading underline">
           {fr.auth.seConnecter}
         </Link>
       </p>

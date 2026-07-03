@@ -51,7 +51,7 @@ export function PhoneVerifyFlow({
   return (
     <div className="space-y-5">
       <form action={requestAction}>
-        <p className="text-sm text-ink/70">{fr.kyc.telephoneIntro}</p>
+        <p className="text-sm text-body/70">{fr.kyc.telephoneIntro}</p>
 
         {requestState?.error ? (
           <p role="alert" className="mt-3 rounded-xl bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700">
@@ -60,7 +60,7 @@ export function PhoneVerifyFlow({
         ) : null}
 
         <label className="mt-3 block space-y-1.5">
-          <span className="text-sm font-semibold text-ink/70">{fr.kyc.telephone}</span>
+          <span className="text-sm font-semibold text-body/70">{fr.kyc.telephone}</span>
           <div className="flex gap-2">
             <select
               name="phoneCountry"
@@ -102,10 +102,10 @@ export function PhoneVerifyFlow({
                 {fr.kyc.otpMockInfo}
               </p>
               <div className="mt-3 text-center">
-                <p className="text-xs font-semibold uppercase tracking-wide text-ink/50">
+                <p className="text-xs font-semibold uppercase tracking-wide text-body/50">
                   {fr.kyc.votreCode}
                 </p>
-                <p className="mt-1 font-mono text-3xl font-bold tracking-[0.4em] text-darna">{otp}</p>
+                <p className="mt-1 font-mono text-3xl font-bold tracking-[0.4em] text-heading">{otp}</p>
               </div>
             </>
           ) : (
@@ -121,7 +121,7 @@ export function PhoneVerifyFlow({
           ) : null}
 
           <label className="mt-3 block space-y-1.5">
-            <span className="text-sm font-semibold text-ink/70">{fr.kyc.saisirOtp}</span>
+            <span className="text-sm font-semibold text-body/70">{fr.kyc.saisirOtp}</span>
             <input
               name="otp"
               type="text"

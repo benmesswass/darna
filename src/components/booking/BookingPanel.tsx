@@ -119,12 +119,12 @@ export function BookingPanel({
 
       {/* Récapitulatif live */}
       <div ref={summaryRef} className="scroll-mt-24 lg:sticky lg:top-24">
-        <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-darna/10">
-          <h2 className="text-lg font-bold text-darna">{fr.booking.recapitulatif}</h2>
+        <div className="rounded-3xl bg-surface p-6 shadow-sm ring-1 ring-darna/10">
+          <h2 className="text-lg font-bold text-heading">{fr.booking.recapitulatif}</h2>
 
           {/* Voyageurs */}
           <div className="mt-4 flex items-center justify-between gap-3">
-            <span className="flex items-center gap-1.5 text-sm font-semibold text-ink/70">
+            <span className="flex items-center gap-1.5 text-sm font-semibold text-body/70">
               <UsersIcon width={15} height={15} />
               {fr.search.voyageurs}
             </span>
@@ -134,13 +134,13 @@ export function BookingPanel({
                 aria-label="-"
                 disabled={voyageurs <= 1}
                 onClick={() => setVoyageurs((v) => Math.max(1, v - 1))}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-lg font-bold text-darna transition duration-150 hover:bg-white active:scale-90 disabled:opacity-30 disabled:active:scale-100"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-lg font-bold text-heading transition duration-150 hover:bg-surface active:scale-90 disabled:opacity-30 disabled:active:scale-100"
               >
                 −
               </button>
               <span
                 key={voyageurs}
-                className="w-9 text-center text-sm font-bold text-ink"
+                className="w-9 text-center text-sm font-bold text-body"
                 style={{ animation: "darna-loop-pop 250ms ease-out" }}
               >
                 {voyageurs}
@@ -150,7 +150,7 @@ export function BookingPanel({
                 aria-label="+"
                 disabled={voyageurs >= maxGuests}
                 onClick={() => setVoyageurs((v) => Math.min(maxGuests, v + 1))}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-lg font-bold text-darna transition duration-150 hover:bg-white active:scale-90 disabled:opacity-30 disabled:active:scale-100"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-lg font-bold text-heading transition duration-150 hover:bg-surface active:scale-90 disabled:opacity-30 disabled:active:scale-100"
               >
                 +
               </button>
@@ -159,7 +159,7 @@ export function BookingPanel({
 
           {/* Corps : invite, erreur, ou détail des prix */}
           {!complete ? (
-            <p className="mt-5 rounded-2xl bg-cream px-4 py-5 text-center text-sm text-ink/55">
+            <p className="mt-5 rounded-2xl bg-cream px-4 py-5 text-center text-sm text-body/55">
               {fr.booking.placeholderPrix}
             </p>
           ) : errorMsg ? (
@@ -171,7 +171,7 @@ export function BookingPanel({
             </p>
           ) : (
             <>
-              <p className="mt-4 text-sm text-ink/60">
+              <p className="mt-4 text-sm text-body/60">
                 {formatRange()} · {fr.property.capacite(voyageurs)}
               </p>
 
@@ -182,33 +182,33 @@ export function BookingPanel({
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <dt className="text-ink/70">
+                    <dt className="text-body/70">
                       {fr.booking.prixNuit} × {fr.booking.nuits(q.nights)}
                     </dt>
                     <dd>
-                      <Price amount={q.subtotal} className="font-semibold text-ink" />
+                      <Price amount={q.subtotal} className="font-semibold text-body" />
                     </dd>
                   </div>
                   <div className="flex items-center justify-between">
-                    <dt className="text-ink/70">
+                    <dt className="text-body/70">
                       {fr.booking.fraisService}
-                      <span className="block text-xs text-ink/40">
+                      <span className="block text-xs text-body/40">
                         {fr.booking.fraisServiceAide}
                       </span>
                     </dt>
                     <dd>
-                      <Price amount={q.serviceFee} className="font-semibold text-ink" />
+                      <Price amount={q.serviceFee} className="font-semibold text-body" />
                     </dd>
                   </div>
                   <div className="flex items-center justify-between border-t border-darna/10 pt-3 text-base">
-                    <dt className="font-bold text-darna">{fr.booking.total}</dt>
+                    <dt className="font-bold text-heading">{fr.booking.total}</dt>
                     <dd>
-                      <Price amount={q.total} className="text-xl font-bold text-darna" />
+                      <Price amount={q.total} className="text-xl font-bold text-heading" />
                     </dd>
                   </div>
                 </dl>
               ) : (
-                <p className="mt-4 text-sm text-ink/50">{fr.common.chargement}</p>
+                <p className="mt-4 text-sm text-body/50">{fr.common.chargement}</p>
               )}
 
               <p className="mt-3 flex items-center gap-2 rounded-xl bg-cream px-4 py-2.5 text-xs font-medium text-darna-dark">
@@ -231,11 +231,11 @@ export function BookingPanel({
               </Link>
             ) : !verified ? (
               <div className="mt-5 rounded-2xl border border-sand bg-sand/10 p-4">
-                <p className="flex items-center gap-2 font-bold text-darna">
+                <p className="flex items-center gap-2 font-bold text-heading">
                   <ShieldIcon width={16} height={16} />
                   {fr.booking.verifRequiseTitre}
                 </p>
-                <p className="mt-1 text-sm text-ink/70">{fr.booking.verifRequiseDesc}</p>
+                <p className="mt-1 text-sm text-body/70">{fr.booking.verifRequiseDesc}</p>
                 <Link
                   href="/dashboard/verifications"
                   className="mt-3 block rounded-xl bg-darna px-6 py-3 text-center text-sm font-bold text-white transition hover:bg-darna-light"

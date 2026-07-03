@@ -37,19 +37,19 @@ export default async function DevenirWakilPage() {
         <div className="grid gap-10 lg:grid-cols-2">
           <div className="space-y-8">
             {/* Mission */}
-            <section className="rounded-3xl bg-white p-7 ring-1 ring-darna/10">
-              <h2 className="flex items-center gap-2 text-xl font-bold text-darna">
+            <section className="rounded-3xl bg-surface p-7 ring-1 ring-darna/10">
+              <h2 className="flex items-center gap-2 text-xl font-bold text-heading">
                 <MapPinIcon width={20} height={20} className="text-sand" />
                 {fr.wakil.missionTitre}
               </h2>
-              <ul className="mt-4 space-y-3 text-sm text-ink/80">
+              <ul className="mt-4 space-y-3 text-sm text-body/80">
                 {[fr.wakil.mission1, fr.wakil.mission2, fr.wakil.mission3].map((m) => (
                   <li key={m} className="flex items-start gap-2.5">
                     <CheckIcon
                       width={16}
                       height={16}
                       strokeWidth={2.5}
-                      className="mt-0.5 shrink-0 text-darna"
+                      className="mt-0.5 shrink-0 text-heading"
                     />
                     {m}
                   </li>
@@ -58,12 +58,12 @@ export default async function DevenirWakilPage() {
             </section>
 
             {/* Avantages */}
-            <section className="rounded-3xl bg-white p-7 ring-1 ring-darna/10">
-              <h2 className="flex items-center gap-2 text-xl font-bold text-darna">
+            <section className="rounded-3xl bg-surface p-7 ring-1 ring-darna/10">
+              <h2 className="flex items-center gap-2 text-xl font-bold text-heading">
                 <CoinsIcon width={20} height={20} className="text-sand" />
                 {fr.wakil.avantagesTitre}
               </h2>
-              <ul className="mt-4 space-y-3 text-sm text-ink/80">
+              <ul className="mt-4 space-y-3 text-sm text-body/80">
                 {[fr.wakil.avantage1, fr.wakil.avantage2, fr.wakil.avantage3].map((a) => (
                   <li key={a} className="flex items-start gap-2.5">
                     <SparklesIcon
@@ -79,8 +79,8 @@ export default async function DevenirWakilPage() {
           </div>
 
           {/* Candidature persistée (WakilApplication) */}
-          <section className="h-fit rounded-3xl bg-white p-7 ring-1 ring-darna/10 lg:sticky lg:top-20">
-            <h2 className="text-xl font-bold text-darna">{fr.wakil.formTitre}</h2>
+          <section className="h-fit rounded-3xl bg-surface p-7 ring-1 ring-darna/10 lg:sticky lg:top-20">
+            <h2 className="text-xl font-bold text-heading">{fr.wakil.formTitre}</h2>
             <div className="mt-5">
               <WakilForm />
             </div>

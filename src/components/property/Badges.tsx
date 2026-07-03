@@ -127,7 +127,7 @@ export async function FreshnessBadge({ publishedAt }: { publishedAt: Date }) {
         ? fr.badges.publieHier
         : fr.badges.publieIlYa(days);
   return (
-    <span className="inline-flex items-center rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-medium text-ink/70 ring-1 ring-ink/10">
+    <span className="inline-flex items-center rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-medium text-body/70 ring-1 ring-ink/10">
       {label}
     </span>
   );

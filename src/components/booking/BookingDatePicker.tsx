@@ -175,23 +175,23 @@ export function BookingDatePicker({
 
   return (
     <div
-      className={`rounded-3xl bg-white shadow-sm ring-1 ring-darna/10 ${
+      className={`rounded-3xl bg-surface shadow-sm ring-1 ring-darna/10 ${
         compact ? "p-4 sm:p-5" : "p-5 sm:p-7"
       }`}
     >
       {/* En-tête : intitulé + état de la sélection (nuits live, survol inclus) */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-darna/10 text-darna">
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-darna/10 text-heading">
             <CalendarIcon width={18} height={18} />
           </span>
           <div>
-            <p className="text-sm font-bold text-darna">{fr.booking.choisirDates}</p>
-            <p className="text-xs font-medium text-ink/55">
+            <p className="text-sm font-bold text-heading">{fr.booking.choisirDates}</p>
+            <p className="text-xs font-medium text-body/55">
               {hasRange ? (
                 <>
                   {rangeLabel} ·{" "}
-                  <span className="font-bold text-darna">
+                  <span className="font-bold text-heading">
                     {fr.booking.nuits(effectiveNights)}
                   </span>
                 </>
@@ -209,7 +209,7 @@ export function BookingDatePicker({
                 onChange(null, null);
                 setHovered(null);
               }}
-              className="rounded-full px-3 py-1 text-xs font-semibold text-ink/50 transition hover:bg-cream hover:text-darna"
+              className="rounded-full px-3 py-1 text-xs font-semibold text-body/50 transition hover:bg-cream hover:text-heading"
             >
               {fr.booking.effacer}
             </button>
@@ -219,7 +219,7 @@ export function BookingDatePicker({
               type="button"
               onClick={onClose}
               aria-label={fr.common.fermer}
-              className="flex h-8 w-8 items-center justify-center rounded-full text-ink/50 transition hover:bg-cream hover:text-darna"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-body/50 transition hover:bg-cream hover:text-heading"
             >
               <CloseIcon width={18} height={18} />
             </button>
@@ -234,7 +234,7 @@ export function BookingDatePicker({
           onClick={() => setOffset((o) => Math.max(0, o - monthsToShow))}
           disabled={offset === 0}
           aria-label={fr.booking.moisPrecedent}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-darna transition hover:bg-cream disabled:opacity-25"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-heading transition hover:bg-cream disabled:opacity-25"
         >
           <ArrowRightIcon width={18} height={18} className="rotate-180" />
         </button>
@@ -243,7 +243,7 @@ export function BookingDatePicker({
           onClick={() => setOffset((o) => Math.min(MAX_OFFSET, o + monthsToShow))}
           disabled={offset >= MAX_OFFSET}
           aria-label={fr.booking.moisSuivant}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-darna transition hover:bg-cream disabled:opacity-25"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-heading transition hover:bg-cream disabled:opacity-25"
         >
           <ArrowRightIcon width={18} height={18} />
         </button>
@@ -256,7 +256,7 @@ export function BookingDatePicker({
       >
         {months.map(({ key, first, daysInMonth, startWeekday, label }) => (
           <div key={key}>
-            <p className={`text-center text-sm font-bold capitalize text-darna ${compact ? "mb-2" : "mb-3"}`}>
+            <p className={`text-center text-sm font-bold capitalize text-heading ${compact ? "mb-2" : "mb-3"}`}>
               {label}
             </p>
             {/* Pas de gap horizontal → la bande de plage est continue. */}
@@ -264,7 +264,7 @@ export function BookingDatePicker({
               {weekdays.map((d, i) => (
                 <span
                   key={`wd-${i}`}
-                  className="pb-1 text-center text-[11px] font-semibold uppercase text-ink/35"
+                  className="pb-1 text-center text-[11px] font-semibold uppercase text-body/35"
                 >
                   {d}
                 </span>
@@ -315,12 +315,12 @@ export function BookingDatePicker({
                         isEndpoint
                           ? "z-10 bg-darna font-bold text-white shadow-sm"
                           : inRange
-                            ? "font-semibold text-darna"
+                            ? "font-semibold text-heading"
                             : isPast
-                              ? "cursor-default text-ink/25"
+                              ? "cursor-default text-body/25"
                               : isUnavail
-                                ? "cursor-not-allowed text-ink/30 line-through"
-                                : "font-medium text-ink hover:bg-darna/15 hover:text-darna",
+                                ? "cursor-not-allowed text-body/30 line-through"
+                                : "font-medium text-body hover:bg-darna/15 hover:text-heading",
                       ].join(" ")}
                     >
                       {i + 1}
@@ -351,7 +351,7 @@ export function BookingDatePicker({
 
       {/* Légende (masquable : inutile dans le popover de recherche) */}
       {showLegend ? (
-        <div className={`flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-ink/60 ${compact ? "mt-3" : "mt-5"}`}>
+        <div className={`flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-body/60 ${compact ? "mt-3" : "mt-5"}`}>
           <span className="flex items-center gap-1.5">
             <span className="inline-block h-3.5 w-3.5 rounded-full bg-darna" />
             {fr.booking.selectionne}

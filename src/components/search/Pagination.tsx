@@ -38,9 +38,9 @@ export async function Pagination({
   };
 
   const linkCls =
-    "rounded-xl border border-darna/15 bg-white px-4 py-2 text-sm font-semibold text-darna transition hover:bg-darna/5";
+    "rounded-xl border border-darna/15 bg-surface px-4 py-2 text-sm font-semibold text-heading transition hover:bg-darna/5";
   const disabledCls =
-    "cursor-not-allowed rounded-xl border border-darna/10 bg-cream px-4 py-2 text-sm font-semibold text-ink/30";
+    "cursor-not-allowed rounded-xl border border-darna/10 bg-cream px-4 py-2 text-sm font-semibold text-body/30";
 
   return (
     <nav
@@ -57,7 +57,7 @@ export async function Pagination({
         </span>
       )}
 
-      <span className="text-sm font-medium text-ink/60">
+      <span className="text-sm font-medium text-body/60">
         {fr.search.pageInfo(page, totalPages)}
       </span>
 

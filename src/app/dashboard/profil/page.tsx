@@ -20,19 +20,19 @@ export default async function ProfilPage() {
 
   return (
     <div className="max-w-2xl">
-      <h2 className="text-xl font-bold text-darna">{fr.profil.titre}</h2>
-      <p className="mt-1 text-sm text-ink/60">{fr.profil.sousTitre}</p>
+      <h2 className="text-xl font-bold text-heading">{fr.profil.titre}</h2>
+      <p className="mt-1 text-sm text-body/60">{fr.profil.sousTitre}</p>
 
       <div className="mt-6 space-y-6">
         {/* Carte identité : avatar + nom / e-mail / badges */}
-        <section className="rounded-3xl bg-white p-6 ring-1 ring-darna/10">
+        <section className="rounded-3xl bg-surface p-6 ring-1 ring-darna/10">
           <div className="flex flex-col items-center gap-5 text-center sm:flex-row sm:text-start">
             <AvatarUploader name={user.name} image={user.image} />
             <div className="min-w-0">
-              <p className="truncate text-lg font-bold text-darna">{user.name}</p>
-              <p className="truncate text-sm text-ink/60">{user.email}</p>
+              <p className="truncate text-lg font-bold text-heading">{user.name}</p>
+              <p className="truncate text-sm text-body/60">{user.email}</p>
               <div className="mt-2 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-                <span className="inline-flex items-center rounded-full bg-darna/[0.06] px-2.5 py-0.5 text-[11px] font-semibold text-darna">
+                <span className="inline-flex items-center rounded-full bg-darna/[0.06] px-2.5 py-0.5 text-[11px] font-semibold text-heading">
                   {roleLabel}
                 </span>
                 {user.kycStatus === "VERIFIE" || user.kycStatus === "DEMO_VERIFIE" ? (
@@ -46,7 +46,7 @@ export default async function ProfilPage() {
               </div>
             </div>
           </div>
-          <p className="mt-4 text-center text-xs text-ink/45 sm:text-start">
+          <p className="mt-4 text-center text-xs text-body/45 sm:text-start">
             {fr.profil.photoAide}
           </p>
         </section>

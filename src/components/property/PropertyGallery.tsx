@@ -23,7 +23,7 @@ export function PropertyGallery({
 
   if (count === 0) {
     return (
-      <div className="mt-6 flex h-64 items-center justify-center rounded-3xl bg-white text-sm text-ink/50 ring-1 ring-darna/10">
+      <div className="mt-6 flex h-64 items-center justify-center rounded-3xl bg-surface text-sm text-body/50 ring-1 ring-darna/10">
         {fr.property.gallery.aucunePhoto}
       </div>
     );
@@ -105,7 +105,7 @@ export function PropertyGallery({
           <button
             type="button"
             onClick={() => openAt(0)}
-            className="absolute bottom-3 end-3 flex items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-sm font-semibold text-ink shadow-lg ring-1 ring-black/5 backdrop-blur transition hover:bg-white active:scale-95"
+            className="absolute bottom-3 end-3 flex items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-sm font-semibold text-body shadow-lg ring-1 ring-black/5 backdrop-blur transition hover:bg-surface active:scale-95"
           >
             <GridIcon />
             {fr.property.gallery.voirToutes(count)}

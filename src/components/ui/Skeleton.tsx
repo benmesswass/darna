@@ -5,7 +5,7 @@ export function Skeleton({ className = "" }: { className?: string }) {
 
 export function CardSkeleton() {
   return (
-    <div className="overflow-hidden rounded-3xl bg-white ring-1 ring-darna/5">
+    <div className="overflow-hidden rounded-3xl bg-surface ring-1 ring-darna/5">
       <Skeleton className="aspect-[4/3] rounded-none" />
       <div className="space-y-2.5 p-4">
         <Skeleton className="h-4 w-3/4" />
@@ -36,7 +36,7 @@ export function SearchPageSkeleton() {
 /** Ligne « réservation » (photo + texte + montant) — revenus, réservations… */
 function RowSkeleton() {
   return (
-    <div className="flex flex-col gap-4 rounded-3xl bg-white p-4 ring-1 ring-darna/10 sm:flex-row sm:items-center">
+    <div className="flex flex-col gap-4 rounded-3xl bg-surface p-4 ring-1 ring-darna/10 sm:flex-row sm:items-center">
       <Skeleton className="h-20 w-full shrink-0 rounded-2xl sm:w-28" />
       <div className="min-w-0 flex-1 space-y-2">
         <Skeleton className="h-4 w-2/3" />
@@ -78,7 +78,7 @@ export function MessagerieSkeleton() {
         {Array.from({ length: 5 }).map((_, i) => (
           <div
             key={i}
-            className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3.5 ring-1 ring-darna/10"
+            className="flex items-center gap-3 rounded-2xl bg-surface px-4 py-3.5 ring-1 ring-darna/10"
           >
             <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
             <div className="min-w-0 flex-1 space-y-2">

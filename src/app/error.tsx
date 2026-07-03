@@ -24,7 +24,7 @@ export default function Error({
 
   return (
     <div className="mx-auto max-w-lg px-6 py-20 text-center">
-      <h1 className="text-2xl font-bold text-darna">{fr.common.erreurInconnue}</h1>
+      <h1 className="text-2xl font-bold text-heading">{fr.common.erreurInconnue}</h1>
       <button
         onClick={reset}
         className="mt-6 rounded-xl bg-darna px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-darna-light"

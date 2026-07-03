@@ -28,37 +28,37 @@ export default async function DemandesPage() {
 
   return (
     <div>
-      <h2 className="text-xl font-bold text-darna">{fr.dashboard.demandesRecues}</h2>
+      <h2 className="text-xl font-bold text-heading">{fr.dashboard.demandesRecues}</h2>
 
       {contactRequests.length === 0 ? (
-        <p className="mt-6 rounded-3xl bg-white p-8 text-center text-sm text-ink/60 ring-1 ring-darna/10">
+        <p className="mt-6 rounded-3xl bg-surface p-8 text-center text-sm text-body/60 ring-1 ring-darna/10">
           {fr.dashboard.aucuneDemande}
         </p>
       ) : (
         <div className="mt-5 space-y-4">
           {contactRequests.map((c) => (
-            <div key={c.id} className="rounded-3xl bg-white p-5 ring-1 ring-darna/10">
+            <div key={c.id} className="rounded-3xl bg-surface p-5 ring-1 ring-darna/10">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="font-semibold text-ink">{fr.dashboard.demandeDe(c.name)}</p>
+                <p className="font-semibold text-body">{fr.dashboard.demandeDe(c.name)}</p>
                 <TypeBadge type={c.property.type} />
               </div>
-              <p className="mt-1 text-sm text-ink/60">
+              <p className="mt-1 text-sm text-body/60">
                 <Link
                   href={`/annonce/${c.property.slug}`}
-                  className="font-medium text-darna underline"
+                  className="font-medium text-heading underline"
                 >
                   {c.property.title}
                 </Link>{" "}
                 · {formatDateFr(c.createdAt)}
               </p>
-              <blockquote className="mt-3 rounded-2xl bg-cream px-4 py-3 text-sm italic text-ink/80">
+              <blockquote className="mt-3 rounded-2xl bg-cream px-4 py-3 text-sm italic text-body/80">
                 {c.message}
               </blockquote>
               <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
-                <a href={`mailto:${c.email}`} className="font-medium text-darna underline">
+                <a href={`mailto:${c.email}`} className="font-medium text-heading underline">
                   {c.email}
                 </a>
-                <a href={`tel:${c.phone}`} className="font-medium text-darna underline">
+                <a href={`tel:${c.phone}`} className="font-medium text-heading underline">
                   {c.phone}
                 </a>
                 <a

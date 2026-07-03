@@ -43,13 +43,13 @@ export function SortSelect({
             ))
           : []
       )}
-      <label className="flex items-center gap-2 text-sm text-ink/60">
+      <label className="flex items-center gap-2 text-sm text-body/60">
         <span className="font-medium">{fr.search.trier}</span>
         <select
           name="tri"
           defaultValue={value}
           onChange={(e) => e.currentTarget.form?.requestSubmit()}
-          className="rounded-xl border border-darna/15 bg-white px-3 py-1.5 text-sm font-semibold text-darna outline-none focus:border-darna"
+          className="rounded-xl border border-darna/15 bg-surface px-3 py-1.5 text-sm font-semibold text-heading outline-none focus:border-darna"
         >
           {sorts.map((s) => (
             <option key={s} value={s}>
@@ -60,7 +60,7 @@ export function SortSelect({
       </label>
       {/* Filet sans JS : bouton de repli (caché quand JS dispo via le onChange). */}
       <noscript>
-        <button type="submit" className="text-sm font-semibold text-darna underline">
+        <button type="submit" className="text-sm font-semibold text-heading underline">
           {fr.common.rechercher}
         </button>
       </noscript>
