@@ -24,7 +24,7 @@ const KONNECT_API_KEY = process.env.KONNECT_API_KEY;
 const KONNECT_RECEIVER_WALLET_ID = process.env.KONNECT_RECEIVER_WALLET_ID;
 
 /** Moyens de paiement proposés sur la passerelle (cf. memo Konnect). */
-const ACCEPTED_PAYMENT_METHODS = ["wallet", "bank_card", "e-DINAR"] as const;
+const ACCEPTED_PAYMENT_METHODS = ["wallet", "bank_card", "e-DINAR", "flouci"] as const;
 
 /** Le TND est libellé en millimes (1 TND = 1000 millimes). */
 export function tndToMillimes(tnd: number): number {
