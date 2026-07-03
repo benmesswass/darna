@@ -36,7 +36,7 @@
 | D3 | Généraliser `Skeleton.tsx` à toutes les zones de données dynamiques (grille filtrée, dashboard revenus, messagerie) | P1 | ✅ | Grille filtrée déjà couverte (`SearchPageSkeleton`). Ajout de `RevenusSkeleton`/`MessagerieSkeleton` (`src/components/ui/Skeleton.tsx`) + `loading.tsx` dédiés sur `/dashboard/revenus` et `/dashboard/messagerie` (remplacent le fallback générique hérité de `/dashboard/loading.tsx`). Scope volontairement limité aux 2 pages nommées par cette tâche — les autres sous-pages dashboard (annonces, réservations, admin…) restent sur le fallback générique, à traiter au cas par cas si jugé utile. |
 | D4 | Optimiser les 2 images hero (compression + WebP/AVIF, cible <150 Ko chacune) | P1 | ✅ | Sources recompressées (`sharp`, mozjpeg, résolution **d'origine conservée** — ces photos sont aussi utilisées en plein écran `sizes="100vw"` par `HomeHero.tsx`, réduire la largeur aurait créé un agrandissement visible sur grand écran/Retina) : `sejours-hero.jpg` 770→209 Ko, `immobilier-hero.jpg` 584→129 Ko, sans perte visible. Cible <150 Ko atteinte pour l'immobilier ; dépassée légèrement pour le séjour (ciel en dégradé, plus sensible à la compression) — arbitrage volontaire en faveur du zéro régression visuelle plutôt que le chiffre exact. `next.config.ts` : `images.formats` inclut désormais `avif` (avant : WebP seul) — négociation de format confirmée par `Content-Type` de retour de `/_next/image`. |
 | D5 | État de succès animé (check qui se dessine / micro-célébration) sur réservation confirmée, annonce publiée, avis publié | P1 | ✅ | Nouveau `SuccessCheck` (`src/components/ui/SuccessCheck.tsx`, `motion`) : cercle qui « pop » (spring) + trait qui se dessine (`pathLength`). Branché sur les 4 écrans de succès existants : paiement confirmé (`/reservation/[id]/paiement`), annonce publiée (`/dashboard/annonces?creee=1`), avis voyageur→annonce (`ReviewForm`) et avis hôte→voyageur (`GuestReviewForm`, F1). |
-| D6 | Retravailler/remplacer les SVG placeholders plats (dégradé, grain léger, ou gradient animé subtil) | P2 | ❌ | `public/placeholders/p-*.svg`. |
+| D6 | Retravailler/remplacer les SVG placeholders plats (dégradé, grain léger, ou gradient animé subtil) | P2 | ✅ | `public/placeholders/p-*.svg` avaient déjà un dégradé — ajout d'un grain léger (filtre SVG natif `feTurbulence`/`feColorMatrix`, pas d'image externe ni de dépendance) en overlay sur les 8 fichiers, pour casser l'effet « aplat vectoriel ». Discret à taille normale, visible en gros plan. |
 
 ## 2. Chantiers moyens
 
@@ -68,7 +68,7 @@
 **Ensuite (P2/P3) :**
 7. ✅ D9 — micro-interactions formulaires.
 8. ✅ D11 — scroll-reveal accueil.
-9. D6 — placeholders retravaillés.
+9. ✅ D6 — placeholders retravaillés.
 10. D10 — mode sombre.
 
 ---
