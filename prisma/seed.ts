@@ -13,7 +13,13 @@ import { hashCin } from "../src/lib/crypto";
 const prisma = new PrismaClient();
 
 const DAY = 24 * 60 * 60 * 1000;
+// Minuit UTC (pas l'heure d'exécution du seed) : les bornes checkIn/checkOut/
+// startDate/endDate DOIVENT tomber pile à minuit, comme le fait le code
+// applicatif (createBookingAction, blockDatesAction…). Sinon un endDate à
+// « + quelques heures » reste `gt` une nouvelle arrivée à minuit le jour
+// suivant → conflit fantôme qui bloque la réservation du lendemain pile.
 const now = new Date();
+now.setUTCHours(0, 0, 0, 0);
 const daysAgo = (n: number) => new Date(now.getTime() - n * DAY);
 const daysFromNow = (n: number) => new Date(now.getTime() + n * DAY);
 
