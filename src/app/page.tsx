@@ -186,8 +186,10 @@ export default async function HomePage() {
               href={href}
               className="group rounded-3xl bg-white p-7 shadow-sm ring-1 ring-darna/10 transition hover:shadow-lg"
             >
-              <Icon width={30} height={30} className="text-sand" />
-              <h3 className="mt-3 text-lg font-bold text-darna">{title}</h3>
+              <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-darna text-sand">
+                <Icon width={24} height={24} />
+              </span>
+              <h3 className="mt-4 text-lg font-bold text-darna">{title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-ink/70">{desc}</p>
               <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-darna">
                 {cta}

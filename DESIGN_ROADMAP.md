@@ -51,7 +51,7 @@
 | # | Tâche | Prio | Statut | Détail |
 |---|-------|------|--------|--------|
 | D10 | Mode sombre | P3 | ❌ | Quasi inexistant actuellement (1 occurrence `dark:` résiduelle). |
-| D11 | Scroll-reveal sur les sections de la page d'accueil (trust, stats, diaspora/wakil) | P2 | ✅ | Nouveau `ScrollRevealGrid` (`src/components/ui/ScrollRevealGrid.tsx`, `motion`) — même mécanique de stagger que `AnimatedGrid` (D2) mais déclenchée par `whileInView`/`viewport.once` plutôt qu'au montage. Branché sur la grille « La confiance est le produit » et la grille « prix du marché / diaspora / wakil » de `src/app/page.tsx`. |
+| D11 | Scroll-reveal sur les sections de la page d'accueil (trust, stats, diaspora/wakil) | P2 | ✅ | Nouveau `ScrollRevealGrid` (`src/components/ui/ScrollRevealGrid.tsx`, `motion`) — même mécanique de stagger que `AnimatedGrid` (D2) mais déclenchée par `whileInView`/`viewport.once` plutôt qu'au montage. Branché sur la grille « La confiance est le produit » et la grille « prix du marché / diaspora / wakil » de `src/app/page.tsx`. Au passage : icônes de la grille « prix du marché / diaspora / wakil » remises au même badge circulaire coloré (`bg-darna`/`text-sand`) que la grille « confiance » juste au-dessus — les icônes nues détonnaient visuellement à côté d'une section avec des badges pleins. |
 
 ---
 
