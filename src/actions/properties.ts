@@ -28,6 +28,32 @@ import { notifyAdmins } from "@/lib/admin-notify";
 
 export type PropertyFormState = { error?: string } | undefined;
 
+/**
+ * Résout l'activation du paiement sur place (Rail 2, PAIEMENT_SUR_PLACE_ROADMAP.md
+ * §PSP2) — factorisé entre création et modification pour ne pas dupliquer la garde.
+ * Réservé aux annonces SEJOUR. L'horodatage d'acceptation des CGU hôte n'est posé
+ * QUE lors de la transition false → true (jamais confiance au client pour la
+ * date elle-même) ; `undefined` signifie « ne pas toucher au champ existant ».
+ */
+function resolveCashPayment(
+  type: string,
+  requestedEnabled: boolean,
+  termsAccepted: boolean,
+  wasEnabled: boolean,
+  fr: Awaited<ReturnType<typeof getT>>
+):
+  | { ok: true; cashPaymentEnabled: boolean; cashTermsAcceptedAt: Date | undefined }
+  | { ok: false; error: string } {
+  if (type !== "SEJOUR" || !requestedEnabled) {
+    return { ok: true, cashPaymentEnabled: false, cashTermsAcceptedAt: undefined };
+  }
+  if (!wasEnabled) {
+    if (!termsAccepted) return { ok: false, error: fr.annonceForm.cashTermsRequise };
+    return { ok: true, cashPaymentEnabled: true, cashTermsAcceptedAt: new Date() };
+  }
+  return { ok: true, cashPaymentEnabled: true, cashTermsAcceptedAt: undefined };
+}
+
 const createSchema = z
   .object({
     title: z.string().trim().min(8).max(120),
@@ -44,6 +70,8 @@ const createSchema = z
     description: z.string().trim().min(40).max(4000),
     amenities: z.array(z.enum(AMENITIES)).max(AMENITIES.length),
     cancelPolicy: z.enum(CANCEL_POLICIES).default("MODEREE"),
+    cashPaymentEnabled: z.boolean().default(false),
+    cashTermsAccepted: z.boolean().default(false),
   })
   .refine((data) => data.type !== "SEJOUR" || Number(data.maxGuests) >= 1, {
     message: "capacite",
@@ -74,6 +102,8 @@ export async function createPropertyAction(
     description: formData.get("description"),
     amenities: formData.getAll("amenities"),
     cancelPolicy: formData.get("cancelPolicy") || undefined,
+    cashPaymentEnabled: formData.get("cashPaymentEnabled") === "true",
+    cashTermsAccepted: formData.get("cashTermsAccepted") === "true",
   });
   if (!parsed.success) return { error: fr.common.champsRequis };
 
@@ -85,6 +115,16 @@ export async function createPropertyAction(
   if (!verticalEnabled(verticalOfType(data.type))) {
     return { error: fr.common.erreurInconnue };
   }
+
+  // Paiement sur place (Rail 2) : à la création, "wasEnabled" est toujours faux.
+  const cashPayment = resolveCashPayment(
+    data.type,
+    data.cashPaymentEnabled,
+    data.cashTermsAccepted,
+    false,
+    fr
+  );
+  if (!cashPayment.ok) return { error: cashPayment.error };
 
   // PR3 — Gating KYC : si activé, le propriétaire doit être vérifié.
   if (kycGatingEnabled()) {
@@ -153,6 +193,8 @@ export async function createPropertyAction(
       // Politique d'annulation : pertinente uniquement pour les séjours (les
       // ventes/locations longue durée n'ont pas de réservation à annuler).
       cancelPolicy: data.type === "SEJOUR" ? data.cancelPolicy : "MODEREE",
+      cashPaymentEnabled: cashPayment.cashPaymentEnabled,
+      cashTermsAcceptedAt: cashPayment.cashTermsAcceptedAt,
       expiresAt: new Date(Date.now() + LISTING_LIFETIME_DAYS * 24 * 60 * 60 * 1000),
       ownerId: user.id,
       photos: { create: photoRecords },
@@ -188,7 +230,14 @@ async function requireOwnProperty(propertyId: string) {
   const user = await requireUser();
   const property = await prisma.property.findUnique({
     where: { id: propertyId },
-    select: { id: true, ownerId: true, type: true, slug: true, title: true },
+    select: {
+      id: true,
+      ownerId: true,
+      type: true,
+      slug: true,
+      title: true,
+      cashPaymentEnabled: true,
+    },
   });
   if (!property || property.ownerId !== user.id) {
     throw new Error("ACCES_REFUSE");
@@ -213,6 +262,8 @@ const updateSchema = z.object({
   description: z.string().trim().min(40).max(4000),
   amenities: z.array(z.enum(AMENITIES)).max(AMENITIES.length),
   cancelPolicy: z.enum(CANCEL_POLICIES).default("MODEREE"),
+  cashPaymentEnabled: z.boolean().default(false),
+  cashTermsAccepted: z.boolean().default(false),
 });
 
 export async function updatePropertyAction(
@@ -237,6 +288,8 @@ export async function updatePropertyAction(
     description: formData.get("description"),
     amenities: formData.getAll("amenities"),
     cancelPolicy: formData.get("cancelPolicy") || undefined,
+    cashPaymentEnabled: formData.get("cashPaymentEnabled") === "true",
+    cashTermsAccepted: formData.get("cashTermsAccepted") === "true",
   });
   if (!parsed.success) return { error: fr.common.champsRequis };
 
@@ -247,6 +300,15 @@ export async function updatePropertyAction(
   const cityName = resolveCity(data.city);
   const cityRef = cityName ? getCity(cityName) : undefined;
   if (!cityRef) return { error: fr.common.champsRequis };
+
+  const cashPayment = resolveCashPayment(
+    property.type,
+    data.cashPaymentEnabled,
+    data.cashTermsAccepted,
+    property.cashPaymentEnabled,
+    fr
+  );
+  if (!cashPayment.ok) return { error: cashPayment.error };
 
   await prisma.property.update({
     where: { id: property.id },
@@ -266,6 +328,8 @@ export async function updatePropertyAction(
       longitude: data.longitude,
       amenities: data.amenities.join("|"),
       cancelPolicy: property.type === "SEJOUR" ? data.cancelPolicy : "MODEREE",
+      cashPaymentEnabled: cashPayment.cashPaymentEnabled,
+      cashTermsAcceptedAt: cashPayment.cashTermsAcceptedAt,
       // Détails séjour (table satellite, M2) : tenu synchrone avec le shadow.
       stay:
         property.type === "SEJOUR" && data.maxGuests && data.stayKind

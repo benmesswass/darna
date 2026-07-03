@@ -581,6 +581,13 @@ export const en: Dictionary = {
       "Invalid dates — pick a check-in and check-out (check-out after check-in, not in the past).",
     blocageConflitReservation:
       "Can't block: a booking already exists for this period.",
+    cashPaymentTitre: "Pay-at-property (cash)",
+    cashPaymentAide:
+      "For guests without a suitable online payment method. The stay is paid entirely in cash on arrival; your Darna commission is invoiced to you separately after the booking, payable online.",
+    cashPaymentToggle: "Accept bookings paid on-site (cash)",
+    cashTermsPrefix: "I have read and accept the",
+    cashTermsRequise:
+      "You must accept the host terms to enable pay-at-property.",
   },
   kyc: {
     titre: "Identity verification (KYC)",
@@ -1267,13 +1274,53 @@ export const en: Dictionary = {
   },
   pagesLegales: {
     cguTitre: "Terms of use",
+    cguHoteTitre: "Host terms — pay-at-property",
     mentionsTitre: "Legal notice",
     confidentialiteTitre: "Privacy policy",
     aRediger:
       "Document being drafted — it will be published before the platform's official launch.",
-    miseAJour: "Last updated: June 2026",
+    miseAJour: "Last updated: July 2026",
     avertissement:
       "This document is provided for information purposes during Darna's demonstration phase. It must be reviewed and validated by legal counsel before the platform's public launch.",
+    avertissementJuridique:
+      "This text is provided for information purposes during the demonstration phase. The billing regime (legal structure, VAT) will be confirmed and this document validated by a Tunisian lawyer/accountant before host billing is ever activated for real.",
+    cguHote: {
+      intro:
+        "These terms apply to hosts who enable pay-at-property (cash) on a stay listing. They complement Darna's general Terms of use.",
+      sections: [
+        {
+          titre: "1. Principle",
+          corps: [
+            "The guest pays nothing online at booking. The stay is paid entirely in cash, directly to you, on the guest's arrival.",
+          ],
+        },
+        {
+          titre: "2. Darna commission",
+          corps: [
+            "A commission, at the same rate as the standard online payment mode, remains due to Darna for every booking accepted on this mode.",
+            "This commission never passes through the platform: it is invoiced to you separately after you accept the booking.",
+          ],
+        },
+        {
+          titre: "3. Invoicing and payment",
+          corps: [
+            "An invoice is generated when you accept the booking, with a payment deadline shown on it. You pay it online, in one click, from your dashboard.",
+          ],
+        },
+        {
+          titre: "4. Non-payment",
+          corps: [
+            "If an invoice is not paid by its deadline, your listings are hidden from search results until it is settled. They reappear immediately after payment.",
+          ],
+        },
+        {
+          titre: "5. Accepting bookings",
+          corps: [
+            "You remain free to accept or decline each booking request on this mode — no booking is ever confirmed automatically without your explicit consent.",
+          ],
+        },
+      ],
+    },
     cgu: {
       intro:
         "These terms of use (the “Terms”) govern access to and use of the Darna platform, which connects travellers and advertisers for short stays and real-estate listings in Tunisia. By creating an account or using the service, you accept these Terms.",

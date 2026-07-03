@@ -85,6 +85,7 @@ export default async function ModifierAnnoncePage({
               description: property.description,
               amenities: property.amenities ? property.amenities.split("|") : [],
               cancelPolicy: property.cancelPolicy,
+              cashPaymentEnabled: property.cashPaymentEnabled,
             }}
           />
         </div>
