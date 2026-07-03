@@ -51,7 +51,7 @@
 | # | Tâche | Prio | Statut | Détail |
 |---|-------|------|--------|--------|
 | D10 | Mode sombre | P3 | ❌ | Quasi inexistant actuellement (1 occurrence `dark:` résiduelle). |
-| D11 | Scroll-reveal sur les sections de la page d'accueil (trust, stats, diaspora/wakil) | P2 | ❌ | `src/app/page.tsx` — sections actuellement statiques au scroll. |
+| D11 | Scroll-reveal sur les sections de la page d'accueil (trust, stats, diaspora/wakil) | P2 | ✅ | Nouveau `ScrollRevealGrid` (`src/components/ui/ScrollRevealGrid.tsx`, `motion`) — même mécanique de stagger que `AnimatedGrid` (D2) mais déclenchée par `whileInView`/`viewport.once` plutôt qu'au montage. Branché sur la grille « La confiance est le produit » et la grille « prix du marché / diaspora / wakil » de `src/app/page.tsx`. |
 
 ---
 
@@ -67,7 +67,7 @@
 
 **Ensuite (P2/P3) :**
 7. ✅ D9 — micro-interactions formulaires.
-8. D11 — scroll-reveal accueil.
+8. ✅ D11 — scroll-reveal accueil.
 9. D6 — placeholders retravaillés.
 10. D10 — mode sombre.
 

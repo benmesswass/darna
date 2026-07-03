@@ -8,6 +8,7 @@ import { getFavoriteContext, favoritePropFor } from "@/lib/favorites";
 import { GOUVERNORATS } from "@/lib/geo";
 import { PropertyCard } from "@/components/property/PropertyCard";
 import { HomeHero } from "@/components/layout/HomeHero";
+import { ScrollRevealGrid } from "@/components/ui/ScrollRevealGrid";
 import {
   ArrowRightIcon,
   BuildingIcon,
@@ -136,7 +137,7 @@ export default async function HomePage() {
           <h2 className="text-center text-3xl font-bold text-darna">
             {fr.home.trustTitle}
           </h2>
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
+          <ScrollRevealGrid className="mt-10 grid gap-6 md:grid-cols-3">
             {[
               { icon: CheckIcon, title: fr.home.trust1Title, desc: fr.home.trust1Desc },
               { icon: CoinsIcon, title: fr.home.trust2Title, desc: fr.home.trust2Desc },
@@ -150,13 +151,13 @@ export default async function HomePage() {
                 <p className="mt-2 text-sm leading-relaxed text-ink/70">{desc}</p>
               </div>
             ))}
-          </div>
+          </ScrollRevealGrid>
         </div>
       </section>
 
       {/* Indice des prix, diaspora, wakil */}
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
-        <div className="grid gap-6 md:grid-cols-3">
+        <ScrollRevealGrid className="grid gap-6 md:grid-cols-3">
           {[
             {
               icon: SparklesIcon,
@@ -198,7 +199,7 @@ export default async function HomePage() {
               </span>
             </Link>
           ))}
-        </div>
+        </ScrollRevealGrid>
       </section>
     </div>
   );
