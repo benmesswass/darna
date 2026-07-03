@@ -21,6 +21,19 @@
 > production sans ce feu vert. Voir aussi la note KONNECT_API_KEY existante
 > pour l'aiguillage démo/réel dans `src/lib/konnect.ts`.
 >
+> **Mise à jour du 2026-07-03 (suite session produit) :** recherche sur les
+> moyens de paiement tunisiens disponibles via Konnect — voir §0bis. Conclusion
+> qui **réduit la portée réelle de ce chantier** : la carte bancaire tunisienne
+> (CIB) et l'e-DINAR (La Poste) sont **déjà actifs** dans `src/lib/konnect.ts`
+> aujourd'hui, sans rien à développer ; Flouci est un ajout quasi gratuit
+> (1 ligne, PSP0) ; le virement bancaire et ClicToPay/SMT sont **écartés**
+> (voir raisons §0bis). Résultat : la population qui a *vraiment* besoin du
+> Rail 2 (paiement 100 % sur place, zéro moyen en ligne) est beaucoup plus
+> étroite qu'imaginé au départ — ce n'est plus « tous les hôtes locaux », mais
+> une minorité résiduelle sans carte, sans e-DINAR et sans Flouci. La question
+> ouverte sur la confirmation de réservation (§ ci-dessous) est aussi tranchée
+> différemment en conséquence.
+>
 > **Règle de maintenance :** dès qu'une tâche est livrée (mergée), cocher la
 > case, passer son statut à `✅` et noter le(s) fichier(s)/PR. Compagnon de
 > `FEATURES_ROADMAP.md`, `DESIGN_ROADMAP.md`, `QA_ROADMAP.md` — ne jamais
@@ -50,25 +63,57 @@ carte du tout. C'est le seul cas où la commission Darna doit être recouvrée
 **après coup, auprès de l'hôte**, puisqu'aucun paiement ne transite par
 Konnect à la réservation.
 
-## Question produit ouverte (à trancher avant PSP3)
+## 0bis. Moyens de paiement tunisiens — état des lieux (2026-07-03)
 
-**Confirmation de la réservation sans paiement en ligne :** aujourd'hui,
-`EN_ATTENTE → CONFIRMEE` est toujours déclenché par un paiement réussi. Sans
-paiement, il faut un autre déclencheur. Deux options :
+Recherche faite avant d'aller plus loin sur le Rail 2, pour éviter de
+construire une usine à gaz alors que le vrai problème ("pas de carte
+adaptée") est peut-être déjà en grande partie résolu par Konnect.
 
-1. **Confirmation instantanée** (recommandé pour un MVP) : la réservation est
-   directement créée `CONFIRMEE` si les dates sont libres (la garde
-   anti-double-booking `SERIALIZABLE` existante suffit) — cohérent avec le
-   comportement actuel où tout paiement réussi confirme automatiquement, sans
-   étape d'acceptation hôte.
-2. **Acceptation manuelle hôte** (plus sûr contre le no-show, mais nouveau
-   concept absent du flux actuel — l'hôte devrait accepter/refuser chaque
-   demande dans une fenêtre de temps, avec notification + nouvel état
-   intermédiaire). Plus de travail, à réserver pour une itération P2 si le
-   no-show s'avère un problème réel en usage.
+| Moyen | Statut | Décision |
+|---|---|---|
+| Carte bancaire tunisienne (CIB) | ✅ déjà actif — `bank_card` dans `ACCEPTED_PAYMENT_METHODS` (`src/lib/konnect.ts:27`) | Rien à faire |
+| e-DINAR / La Poste | ✅ déjà actif — `e-DINAR` dans le même tableau | Rien à faire. Carte gratuite en bureau de poste, sans compte bancaire — répond déjà à une bonne partie du problème "sans carte adaptée" |
+| **Flouci** | ❌ pas encore activé, mais **supporté nativement par l'API Konnect** (`acceptedPaymentMethods: "flouci"`) | **PSP0 (nouveau, quick win)** : ajouter `"flouci"` au tableau `ACCEPTED_PAYMENT_METHODS`. Compte digital gratuit sans banque, QR code, alimentable par carte/e-DINAR — couvre une bonne partie du résidu |
+| D17 (appli La Poste) | N/A | Pas un moyen distinct : nécessite déjà un compte e-DINAR pour s'inscrire → déjà couvert par `e-DINAR` |
+| Virement bancaire tunisien | ❌ écarté | Non supporté par l'API Konnect (aucune confirmation automatique) ; surtout **incompatible avec le hold de réservation de 15 min** (`BOOKING_EXPIRY_MS`) — un virement met 1 à 3 jours ouvrés. Décision (2026-07-03) : **ne pas l'utiliser comme moyen d'acompte voyageur.** Reste une option possible, hors scope de ce document, pour le règlement de la `HostInvoice` côté hôte (PSP4) où il n'y a pas de contrainte de hold |
+| ClicToPay (SMT / Monétique Tunisie) | ❌ écarté | Solution historique redondante avec Konnect : contrat bancaire direct requis, frais de mise en place, commission 3-4 % (vs 1,3 % chez Konnect pour cartes locales/e-DINAR). Konnect couvre déjà les cartes tunisiennes sans ce surcoût — inutile de l'intégrer |
 
-Ce document part sur l'option 1 par défaut ; à confirmer avec Wassim avant
-PSP3 si un changement de direction est préféré.
+**Conséquence directe sur le scope du Rail 2 :** une fois PSP0 livré, la
+population qui n'a *aucun* moyen de payer même l'acompte minimum en ligne
+(ni carte, ni e-DINAR, ni Flouci) est une minorité résiduelle — pas la
+majorité des hôtes/voyageurs locaux comme supposé au départ du chantier. Le
+Rail 2 (HostInvoice) reste utile pour fermer ce dernier gap, mais n'est plus
+la pièce centrale : **PSP0 doit être livré en premier**, avant même PSP1.
+
+## Question produit — confirmation de réservation en mode Rail 2 (tranchée le 2026-07-03)
+
+Avec un acompte voyageur à 0 %, l'hôte n'a plus aucune garantie financière
+contre un no-show — c'est un vrai problème, distinct de la question "qui
+déclenche la confirmation". Décision (remplace la version précédente de ce
+document, qui laissait la confirmation instantanée en option par défaut) :
+
+**Le Rail 2 (`paymentMode: "SUR_PLACE"`) utilise une acceptation manuelle par
+l'hôte, pas une confirmation instantanée**, combinée à deux garde-fous non
+financiers :
+
+1. **Acceptation hôte obligatoire** : la réservation reste dans un état
+   d'attente d'acceptation (nouvel état, à spécifier en PSP3) jusqu'à ce que
+   l'hôte confirme explicitement — il peut refuser un profil qui ne l'inspire
+   pas confiance, exactement comme "Réservez maintenant, payez à l'hôtel" chez
+   Booking.com.
+2. **Éligibilité KYC renforcée** : seul un voyageur avec `kycStatus` `VERIFIE`
+   (CIN vérifiée, pas seulement téléphone+email comme pour une réservation
+   escrow classique) peut initier une réservation Rail 2 — traçabilité réelle
+   en échange de l'absence de paiement.
+3. **Réputation réutilisée** : un no-show sur une réservation Rail 2 alimente
+   le mécanisme de suspension progressive déjà existant sur `User`
+   (`suspensionCount`/`suspendedUntil`, `SUSPENSION_DURATIONS_DAYS` dans
+   `src/lib/constants.ts`, aujourd'hui utilisé pour l'anti-bypass messagerie)
+   plutôt que d'inventer un nouveau mécanisme.
+
+Le mode ESCROW (Rail 1, ex-"option 1" de la version précédente de cette
+section) garde de son côté la confirmation instantanée dès que l'acompte
+minimum est payé — inchangé, c'est le comportement actuel.
 
 ---
 
@@ -76,20 +121,24 @@ PSP3 si un changement de direction est préféré.
 
 | # | Tâche | Prio | Statut | Détail |
 |---|-------|------|--------|--------|
+| **PSP0** | **Activer Flouci** (`ACCEPTED_PAYMENT_METHODS`) — quick win indépendant du reste | **P0** | ❌ | `src/lib/konnect.ts` — 1 ligne, réduit le scope réel du Rail 2 avant de le construire |
 | PSP1 | Modèle de données : `Property.cashPaymentEnabled`/`cashTermsAcceptedAt`, `Booking.paymentMode`, nouveau modèle `HostInvoice` | P0 | ❌ | Migration Prisma + constantes `src/lib/constants.ts` |
 | PSP2 | CGU hôte (page légale) + toggle opt-in sur `PropertyForm.tsx` + consentement horodaté | P0 | ❌ | Bloquant avant d'exposer le mode à qui que ce soit |
-| PSP3 | Flux de réservation sans paiement en ligne : confirmation instantanée, `escrow: AUCUN`, génération de la `HostInvoice` | P0 | ❌ | `src/actions/bookings.ts`, UI dédiée (remplace `DepositPayment` pour ce mode) |
-| PSP4 | Règlement de la facture hôte : lien de paiement Konnect ponctuel + webhook + page retour, idempotent | P0 | ❌ | Mirror de `src/lib/payments.ts`/`settleKonnectBooking` |
-| PSP5 | Dashboard hôte « Factures » : liste, statut, bouton payer | P1 | ❌ | `src/app/dashboard/factures/page.tsx` |
-| PSP6 | Levier de recouvrement : détection facture en retard + masquage des annonces de l'hôte tant qu'impayée | P1 | ❌ | Détection paresseuse (pas de cron), cf. `clearExpiredFeatured()` pour le patron |
+| PSP3 | Flux de réservation sans paiement en ligne : **acceptation hôte** (pas instantané, cf. section dédiée), éligibilité KYC `VERIFIE`, `escrow: AUCUN`, génération de la `HostInvoice` | P0 | ❌ | `src/actions/bookings.ts`, UI dédiée (remplace `DepositPayment` pour ce mode) |
+| PSP4 | Règlement de la facture hôte : lien de paiement Konnect ponctuel + webhook + page retour, idempotent | P0 | ❌ | Mirror de `src/lib/payments.ts`/`settleKonnectBooking` — hérite automatiquement de Flouci une fois PSP0 livré (même client Konnect partagé) |
+| PSP5 | Dashboard hôte « Factures » (liste, statut, payer) **+ rappels** (J-3, en retard) | P1 | ❌ | `src/app/dashboard/factures/page.tsx` + extension de `ensureExpiringSoonNotifications` (patron identique, pas de cron) |
+| PSP6 | Levier de recouvrement : masquage des annonces si facture en retard — **filtre Prisma dérivé, aucun statut stocké** | P1 | ❌ | `hasOverdueHostInvoice`, filtre relationnel dans `searchSejours`, même esprit que `Property.expiresAt` |
 | PSP7 | Durcissement sécurité/QA : tests idempotence/IDOR/non-bypass + mise à jour `QA_ROADMAP.md` | P0 | ❌ | Nouvelle surface paiement sensible — obligatoire avant merge final |
 
 ## Exécution (prioritisée)
 
+**Quick win (avant tout le reste) :**
+0. ❌ PSP0 — activer Flouci (indépendant, testable en 5 minutes, réduit le besoin réel du Rail 2).
+
 **Fondations (bloquant, dans l'ordre) :**
 1. ❌ PSP1 — modèle de données.
 2. ❌ PSP2 — CGU hôte + opt-in (rien n'est exposé sans ça).
-3. ❌ PSP3 — réservation sans paiement en ligne.
+3. ❌ PSP3 — réservation sans paiement en ligne (acceptation hôte + éligibilité KYC).
 
 **Facturation :**
 4. ❌ PSP4 — règlement facture hôte (lien Konnect + webhook).
@@ -110,6 +159,29 @@ PSP3 si un changement de direction est préféré.
 > `claude/airbnb-cash-payment-model-xco95m` (déjà ouverte) tant que la PR
 > n'est pas mergée — ne pas créer de nouvelle branche (règle CLAUDE.md).
 
+### Prompt PSP0 — Activer Flouci (quick win)
+
+```
+Contexte : PAIEMENT_SUR_PLACE_ROADMAP.md, section "0bis" et ligne PSP0.
+Indépendant du reste du chantier (peut être livré avant PSP1, pas de
+dépendance).
+
+Dans src/lib/konnect.ts, ajoute "flouci" au tableau ACCEPTED_PAYMENT_METHODS
+existant (actuellement ["wallet", "bank_card", "e-DINAR"]) — Flouci est un
+moyen de paiement supporté nativement par l'API Konnect
+(acceptedPaymentMethods), simple ajout de valeur, aucune autre intégration
+requise. Vérifie s'il existe un test (konnect.test.ts) qui asserte le
+contenu exact de ce tableau et mets-le à jour en conséquence. Vérifie aussi
+si ce tableau est mentionné/dupliqué ailleurs dans le code (UI listant les
+moyens de paiement acceptés) et mets à jour si besoin pour rester cohérent.
+
+Coche PSP0 dans PAIEMENT_SUR_PLACE_ROADMAP.md. Commit + push sur
+claude/airbnb-cash-payment-model-xco95m. Bloc "Comment tester" : comme
+KONNECT_API_KEY n'est probablement pas configuré en local, préciser que la
+vérification se limite à relire le code + les tests unitaires
+(npx vitest run konnect), pas un paiement sandbox réel.
+```
+
 ### Prompt PSP1 — Modèle de données
 
 ```
@@ -126,7 +198,10 @@ Ajoute au schéma Prisma (prisma/schema.prisma) :
   onDelete Cascade), hostId (FK User onDelete Cascade), amount (Int, TND —
   copié de Booking.serviceFee au moment de la génération), status (String
   @default("EN_ATTENTE") — nouvelle enum HOST_INVOICE_STATUSES =
-  ["EN_ATTENTE", "PAYEE", "EN_RETARD"] dans constants.ts), paymentRef
+  ["EN_ATTENTE", "PAYEE"] dans constants.ts — VOLONTAIREMENT sans "EN_RETARD"
+  stocké : le retard est un DÉRIVÉ de status="EN_ATTENTE" && dueAt < now,
+  jamais persisté, exactement comme Property.expiresAt n'a pas besoin d'un
+  job qui bascule le statut à l'expiration — cf. §0bis et PSP6), paymentRef
   (String? @unique, référence Konnect), dueAt (DateTime), paidAt (DateTime?),
   createdAt. Index @@index([hostId, status]) et @@index([status, dueAt]).
   Ajoute la back-relation hostInvoices HostInvoice[] sur User.
@@ -176,44 +251,61 @@ le toggle et voir la page CGU.
 
 ```
 Contexte : chantier "paiement sur place" de PAIEMENT_SUR_PLACE_ROADMAP.md
-(ligne PSP3, + section "Question produit ouverte" en tête de fichier — lis-la,
-elle tranche pour la confirmation INSTANTANÉE par défaut, sans étape
-d'acceptation hôte ; si tu penses que l'autre option est préférable, pose la
-question à Wassim avant d'implémenter plutôt que de trancher seul).
-PSP1 + PSP2 doivent être mergés.
+(ligne PSP3 + section "Question produit — confirmation de réservation en
+mode Rail 2", tranchée le 2026-07-03 — lis-la en entier, elle remplace une
+version précédente qui proposait une confirmation instantanée). PSP0 + PSP1
++ PSP2 doivent être mergés.
 
-Dans src/actions/bookings.ts, createBookingAction doit maintenant : si la
-propriété a cashPaymentEnabled=true ET que le voyageur a choisi le mode
-SUR_PLACE (nouveau champ de formulaire sur la page réservation), créer la
-réservation DIRECTEMENT en status CONFIRMEE (dans la même transaction
-SERIALIZABLE anti-double-booking existante — pas besoin d'EN_ATTENTE/
-expiresAt puisqu'il n'y a pas de fenêtre de paiement à attendre), avec
-paymentMode: "SUR_PLACE", escrow: "AUCUN", amountPaid: 0, depositAmount: 0,
-paidAt: now. Génère dans la foulée (même transaction si possible) la
-HostInvoice liée : amount = serviceFee de la réservation, status
-EN_ATTENTE, dueAt = à définir (propose une valeur raisonnable, ex. checkOut
-+ 14 jours, et signale-la clairement comme un paramètre business à confirmer
-avec Wassim plutôt que de la considérer figée).
+Le mode SUR_PLACE utilise une ACCEPTATION HÔTE, pas une confirmation
+instantanée — sans acompte voyageur, l'hôte doit garder la main pour
+refuser un profil douteux. Dans src/actions/bookings.ts :
+
+1. Ajoute un nouvel état intermédiaire pour distinguer une demande Rail 2 en
+   attente d'acceptation hôte d'un hold de paiement classique (à toi de
+   choisir la représentation la plus simple compatible avec BOOKING_STATUSES
+   existant — soit un nouveau statut dédié, soit EN_ATTENTE + un flag sur
+   paymentMode discriminant côté UI/actions ; documente ton choix).
+2. Éligibilité : createBookingAction doit vérifier que la propriété a
+   cashPaymentEnabled=true ET que le voyageur a kycStatus === "VERIFIE"
+   (CIN vérifiée) avant d'autoriser une demande en mode SUR_PLACE — plus
+   strict que la gate actuelle (email+téléphone vérifiés) qui reste le
+   minimum pour le mode ESCROW.
+3. Nouvelle server action hostAcceptBookingAction (ou équivalent) : seul le
+   propriétaire de l'annonce peut accepter/refuser (IDOR à couvrir). À
+   l'acceptation : passage à CONFIRMEE, escrow: AUCUN, amountPaid: 0,
+   depositAmount: 0, paidAt: now, ET génération de la HostInvoice liée
+   (amount = serviceFee, status EN_ATTENTE, dueAt = à définir — propose une
+   valeur raisonnable, ex. checkOut + 14 jours, signale-la comme paramètre
+   business à confirmer avec Wassim). Au refus : ANNULEE, libère les dates.
+4. No-show : si un voyageur ne se présente pas sur une réservation Rail 2
+   confirmée (déclenché comment ? propose un mécanisme simple — ex. l'hôte
+   signale le no-show depuis son dashboard après la date de check-in), pose
+   une entrée dans le mécanisme de suspension progressive déjà existant
+   (src/lib/suspension.ts, User.suspensionCount/suspendedUntil) plutôt que
+   d'inventer un nouveau système.
 
 Le mode ESCROW existant (createBookingAction actuel, DepositPayment.tsx,
-confirmPaymentAction, startKonnectPaymentAction) ne doit RIEN changer de
-comportement — c'est un branchement additif, pas une réécriture.
+confirmPaymentAction, startKonnectPaymentAction) garde la confirmation
+instantanée dès paiement reçu — ne doit RIEN changer de comportement, c'est
+un branchement additif.
 
-UI : sur la page annonce/réservation, si cashPaymentEnabled, proposer un
-choix explicite entre les deux modes avec un récapitulatif clair ("0 TND en
-ligne, X TND dus en cash à l'hôte à l'arrivée, réservation confirmée
-immédiatement" vs le récap acompte existant). Nouveau composant plutôt que
-de complexifier DepositPayment.tsx.
+UI : sur la page annonce/réservation, si cashPaymentEnabled ET voyageur
+éligible (KYC VERIFIE), proposer le mode Rail 2 avec un récapitulatif clair
+("0 TND en ligne, X TND dus en cash à l'hôte à l'arrivée, en attente
+d'acceptation par l'hôte" — pas "confirmé immédiatement"). Nouveau
+composant plutôt que de complexifier DepositPayment.tsx. Notification hôte
+(centre de notifications existant) à la création d'une demande Rail 2.
 
-i18n dans les trois dictionnaires. Ajoute les tests D-style (cf. patron
-QA_ROADMAP.md D1-D7) : le mode SUR_PLACE ne doit jamais pouvoir contourner
-le calcul serveur du serviceFee, et une propriété avec cashPaymentEnabled=
-false doit refuser toute tentative de réservation en mode SUR_PLACE même si
-le client envoie ce champ.
+i18n dans les trois dictionnaires. Tests : le mode SUR_PLACE ne doit jamais
+contourner le calcul serveur du serviceFee ; une propriété avec
+cashPaymentEnabled=false doit refuser toute tentative même si le client
+envoie ce champ ; un voyageur avec kycStatus != VERIFIE doit être refusé ;
+seul le propriétaire peut accepter/refuser une demande (IDOR).
 
 Coche PSP3 dans PAIEMENT_SUR_PLACE_ROADMAP.md. Commit + push. Bloc "Comment
-tester" avec un compte voyageur + une annonce dont l'hôte a activé le cash
-(à créer/identifier depuis le seed si besoin).
+tester" avec un compte voyageur KYC VERIFIE + une annonce dont l'hôte a
+activé le cash (à créer/identifier depuis le seed si besoin), en couvrant le
+parcours accept ET refuse côté hôte.
 ```
 
 ### Prompt PSP4 — Règlement de la facture hôte
@@ -251,25 +343,55 @@ concerné et le flux sandbox Konnect (rappelle si KONNECT_API_KEY n'est pas
 configuré en local, préciser que le test se limite au mode démo).
 ```
 
-### Prompt PSP5 — Dashboard hôte Factures
+### Prompt PSP5 — Dashboard hôte Factures + rappels
 
 ```
 Contexte : chantier "paiement sur place" de PAIEMENT_SUR_PLACE_ROADMAP.md
 (ligne PSP5). PSP1-PSP4 mergés.
 
-Nouvelle page src/app/dashboard/factures/page.tsx (lien dans la nav du
-dashboard hôte existant) : liste des HostInvoice de l'hôte connecté (le
-plus simple d'abord : status, montant, réservation liée, date d'échéance),
-avec bouton "Payer" (déclenche payHostInvoiceAction → redirige vers payUrl
-Konnect, même patron que KonnectPayButton.tsx pour les réservations).
-Distingue visuellement EN_ATTENTE / PAYEE / EN_RETARD.
+1. Nouvelle page src/app/dashboard/factures/page.tsx (lien dans la nav du
+   dashboard hôte existant) : liste des HostInvoice de l'hôte connecté
+   (status, montant, réservation liée, date d'échéance), avec bouton
+   "Payer" (déclenche payHostInvoiceAction → redirige vers payUrl Konnect,
+   même patron que KonnectPayButton.tsx). Distingue visuellement EN_ATTENTE
+   / PAYEE / EN_RETARD — "EN_RETARD" est un badge d'AFFICHAGE dérivé
+   (status === "EN_ATTENTE" && dueAt < now), il n'existe pas en base (cf.
+   PSP1/PSP6, ne pas le réintroduire comme statut stocké).
 
-i18n dans les trois dictionnaires. Notification in-app (réutilise le centre
-de notifications existant, src/lib/notification-center.ts) quand une
-nouvelle facture est générée pour un hôte.
+2. Rappels — même patron EXACTEMENT que ensureExpiringSoonNotifications
+   (src/lib/notification-center.ts:109), pas un nouveau mécanisme :
+   - Ajoute une fonction ensureHostInvoiceReminders(userId) appelée depuis
+     src/app/api/notifications/route.ts, juste après/à côté de l'appel
+     existant à ensureExpiringSoonNotifications (même route, sondée en
+     continu par NotificationBell tant que l'hôte est connecté).
+   - Deux nouveaux NotificationType : "FACTURE_BIENTOT_DUE" (dueAt dans
+     moins de 3 jours) et "FACTURE_EN_RETARD" (dueAt dépassée). Pour chaque
+     HostInvoice EN_ATTENTE de l'hôte qui matche l'un des deux seuils, crée
+     une Notification avec href pointant vers la facture précise (ex.
+     /dashboard/factures#<invoiceId>) — c'est CE href qui sert de clé de
+     dédoublonnage.
+   - Réutilise l'index unique PARTIEL déjà en place sur Notification
+     (userId, href) WHERE type = 'ANNONCE_EXPIRE_BIENTOT' : ajoute les deux
+     nouvelles valeurs de type à la même contrainte (migration Prisma), et
+     capture P2002 en silencieux exactement comme le fait
+     ensureExpiringSoonNotifications aujourd'hui (= "déjà relancé à ce
+     palier pour cette facture").
+   - E-mail en parallèle de la notif in-app (même patron non-bloquant que
+     sendBookingConfirmationEmail — log l'échec, ne fait jamais échouer
+     l'action).
+   - LIMITE À DOCUMENTER dans le commit/PR : cette détection ne se déclenche
+     qu'au sondage (hôte connecté ou récemment connecté) — pas de garantie
+     de délivrance si l'hôte n'ouvre jamais Darna, exactement comme pour
+     ANNONCE_EXPIRE_BIENTOT aujourd'hui. Compromis assumé du projet (pas de
+     cron) ; à revoir en P2 séparé si ça s'avère insuffisant en usage réel.
 
-Coche PSP5. Commit + push. Bloc "Comment tester" avec le compte hôte et une
-facture EN_ATTENTE générée via une réservation SUR_PLACE créée au préalable.
+i18n dans les trois dictionnaires (libellés des deux nouveaux types de
+notification + badges EN_RETARD).
+
+Coche PSP5. Commit + push. Bloc "Comment tester" avec le compte hôte, une
+facture EN_ATTENTE générée via une réservation SUR_PLACE créée au préalable,
+et une facture avec dueAt forcée proche/dépassée pour vérifier les deux
+paliers de rappel.
 ```
 
 ### Prompt PSP6 — Levier de recouvrement
@@ -278,29 +400,40 @@ facture EN_ATTENTE générée via une réservation SUR_PLACE créée au préalab
 Contexte : chantier "paiement sur place" de PAIEMENT_SUR_PLACE_ROADMAP.md
 (ligne PSP6). PSP1-PSP5 mergés.
 
-Détection PARESSEUSE (pas de cron — cf. le patron clearExpiredFeatured()
-dans src/lib/listings.ts ou la dédup des notifications d'expiration
-d'annonce) : une HostInvoice EN_ATTENTE dont dueAt est dépassée est
-considérée EN_RETARD au moment de la lecture (recalcul à la volée, pas de
-job planifié).
+AUCUN champ stocké, aucun job planifié — le retard est un FILTRE PRISMA
+RELATIONNEL calculé à chaque lecture, pas un statut qu'il faudrait faire
+"basculer" (même esprit que Property.expiresAt, jamais recalculé par un
+cron). Ajoute une fonction hasOverdueHostInvoice(hostId) qui interroge
+directement (pas de champ intermédiaire à synchroniser) :
 
-Ajoute une fonction hasOverdueHostInvoice(hostId) et branche-la : (a) dans
-searchSejours (src/lib/listings.ts) pour exclure des résultats de recherche
-les annonces ACTIVE dont l'hôte a une facture en retard — même logique que
-le filtre EXPIREE actuel ; (b) dans createBookingAction pour refuser toute
-NOUVELLE réservation (escrow ou sur place) sur une propriété dont l'hôte a
-une facture en retard, avec message clair. Bannière visible dans le
-dashboard hôte ("vos annonces sont masquées tant que la facture X n'est pas
-réglée", lien direct vers /dashboard/factures).
+  prisma.hostInvoice.count({
+    where: { hostId, status: "EN_ATTENTE", dueAt: { lt: new Date() } },
+  }) > 0
+
+Branche-la : (a) dans searchSejours (src/lib/listings.ts), en filtre
+RELATIONNEL directement sur le propriétaire — `owner: { hostInvoices: {
+none: { status: "EN_ATTENTE", dueAt: { lt: now } } } }` — même esprit que le
+filtre EXPIREE actuel, sans précalcul ni dénormalisation sur Property ; (b)
+dans createBookingAction pour refuser toute NOUVELLE réservation (escrow ou
+sur place) sur une propriété dont l'hôte a une facture en retard, avec
+message clair. Bannière visible dans le dashboard hôte ("vos annonces sont
+masquées tant que la facture X n'est pas réglée", lien direct vers
+/dashboard/factures) — calculée au chargement de la page via
+hasOverdueHostInvoice, pas stockée non plus.
+
+Avantage de cette approche : dès que la facture passe à PAYEE, la condition
+redevient fausse instantanément, sans rien à mettre à jour ailleurs — zéro
+risque de désynchronisation entre un statut stocké et la réalité.
 
 i18n dans les trois dictionnaires. Ajoute un test qui prouve qu'une annonce
 redevient visible/réservable immédiatement après règlement de la facture
 (pas de délai de propagation).
 
 Coche PSP6. Commit + push. Bloc "Comment tester" avec un compte hôte ayant
-une facture EN_RETARD (à forcer via seed/DB si besoin pour le test) —
+une HostInvoice EN_ATTENTE dont `dueAt` est forcée dans le passé (via
+Prisma Studio ou un script, pas un statut à poser — il n'y en a pas) —
 vérifier que ses annonces disparaissent de /sejours puis réapparaissent
-après règlement simulé.
+immédiatement après règlement simulé (paymentRef réglé → status PAYEE).
 ```
 
 ### Prompt PSP7 — Durcissement sécurité/QA
