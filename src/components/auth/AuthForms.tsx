@@ -13,9 +13,10 @@ import {
 import { useT } from "@/components/i18n/LocaleProvider";
 import { TurnstileWidget } from "@/components/auth/TurnstileWidget";
 import { COUNTRY_LABELS } from "@/lib/constants";
+import { CheckIcon } from "@/components/icons";
 
 const inputClass =
-  "w-full rounded-xl border border-darna/15 bg-cream px-3.5 py-2.5 text-sm outline-none focus:border-darna";
+  "w-full rounded-xl border border-darna/15 bg-cream px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-darna focus:ring-4 focus:ring-darna/10";
 
 function EyeIcon() {
   return (
@@ -57,43 +58,88 @@ function EyeOffIcon() {
 }
 
 /**
+ * Petit indicateur animé (cercle qui se remplit + check qui apparaît) pour
+ * une règle de saisie respectée en direct — même langage visuel que
+ * `SuccessCheck` (D5) mais en version discrète, pensée pour basculer
+ * plusieurs fois de suite pendant la frappe (pas une célébration unique).
+ */
+function LiveRuleHint({ met, label }: { met: boolean; label: string }) {
+  return (
+    <p
+      className={`mt-1.5 flex items-center gap-1.5 text-xs transition-colors duration-300 ${
+        met ? "text-emerald-600" : "text-ink/40"
+      }`}
+    >
+      <span
+        className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-all duration-300 ${
+          met ? "border-emerald-600 bg-emerald-600" : "border-ink/25"
+        }`}
+      >
+        <CheckIcon
+          width={10}
+          height={10}
+          strokeWidth={3.5}
+          className={`text-white transition-opacity duration-200 ${met ? "opacity-100" : "opacity-0"}`}
+        />
+      </span>
+      {label}
+    </p>
+  );
+}
+
+/**
  * Champ mot de passe avec bouton œil afficher/masquer. Reste non contrôlé
  * (name + reset de formulaire React) : volontairement sans defaultValue pour
  * que les mots de passe se vident à chaque soumission (sécurité + UX demandée).
+ * `onValueChange`/`ruleHint` sont de la lecture pure (aucun `value=` posé sur
+ * l'input) : ça ne rend pas le champ contrôlé, juste observé en direct pour
+ * les micro-interactions (D9).
  */
 function PasswordInput({
   name,
   autoComplete,
   minLength,
   hasError,
+  ruleHint,
+  onValueChange,
 }: {
   name: string;
   autoComplete: string;
   minLength?: number;
   hasError?: boolean;
+  ruleHint?: string;
+  onValueChange?: (value: string) => void;
 }) {
   const fr = useT();
   const [show, setShow] = useState(false);
+  const [length, setLength] = useState(0);
   return (
-    <div className="relative">
-      <input
-        name={name}
-        type={show ? "text" : "password"}
-        required
-        minLength={minLength}
-        autoComplete={autoComplete}
-        className={`${inputClass} pe-11 ${hasError ? "border-red-400" : ""}`}
-      />
-      <button
-        type="button"
-        onClick={() => setShow((v) => !v)}
-        aria-label={show ? fr.auth.masquerMotDePasse : fr.auth.afficherMotDePasse}
-        aria-pressed={show}
-        tabIndex={-1}
-        className="absolute inset-y-0 end-0 flex items-center pe-3.5 text-ink/45 transition hover:text-darna focus:outline-none focus-visible:text-darna"
-      >
-        {show ? <EyeOffIcon /> : <EyeIcon />}
-      </button>
+    <div>
+      <div className="relative">
+        <input
+          name={name}
+          type={show ? "text" : "password"}
+          required
+          minLength={minLength}
+          autoComplete={autoComplete}
+          onChange={(e) => {
+            setLength(e.target.value.length);
+            onValueChange?.(e.target.value);
+          }}
+          className={`${inputClass} pe-11 ${hasError ? "border-red-400" : ""}`}
+        />
+        <button
+          type="button"
+          onClick={() => setShow((v) => !v)}
+          aria-label={show ? fr.auth.masquerMotDePasse : fr.auth.afficherMotDePasse}
+          aria-pressed={show}
+          tabIndex={-1}
+          className="absolute inset-y-0 end-0 flex items-center pe-3.5 text-ink/45 transition hover:text-darna focus:outline-none focus-visible:text-darna"
+        >
+          {show ? <EyeOffIcon /> : <EyeIcon />}
+        </button>
+      </div>
+      {ruleHint ? <LiveRuleHint met={minLength ? length >= minLength : false} label={ruleHint} /> : null}
     </div>
   );
 }
@@ -226,20 +272,48 @@ export function ForgotPasswordForm() {
   );
 }
 
+/**
+ * Erreur de confirmation animée (D9) : reste montée en permanence, seule sa
+ * hauteur/opacité bascule (`grid-rows` 0fr↔1fr) — un simple montage/démontage
+ * conditionnel ne s'anime pas en CSS pur.
+ */
+function ConfirmMismatchError({ show, message }: { show: boolean; message: string }) {
+  return (
+    <div
+      className={`grid transition-all duration-200 ${
+        show ? "mt-1.5 grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+      }`}
+    >
+      <p className="overflow-hidden text-xs text-red-600">{message}</p>
+    </div>
+  );
+}
+
+/**
+ * Les deux mots de passe restent non contrôlés (`PasswordInput`) : ce hook ne
+ * fait qu'observer leurs valeurs en direct via `onValueChange` pour calculer
+ * la correspondance en live (D9), sans jamais poser de `value=` dessus.
+ */
+function usePasswordMatch() {
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const mismatch = confirmPassword.length > 0 && password !== confirmPassword;
+  return { setPassword, setConfirmPassword, mismatch };
+}
+
 /** Choix d'un nouveau mot de passe à partir du jeton (lien reçu / affiché). */
 export function ResetPasswordForm({ token }: { token: string }) {
   const fr = useT();
   const [state, action, pending] = useActionState(resetPasswordAction, undefined);
   const done = Boolean(state?.success);
-  const [confirmError, setConfirmError] = useState("");
+  const { setPassword, setConfirmPassword, mismatch } = usePasswordMatch();
 
+  // Garde-fou à la soumission (la validation serveur `.refine()` reste le
+  // filet ultime) : la correspondance live ci-dessus couvre déjà l'essentiel.
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     const data = new FormData(e.currentTarget);
     if (data.get("password") !== data.get("confirmPassword")) {
       e.preventDefault();
-      setConfirmError(fr.profil.mdpConfirmationInvalide);
-    } else {
-      setConfirmError("");
     }
   }
 
@@ -259,11 +333,14 @@ export function ResetPasswordForm({ token }: { token: string }) {
         <>
           <input type="hidden" name="token" value={token} />
           <label className="block space-y-1.5">
-            <span className="text-sm font-semibold text-ink/70">
-              {fr.auth.resetNouveauMdp}{" "}
-              <span className="font-normal text-ink/40">({fr.auth.motDePasseRegle})</span>
-            </span>
-            <PasswordInput name="password" autoComplete="new-password" minLength={8} />
+            <span className="text-sm font-semibold text-ink/70">{fr.auth.resetNouveauMdp}</span>
+            <PasswordInput
+              name="password"
+              autoComplete="new-password"
+              minLength={8}
+              ruleHint={fr.auth.motDePasseRegle}
+              onValueChange={setPassword}
+            />
           </label>
           <label className="block space-y-1.5">
             <span className="text-sm font-semibold text-ink/70">
@@ -273,11 +350,10 @@ export function ResetPasswordForm({ token }: { token: string }) {
               name="confirmPassword"
               autoComplete="new-password"
               minLength={8}
-              hasError={!!confirmError}
+              hasError={mismatch}
+              onValueChange={setConfirmPassword}
             />
-            {confirmError ? (
-              <p className="text-xs text-red-600">{confirmError}</p>
-            ) : null}
+            <ConfirmMismatchError show={mismatch} message={fr.profil.mdpConfirmationInvalide} />
           </label>
           <SubmitButton label={fr.auth.resetValider} pending={pending} />
         </>
@@ -298,20 +374,17 @@ export function RegisterForm({
   const fr = useT();
   const router = useRouter();
   const [state, action, pending] = useActionState(registerAction, undefined);
-  const [confirmError, setConfirmError] = useState("");
+  const { setPassword, setConfirmPassword, mismatch } = usePasswordMatch();
   const connexionHref = callbackUrl
     ? `/connexion?callbackUrl=${encodeURIComponent(callbackUrl)}`
     : "/connexion";
 
-  // Validation client immédiate : bloque la soumission si les deux mots de
-  // passe diffèrent (la validation serveur `.refine()` reste le garde-fou).
+  // Garde-fou à la soumission (la validation serveur `.refine()` reste le
+  // filet ultime) : la correspondance live ci-dessus couvre déjà l'essentiel.
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     const data = new FormData(e.currentTarget);
     if (data.get("password") !== data.get("confirmPassword")) {
       e.preventDefault();
-      setConfirmError(fr.profil.mdpConfirmationInvalide);
-    } else {
-      setConfirmError("");
     }
   }
 
@@ -356,11 +429,14 @@ export function RegisterForm({
         />
       </label>
       <label className="block space-y-1.5">
-        <span className="text-sm font-semibold text-ink/70">
-          {fr.auth.motDePasse}{" "}
-          <span className="font-normal text-ink/40">({fr.auth.motDePasseRegle})</span>
-        </span>
-        <PasswordInput name="password" autoComplete="new-password" minLength={8} />
+        <span className="text-sm font-semibold text-ink/70">{fr.auth.motDePasse}</span>
+        <PasswordInput
+          name="password"
+          autoComplete="new-password"
+          minLength={8}
+          ruleHint={fr.auth.motDePasseRegle}
+          onValueChange={setPassword}
+        />
       </label>
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold text-ink/70">
@@ -370,11 +446,10 @@ export function RegisterForm({
           name="confirmPassword"
           autoComplete="new-password"
           minLength={8}
-          hasError={!!confirmError}
+          hasError={mismatch}
+          onValueChange={setConfirmPassword}
         />
-        {confirmError ? (
-          <p className="text-xs text-red-600">{confirmError}</p>
-        ) : null}
+        <ConfirmMismatchError show={mismatch} message={fr.profil.mdpConfirmationInvalide} />
       </label>
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold text-ink/70">

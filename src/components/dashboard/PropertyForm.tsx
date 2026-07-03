@@ -32,7 +32,7 @@ import {
 } from "@/components/icons";
 
 const inputClass =
-  "w-full rounded-xl border border-darna/15 bg-cream px-3.5 py-2.5 text-sm outline-none focus:border-darna disabled:opacity-60";
+  "w-full rounded-xl border border-darna/15 bg-cream px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-darna focus:ring-4 focus:ring-darna/10 disabled:opacity-60";
 const labelClass = "text-sm font-semibold text-ink/70";
 
 export type PropertyFormInitial = {

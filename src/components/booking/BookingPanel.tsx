@@ -134,17 +134,23 @@ export function BookingPanel({
                 aria-label="-"
                 disabled={voyageurs <= 1}
                 onClick={() => setVoyageurs((v) => Math.max(1, v - 1))}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-lg font-bold text-darna transition hover:bg-white disabled:opacity-30"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-lg font-bold text-darna transition duration-150 hover:bg-white active:scale-90 disabled:opacity-30 disabled:active:scale-100"
               >
                 −
               </button>
-              <span className="w-9 text-center text-sm font-bold text-ink">{voyageurs}</span>
+              <span
+                key={voyageurs}
+                className="w-9 text-center text-sm font-bold text-ink"
+                style={{ animation: "darna-loop-pop 250ms ease-out" }}
+              >
+                {voyageurs}
+              </span>
               <button
                 type="button"
                 aria-label="+"
                 disabled={voyageurs >= maxGuests}
                 onClick={() => setVoyageurs((v) => Math.min(maxGuests, v + 1))}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-lg font-bold text-darna transition hover:bg-white disabled:opacity-30"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-lg font-bold text-darna transition duration-150 hover:bg-white active:scale-90 disabled:opacity-30 disabled:active:scale-100"
               >
                 +
               </button>
