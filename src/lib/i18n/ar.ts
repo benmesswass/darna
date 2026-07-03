@@ -1014,7 +1014,7 @@ export const ar: Dictionary = {
       "الخلاص عبر Konnect / Flouci قريبًا. وضع تجريبي: حتى خصم حقيقي ما يصير.",
     payerSimulation: "اخلص (تجربة)",
     paiementKonnectInfo:
-      "خلاص مؤمّن عبر Konnect — كارت بنكية، e-DINAR ولا wallet. فلوسك تبقى محميّة عند دارنا حتّى تكمّل إقامتك.",
+      "خلاص مؤمّن عبر Konnect — كارت بنكية، e-DINAR، Flouci ولا wallet. فلوسك تبقى محميّة عند دارنا حتّى تكمّل إقامتك.",
     payerKonnect: "اخلص بـ Konnect",
     redirectionKonnect: "توجيه للخلاص المؤمّن…",
     paiementEchoue:

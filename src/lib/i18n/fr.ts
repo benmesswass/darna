@@ -1001,7 +1001,7 @@ export const fr = {
       "Paiement Konnect / Flouci bientôt disponible. Mode démonstration : aucun débit réel.",
     payerSimulation: "Payer (simulation)",
     paiementKonnectInfo:
-      "Paiement sécurisé via Konnect — carte bancaire, e-DINAR ou wallet. Vos fonds restent protégés par Darna jusqu'à la fin de votre séjour.",
+      "Paiement sécurisé via Konnect — carte bancaire, e-DINAR, Flouci ou wallet. Vos fonds restent protégés par Darna jusqu'à la fin de votre séjour.",
     payerKonnect: "Payer avec Konnect",
     redirectionKonnect: "Redirection vers le paiement sécurisé…",
     paiementEchoue:

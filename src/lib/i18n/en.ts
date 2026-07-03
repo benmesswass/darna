@@ -992,7 +992,7 @@ export const en: Dictionary = {
       "Konnect / Flouci payment coming soon. Demo mode: no real charge.",
     payerSimulation: "Pay (simulation)",
     paiementKonnectInfo:
-      "Secure payment via Konnect — bank card, e-DINAR or wallet. Your funds stay protected by Darna until the end of your stay.",
+      "Secure payment via Konnect — bank card, e-DINAR, Flouci or wallet. Your funds stay protected by Darna until the end of your stay.",
     payerKonnect: "Pay with Konnect",
     redirectionKonnect: "Redirecting to secure payment…",
     paiementEchoue:
