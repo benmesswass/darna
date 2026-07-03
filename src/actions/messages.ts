@@ -14,7 +14,7 @@ import {
   MESSAGE_FLAG_ESCALATION_THRESHOLD,
   MESSAGE_FLAG_SUSPENSION_THRESHOLD,
 } from "@/lib/config";
-import { isSuspended, nextSuspension } from "@/lib/suspension";
+import { isSuspended, applySuspension } from "@/lib/suspension";
 import { formatDateFr } from "@/lib/format";
 import type { CancelPolicy } from "@/lib/constants";
 
@@ -167,32 +167,7 @@ export async function sendMessageAction(
     // Au-delà du seuil de suspension : suspension PROGRESSIVE (temporaire puis
     // de plus en plus longue, indéfinie au-delà du dernier palier).
     if (maskedCount >= MESSAGE_FLAG_SUSPENSION_THRESHOLD) {
-      const current = await prisma.user.findUnique({
-        where: { id: user.id },
-        select: { suspensionCount: true },
-      });
-      const level = (current?.suspensionCount ?? 0) + 1;
-      const { until } = nextSuspension(level);
-      await prisma.user.update({
-        where: { id: user.id },
-        data: {
-          suspended: true,
-          suspendedAt: new Date(),
-          suspendedUntil: until,
-          suspensionCount: level,
-        },
-      });
-      await logAudit({
-        action: "ACCOUNT_SUSPENDED",
-        userId: user.id,
-        success: false,
-        metadata: {
-          bookingId: booking.id,
-          maskedCount,
-          level,
-          until: until?.toISOString() ?? null,
-        },
-      });
+      await applySuspension(user.id, { bookingId: booking.id, maskedCount });
       suspended = true;
     }
   }

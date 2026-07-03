@@ -11,12 +11,15 @@ import { computeBookingRefund } from "@/lib/cancellation";
 import { contactRevealState, type ContactGate } from "@/lib/contact-reveal";
 import type { CancelPolicy } from "@/lib/constants";
 import { CancelBookingButton } from "@/components/booking/CancelBookingButton";
+import { CashBookingActions } from "@/components/booking/CashBookingActions";
+import { NoShowButton } from "@/components/booking/NoShowButton";
 import { ContactReveal } from "@/components/booking/ContactReveal";
 import { GuestReviewForm } from "@/components/booking/GuestReviewForm";
 import { GuestReviewDisplay } from "@/components/booking/GuestReviewDisplay";
 
 const STATUS_STYLES: Record<string, string> = {
   EN_ATTENTE: "bg-amber-100 text-amber-800",
+  EN_ATTENTE_ACCEPTATION: "bg-sky-100 text-sky-800",
   CONFIRMEE: "bg-emerald-100 text-emerald-800",
   ANNULEE: "bg-red-100 text-red-700",
   TERMINEE: "bg-darna/10 text-heading",
@@ -41,8 +44,12 @@ export default async function MesReservationsPage() {
       where: {
         property: { ownerId: user.id },
         status: { not: "ANNULEE" },
-        // On masque les EN_ATTENTE déjà expirées (réservations abandonnées).
-        NOT: { status: "EN_ATTENTE", expiresAt: { lt: new Date() } },
+        // On masque les EN_ATTENTE (paiement) et EN_ATTENTE_ACCEPTATION (Rail
+        // 2) déjà expirées — réservations/demandes abandonnées.
+        NOT: [
+          { status: "EN_ATTENTE", expiresAt: { lt: new Date() } },
+          { status: "EN_ATTENTE_ACCEPTATION", expiresAt: { lt: new Date() } },
+        ],
       },
       include: {
         property: {
@@ -177,6 +184,23 @@ export default async function MesReservationsPage() {
                   <p className="mt-1.5 text-sm">
                     <Price amount={b.totalPrice} className="font-bold text-heading" />
                   </p>
+
+                  {/* Rail 2 (PSP3) : acceptation/refus d'une demande cash en attente. */}
+                  {b.status === "EN_ATTENTE_ACCEPTATION" ? (
+                    <div className="mt-3">
+                      <CashBookingActions bookingId={b.id} montantCash={b.totalPrice} />
+                    </div>
+                  ) : null}
+
+                  {/* Rail 2 : signalement no-show, uniquement une fois le
+                      check-in passé sur une réservation cash confirmée. */}
+                  {b.status === "CONFIRMEE" &&
+                  b.paymentMode === "SUR_PLACE" &&
+                  b.checkIn.getTime() < Date.now() ? (
+                    <div className="mt-3">
+                      <NoShowButton bookingId={b.id} />
+                    </div>
+                  ) : null}
                 </div>
               </li>
             ))}
@@ -308,6 +332,14 @@ export default async function MesReservationsPage() {
                     className="rounded-xl bg-sand px-3.5 py-2 text-center text-xs font-bold text-darna-dark hover:bg-sand-light"
                   >
                     {fr.booking.continuerPaiement}
+                  </Link>
+                ) : null}
+                {b.status === "EN_ATTENTE_ACCEPTATION" ? (
+                  <Link
+                    href={`/reservation/${b.id}/paiement`}
+                    className="rounded-xl bg-sand px-3.5 py-2 text-center text-xs font-bold text-darna-dark hover:bg-sand-light"
+                  >
+                    {fr.dashboard.statutReservation.EN_ATTENTE_ACCEPTATION}
                   </Link>
                 ) : null}
                 {b.status === "CONFIRMEE" || b.status === "TERMINEE" ? (

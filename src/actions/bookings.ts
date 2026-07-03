@@ -10,10 +10,11 @@ import { requireUser } from "@/lib/session";
 import {
   SERVICE_FEE_RATE,
   SITE_URL,
+  HOST_INVOICE_DUE_DAYS,
   computeDepositAmount,
   clampPayAmount,
 } from "@/lib/config";
-import { BOOKING_EXPIRY_MS } from "@/lib/constants";
+import { BOOKING_EXPIRY_MS, HOST_ACCEPTANCE_EXPIRY_MS, PAYMENT_MODES } from "@/lib/constants";
 import { logAudit, logStructured } from "@/lib/audit";
 import { recomputePropertyRating } from "@/lib/listings";
 import { initKonnectPayment, isKonnectEnabled, signKonnectWebhook } from "@/lib/konnect";
@@ -22,10 +23,12 @@ import { computeBookingRefund } from "@/lib/cancellation";
 import {
   notifyBookingCancelled,
   notifyBookingConfirmed,
+  notifyCashBookingDeclined,
+  notifyCashBookingRequested,
   notifyGuestReviewReceived,
   notifyReviewReceived,
 } from "@/lib/notification-center";
-import { isSuspended } from "@/lib/suspension";
+import { isSuspended, applySuspension } from "@/lib/suspension";
 import type { CancelPolicy } from "@/lib/constants";
 
 export type BookingFormState = { error?: string } | undefined;
@@ -37,6 +40,10 @@ const createSchema = z.object({
   arrivee: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   depart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   voyageurs: z.coerce.number().int().min(1).max(30),
+  // Rail 2 (paiement sur place) : optionnel, ESCROW par défaut — cf.
+  // PAIEMENT_SUR_PLACE_ROADMAP.md §PSP3. Toujours revérifié serveur
+  // (éligibilité propriété + KYC), jamais pris tel quel.
+  paymentMode: z.enum(PAYMENT_MODES).optional().default("ESCROW"),
 });
 
 /** Erreur interne signalant un conflit de disponibilité à l'intérieur de la transaction. */
@@ -48,11 +55,14 @@ class BookingConflictError extends Error {
 
 /**
  * Filtre Prisma des réservations qui bloquent RÉELLEMENT un créneau : les
- * réservations confirmées + les holds EN_ATTENTE encore vivants. Les holds
- * expirés (créés lors d'une tentative abandonnée, pas encore balayés en ANNULEE)
- * NE bloquent PAS : sinon un panier expiré rendrait les dates « indisponibles »
- * alors que le calendrier les propose librement (la page reserver filtre déjà
- * `expiresAt > now`). C'est exactement le même critère, gardé cohérent ici.
+ * réservations confirmées + les holds EN_ATTENTE encore vivants + les
+ * demandes Rail 2 EN_ATTENTE_ACCEPTATION encore vivantes (même logique : tant
+ * que l'hôte n'a pas refusé/laissé expirer, ces dates ne sont pas libres pour
+ * un autre voyageur). Les holds/demandes expirés (créés lors d'une tentative
+ * abandonnée, pas encore balayés en ANNULEE) NE bloquent PAS : sinon un panier
+ * expiré rendrait les dates « indisponibles » alors que le calendrier les
+ * propose librement (la page reserver filtre déjà `expiresAt > now`). C'est
+ * exactement le même critère, gardé cohérent ici.
  */
 function blockingBookingOverlap(checkIn: Date, checkOut: Date) {
   return {
@@ -61,6 +71,7 @@ function blockingBookingOverlap(checkIn: Date, checkOut: Date) {
     OR: [
       { status: "CONFIRMEE" },
       { status: "EN_ATTENTE", expiresAt: { gt: new Date() } },
+      { status: "EN_ATTENTE_ACCEPTATION", expiresAt: { gt: new Date() } },
     ],
   };
 }
@@ -90,6 +101,7 @@ export async function createBookingAction(
     arrivee: formData.get("arrivee"),
     depart: formData.get("depart"),
     voyageurs: formData.get("voyageurs"),
+    paymentMode: formData.get("paymentMode") || undefined,
   });
   if (!parsed.success) return { error: fr.booking.datesInvalides };
 
@@ -122,6 +134,7 @@ export async function createBookingAction(
       // Capacité depuis la table satellite (M2).
       stay: { select: { maxGuests: true } },
       ownerId: true,
+      cashPaymentEnabled: true,
     },
   });
 
@@ -143,12 +156,28 @@ export async function createBookingAction(
     return { error: fr.booking.capaciteDepassee(property.stay.maxGuests) };
   }
 
+  // Rail 2 (paiement sur place) : éligibilité vérifiée SERVEUR, jamais
+  // confiance au client — l'annonce doit avoir activé le mode ET le voyageur
+  // avoir un KYC RÉELLEMENT vérifié (VERIFIE strict, pas DEMO_VERIFIE : plus
+  // strict que la gate email+téléphone du mode ESCROW, en l'absence de
+  // garantie financière). Cf. PAIEMENT_SUR_PLACE_ROADMAP.md §PSP3.
+  const wantsCash = parsed.data.paymentMode === "SUR_PLACE";
+  if (wantsCash) {
+    if (!property.cashPaymentEnabled) return { error: fr.booking.cashNonDisponible };
+    if (user.kycStatus !== "VERIFIE") return { error: fr.booking.cashKycRequis };
+  }
+
   const subtotal = property.price * nights;
   const serviceFee = Math.round(subtotal * SERVICE_FEE_RATE);
   const totalPrice = subtotal + serviceFee;
   // Acompte minimum dû en ligne, figé dès la création du hold (anti-bypass).
-  const depositAmount = computeDepositAmount(totalPrice, serviceFee);
-  const expiresAt = new Date(Date.now() + BOOKING_EXPIRY_MS);
+  // Sans objet en Rail 2 : zéro paiement en ligne, tout est dû cash à l'arrivée.
+  const depositAmount = wantsCash ? 0 : computeDepositAmount(totalPrice, serviceFee);
+  // Rail 2 : fenêtre d'ACCEPTATION hôte (48h, pas d'urgence de paiement) ;
+  // ESCROW : fenêtre de PAIEMENT (15 min, hold classique) — inchangé.
+  const expiresAt = new Date(
+    Date.now() + (wantsCash ? HOST_ACCEPTANCE_EXPIRY_MS : BOOKING_EXPIRY_MS)
+  );
 
   let bookingId: string;
 
@@ -162,12 +191,13 @@ export async function createBookingAction(
      * Retry applicatif sur conflit de sérialisation (P2034) → Phase 2.
      */
     const booking = await prisma.$transaction(async (tx) => {
-      // 1. Expiration paresseuse des réservations EN_ATTENTE périmées
-      //    (nettoyage opportuniste — évite un job cron séparé)
+      // 1. Expiration paresseuse des réservations EN_ATTENTE (hold paiement)
+      //    ET EN_ATTENTE_ACCEPTATION (demande Rail 2 sans réponse hôte)
+      //    périmées (nettoyage opportuniste — évite un job cron séparé)
       await tx.booking.updateMany({
         where: {
           propertyId: property.id,
-          status: "EN_ATTENTE",
+          status: { in: ["EN_ATTENTE", "EN_ATTENTE_ACCEPTATION"] },
           expiresAt: { lt: new Date() },
         },
         data: { status: "ANNULEE" },
@@ -204,7 +234,8 @@ export async function createBookingAction(
           serviceFee,
           totalPrice,
           depositAmount,
-          status: "EN_ATTENTE",
+          paymentMode: wantsCash ? "SUR_PLACE" : "ESCROW",
+          status: wantsCash ? "EN_ATTENTE_ACCEPTATION" : "EN_ATTENTE",
           expiresAt,
         },
         select: { id: true },
@@ -236,8 +267,15 @@ export async function createBookingAction(
       checkOut: parsed.data.depart,
       nights,
       totalPrice,
+      paymentMode: wantsCash ? "SUR_PLACE" : "ESCROW",
     },
   });
+
+  // Rail 2 : l'hôte doit être notifié qu'une demande attend sa décision (pas
+  // de paiement pour la lui signaler autrement).
+  if (wantsCash) {
+    await notifyCashBookingRequested(bookingId);
+  }
 
   redirect(`/reservation/${bookingId}/paiement`);
 }
@@ -761,4 +799,217 @@ export async function cancelBookingAction(
   revalidatePath("/dashboard/reservations");
   revalidatePath(`/annonce/${booking.property.slug}`);
   return { success: fr.booking.annulationConfirmee };
+}
+
+// ── Rail 2 : paiement sur place (PAIEMENT_SUR_PLACE_ROADMAP.md §PSP3) ──────
+
+export type CashBookingResponseState = { error?: string; success?: string } | undefined;
+
+const cashBookingIdSchema = z.object({ bookingId: z.string().cuid() });
+
+/**
+ * Acceptation hôte d'une demande Rail 2 — seul point d'entrée qui confirme
+ * une réservation SUR_PLACE (cf. "Question produit — confirmation de
+ * réservation en mode Rail 2" dans PAIEMENT_SUR_PLACE_ROADMAP.md : pas de
+ * confirmation instantanée, l'hôte garde la main en l'absence de garantie
+ * financière). Génère la HostInvoice dans la MÊME transaction que la
+ * confirmation — la commission Darna doit être facturée dès que la
+ * réservation existe réellement.
+ */
+export async function acceptCashBookingAction(
+  _prev: CashBookingResponseState,
+  formData: FormData
+): Promise<CashBookingResponseState> {
+  const fr = await getT();
+  const user = await requireUser();
+
+  const parsed = cashBookingIdSchema.safeParse({ bookingId: formData.get("bookingId") });
+  if (!parsed.success) return { error: fr.common.erreurInconnue };
+
+  const booking = await prisma.booking.findUnique({
+    where: { id: parsed.data.bookingId },
+    select: {
+      id: true,
+      status: true,
+      paymentMode: true,
+      serviceFee: true,
+      checkOut: true,
+      expiresAt: true,
+      property: { select: { ownerId: true, slug: true } },
+    },
+  });
+
+  // Autorisation stricte : seul le propriétaire de l'annonce peut accepter (IDOR).
+  if (!booking || booking.property.ownerId !== user.id) {
+    return { error: fr.common.erreurInconnue };
+  }
+  if (booking.paymentMode !== "SUR_PLACE" || booking.status !== "EN_ATTENTE_ACCEPTATION") {
+    return { error: fr.booking.demandeIndisponible };
+  }
+  if (booking.expiresAt && booking.expiresAt < new Date()) {
+    await prisma.booking.update({
+      where: { id: booking.id },
+      data: { status: "ANNULEE", expiresAt: null },
+    });
+    return { error: fr.booking.demandeExpiree };
+  }
+
+  const dueAt = new Date(booking.checkOut.getTime() + HOST_INVOICE_DUE_DAYS * DAY);
+
+  await prisma.$transaction([
+    prisma.booking.update({
+      where: { id: booking.id },
+      data: {
+        status: "CONFIRMEE",
+        escrow: "AUCUN",
+        amountPaid: 0,
+        depositAmount: 0,
+        paidAt: new Date(),
+        expiresAt: null,
+      },
+    }),
+    prisma.hostInvoice.create({
+      data: {
+        bookingId: booking.id,
+        hostId: user.id,
+        amount: booking.serviceFee,
+        dueAt,
+      },
+    }),
+  ]);
+
+  await logAudit({
+    action: "CASH_BOOKING_ACCEPTED",
+    userId: user.id,
+    success: true,
+    metadata: { bookingId: booking.id },
+  });
+  await logAudit({
+    action: "HOST_INVOICE_GENERATED",
+    userId: user.id,
+    success: true,
+    metadata: { bookingId: booking.id, amount: booking.serviceFee, dueAt: dueAt.toISOString() },
+  });
+
+  await notifyBookingConfirmed(booking.id);
+
+  revalidatePath("/dashboard/reservations");
+  revalidatePath(`/annonce/${booking.property.slug}`);
+  return { success: fr.booking.demandeAcceptee };
+}
+
+/** Refus hôte d'une demande Rail 2 — libère les dates, aucune HostInvoice générée. */
+export async function declineCashBookingAction(
+  _prev: CashBookingResponseState,
+  formData: FormData
+): Promise<CashBookingResponseState> {
+  const fr = await getT();
+  const user = await requireUser();
+
+  const parsed = cashBookingIdSchema.safeParse({ bookingId: formData.get("bookingId") });
+  if (!parsed.success) return { error: fr.common.erreurInconnue };
+
+  const booking = await prisma.booking.findUnique({
+    where: { id: parsed.data.bookingId },
+    select: {
+      id: true,
+      status: true,
+      paymentMode: true,
+      property: { select: { ownerId: true, slug: true } },
+    },
+  });
+
+  if (!booking || booking.property.ownerId !== user.id) {
+    return { error: fr.common.erreurInconnue };
+  }
+  if (booking.paymentMode !== "SUR_PLACE" || booking.status !== "EN_ATTENTE_ACCEPTATION") {
+    return { error: fr.booking.demandeIndisponible };
+  }
+
+  await prisma.booking.update({
+    where: { id: booking.id },
+    data: { status: "ANNULEE", expiresAt: null },
+  });
+
+  await logAudit({
+    action: "CASH_BOOKING_DECLINED",
+    userId: user.id,
+    success: true,
+    metadata: { bookingId: booking.id },
+  });
+
+  await notifyCashBookingDeclined(booking.id);
+
+  revalidatePath("/dashboard/reservations");
+  revalidatePath(`/annonce/${booking.property.slug}`);
+  return { success: fr.booking.demandeRefusee };
+}
+
+export type NoShowReportState = { error?: string; success?: string } | undefined;
+
+/**
+ * Signalement de no-show par l'hôte sur une réservation Rail 2 confirmée dont
+ * le check-in est passé. Bascule la réservation en TERMINEE — statut déjà
+ * défini dans BOOKING_STATUSES mais jamais écrit ailleurs dans le code
+ * (uniquement lu défensivement, ex. submitReviewAction) — ET applique la
+ * suspension progressive existante au voyageur (src/lib/suspension.ts),
+ * seul levier dissuasif en l'absence de garantie financière en Rail 2. La
+ * transition CONFIRMEE → TERMINEE sert AUSSI de garde d'idempotence (via
+ * updateMany conditionné) : un second signalement ne trouve plus la
+ * réservation en CONFIRMEE, pas besoin d'un champ dédié.
+ */
+export async function reportNoShowAction(
+  _prev: NoShowReportState,
+  formData: FormData
+): Promise<NoShowReportState> {
+  const fr = await getT();
+  const user = await requireUser();
+
+  const parsed = cashBookingIdSchema.safeParse({ bookingId: formData.get("bookingId") });
+  if (!parsed.success) return { error: fr.common.erreurInconnue };
+
+  const booking = await prisma.booking.findUnique({
+    where: { id: parsed.data.bookingId },
+    select: {
+      id: true,
+      status: true,
+      paymentMode: true,
+      checkIn: true,
+      guestId: true,
+      property: { select: { ownerId: true } },
+    },
+  });
+
+  if (!booking || booking.property.ownerId !== user.id) {
+    return { error: fr.common.erreurInconnue };
+  }
+  if (
+    booking.paymentMode !== "SUR_PLACE" ||
+    booking.status !== "CONFIRMEE" ||
+    booking.checkIn.getTime() > Date.now()
+  ) {
+    return { error: fr.booking.noShowIndisponible };
+  }
+
+  const updated = await prisma.booking.updateMany({
+    where: { id: booking.id, status: "CONFIRMEE" },
+    data: { status: "TERMINEE" },
+  });
+  // Concurrence (double clic) : déjà traité par une requête précédente.
+  if (updated.count === 0) return { error: fr.booking.noShowIndisponible };
+
+  await applySuspension(booking.guestId, {
+    reason: "BOOKING_NO_SHOW",
+    bookingId: booking.id,
+  });
+
+  await logAudit({
+    action: "BOOKING_NO_SHOW_REPORTED",
+    userId: user.id,
+    success: true,
+    metadata: { bookingId: booking.id, guestId: booking.guestId },
+  });
+
+  revalidatePath("/dashboard/reservations");
+  return { success: fr.booking.noShowSignale };
 }

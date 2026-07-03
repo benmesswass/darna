@@ -6,6 +6,15 @@ export type Role = (typeof ROLES)[number];
 /** Durée de vie d'une réservation EN_ATTENTE avant expiration automatique. */
 export const BOOKING_EXPIRY_MS = 15 * 60 * 1000; // 15 minutes
 
+/**
+ * Durée de vie d'une demande EN_ATTENTE_ACCEPTATION (Rail 2, paiement sur
+ * place) avant expiration automatique — beaucoup plus longue que le hold de
+ * paiement (BOOKING_EXPIRY_MS) : l'hôte doit avoir le temps de réagir, il n'y
+ * a pas d'urgence de paiement à créer côté voyageur. Cf.
+ * PAIEMENT_SUR_PLACE_ROADMAP.md §PSP3.
+ */
+export const HOST_ACCEPTANCE_EXPIRY_MS = 48 * 60 * 60 * 1000; // 48 heures
+
 /** Cookie de report de l'onboarding « Vérifications » (« Passer pour l'instant »). */
 export const VERIF_SKIP_COOKIE = "darna-verif-skip";
 
@@ -104,6 +113,11 @@ export type PropertyStatus = (typeof PROPERTY_STATUSES)[number];
 
 export const BOOKING_STATUSES = [
   "EN_ATTENTE",
+  // Rail 2 (paiement sur place) : demande en attente d'acceptation par
+  // l'hôte, distincte de EN_ATTENTE (hold de paiement) — cf. PAIEMENT_SUR_
+  // PLACE_ROADMAP.md §PSP3, "Question produit" (acceptation hôte requise,
+  // aucune garantie financière ne permet une confirmation instantanée).
+  "EN_ATTENTE_ACCEPTATION",
   "CONFIRMEE",
   "ANNULEE",
   "TERMINEE",

@@ -1,4 +1,6 @@
 import { SUSPENSION_DURATIONS_DAYS } from "@/lib/config";
+import { prisma } from "@/lib/prisma";
+import { logAudit } from "@/lib/audit";
 
 const DAY_MS = 86_400_000;
 
@@ -40,4 +42,39 @@ export function nextSuspension(
  */
 export function nextSuspensionDays(currentCount: number): number | null {
   return SUSPENSION_DURATIONS_DAYS[currentCount] ?? null;
+}
+
+/**
+ * Applique la PROCHAINE suspension progressive à un compte et journalise
+ * l'événement — mutation partagée entre l'anti-bypass messagerie
+ * (src/actions/messages.ts) et le signalement de no-show Rail 2
+ * (src/actions/bookings.ts, cf. PAIEMENT_SUR_PLACE_ROADMAP.md §PSP3). Un seul
+ * mécanisme de suspension dans tout le projet, jamais dupliqué.
+ */
+export async function applySuspension(
+  userId: string,
+  metadata: Record<string, unknown> = {}
+): Promise<{ level: number; until: Date | null }> {
+  const current = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { suspensionCount: true },
+  });
+  const level = (current?.suspensionCount ?? 0) + 1;
+  const { until } = nextSuspension(level);
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      suspended: true,
+      suspendedAt: new Date(),
+      suspendedUntil: until,
+      suspensionCount: level,
+    },
+  });
+  await logAudit({
+    action: "ACCOUNT_SUSPENDED",
+    userId,
+    success: false,
+    metadata: { ...metadata, level, until: until?.toISOString() ?? null },
+  });
+  return { level, until };
 }

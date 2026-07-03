@@ -46,7 +46,12 @@ export type AuditAction =
   | "MESSAGE_FLAGGED"
   | "MESSAGE_BYPASS_ESCALATION"
   | "ACCOUNT_SUSPENDED"
-  | "ACCOUNT_REACTIVATED";
+  | "ACCOUNT_REACTIVATED"
+  // Rail 2 (paiement sur place, PAIEMENT_SUR_PLACE_ROADMAP.md §PSP3).
+  | "CASH_BOOKING_ACCEPTED"
+  | "CASH_BOOKING_DECLINED"
+  | "HOST_INVOICE_GENERATED"
+  | "BOOKING_NO_SHOW_REPORTED";
 
 /**
  * Audit trail — chaque événement sensible est enregistré avec userId, IP et

@@ -36,14 +36,18 @@ export default async function ReserverPage({
       // Capacité depuis la table satellite (M2).
       stay: { select: { maxGuests: true } },
       ownerId: true,
+      cashPaymentEnabled: true,
       // Disponibilités temps réel : nuits confirmées + holds en attente non
-      // expirés + blocages hôte → affichées directement sur le calendrier.
+      // expirés (paiement ESCROW) + demandes Rail 2 en attente non expirées
+      // (EN_ATTENTE_ACCEPTATION) + blocages hôte → affichées directement sur
+      // le calendrier. Même critère que blockingBookingOverlap (bookings.ts).
       bookings: {
         where: {
           checkOut: { gte: new Date() },
           OR: [
             { status: "CONFIRMEE" },
             { status: "EN_ATTENTE", expiresAt: { gt: new Date() } },
+            { status: "EN_ATTENTE_ACCEPTATION", expiresAt: { gt: new Date() } },
           ],
         },
         select: { checkIn: true, checkOut: true },
@@ -104,6 +108,9 @@ export default async function ReserverPage({
           defaultVoyageurs={voyageurs}
           isLoggedIn={Boolean(user)}
           verified={Boolean(user?.emailVerified && user?.phoneVerified)}
+          cashPaymentEligible={Boolean(
+            property.cashPaymentEnabled && user?.kycStatus === "VERIFIE"
+          )}
         />
       )}
     </div>

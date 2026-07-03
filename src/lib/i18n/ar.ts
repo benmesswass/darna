@@ -488,6 +488,7 @@ export const ar: Dictionary = {
     contratBail: "عقد الكراء",
     statutReservation: {
       EN_ATTENTE: "في انتظار الخلاص",
+      EN_ATTENTE_ACCEPTATION: "طلب كاش — في انتظار قرارك",
       CONFIRMEE: "مؤكّد — الخلاص محمي",
       ANNULEE: "ملغى",
       TERMINEE: "مكمّل",
@@ -495,6 +496,17 @@ export const ar: Dictionary = {
     annulerReservation: "الغ هذا الحجز",
     annulerConfirm: "أكّد الإلغاء",
     annulerAnnuler: "اِحفظ حجزي",
+    accepterDemande: "اقبل الطلب",
+    refuserDemande: "ارفض",
+    refuserConfirmer: "أكّد الرفض",
+    refuserAnnuler: "ارجع",
+    demandeCashRecapAide: (montant: number) =>
+      `المسافر باش يخلص ${montant} TND كاش وقت الوصول. العمولة متاع دارنا باش تتفوترلك على حدة بعد القبول.`,
+    signalerNoShow: "بلّغ على غياب المسافر",
+    noShowConfirmer: "أكّد الغياب",
+    noShowAnnuler: "ارجع",
+    noShowAvertissement:
+      "أكّد غير إذا المسافر ماجاش بالفعل — هالإجراء يعلّق حساباتو.",
     remboursement: (montant: number) =>
       montant > 0 ? `استرجاع: ${montant} دينار` : "لا استرجاع حسب السياسة",
     cancelledAt: (date: string) => `ملغى في ${date}`,
@@ -1094,6 +1106,29 @@ export const ar: Dictionary = {
     contactDebloqueLe: (date: string) => `تتفكّ نهار ${date}`,
     contactLockedAide:
       "لسلامة الجميع، معلومات الاتصال المباشرة يتبادلوها كيف يفوت أجل الإلغاء المجّاني — ساعتها الحجز يولّي نهائي.",
+    // ── Rail 2 : الخلاص عالمكان (PAIEMENT_SUR_PLACE_ROADMAP.md §PSP3) ──
+    cashNonDisponible: "هالمكان ما يقبلش الخلاص عالمكان.",
+    cashKycRequis:
+      "الخلاص عالمكان يحتاج هويّة متأكّد منها (بطاقة تعريف). كمّل التحقق متاعك قبل ما تكمّل.",
+    modePaiementTitre: "كيفاش تحب تخلص؟",
+    modeEscrowLabel: "خلاص أونلاين",
+    modeEscrowAide: "عربون محمي من دارنا، الباقي ينجم يتخلص كاش وقت الوصول.",
+    modeCashLabel: "خلاص عالمكان (كاش)",
+    modeCashAide:
+      "0 TND أونلاين — كلّ شيء يتخلص كاش عند الحوت. طلبك لازم يتقبّل أوّل من الحوت.",
+    cashRecapInfo: (montant: number) =>
+      `0 TND أونلاين. ${montant} TND مستوجبة كاش للحوت وقت الوصول. الحجز يتأكّد غير كيف الحوت يقبل الطلب.`,
+    continuerDemandeCash: "ابعث الطلب",
+    demandeIndisponible: "هالطلب ماعادش متوفّر.",
+    demandeExpiree: "هالطلب انتهى — الحوت ما جاوبش في الوقت.",
+    demandeAcceptee: "الحجز تأكّد!",
+    demandeRefusee: "الطلب اترفض.",
+    cashEnAttenteTitre: "الطلب اتبعث — في انتظار الحوت",
+    cashEnAttenteDetail:
+      "الحوت لازم يقبل طلبك قبل ما الحجز يتأكّد. باش تتعلم بقراره.",
+    cashEnAttenteExpire: (date: string) => `إذا مافماش جواب قبل ${date}، الطلب باش ينتهي أوتوماتيكيًا.`,
+    noShowIndisponible: "هالإجراء ماهوش متوفّر لهالحجز.",
+    noShowSignale: "الغياب اتبلّغ عليه.",
   },
   messages: {
     titre: "المراسلة",
@@ -1152,6 +1187,10 @@ export const ar: Dictionary = {
       `« ${titre} » قريب توليش صالحة — فكّر تجدّدها.`,
     alerteNouvelleAnnonce: (titre: string) =>
       `إعلان جديد يوافق التنبيه متاعك : « ${titre} ».`,
+    demandeCashRecue: (titre: string) =>
+      `طلب حجز جديد بالخلاص عالمكان على « ${titre} » — لازم تتصرّف.`,
+    reservationRefusee: (titre: string) =>
+      `طلب الحجز متاعك لـ « ${titre} » اترفض من الحوت.`,
   },
   alaUne: {
     titre: "حطّ إعلانك في الواجهة",
