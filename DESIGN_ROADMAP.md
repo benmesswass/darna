@@ -51,7 +51,7 @@
 | # | Tâche | Prio | Statut | Détail |
 |---|-------|------|--------|--------|
 | D10 | Mode sombre | P3 | ❌ | Quasi inexistant actuellement (1 occurrence `dark:` résiduelle). |
-| D11 | Scroll-reveal sur les sections de la page d'accueil (trust, stats, diaspora/wakil) | P2 | ❌ | `src/app/page.tsx` — sections actuellement statiques au scroll. |
+| D11 | Scroll-reveal sur les sections de la page d'accueil (trust, stats, diaspora/wakil) | P2 | ✅ | Nouveau `ScrollRevealGrid` (`src/components/ui/ScrollRevealGrid.tsx`, `motion`) — même mécanique de stagger que `AnimatedGrid` (D2) mais déclenchée par `whileInView`/`viewport.once` plutôt qu'au montage. Branché sur la grille « La confiance est le produit » et la grille « prix du marché / diaspora / wakil » de `src/app/page.tsx`. Au passage : icônes de la grille « prix du marché / diaspora / wakil » remises au même badge circulaire coloré (`bg-darna`/`text-sand`) que la grille « confiance » juste au-dessus — les icônes nues détonnaient visuellement à côté d'une section avec des badges pleins. Boutons de cette même grille désormais épinglés en bas de chaque carte (`flex h-full flex-col` + `mt-auto` sur le CTA) : avant, la position du bouton dépendait du nombre de lignes du paragraphe de *chaque carte prise séparément*, donc les 3 boutons n'étaient pas alignés à la même hauteur d'une carte à l'autre. |
 
 ---
 
@@ -67,7 +67,7 @@
 
 **Ensuite (P2/P3) :**
 7. ✅ D9 — micro-interactions formulaires.
-8. D11 — scroll-reveal accueil.
+8. ✅ D11 — scroll-reveal accueil.
 9. D6 — placeholders retravaillés.
 10. D10 — mode sombre.
 
