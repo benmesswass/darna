@@ -92,6 +92,9 @@ model User {
   wakilApplications    WakilApplication[]
   // PR2 — candidatures Wakil revues par cet admin.
   reviewedApplications WakilApplication[]  @relation("WakilApplicationReviewer")
+  // Rail 2 (PAIEMENT_SUR_PLACE_ROADMAP.md) : factures de commission dues par
+  // cet utilisateur en tant qu'hôte de réservations SUR_PLACE.
+  hostInvoices HostInvoice[]
 }
 
 // Défi OTP de vérification KYC ou email : code haché (jamais en clair) + TTL +
@@ -172,6 +175,12 @@ model Property {
   // à null paresseusement une fois expiré (cf. clearExpiredFeatured()).
   featuredUntil DateTime?
   cancelPolicy  String   @default("MODEREE") // FLEXIBLE | MODEREE | STRICTE
+  // Paiement sur place (Rail 2, PAIEMENT_SUR_PLACE_ROADMAP.md) : opt-in HÔTE,
+  // annonce SEJOUR uniquement. `cashTermsAcceptedAt` = horodatage d'acceptation
+  // des CGU hôte dédiées, posé SERVEUR uniquement à l'activation (jamais confiance
+  // au client) — null tant que jamais activé.
+  cashPaymentEnabled   Boolean   @default(false)
+  cashTermsAcceptedAt  DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -283,6 +292,10 @@ model Booking {
   amountPaid    Int      @default(0)
   status       String    @default("EN_ATTENTE") // EN_ATTENTE | CONFIRMEE | ANNULEE | TERMINEE
   escrow       String    @default("AUCUN")      // AUCUN | EN_SEQUESTRE | LIBERE
+  // Rail de paiement (PAIEMENT_SUR_PLACE_ROADMAP.md) : ESCROW (défaut, séquestre
+  // Konnect, comportement actuel inchangé) | SUR_PLACE (Rail 2 — zéro paiement en
+  // ligne, acceptation hôte requise, commission facturée après coup via HostInvoice).
+  paymentMode  String    @default("ESCROW")
   // true = confirmée via paiement SIMULÉ (PAYMENT_MODE=demo) : aucun argent réel
   // n'a transité. Permet de distinguer sans ambiguïté les réservations de démo.
   demo         Boolean   @default(false)
@@ -308,10 +321,44 @@ model Booking {
   review      Review?
   guestReview GuestReview?
   messages    Message[]
+  hostInvoice HostInvoice?
 
   @@index([propertyId, status])
   @@index([guestId])
   @@index([status, expiresAt]) // Pour le cleanup des EN_ATTENTE expirées
+}
+
+// Facturation a posteriori de la commission Darna à l'hôte (Rail 2, cf.
+// PAIEMENT_SUR_PLACE_ROADMAP.md) : une réservation SUR_PLACE ne fait transiter
+// aucun argent par Konnect à la réservation, donc la commission (= le
+// `serviceFee` de la réservation, copié ici au moment de la génération) est
+// recouvrée après coup auprès de l'hôte, réglée via un lien de paiement Konnect
+// ponctuel (mirroring settleKonnectBooking, cf. src/lib/payments.ts).
+//
+// VOLONTAIREMENT pas de statut "EN_RETARD" stocké : le retard est un DÉRIVÉ
+// (status="EN_ATTENTE" && dueAt < now), jamais persisté ni recalculé par un
+// job — même esprit que Property.expiresAt, qui n'a pas besoin qu'un cron
+// bascule un statut à l'expiration. Cf. PSP6 (masquage d'annonces) et PSP5
+// (rappels), tous deux calculés à la lecture, pas de cron.
+model HostInvoice {
+  id        String    @id @default(cuid())
+  amount    Int       // TND — copié de Booking.serviceFee à la génération
+  status    String    @default("EN_ATTENTE") // EN_ATTENTE | PAYEE
+  // Référence du paiement Konnect réglant CETTE facture (distincte du
+  // paymentRef de la réservation elle-même, qui reste toujours null en mode
+  // SUR_PLACE). Unique : clé de réconciliation du webhook dédié.
+  paymentRef String?  @unique
+  dueAt      DateTime
+  paidAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  bookingId String  @unique
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  hostId    String
+  host      User    @relation(fields: [hostId], references: [id], onDelete: Cascade)
+
+  @@index([hostId, status])
+  @@index([status, dueAt])
 }
 
 // Messagerie interne Darna, attachée à une réservation (Phase 2 anti-bypass).

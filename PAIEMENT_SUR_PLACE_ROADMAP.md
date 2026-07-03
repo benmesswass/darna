@@ -122,7 +122,7 @@ minimum est payé — inchangé, c'est le comportement actuel.
 | # | Tâche | Prio | Statut | Détail |
 |---|-------|------|--------|--------|
 | **PSP0** | **Activer Flouci** (`ACCEPTED_PAYMENT_METHODS`) — quick win indépendant du reste | **P0** | ✅ | `src/lib/konnect.ts` (tableau) + `paiementKonnectInfo` dans les 3 dictionnaires i18n. PR sur `claude/airbnb-cash-payment-model-xco95m` (2026-07-03). |
-| PSP1 | Modèle de données : `Property.cashPaymentEnabled`/`cashTermsAcceptedAt`, `Booking.paymentMode`, nouveau modèle `HostInvoice` | P0 | ❌ | Migration Prisma + constantes `src/lib/constants.ts` |
+| PSP1 | Modèle de données : `Property.cashPaymentEnabled`/`cashTermsAcceptedAt`, `Booking.paymentMode`, nouveau modèle `HostInvoice` | P0 | ✅ | Migration `20260703143110_add_cash_payment_mode` + constantes `PAYMENT_MODES`/`HOST_INVOICE_STATUSES` (`src/lib/constants.ts`). PR sur `claude/airbnb-cash-payment-model-xco95m` (2026-07-03). |
 | PSP2 | CGU hôte (page légale) + toggle opt-in sur `PropertyForm.tsx` + consentement horodaté | P0 | ❌ | Bloquant avant d'exposer le mode à qui que ce soit |
 | PSP3 | Flux de réservation sans paiement en ligne : **acceptation hôte** (pas instantané, cf. section dédiée), éligibilité KYC `VERIFIE`, `escrow: AUCUN`, génération de la `HostInvoice` | P0 | ❌ | `src/actions/bookings.ts`, UI dédiée (remplace `DepositPayment` pour ce mode) |
 | PSP4 | Règlement de la facture hôte : lien de paiement Konnect ponctuel + webhook + page retour, idempotent | P0 | ❌ | Mirror de `src/lib/payments.ts`/`settleKonnectBooking` — hérite automatiquement de Flouci une fois PSP0 livré (même client Konnect partagé) |
@@ -136,7 +136,7 @@ minimum est payé — inchangé, c'est le comportement actuel.
 0. ✅ PSP0 — activer Flouci (indépendant, testable en 5 minutes, réduit le besoin réel du Rail 2).
 
 **Fondations (bloquant, dans l'ordre) :**
-1. ❌ PSP1 — modèle de données.
+1. ✅ PSP1 — modèle de données.
 2. ❌ PSP2 — CGU hôte + opt-in (rien n'est exposé sans ça).
 3. ❌ PSP3 — réservation sans paiement en ligne (acceptation hôte + éligibilité KYC).
 
