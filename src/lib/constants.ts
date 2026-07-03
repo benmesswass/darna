@@ -113,6 +113,22 @@ export type BookingStatus = (typeof BOOKING_STATUSES)[number];
 export const ESCROW_STATUSES = ["AUCUN", "EN_SEQUESTRE", "LIBERE"] as const;
 export type EscrowStatus = (typeof ESCROW_STATUSES)[number];
 
+/**
+ * Rail de paiement d'une réservation (PAIEMENT_SUR_PLACE_ROADMAP.md).
+ * ESCROW = séquestre Konnect (défaut, comportement actuel). SUR_PLACE = Rail 2,
+ * zéro paiement en ligne, commission facturée à l'hôte après coup (HostInvoice).
+ */
+export const PAYMENT_MODES = ["ESCROW", "SUR_PLACE"] as const;
+export type PaymentMode = (typeof PAYMENT_MODES)[number];
+
+/**
+ * Statut d'une HostInvoice (commission Rail 2 due par l'hôte). VOLONTAIREMENT
+ * pas de valeur "EN_RETARD" : le retard est un DÉRIVÉ (EN_ATTENTE + dueAt <
+ * now), jamais stocké — cf. PAIEMENT_SUR_PLACE_ROADMAP.md §PSP6.
+ */
+export const HOST_INVOICE_STATUSES = ["EN_ATTENTE", "PAYEE"] as const;
+export type HostInvoiceStatus = (typeof HOST_INVOICE_STATUSES)[number];
+
 export const CANCEL_POLICIES = ["FLEXIBLE", "MODEREE", "FERME", "STRICTE"] as const;
 export type CancelPolicy = (typeof CANCEL_POLICIES)[number];
 
