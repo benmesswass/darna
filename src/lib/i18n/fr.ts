@@ -582,6 +582,13 @@ export const fr = {
       "Dates invalides — choisissez une arrivée et un départ (départ après l'arrivée, période non passée).",
     blocageConflitReservation:
       "Impossible : une réservation existe déjà sur cette période.",
+    cashPaymentTitre: "Paiement sur place (cash)",
+    cashPaymentAide:
+      "Réservé aux voyageurs sans moyen de paiement en ligne adapté. Le séjour se règle intégralement en espèces à l'arrivée ; votre commission Darna vous est facturée séparément après la réservation, réglable en ligne.",
+    cashPaymentToggle: "Accepter les réservations payées sur place (cash)",
+    cashTermsPrefix: "J'ai lu et j'accepte les",
+    cashTermsRequise:
+      "Vous devez accepter les CGU hôte pour activer le paiement sur place.",
   },
   kyc: {
     titre: "Vérification d'identité (KYC)",
@@ -1279,13 +1286,53 @@ export const fr = {
   },
   pagesLegales: {
     cguTitre: "Conditions générales d'utilisation",
+    cguHoteTitre: "CGU hôte — paiement sur place",
     mentionsTitre: "Mentions légales",
     confidentialiteTitre: "Politique de confidentialité",
     aRediger:
       "Document en cours de rédaction — il sera publié avant le lancement officiel de la plateforme.",
-    miseAJour: "Dernière mise à jour : juin 2026",
+    miseAJour: "Dernière mise à jour : juillet 2026",
     avertissement:
       "Ce document est fourni à titre informatif pour la phase de démonstration de Darna. Il devra être revu et validé par un conseil juridique avant le lancement public de la plateforme.",
+    avertissementJuridique:
+      "Ce texte est fourni à titre indicatif pour la phase de démonstration. Le régime de facturation (structure juridique, TVA) sera confirmé et ce document validé par un avocat/expert-comptable tunisien avant toute activation réelle de la facturation hôte.",
+    cguHote: {
+      intro:
+        "Les présentes conditions s'appliquent aux hôtes qui activent le paiement sur place (cash) sur une annonce séjour. Elles complètent les CGU générales de Darna.",
+      sections: [
+        {
+          titre: "1. Principe",
+          corps: [
+            "Le voyageur ne paie rien en ligne à la réservation. Le séjour est réglé intégralement en espèces, directement à vous, à l'arrivée du voyageur.",
+          ],
+        },
+        {
+          titre: "2. Commission Darna",
+          corps: [
+            "Une commission, au même taux que le mode de paiement en ligne standard, reste due à Darna pour chaque réservation acceptée sur ce mode.",
+            "Cette commission ne transite jamais par la plateforme : elle vous est facturée séparément après l'acceptation de la réservation.",
+          ],
+        },
+        {
+          titre: "3. Facturation et paiement",
+          corps: [
+            "Une facture est générée à l'acceptation de la réservation, avec un délai de paiement indiqué sur celle-ci. Vous la réglez en ligne, en un clic, depuis votre tableau de bord.",
+          ],
+        },
+        {
+          titre: "4. Non-paiement",
+          corps: [
+            "Si une facture n'est pas réglée dans le délai indiqué, vos annonces sont masquées des résultats de recherche jusqu'à régularisation. Elles redeviennent visibles immédiatement après paiement.",
+          ],
+        },
+        {
+          titre: "5. Acceptation des réservations",
+          corps: [
+            "Vous restez libre d'accepter ou de refuser chaque demande de réservation sur ce mode — aucune confirmation automatique n'a lieu sans votre accord explicite.",
+          ],
+        },
+      ],
+    },
     cgu: {
       intro:
         "Les présentes conditions générales d'utilisation (« CGU ») régissent l'accès et l'usage de la plateforme Darna, qui met en relation des voyageurs et des annonceurs pour la location de séjours et de biens immobiliers en Tunisie. En créant un compte ou en utilisant le service, vous acceptez ces CGU.",

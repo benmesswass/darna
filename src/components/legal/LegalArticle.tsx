@@ -10,9 +10,14 @@ type LegalContent = { intro: string; sections: LegalSection[] };
 export async function LegalArticle({
   titre,
   content,
+  avertissement,
 }: {
   titre: string;
   content: LegalContent;
+  // Texte d'avertissement en pied de page — par défaut le texte générique CGU
+  // (fr.pagesLegales.avertissement) ; permet une variante plus spécifique
+  // (ex. CGU hôte / réserve de validation juridique sur le régime de facturation).
+  avertissement?: string;
 }) {
   const fr = await getT();
   return (
@@ -36,7 +41,7 @@ export async function LegalArticle({
       </div>
 
       <p className="mt-10 rounded-2xl bg-sand/40 p-4 text-sm text-body/60 ring-1 ring-darna/10">
-        {fr.pagesLegales.avertissement}
+        {avertissement ?? fr.pagesLegales.avertissement}
       </p>
     </div>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useActionState, useRef, useState } from "react";
 import {
   createPropertyAction,
@@ -51,6 +52,7 @@ export type PropertyFormInitial = {
   description: string;
   amenities: string[];
   cancelPolicy: string;
+  cashPaymentEnabled: boolean;
 };
 
 /** Formulaire d'annonce — création (sans `initial`) ou modification (avec). */
@@ -85,6 +87,13 @@ export function PropertyForm({
   const [cancelPolicy, setCancelPolicy] = useState(initial?.cancelPolicy ?? "");
   // Idem pour le type de bien séjour (F5 roadmap).
   const [stayKind, setStayKind] = useState(initial?.stayKind ?? "");
+  // Paiement sur place (Rail 2, PAIEMENT_SUR_PLACE_ROADMAP.md §PSP2). L'acceptation
+  // des CGU hôte n'est redemandée que si ce n'était pas déjà activé au chargement
+  // (le serveur ne pose l'horodatage QUE sur la transition false → true de toute
+  // façon — cf. resolveCashPayment — ceci n'est qu'un confort d'affichage).
+  const wasCashPaymentEnabled = initial?.cashPaymentEnabled ?? false;
+  const [cashPaymentEnabled, setCashPaymentEnabled] = useState(wasCashPaymentEnabled);
+  const [cashTermsAccepted, setCashTermsAccepted] = useState(false);
   // URLs d'aperçu des photos sélectionnées (création), dans l'ordre choisi.
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   // Instantané des champs au moment d'ouvrir l'aperçu (null = aperçu fermé).
@@ -385,6 +394,52 @@ export function PropertyForm({
               );
             })}
           </div>
+        </fieldset>
+      ) : null}
+
+      {type === "SEJOUR" ? (
+        <fieldset className="space-y-3 rounded-2xl bg-cream/50 p-4 ring-1 ring-darna/15">
+          <label className="flex cursor-pointer items-start gap-2.5">
+            <input
+              type="checkbox"
+              name="cashPaymentEnabled"
+              value="true"
+              checked={cashPaymentEnabled}
+              onChange={(e) => setCashPaymentEnabled(e.target.checked)}
+              className="mt-0.5 h-4 w-4 accent-darna"
+            />
+            <span>
+              <span className="block text-sm font-bold text-heading">
+                {fr.annonceForm.cashPaymentTitre}
+              </span>
+              <span className="mt-0.5 block text-xs leading-relaxed text-body/55">
+                {fr.annonceForm.cashPaymentAide}
+              </span>
+            </span>
+          </label>
+          {cashPaymentEnabled && !wasCashPaymentEnabled ? (
+            <label className="ms-6 flex cursor-pointer items-start gap-2.5">
+              <input
+                type="checkbox"
+                name="cashTermsAccepted"
+                value="true"
+                required
+                checked={cashTermsAccepted}
+                onChange={(e) => setCashTermsAccepted(e.target.checked)}
+                className="mt-0.5 h-4 w-4 accent-darna"
+              />
+              <span className="text-xs text-body/70">
+                {fr.annonceForm.cashTermsPrefix}{" "}
+                <Link
+                  href="/cgu-hote"
+                  target="_blank"
+                  className="font-semibold text-darna underline hover:text-darna-light"
+                >
+                  {fr.pagesLegales.cguHoteTitre}
+                </Link>
+              </span>
+            </label>
+          ) : null}
         </fieldset>
       ) : null}
 

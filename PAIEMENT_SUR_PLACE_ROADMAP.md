@@ -123,7 +123,7 @@ minimum est payé — inchangé, c'est le comportement actuel.
 |---|-------|------|--------|--------|
 | **PSP0** | **Activer Flouci** (`ACCEPTED_PAYMENT_METHODS`) — quick win indépendant du reste | **P0** | ✅ | `src/lib/konnect.ts` (tableau) + `paiementKonnectInfo` dans les 3 dictionnaires i18n. PR sur `claude/airbnb-cash-payment-model-xco95m` (2026-07-03). |
 | PSP1 | Modèle de données : `Property.cashPaymentEnabled`/`cashTermsAcceptedAt`, `Booking.paymentMode`, nouveau modèle `HostInvoice` | P0 | ✅ | Migration `20260703143110_add_cash_payment_mode` + constantes `PAYMENT_MODES`/`HOST_INVOICE_STATUSES` (`src/lib/constants.ts`). PR sur `claude/airbnb-cash-payment-model-xco95m` (2026-07-03). |
-| PSP2 | CGU hôte (page légale) + toggle opt-in sur `PropertyForm.tsx` + consentement horodaté | P0 | ❌ | Bloquant avant d'exposer le mode à qui que ce soit |
+| PSP2 | CGU hôte (page légale) + toggle opt-in sur `PropertyForm.tsx` + consentement horodaté | P0 | ✅ | `src/app/cgu-hote/page.tsx`, `LegalArticle` (prop `avertissement`), toggle + `resolveCashPayment` dans `src/actions/properties.ts` (create + update, transition false→true uniquement). PR sur `claude/airbnb-cash-payment-model-xco95m` (2026-07-03). |
 | PSP3 | Flux de réservation sans paiement en ligne : **acceptation hôte** (pas instantané, cf. section dédiée), éligibilité KYC `VERIFIE`, `escrow: AUCUN`, génération de la `HostInvoice` | P0 | ❌ | `src/actions/bookings.ts`, UI dédiée (remplace `DepositPayment` pour ce mode) |
 | PSP4 | Règlement de la facture hôte : lien de paiement Konnect ponctuel + webhook + page retour, idempotent | P0 | ❌ | Mirror de `src/lib/payments.ts`/`settleKonnectBooking` — hérite automatiquement de Flouci une fois PSP0 livré (même client Konnect partagé) |
 | PSP5 | Dashboard hôte « Factures » (liste, statut, payer) **+ rappels** (J-3, en retard) | P1 | ❌ | `src/app/dashboard/factures/page.tsx` + extension de `ensureExpiringSoonNotifications` (patron identique, pas de cron) |
@@ -137,7 +137,7 @@ minimum est payé — inchangé, c'est le comportement actuel.
 
 **Fondations (bloquant, dans l'ordre) :**
 1. ✅ PSP1 — modèle de données.
-2. ❌ PSP2 — CGU hôte + opt-in (rien n'est exposé sans ça).
+2. ✅ PSP2 — CGU hôte + opt-in (rien n'est exposé sans ça).
 3. ❌ PSP3 — réservation sans paiement en ligne (acceptation hôte + éligibilité KYC).
 
 **Facturation :**
