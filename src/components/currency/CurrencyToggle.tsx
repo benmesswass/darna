@@ -22,7 +22,7 @@ export function CurrencyToggle() {
           aria-pressed={currency === option}
           className={
             currency === option
-              ? "rounded-full bg-white px-2.5 py-1 text-darna"
+              ? "rounded-full bg-surface px-2.5 py-1 text-heading"
               : "rounded-full px-2.5 py-1 text-white/70 hover:text-white"
           }
         >

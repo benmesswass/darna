@@ -38,20 +38,20 @@ export async function ContactReveal({
     <div
       className={`rounded-2xl bg-cream p-4 text-start ring-1 ring-darna/10 ${className ?? ""}`}
     >
-      <p className="flex items-center gap-2 text-sm font-bold text-darna">
+      <p className="flex items-center gap-2 text-sm font-bold text-heading">
         <LockIcon width={15} height={15} className="shrink-0" />
         {isGuestViewer
           ? fr.booking.contactLockedTitreHote
           : fr.booking.contactLockedTitreVoyageur}
       </p>
-      <p className="mt-1 text-sm font-semibold text-ink">
+      <p className="mt-1 text-sm font-semibold text-body">
         {fr.booking.contactDebloqueLe(formatDateFr(contacts.revealAt))}
       </p>
-      <p className="mt-1 text-xs text-ink/60">{fr.booking.contactLockedAide}</p>
+      <p className="mt-1 text-xs text-body/60">{fr.booking.contactLockedAide}</p>
       {bookingId ? (
         <Link
           href={`/reservation/${bookingId}/messages`}
-          className="mt-2 inline-block text-xs font-bold text-darna underline"
+          className="mt-2 inline-block text-xs font-bold text-heading underline"
         >
           {fr.messages.depuisVerrouille} →
         </Link>

@@ -101,7 +101,7 @@ function MarkerCard({
       rel="noopener noreferrer"
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
-      className="block w-56 overflow-hidden rounded-2xl bg-white text-ink no-underline shadow-xl ring-1 ring-darna/10"
+      className="block w-56 overflow-hidden rounded-2xl bg-surface text-body no-underline shadow-xl ring-1 ring-darna/10"
     >
       <div className="relative h-28 w-full bg-darna/10">
         {marker.imageUrl ? (
@@ -114,7 +114,7 @@ function MarkerCard({
           />
         ) : null}
         {marker.verified ? (
-          <span className="absolute start-2 top-2 inline-flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-semibold text-darna shadow-sm backdrop-blur">
+          <span className="absolute start-2 top-2 inline-flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-semibold text-heading shadow-sm backdrop-blur">
             <CheckIcon width={11} height={11} />
             {fr.badges.verifie}
           </span>
@@ -124,11 +124,11 @@ function MarkerCard({
         <p className="line-clamp-1 text-sm font-semibold leading-tight">
           {marker.title}
         </p>
-        <p className="line-clamp-1 text-xs text-ink/55">{marker.city}</p>
+        <p className="line-clamp-1 text-xs text-body/55">{marker.city}</p>
         <div className="flex items-center justify-between gap-2 pt-0.5">
-          <span className="text-sm font-bold text-darna">{marker.priceLabel}</span>
+          <span className="text-sm font-bold text-heading">{marker.priceLabel}</span>
           {marker.rating != null ? (
-            <span className="flex shrink-0 items-center gap-1 text-xs text-ink/70">
+            <span className="flex shrink-0 items-center gap-1 text-xs text-body/70">
               <StarIcon
                 width={13}
                 height={13}
@@ -136,12 +136,12 @@ function MarkerCard({
                 className="text-sand"
               />
               {marker.rating.toFixed(1)}
-              <span className="text-ink/45">
+              <span className="text-body/45">
                 · {fr.property.nbAvis(marker.reviewCount)}
               </span>
             </span>
           ) : (
-            <span className="shrink-0 text-xs text-ink/40">
+            <span className="shrink-0 text-xs text-body/40">
               {fr.search.sansAvis}
             </span>
           )}

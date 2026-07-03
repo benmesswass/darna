@@ -64,10 +64,10 @@ export default async function ModifierAnnoncePage({
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-xl font-bold text-darna">
+        <h2 className="text-xl font-bold text-heading">
           {fr.annonceForm.modifierTitre}
         </h2>
-        <div className="mt-5 rounded-3xl bg-white p-6 ring-1 ring-darna/10">
+        <div className="mt-5 rounded-3xl bg-surface p-6 ring-1 ring-darna/10">
           <PropertyForm
             initial={{
               id: property.id,
@@ -91,8 +91,8 @@ export default async function ModifierAnnoncePage({
       </div>
 
       <div>
-        <h2 className="text-xl font-bold text-darna">{fr.annonceForm.photosTitre}</h2>
-        <div className="mt-5 rounded-3xl bg-white p-6 ring-1 ring-darna/10">
+        <h2 className="text-xl font-bold text-heading">{fr.annonceForm.photosTitre}</h2>
+        <div className="mt-5 rounded-3xl bg-surface p-6 ring-1 ring-darna/10">
           <PhotoManager
             propertyId={property.id}
             photos={property.photos.map((p) => ({
@@ -109,10 +109,10 @@ export default async function ModifierAnnoncePage({
       {/* Blocage de dates : pertinent uniquement pour les séjours réservables. */}
       {property.type === "SEJOUR" ? (
         <div>
-          <h2 className="text-xl font-bold text-darna">
+          <h2 className="text-xl font-bold text-heading">
             {fr.annonceForm.disponibilitesTitre}
           </h2>
-          <div className="mt-5 rounded-3xl bg-white p-6 ring-1 ring-darna/10">
+          <div className="mt-5 rounded-3xl bg-surface p-6 ring-1 ring-darna/10">
             <BlockedDatesManager
               propertyId={property.id}
               unavailable={unavailable}

@@ -34,26 +34,26 @@ export function WakilForm() {
       ) : null}
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block space-y-1.5">
-          <span className="text-sm font-semibold text-ink/70">{fr.wakil.nom}</span>
+          <span className="text-sm font-semibold text-body/70">{fr.wakil.nom}</span>
           <input name="name" type="text" required minLength={2} className={inputClass} />
         </label>
         <label className="block space-y-1.5">
-          <span className="text-sm font-semibold text-ink/70">{fr.wakil.email}</span>
+          <span className="text-sm font-semibold text-body/70">{fr.wakil.email}</span>
           <input name="email" type="email" required className={inputClass} />
         </label>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block space-y-1.5">
-          <span className="text-sm font-semibold text-ink/70">{fr.wakil.telephone}</span>
+          <span className="text-sm font-semibold text-body/70">{fr.wakil.telephone}</span>
           <input name="phone" type="tel" required className={inputClass} />
         </label>
         <label className="block space-y-1.5">
-          <span className="text-sm font-semibold text-ink/70">{fr.wakil.ville}</span>
+          <span className="text-sm font-semibold text-body/70">{fr.wakil.ville}</span>
           <input name="city" type="text" required minLength={2} className={inputClass} />
         </label>
       </div>
       <label className="block space-y-1.5">
-        <span className="text-sm font-semibold text-ink/70">{fr.wakil.motivation}</span>
+        <span className="text-sm font-semibold text-body/70">{fr.wakil.motivation}</span>
         <textarea
           name="motivation"
           required

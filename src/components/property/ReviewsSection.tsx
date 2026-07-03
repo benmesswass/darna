@@ -33,9 +33,9 @@ export async function ReviewsSection({
   const fr = await getT();
   return (
     <section id="avis" className="scroll-mt-24">
-      <h2 className="text-xl font-bold text-darna">{fr.property.avis}</h2>
-      <p className="mt-1.5 flex items-center gap-1.5 text-xs text-ink/60">
-        <ShieldIcon width={14} height={14} className="text-darna" />
+      <h2 className="text-xl font-bold text-heading">{fr.property.avis}</h2>
+      <p className="mt-1.5 flex items-center gap-1.5 text-xs text-body/60">
+        <ShieldIcon width={14} height={14} className="text-heading" />
         {fr.property.avisGarantie}
       </p>
 

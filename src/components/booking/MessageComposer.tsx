@@ -62,7 +62,7 @@ export function MessageComposer({ bookingId }: { bookingId: string }) {
         maxLength={2000}
         rows={3}
         placeholder={fr.messages.placeholder}
-        className="w-full resize-none rounded-2xl border border-darna/15 bg-white px-4 py-3 text-sm text-ink focus:border-darna focus:outline-none"
+        className="w-full resize-none rounded-2xl border border-darna/15 bg-surface px-4 py-3 text-sm text-body focus:border-darna focus:outline-none"
       />
       <div className="mt-2 flex justify-end">
         <button

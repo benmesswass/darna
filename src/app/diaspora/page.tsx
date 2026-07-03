@@ -53,12 +53,12 @@ export default async function DiasporaPage() {
             { icon: ShieldIcon, title: fr.diaspora.arg2Titre, desc: fr.diaspora.arg2Desc },
             { icon: SparklesIcon, title: fr.diaspora.arg3Titre, desc: fr.diaspora.arg3Desc },
           ].map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="rounded-3xl bg-white p-7 ring-1 ring-darna/10">
+            <div key={title} className="rounded-3xl bg-surface p-7 ring-1 ring-darna/10">
               <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-darna text-sand">
                 <Icon width={24} height={24} />
               </span>
-              <h2 className="mt-4 text-lg font-bold text-darna">{title}</h2>
-              <p className="mt-2 text-sm leading-relaxed text-ink/70">{desc}</p>
+              <h2 className="mt-4 text-lg font-bold text-heading">{title}</h2>
+              <p className="mt-2 text-sm leading-relaxed text-body/70">{desc}</p>
             </div>
           ))}
         </div>
@@ -84,12 +84,12 @@ export default async function DiasporaPage() {
         <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6">
           <div className="flex items-end justify-between gap-4">
             <div>
-              <h2 className="text-2xl font-bold text-darna">{fr.diaspora.ctaTitre}</h2>
-              <p className="mt-1 text-sm text-ink/60">{fr.diaspora.ctaDesc}</p>
+              <h2 className="text-2xl font-bold text-heading">{fr.diaspora.ctaTitre}</h2>
+              <p className="mt-1 text-sm text-body/60">{fr.diaspora.ctaDesc}</p>
             </div>
             <Link
               href="/sejours"
-              className="hidden items-center gap-1.5 text-sm font-semibold text-darna hover:text-darna-light sm:flex"
+              className="hidden items-center gap-1.5 text-sm font-semibold text-heading hover:text-darna-light sm:flex"
             >
               {fr.home.featuredAll}
               <ArrowRightIcon width={16} height={16} />

@@ -188,7 +188,7 @@ export function FavoriteButton({
         className={`inline-flex items-center justify-center rounded-full p-2 ring-1 shadow-sm backdrop-blur transition disabled:opacity-60 ${
           favorited
             ? "bg-red-50 text-red-600 ring-red-200"
-            : "bg-white/90 text-ink/50 ring-darna/15 hover:text-red-500"
+            : "bg-white/90 text-body/50 ring-darna/15 hover:text-red-500"
         } ${className}`}
       >
         <HeartIcon
@@ -212,11 +212,11 @@ export function FavoriteButton({
                   ? { top: coords.top, transform: "translateY(-100%)", marginTop: -8 }
                   : { top: coords.top, marginTop: 8 }),
               }}
-              className="z-[1000] overflow-hidden rounded-2xl bg-white text-start shadow-xl ring-1 ring-darna/10"
+              className="z-[1000] overflow-hidden rounded-2xl bg-surface text-start shadow-xl ring-1 ring-darna/10"
             >
               {!creating ? (
                 <div className="max-h-80 overflow-auto p-1.5">
-                  <p className="px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-wide text-ink/40">
+                  <p className="px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-wide text-body/40">
                     {fr.property.favoriChoisirDossier}
                   </p>
 
@@ -224,7 +224,7 @@ export function FavoriteButton({
                     type="button"
                     role="menuitem"
                     onClick={() => saveToFolder(null)}
-                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-ink/80 transition hover:bg-darna/5"
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-body/80 transition hover:bg-darna/5"
                   >
                     <HeartIcon width={16} height={16} />
                     <span className="truncate">{fr.property.favoriSansDossier}</span>
@@ -236,9 +236,9 @@ export function FavoriteButton({
                       type="button"
                       role="menuitem"
                       onClick={() => saveToFolder(f.id)}
-                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-ink/80 transition hover:bg-darna/5"
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-body/80 transition hover:bg-darna/5"
                     >
-                      <FolderIcon width={16} height={16} className="shrink-0 text-darna/60" />
+                      <FolderIcon width={16} height={16} className="shrink-0 text-heading/60" />
                       <span className="truncate">{f.name}</span>
                     </button>
                   ))}
@@ -247,7 +247,7 @@ export function FavoriteButton({
                     type="button"
                     role="menuitem"
                     onClick={startCreating}
-                    className="mt-1 flex w-full items-center gap-2.5 rounded-xl border-t border-darna/5 px-3 py-2.5 text-sm font-medium text-darna transition hover:bg-darna/5"
+                    className="mt-1 flex w-full items-center gap-2.5 rounded-xl border-t border-darna/5 px-3 py-2.5 text-sm font-medium text-heading transition hover:bg-darna/5"
                   >
                     <PlusIcon width={16} height={16} className="shrink-0" />
                     <span className="truncate">{fr.property.favoriNouveauDossier}</span>
@@ -255,7 +255,7 @@ export function FavoriteButton({
                 </div>
               ) : (
                 <div className="p-3">
-                  <label className="block text-xs font-semibold uppercase tracking-wide text-ink/40">
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-body/40">
                     {fr.property.favoriNomDossier}
                   </label>
                   <input
@@ -269,13 +269,13 @@ export function FavoriteButton({
                       }
                     }}
                     maxLength={80}
-                    className="mt-1.5 w-full rounded-xl border border-darna/15 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-darna/40 focus:ring-2 focus:ring-darna/15"
+                    className="mt-1.5 w-full rounded-xl border border-darna/15 bg-surface px-3 py-2 text-sm text-body outline-none focus:border-darna/40 focus:ring-2 focus:ring-darna/15"
                   />
                   <div className="mt-2.5 flex gap-2">
                     <button
                       type="button"
                       onClick={() => setCreating(false)}
-                      className="flex-1 rounded-xl px-3 py-2 text-sm text-ink/60 ring-1 ring-darna/15 transition hover:bg-darna/5"
+                      className="flex-1 rounded-xl px-3 py-2 text-sm text-body/60 ring-1 ring-darna/15 transition hover:bg-darna/5"
                     >
                       {fr.property.favoriAnnuler}
                     </button>

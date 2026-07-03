@@ -135,7 +135,7 @@ export function HistoryNav() {
   // marge : « précédent » côté start (gauche en LTR, droite en RTL), « suivant »
   // côté end. En arabe la disposition se reflète, comme les flèches du navigateur.
   const buttonClass =
-    "no-print accent-transition fixed top-20 z-[1000] flex items-center gap-1.5 rounded-full border border-black/5 bg-cream/90 px-3.5 py-2 text-sm font-semibold text-darna shadow-lg backdrop-blur disabled:cursor-not-allowed disabled:opacity-40 enabled:hover:bg-darna/10";
+    "no-print accent-transition fixed top-20 z-[1000] flex items-center gap-1.5 rounded-full border border-black/5 bg-cream/90 px-3.5 py-2 text-sm font-semibold text-heading shadow-lg backdrop-blur disabled:cursor-not-allowed disabled:opacity-40 enabled:hover:bg-darna/10";
 
   // Boutons MASQUÉS quand inutilisables (plutôt que grisés) : pas de « Précédent »
   // sur l'accueil, pas de « Suivant » sans historique avant.

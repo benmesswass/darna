@@ -13,6 +13,7 @@ import { MessagesNotifier } from "@/components/messages/MessagesNotifier";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { CurrencyToggle } from "@/components/currency/CurrencyToggle";
 import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 /** Initiales (1 à 2 lettres) pour l'avatar du menu « Mon espace ». */
 function initials(name: string): string {
@@ -100,6 +101,8 @@ export async function Header() {
           {/* Toujours visible, même sur mobile : besoin de premier niveau
               pour un site trilingue (et cible diaspora mobile-first). */}
           <LanguageSwitcher />
+
+          <ThemeToggle />
 
           <CurrencyToggle />
 

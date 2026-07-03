@@ -50,7 +50,7 @@
 
 | # | Tâche | Prio | Statut | Détail |
 |---|-------|------|--------|--------|
-| D10 | Mode sombre | P3 | ❌ | Quasi inexistant actuellement (1 occurrence `dark:` résiduelle). |
+| D10 | Mode sombre | P3 | ✅ | Bascule clair/sombre dans le Header (`ThemeToggle`), persistée en cookie (`darna-theme`), zéro flash au chargement (classe `dark` rendue côté serveur pour un choix explicite + script anti-FOUC statique pour la préférence système par défaut). Mode sombre par classe Tailwind v4 (`@custom-variant dark`), site complet. **Approche par tokens plutôt que par sweep manuel** : nouveaux tokens adaptatifs `--color-surface` (fond des cartes, ex `bg-white`), `--color-heading` (texte de titre, ex `text-darna`), `--color-body` (texte courant, ex `text-ink`) — swap uniquement via `.dark {}` dans `globals.css`, les tokens de marque (`darna`, `darna-dark`, `sand`, badges/CTA fixes) restent identiques dans les deux thèmes. Renommage mécanique sur ~100 fichiers (`bg-white`→`bg-surface`, `text-ink`→`text-body`, `text-darna` exact→`text-heading`), puis correction manuelle des quelques cas où un texte adaptatif se retrouvait sur un fond de badge fixe (sable/ambre) — dont le bloc « Certifié Wakil » de `ListingDetail.tsx`. Limites connues assumées pour cette v1 : bordures de carte (`ring-darna/10`) et ombres restent subtiles en sombre (pas de régression fonctionnelle, juste moins de relief) ; tuiles de carte Leaflet non re-thémées (données cartographiques externes). |
 | D11 | Scroll-reveal sur les sections de la page d'accueil (trust, stats, diaspora/wakil) | P2 | ✅ | Nouveau `ScrollRevealGrid` (`src/components/ui/ScrollRevealGrid.tsx`, `motion`) — même mécanique de stagger que `AnimatedGrid` (D2) mais déclenchée par `whileInView`/`viewport.once` plutôt qu'au montage. Branché sur la grille « La confiance est le produit » et la grille « prix du marché / diaspora / wakil » de `src/app/page.tsx`. Au passage : icônes de la grille « prix du marché / diaspora / wakil » remises au même badge circulaire coloré (`bg-darna`/`text-sand`) que la grille « confiance » juste au-dessus — les icônes nues détonnaient visuellement à côté d'une section avec des badges pleins. Boutons de cette même grille désormais épinglés en bas de chaque carte (`flex h-full flex-col` + `mt-auto` sur le CTA) : avant, la position du bouton dépendait du nombre de lignes du paragraphe de *chaque carte prise séparément*, donc les 3 boutons n'étaient pas alignés à la même hauteur d'une carte à l'autre. |
 
 ---
@@ -69,7 +69,7 @@
 7. ✅ D9 — micro-interactions formulaires.
 8. ✅ D11 — scroll-reveal accueil.
 9. ✅ D6 — placeholders retravaillés.
-10. D10 — mode sombre.
+10. ✅ D10 — mode sombre.
 
 ---
 

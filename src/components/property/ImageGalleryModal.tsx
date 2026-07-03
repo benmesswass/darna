@@ -602,7 +602,7 @@ export function ImageGalleryModal({
                   <span
                     className={`block h-1.5 rounded-full transition-all duration-300 ${
                       i === index
-                        ? "bg-white"
+                        ? "bg-surface"
                         : i < index
                           ? "bg-white/55"
                           : "bg-white/25"

@@ -57,7 +57,7 @@ export function SimilarListingsCarousel({
             type="button"
             onClick={() => scrollByCard(-1)}
             aria-label="Précédent"
-            className="absolute start-0 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white p-2 text-darna shadow-md ring-1 ring-darna/10 transition hover:bg-cream sm:flex"
+            className="absolute start-0 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-surface p-2 text-heading shadow-md ring-1 ring-darna/10 transition hover:bg-cream sm:flex"
           >
             <ChevronLeftIcon width={18} height={18} />
           </button>
@@ -65,7 +65,7 @@ export function SimilarListingsCarousel({
             type="button"
             onClick={() => scrollByCard(1)}
             aria-label="Suivant"
-            className="absolute end-0 top-1/2 hidden translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white p-2 text-darna shadow-md ring-1 ring-darna/10 transition hover:bg-cream sm:flex"
+            className="absolute end-0 top-1/2 hidden translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-surface p-2 text-heading shadow-md ring-1 ring-darna/10 transition hover:bg-cream sm:flex"
           >
             <ChevronLeftIcon width={18} height={18} className="rotate-180" />
           </button>

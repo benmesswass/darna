@@ -132,7 +132,7 @@ export function GouvernoratAutocomplete({
           id={listboxId}
           role="listbox"
           aria-label={fr.search.suggestionsGouvernorats}
-          className={`absolute inset-x-0 top-full z-[1060] mt-2 max-h-72 overflow-y-auto overflow-x-hidden rounded-2xl bg-white py-1.5 shadow-xl ring-1 ring-darna/10 ${dropdownClassName}`}
+          className={`absolute inset-x-0 top-full z-[1060] mt-2 max-h-72 overflow-y-auto overflow-x-hidden rounded-2xl bg-surface py-1.5 shadow-xl ring-1 ring-darna/10 ${dropdownClassName}`}
         >
           {suggestions.map((g, index) => (
             <li key={g} role="option" aria-selected={index === activeIndex}>
@@ -146,10 +146,10 @@ export function GouvernoratAutocomplete({
                 }}
                 onMouseEnter={() => setActiveIndex(index)}
                 className={`flex w-full items-center gap-2.5 px-4 py-2.5 text-start text-sm transition ${
-                  index === activeIndex ? "bg-cream text-darna" : "text-ink"
+                  index === activeIndex ? "bg-cream text-heading" : "text-body"
                 }`}
               >
-                <MapPinIcon width={15} height={15} className="shrink-0 text-darna/60" />
+                <MapPinIcon width={15} height={15} className="shrink-0 text-heading/60" />
                 <span className="font-semibold">{g}</span>
               </button>
             </li>

@@ -44,7 +44,7 @@ export default async function MesAnnoncesPage({
 
   return (
     <div>
-      <h2 className="text-xl font-bold text-darna">{fr.dashboard.mesAnnonces}</h2>
+      <h2 className="text-xl font-bold text-heading">{fr.dashboard.mesAnnonces}</h2>
 
       {creee ? (
         <p className="mt-4 flex items-center gap-3 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
@@ -79,11 +79,11 @@ export default async function MesAnnoncesPage({
       ) : null}
 
       {properties.length === 0 ? (
-        <div className="mt-6 rounded-3xl bg-white p-10 text-center ring-1 ring-darna/10">
-          <p className="text-lg font-semibold text-darna">
+        <div className="mt-6 rounded-3xl bg-surface p-10 text-center ring-1 ring-darna/10">
+          <p className="text-lg font-semibold text-heading">
             {fr.dashboard.aucuneAnnonce}
           </p>
-          <p className="mt-1 text-sm text-ink/60">{fr.dashboard.aucuneAnnonceCta}</p>
+          <p className="mt-1 text-sm text-body/60">{fr.dashboard.aucuneAnnonceCta}</p>
           <Link
             href="/dashboard/annonces/nouvelle"
             className="mt-5 inline-block rounded-full bg-darna px-6 py-2.5 text-sm font-semibold text-white hover:bg-darna-light"
@@ -109,7 +109,7 @@ export default async function MesAnnoncesPage({
             return (
               <li
                 key={p.id}
-                className="flex flex-col gap-4 rounded-3xl bg-white p-4 ring-1 ring-darna/10 sm:flex-row sm:items-center"
+                className="flex flex-col gap-4 rounded-3xl bg-surface p-4 ring-1 ring-darna/10 sm:flex-row sm:items-center"
               >
                 <div className="relative h-24 w-full shrink-0 overflow-hidden rounded-2xl sm:w-36">
                   {p.photos[0] ? (
@@ -130,10 +130,10 @@ export default async function MesAnnoncesPage({
                     {p.verified ? <VerifiedBadge small /> : null}
                     <StatusBadge status={effectiveExpired ? "EXPIREE" : p.status} />
                   </div>
-                  <p className="mt-1.5 truncate font-semibold text-ink">{p.title}</p>
-                  <p className="text-sm text-ink/60">
+                  <p className="mt-1.5 truncate font-semibold text-body">{p.title}</p>
+                  <p className="text-sm text-body/60">
                     {p.city} ·{" "}
-                    <Price amount={p.price} className="font-semibold text-darna" />
+                    <Price amount={p.price} className="font-semibold text-heading" />
                   </p>
                   <p
                     className={`mt-0.5 text-xs ${
@@ -141,7 +141,7 @@ export default async function MesAnnoncesPage({
                         ? "font-semibold text-red-600"
                         : daysLeft <= 7
                           ? "font-semibold text-amber-600"
-                          : "text-ink/50"
+                          : "text-body/50"
                     }`}
                   >
                     {fr.dashboard.expireDans(daysLeft)}
@@ -163,7 +163,7 @@ export default async function MesAnnoncesPage({
                   </Link>
                   <Link
                     href={`/annonce/${p.slug}`}
-                    className="rounded-xl border border-darna/15 px-3.5 py-2 text-center text-xs font-semibold text-darna hover:bg-darna/5"
+                    className="rounded-xl border border-darna/15 px-3.5 py-2 text-center text-xs font-semibold text-heading hover:bg-darna/5"
                   >
                     {fr.dashboard.voirAnnonce}
                   </Link>

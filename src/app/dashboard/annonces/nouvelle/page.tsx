@@ -22,15 +22,15 @@ export default async function NouvelleAnnoncePage() {
   if (kycGatingEnabled() && !isVerified) {
     return (
       <div>
-        <h2 className="text-xl font-bold text-darna">{fr.dashboard.nouvelleAnnonce}</h2>
-        <div className="mt-5 max-w-2xl rounded-3xl bg-white p-8 text-center ring-1 ring-darna/10">
+        <h2 className="text-xl font-bold text-heading">{fr.dashboard.nouvelleAnnonce}</h2>
+        <div className="mt-5 max-w-2xl rounded-3xl bg-surface p-8 text-center ring-1 ring-darna/10">
           <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-sand">
             <ShieldIcon width={26} height={26} className="text-darna-dark" />
           </span>
-          <h3 className="mt-4 text-lg font-bold text-darna">
+          <h3 className="mt-4 text-lg font-bold text-heading">
             {fr.kyc.gateRequiseTitre}
           </h3>
-          <p className="mx-auto mt-2 max-w-md text-sm text-ink/70">
+          <p className="mx-auto mt-2 max-w-md text-sm text-body/70">
             {fr.kyc.gateRequiseDesc}
           </p>
           <Link
@@ -52,8 +52,8 @@ export default async function NouvelleAnnoncePage() {
 
   return (
     <div>
-      <h2 className="text-xl font-bold text-darna">{fr.dashboard.nouvelleAnnonce}</h2>
-      <div className="mt-5 rounded-3xl bg-white p-6 ring-1 ring-darna/10">
+      <h2 className="text-xl font-bold text-heading">{fr.dashboard.nouvelleAnnonce}</h2>
+      <div className="mt-5 rounded-3xl bg-surface p-6 ring-1 ring-darna/10">
         <PropertyForm allowedTypes={allowedTypes} />
       </div>
     </div>

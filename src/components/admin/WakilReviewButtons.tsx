@@ -55,7 +55,7 @@ export function WakilReviewButtons({ applicationId, labels }: ReviewProps) {
               type="datetime-local"
               value={interviewAt}
               onChange={(e) => setInterviewAt(e.target.value)}
-              className="rounded-lg border border-yellow-300 px-2 py-1 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              className="rounded-lg border border-yellow-300 px-2 py-1 text-sm text-body focus:outline-none focus:ring-2 focus:ring-yellow-400"
             />
           </div>
           <button
@@ -69,7 +69,7 @@ export function WakilReviewButtons({ applicationId, labels }: ReviewProps) {
           <button
             type="button"
             onClick={() => setShowDateInput(false)}
-            className="text-xs text-ink/50 hover:text-ink"
+            className="text-xs text-body/50 hover:text-body"
           >
             ✕
           </button>
@@ -129,19 +129,19 @@ export function SoftDeleteWakilButton({ applicationId, label, confirmLabel }: De
       {state?.error ? <p className="text-xs text-red-600">{state.error}</p> : null}
       {confirming ? (
         <div className="flex items-center gap-2">
-          <span className="text-xs text-ink/60">{confirmLabel}</span>
+          <span className="text-xs text-body/60">{confirmLabel}</span>
           <button
             type="button"
             onClick={submit}
             disabled={isPending}
-            className="rounded-lg bg-ink/20 px-2.5 py-1 text-xs font-semibold text-ink/70 hover:bg-ink/30 disabled:opacity-40"
+            className="rounded-lg bg-ink/20 px-2.5 py-1 text-xs font-semibold text-body/70 hover:bg-ink/30 disabled:opacity-40"
           >
             {label}
           </button>
           <button
             type="button"
             onClick={() => setConfirming(false)}
-            className="text-xs text-ink/50 hover:text-ink"
+            className="text-xs text-body/50 hover:text-body"
           >
             ✕
           </button>
@@ -150,7 +150,7 @@ export function SoftDeleteWakilButton({ applicationId, label, confirmLabel }: De
         <button
           type="button"
           onClick={() => setConfirming(true)}
-          className="text-xs text-ink/40 underline-offset-2 hover:text-ink/70 hover:underline"
+          className="text-xs text-body/40 underline-offset-2 hover:text-body/70 hover:underline"
         >
           {label}
         </button>
@@ -182,7 +182,7 @@ export function HardDeleteWakilButton({ applicationId, label, confirmLabel }: Ha
       {state?.error ? <p className="text-xs text-red-600">{state.error}</p> : null}
       {confirming ? (
         <div className="flex items-center gap-2">
-          <span className="text-xs text-ink/60">{confirmLabel}</span>
+          <span className="text-xs text-body/60">{confirmLabel}</span>
           <button
             type="button"
             onClick={submit}
@@ -194,7 +194,7 @@ export function HardDeleteWakilButton({ applicationId, label, confirmLabel }: Ha
           <button
             type="button"
             onClick={() => setConfirming(false)}
-            className="text-xs text-ink/50 hover:text-ink"
+            className="text-xs text-body/50 hover:text-body"
           >
             ✕
           </button>

@@ -14,7 +14,7 @@ export function GuestReviewDisplay({
 }) {
   return (
     <div className={`rounded-xl bg-cream p-3 text-xs ring-1 ring-darna/10 ${className}`}>
-      <p className="flex items-center gap-1 font-semibold text-ink/70">
+      <p className="flex items-center gap-1 font-semibold text-body/70">
         {label}
         <span className="ms-1 flex items-center gap-0.5 text-sand">
           {[1, 2, 3, 4, 5].map((n) => (
@@ -22,7 +22,7 @@ export function GuestReviewDisplay({
           ))}
         </span>
       </p>
-      <p className="mt-1 text-ink/70">{comment}</p>
+      <p className="mt-1 text-body/70">{comment}</p>
     </div>
   );
 }

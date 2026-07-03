@@ -54,7 +54,7 @@ export default async function HostPage({
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-      <AnimatedGrid className="rounded-3xl bg-white p-6 ring-1 ring-darna/10 sm:p-8">
+      <AnimatedGrid className="rounded-3xl bg-surface p-6 ring-1 ring-darna/10 sm:p-8">
         <div key="header" className="flex flex-wrap items-center gap-4">
           <div className="h-20 w-20 shrink-0 overflow-hidden rounded-full bg-sand ring-4 ring-cream">
             {host.image ? (
@@ -72,11 +72,11 @@ export default async function HostPage({
             )}
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-ink/40">
+            <p className="text-xs font-semibold uppercase tracking-wide text-body/40">
               {host.role === "AGENCE" ? fr.property.agence : fr.property.proprietaire}
             </p>
-            <h1 className="text-2xl font-bold text-darna">{host.name}</h1>
-            <p className="mt-1 text-sm text-ink/60">
+            <h1 className="text-2xl font-bold text-heading">{host.name}</h1>
+            <p className="mt-1 text-sm text-body/60">
               {fr.host.membreDepuis(host.createdAt.getFullYear())}
             </p>
           </div>
@@ -84,31 +84,31 @@ export default async function HostPage({
 
         <div key="badges" className="mt-5 flex flex-wrap items-center gap-3">
           {host.kycStatus === "VERIFIE" ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-darna/5 px-2.5 py-1 text-xs font-medium text-darna">
+            <span className="inline-flex items-center gap-1 rounded-full bg-darna/5 px-2.5 py-1 text-xs font-medium text-heading">
               <CheckIcon width={12} height={12} strokeWidth={3} />
               {fr.kyc.statutVerifie}
             </span>
           ) : host.kycStatus === "DEMO_VERIFIE" ? (
             // Badge DÉMO distinct : jamais une confiance « vérifié réel » pour
             // une vérification de démo (même règle que ListingDetail).
-            <span className="inline-flex items-center gap-1 rounded-full bg-ink/[0.06] px-2.5 py-1 text-xs font-medium text-ink/55">
+            <span className="inline-flex items-center gap-1 rounded-full bg-ink/[0.06] px-2.5 py-1 text-xs font-medium text-body/55">
               <CheckIcon width={12} height={12} strokeWidth={3} />
               {fr.kyc.statutVerifieDemo}
             </span>
           ) : null}
 
           {host.ratingAvg ? (
-            <span className="inline-flex items-center gap-1 text-sm text-ink/70">
+            <span className="inline-flex items-center gap-1 text-sm text-body/70">
               <StarIcon width={15} height={15} fill="currentColor" className="text-sand" />
               {host.ratingAvg.toFixed(1)} · {fr.property.nbAvis(host.ratingCount)}
             </span>
           ) : (
-            <span className="text-sm text-ink/50">{fr.search.sansAvis}</span>
+            <span className="text-sm text-body/50">{fr.search.sansAvis}</span>
           )}
         </div>
       </AnimatedGrid>
 
-      <h2 className="mt-8 text-lg font-semibold text-darna">
+      <h2 className="mt-8 text-lg font-semibold text-heading">
         {fr.host.annoncesActives(host.listings.length)}
       </h2>
 
@@ -124,14 +124,14 @@ export default async function HostPage({
           ))}
         </AnimatedGrid>
       ) : (
-        <p className="mt-4 rounded-2xl bg-white p-6 text-sm text-ink/60 ring-1 ring-darna/10">
+        <p className="mt-4 rounded-2xl bg-surface p-6 text-sm text-body/60 ring-1 ring-darna/10">
           {fr.host.aucuneAnnonceActive}
         </p>
       )}
 
       {host.reviews.length > 0 ? (
         <div className="mt-8">
-          <h2 className="text-lg font-semibold text-darna">{fr.property.avis}</h2>
+          <h2 className="text-lg font-semibold text-heading">{fr.property.avis}</h2>
           <ReviewsList reviews={host.reviews} />
         </div>
       ) : null}

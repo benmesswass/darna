@@ -53,7 +53,7 @@ export function CinVerifyFlow({
 
   return (
     <form action={action}>
-      <p className="text-sm text-ink/70">{fr.kyc.cinIntro}</p>
+      <p className="text-sm text-body/70">{fr.kyc.cinIntro}</p>
 
       {state?.error ? (
         <p role="alert" className="mt-3 rounded-xl bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700">
@@ -62,7 +62,7 @@ export function CinVerifyFlow({
       ) : null}
 
       <label className="mt-3 block max-w-xs space-y-1.5">
-        <span className="text-sm font-semibold text-ink/70">{fr.kyc.cin}</span>
+        <span className="text-sm font-semibold text-body/70">{fr.kyc.cin}</span>
         <input
           name="cin"
           type="text"

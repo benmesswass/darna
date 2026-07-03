@@ -11,7 +11,7 @@ import type { MapMarker } from "./types";
 function MapLoading() {
   const fr = useT();
   return (
-    <div className="flex h-full w-full items-center justify-center bg-darna/5 text-sm text-ink/50">
+    <div className="flex h-full w-full items-center justify-center bg-darna/5 text-sm text-body/50">
       {fr.search.chargementCarte}
     </div>
   );
@@ -158,7 +158,7 @@ export function PropertyMap({ markers }: { markers: MapMarker[] }) {
         onClick={() => setOpen(true)}
         aria-label={fr.search.agrandirCarte}
         title={fr.search.agrandirCarte}
-        className="absolute end-3 top-3 z-[500] flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-darna shadow-lg ring-1 ring-darna/10 backdrop-blur transition hover:bg-white"
+        className="absolute end-3 top-3 z-[500] flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-heading shadow-lg ring-1 ring-darna/10 backdrop-blur transition hover:bg-surface"
       >
         <ExpandIcon />
       </button>
@@ -178,7 +178,7 @@ export function PropertyMap({ markers }: { markers: MapMarker[] }) {
               {/* Panneau carte centré, inséré dans la page (pas plein écran) */}
               <div
                 onClick={(e) => e.stopPropagation()}
-                className={`relative flex h-full max-h-[88vh] w-full max-w-6xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-darna/10 transition-all duration-200 ease-out ${
+                className={`relative flex h-full max-h-[88vh] w-full max-w-6xl flex-col overflow-hidden rounded-3xl bg-surface shadow-2xl ring-1 ring-darna/10 transition-all duration-200 ease-out ${
                   shown ? "scale-100 opacity-100" : "scale-95 opacity-0"
                 }`}
               >
@@ -188,13 +188,13 @@ export function PropertyMap({ markers }: { markers: MapMarker[] }) {
                     <button
                       type="button"
                       onClick={() => setShowFilters((v) => !v)}
-                      className="inline-flex items-center gap-2 rounded-full border border-darna/15 px-3 py-1.5 text-sm font-semibold text-darna transition hover:bg-darna/5 md:hidden"
+                      className="inline-flex items-center gap-2 rounded-full border border-darna/15 px-3 py-1.5 text-sm font-semibold text-heading transition hover:bg-darna/5 md:hidden"
                     >
                       <FilterIcon />
                       {fr.search.filtres}
                     </button>
                   ) : null}
-                  <span className="text-sm font-semibold text-darna">
+                  <span className="text-sm font-semibold text-heading">
                     {fr.search.resultats(filtered.length)}
                   </span>
                   <button
@@ -203,7 +203,7 @@ export function PropertyMap({ markers }: { markers: MapMarker[] }) {
                     onClick={() => setOpen(false)}
                     aria-label={fr.search.fermerCarte}
                     title={fr.search.fermerCarte}
-                    className="ms-auto flex h-10 w-10 items-center justify-center rounded-full bg-darna/5 text-darna transition hover:bg-darna hover:text-white"
+                    className="ms-auto flex h-10 w-10 items-center justify-center rounded-full bg-darna/5 text-heading transition hover:bg-darna hover:text-white"
                   >
                     <CloseIcon width={20} height={20} />
                   </button>
@@ -215,11 +215,11 @@ export function PropertyMap({ markers }: { markers: MapMarker[] }) {
                     <aside
                       className={`${
                         showFilters ? "flex" : "hidden"
-                      } absolute inset-y-0 start-0 z-[20] w-72 max-w-[85%] flex-col gap-5 overflow-y-auto border-e border-darna/10 bg-white p-5 shadow-xl md:relative md:flex md:max-w-none md:shadow-none`}
+                      } absolute inset-y-0 start-0 z-[20] w-72 max-w-[85%] flex-col gap-5 overflow-y-auto border-e border-darna/10 bg-surface p-5 shadow-xl md:relative md:flex md:max-w-none md:shadow-none`}
                     >
                       {/* Prix */}
                       <div className="flex flex-col gap-2">
-                        <span className="text-xs font-semibold text-ink/60">
+                        <span className="text-xs font-semibold text-body/60">
                           {fr.search.prixMin} / {fr.search.prixMax}
                         </span>
                         <div className="flex items-center gap-2">
@@ -232,7 +232,7 @@ export function PropertyMap({ markers }: { markers: MapMarker[] }) {
                             placeholder={fr.search.prixMin}
                             className={inputClass}
                           />
-                          <span className="text-ink/40">–</span>
+                          <span className="text-body/40">–</span>
                           <input
                             type="number"
                             inputMode="numeric"
@@ -247,7 +247,7 @@ export function PropertyMap({ markers }: { markers: MapMarker[] }) {
 
                       {/* Note minimale */}
                       <div className="flex flex-col gap-2">
-                        <span className="text-xs font-semibold text-ink/60">
+                        <span className="text-xs font-semibold text-body/60">
                           {fr.search.noteMinimale}
                         </span>
                         <div className="flex flex-wrap gap-2">
@@ -259,7 +259,7 @@ export function PropertyMap({ markers }: { markers: MapMarker[] }) {
                               className={`rounded-full px-3 py-1.5 text-sm font-semibold transition ${
                                 minRating === r
                                   ? "bg-darna text-white"
-                                  : "bg-darna/5 text-darna hover:bg-darna/10"
+                                  : "bg-darna/5 text-heading hover:bg-darna/10"
                               }`}
                             >
                               {r === 0 ? fr.search.toutesNotes : fr.search.noteMinPlus(r)}
@@ -276,7 +276,7 @@ export function PropertyMap({ markers }: { markers: MapMarker[] }) {
                           onChange={(e) => setVerifiedOnly(e.target.checked)}
                           className="h-4 w-4 accent-darna"
                         />
-                        <span className="text-sm font-medium text-ink">
+                        <span className="text-sm font-medium text-body">
                           {fr.search.verifiesUniquement}
                         </span>
                       </label>
@@ -284,7 +284,7 @@ export function PropertyMap({ markers }: { markers: MapMarker[] }) {
                       <button
                         type="button"
                         onClick={resetFilters}
-                        className="mt-auto self-start text-sm font-semibold text-darna underline-offset-2 hover:underline"
+                        className="mt-auto self-start text-sm font-semibold text-heading underline-offset-2 hover:underline"
                       >
                         {fr.search.reinitialiser}
                       </button>
@@ -305,7 +305,7 @@ export function PropertyMap({ markers }: { markers: MapMarker[] }) {
                     <MapInner markers={filtered} />
                     {filtered.length === 0 ? (
                       <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                        <span className="rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-darna shadow-lg ring-1 ring-darna/10">
+                        <span className="rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-heading shadow-lg ring-1 ring-darna/10">
                           {fr.search.aucunResultatTitre}
                         </span>
                       </div>

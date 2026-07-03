@@ -49,7 +49,7 @@ export async function PropertyCard({
     // Conteneur : le cœur est un FRÈRE du <Link> (un <button> dans un <a> est
     // invalide) ; il est superposé en absolu et neutralise la navigation.
     <div
-      className={`group relative flex flex-col overflow-hidden rounded-3xl bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg ${
+      className={`group relative flex flex-col overflow-hidden rounded-3xl bg-surface shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg ${
         featured
           ? "ring-2 ring-amber-400 hover:ring-amber-400"
           : "ring-1 ring-darna/5 hover:ring-darna/15"
@@ -84,12 +84,12 @@ export async function PropertyCard({
         </div>
 
         <div className="flex flex-1 flex-col gap-2 p-4">
-          <h3 className="line-clamp-1 font-semibold text-ink">{property.title}</h3>
-          <p className="flex items-center gap-1 text-sm text-ink/60">
+          <h3 className="line-clamp-1 font-semibold text-body">{property.title}</h3>
+          <p className="flex items-center gap-1 text-sm text-body/60">
             <MapPinIcon width={15} height={15} />
             {property.city}, {property.gouvernorat}
           </p>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink/60">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-body/60">
             {property.surface ? (
               <span className="flex items-center gap-1">
                 <RulerIcon width={14} height={14} />
@@ -113,11 +113,11 @@ export async function PropertyCard({
             <Price
               amount={property.price}
               suffix={priceSuffix(property.type)}
-              className="text-lg font-bold text-darna"
+              className="text-lg font-bold text-heading"
             />
             {stayTotal !== null ? (
-              <p className="mt-0.5 text-xs text-ink/60">
-                <Price amount={stayTotal} className="font-semibold text-ink/80" />{" "}
+              <p className="mt-0.5 text-xs text-body/60">
+                <Price amount={stayTotal} className="font-semibold text-body/80" />{" "}
                 {fr.search.totalSejour(nights!)}
               </p>
             ) : null}

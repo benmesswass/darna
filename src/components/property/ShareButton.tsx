@@ -74,7 +74,7 @@ export function ShareButton({
         onClick={handleClick}
         aria-expanded={open}
         aria-haspopup="menu"
-        className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-ink/70 ring-1 ring-darna/15 transition hover:bg-darna/5"
+        className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-body/70 ring-1 ring-darna/15 transition hover:bg-darna/5"
       >
         <ShareIcon width={16} height={16} />
         {fr.property.partager}
@@ -83,13 +83,13 @@ export function ShareButton({
       {open ? (
         <div
           role="menu"
-          className="absolute start-0 top-full z-[1000] mt-2 w-56 overflow-hidden rounded-2xl bg-white py-1.5 text-start shadow-xl ring-1 ring-darna/10"
+          className="absolute start-0 top-full z-[1000] mt-2 w-56 overflow-hidden rounded-2xl bg-surface py-1.5 text-start shadow-xl ring-1 ring-darna/10"
         >
           <button
             type="button"
             role="menuitem"
             onClick={copyLink}
-            className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-ink/80 transition hover:bg-cream"
+            className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-body/80 transition hover:bg-cream"
           >
             <LinkIcon width={16} height={16} />
             {fr.property.copierLien}
@@ -100,7 +100,7 @@ export function ShareButton({
             rel="noopener noreferrer"
             role="menuitem"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-ink/80 transition hover:bg-cream"
+            className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-body/80 transition hover:bg-cream"
           >
             <WhatsAppIcon width={16} height={16} />
             {fr.property.whatsapp}

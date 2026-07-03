@@ -54,24 +54,24 @@ export default async function AlaUnePage({
     <div className="mx-auto max-w-xl">
       <Link
         href="/dashboard/annonces"
-        className="inline-flex items-center gap-1 text-sm font-medium text-ink/60 hover:text-darna"
+        className="inline-flex items-center gap-1 text-sm font-medium text-body/60 hover:text-heading"
       >
         ← {fr.alaUne.retour}
       </Link>
 
-      <div className="mt-4 rounded-3xl bg-white p-8 ring-1 ring-darna/10">
-        <h1 className="flex items-center gap-2 text-2xl font-bold text-darna">
+      <div className="mt-4 rounded-3xl bg-surface p-8 ring-1 ring-darna/10">
+        <h1 className="flex items-center gap-2 text-2xl font-bold text-heading">
           <StarIcon width={24} height={24} className="fill-amber-400 text-amber-400" />
           {fr.alaUne.titre}
         </h1>
-        <p className="mt-2 text-sm text-ink/70">{fr.alaUne.sousTitre}</p>
+        <p className="mt-2 text-sm text-body/70">{fr.alaUne.sousTitre}</p>
 
         <div className="mt-4 rounded-2xl bg-cream p-4 text-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-ink/50">
+          <p className="text-xs font-semibold uppercase tracking-wide text-body/50">
             {fr.alaUne.annonce}
           </p>
-          <p className="mt-0.5 font-semibold text-ink">{property.title}</p>
-          <p className="text-ink/60">{property.city}</p>
+          <p className="mt-0.5 font-semibold text-body">{property.title}</p>
+          <p className="text-body/60">{property.city}</p>
         </div>
 
         {/* Argumentaire — pourquoi passer à la une */}
@@ -82,8 +82,8 @@ export default async function AlaUnePage({
                 <CheckIcon width={13} height={13} strokeWidth={3} />
               </span>
               <span className="text-sm">
-                <span className="font-semibold text-ink">{a.titre}</span>
-                <span className="block text-ink/60">{a.desc}</span>
+                <span className="font-semibold text-body">{a.titre}</span>
+                <span className="block text-body/60">{a.desc}</span>
               </span>
             </li>
           ))}
@@ -99,23 +99,23 @@ export default async function AlaUnePage({
 
             <dl className="mt-5 space-y-2.5 border-t border-darna/10 pt-5 text-sm">
               <div className="flex justify-between">
-                <dt className="text-ink/70">{fr.alaUne.duree}</dt>
-                <dd className="font-semibold text-ink">
+                <dt className="text-body/70">{fr.alaUne.duree}</dt>
+                <dd className="font-semibold text-body">
                   {fr.alaUne.dureeValeur(FEATURED_DURATION_DAYS)}
                 </dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-ink/70">{fr.alaUne.prix}</dt>
+                <dt className="text-body/70">{fr.alaUne.prix}</dt>
                 <dd>
                   <Price amount={FEATURED_PRICE_TND} className="font-semibold" />
                 </dd>
               </div>
               <div className="flex justify-between border-t border-darna/10 pt-3">
-                <dt className="text-base font-bold text-darna">{fr.alaUne.total}</dt>
+                <dt className="text-base font-bold text-heading">{fr.alaUne.total}</dt>
                 <dd>
                   <Price
                     amount={FEATURED_PRICE_TND}
-                    className="text-xl font-bold text-darna"
+                    className="text-xl font-bold text-heading"
                   />
                 </dd>
               </div>
@@ -137,14 +137,14 @@ export default async function AlaUnePage({
               </button>
             </form>
 
-            <p className="mt-4 text-center text-xs text-ink/50">{fr.alaUne.garantie}</p>
+            <p className="mt-4 text-center text-xs text-body/50">{fr.alaUne.garantie}</p>
           </>
         ) : (
           <div className="mt-5 rounded-2xl bg-red-50 p-5 text-center">
             <p className="text-sm font-semibold text-red-700">{fr.alaUne.indisponible}</p>
             <Link
               href="/dashboard/annonces"
-              className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-darna hover:text-darna-light"
+              className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-heading hover:text-darna-light"
             >
               {fr.alaUne.retour}
               <ArrowRightIcon width={15} height={15} />

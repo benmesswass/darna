@@ -33,7 +33,7 @@ import {
 
 const inputClass =
   "w-full rounded-xl border border-darna/15 bg-cream px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-darna focus:ring-4 focus:ring-darna/10 disabled:opacity-60";
-const labelClass = "text-sm font-semibold text-ink/70";
+const labelClass = "text-sm font-semibold text-body/70";
 
 export type PropertyFormInitial = {
   id: string;
@@ -226,7 +226,7 @@ export function PropertyForm({
             ) : null}
           </select>
           {isEdit ? (
-            <span className="block text-xs text-ink/40">
+            <span className="block text-xs text-body/40">
               {fr.annonceForm.typeNonModifiable}
             </span>
           ) : null}
@@ -324,7 +324,7 @@ export function PropertyForm({
             {STAY_KINDS.map((k) => (
               <label
                 key={k}
-                className="flex cursor-pointer items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-sm ring-1 ring-darna/15 has-[:checked]:bg-darna has-[:checked]:text-white"
+                className="flex cursor-pointer items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-sm ring-1 ring-darna/15 has-[:checked]:bg-darna has-[:checked]:text-white"
               >
                 <input
                   type="radio"
@@ -344,12 +344,12 @@ export function PropertyForm({
 
       {type === "SEJOUR" ? (
         <fieldset className="space-y-3 rounded-2xl bg-cream/50 p-4 ring-1 ring-darna/15">
-          <p className="flex items-center gap-1.5 text-sm font-bold text-darna">
+          <p className="flex items-center gap-1.5 text-sm font-bold text-heading">
             <ShieldIcon width={16} height={16} />
             {fr.annonceForm.politiqueAnnulation}
             <span className="text-red-600">*</span>
           </p>
-          <p className="text-xs leading-relaxed text-ink/55">
+          <p className="text-xs leading-relaxed text-body/55">
             {fr.annonceForm.politiqueAnnulationAide}
           </p>
           <div className="grid gap-2.5 sm:grid-cols-2">
@@ -358,7 +358,7 @@ export function PropertyForm({
               return (
                 <label
                   key={p}
-                  className={`flex cursor-pointer flex-col gap-1 rounded-xl border bg-white p-3.5 transition ${
+                  className={`flex cursor-pointer flex-col gap-1 rounded-xl border bg-surface p-3.5 transition ${
                     selected
                       ? "border-darna ring-2 ring-darna/30"
                       : "border-darna/15 hover:border-darna/40"
@@ -374,11 +374,11 @@ export function PropertyForm({
                       onChange={(e) => setCancelPolicy(e.target.value)}
                       className="h-4 w-4 accent-darna"
                     />
-                    <span className="text-sm font-bold text-ink">
+                    <span className="text-sm font-bold text-body">
                       {fr.property.cancelPolicy[p]}
                     </span>
                   </span>
-                  <span className="ps-6 text-xs leading-relaxed text-ink/60">
+                  <span className="ps-6 text-xs leading-relaxed text-body/60">
                     {fr.property.cancelPolicyDesc[p]}
                   </span>
                 </label>
@@ -391,7 +391,7 @@ export function PropertyForm({
       <fieldset className="space-y-1.5">
         <legend className={labelClass}>
           {fr.annonceForm.localisation}{" "}
-          <span className="font-normal text-ink/40">
+          <span className="font-normal text-body/40">
             — {fr.annonceForm.repereAide}
           </span>
         </legend>
@@ -408,7 +408,7 @@ export function PropertyForm({
           {AMENITIES.map((a) => (
             <label
               key={a}
-              className="flex cursor-pointer items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-sm ring-1 ring-darna/15 has-[:checked]:bg-darna has-[:checked]:text-white"
+              className="flex cursor-pointer items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-sm ring-1 ring-darna/15 has-[:checked]:bg-darna has-[:checked]:text-white"
             >
               <input
                 type="checkbox"
@@ -431,7 +431,7 @@ export function PropertyForm({
           <button
             type="button"
             onClick={onGenerate}
-            className="inline-flex items-center gap-1.5 rounded-full bg-darna/10 px-3.5 py-1.5 text-xs font-bold text-darna transition hover:bg-darna hover:text-white"
+            className="inline-flex items-center gap-1.5 rounded-full bg-darna/10 px-3.5 py-1.5 text-xs font-bold text-heading transition hover:bg-darna hover:text-white"
             title={fr.annonceForm.genererDescriptionAide}
           >
             <SparklesIcon width={14} height={14} />
@@ -448,7 +448,7 @@ export function PropertyForm({
           onChange={(e) => setDescription(e.target.value)}
           className={inputClass}
         />
-        <p className="text-xs text-ink/40">{fr.annonceForm.genererDescriptionAide}</p>
+        <p className="text-xs text-body/40">{fr.annonceForm.genererDescriptionAide}</p>
       </div>
 
       {isEdit ? (
@@ -471,7 +471,7 @@ export function PropertyForm({
             {fr.annonceForm.apercuPublier}
           </button>
           {photoUrls.length === 0 ? (
-            <p className="text-xs font-medium text-ink/50">{fr.annonceForm.photoRequise}</p>
+            <p className="text-xs font-medium text-body/50">{fr.annonceForm.photoRequise}</p>
           ) : null}
         </>
       )}
@@ -486,17 +486,17 @@ export function PropertyForm({
           // ~z-1000 dans le contexte d'empilement racine — il faut passer au-dessus.
           className="fixed inset-0 z-[2000] flex items-start justify-center overflow-y-auto bg-ink/60 p-4 sm:p-8"
         >
-          <div className="w-full max-w-2xl rounded-3xl bg-white shadow-xl">
+          <div className="w-full max-w-2xl rounded-3xl bg-surface shadow-xl">
             <div className="flex items-start justify-between gap-3 border-b border-darna/10 px-6 py-4">
               <div>
-                <h3 className="text-lg font-bold text-darna">{fr.annonceForm.apercuTitre}</h3>
-                <p className="mt-0.5 text-xs text-ink/55">{fr.annonceForm.apercuAide}</p>
+                <h3 className="text-lg font-bold text-heading">{fr.annonceForm.apercuTitre}</h3>
+                <p className="mt-0.5 text-xs text-body/55">{fr.annonceForm.apercuAide}</p>
               </div>
               <button
                 type="button"
                 onClick={() => setPreview(null)}
                 aria-label={fr.common.annuler}
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-ink/60 transition hover:bg-cream hover:text-darna"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-body/60 transition hover:bg-cream hover:text-heading"
               >
                 <CloseIcon width={16} height={16} />
               </button>
@@ -515,7 +515,7 @@ export function PropertyForm({
                       sizes="(max-width: 640px) 100vw, 640px"
                       className="object-cover"
                     />
-                    <span className="absolute start-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-bold text-darna">
+                    <span className="absolute start-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-bold text-heading">
                       {typeLabel}
                     </span>
                   </div>
@@ -543,17 +543,17 @@ export function PropertyForm({
 
               {/* Titre + localisation */}
               <div className="space-y-1.5">
-                <h4 className="text-xl font-bold text-ink">{preview.title}</h4>
-                <p className="flex items-center gap-1 text-sm text-ink/60">
+                <h4 className="text-xl font-bold text-body">{preview.title}</h4>
+                <p className="flex items-center gap-1 text-sm text-body/60">
                   <MapPinIcon width={15} height={15} />
                   {cityName}
                   {gouvernorat ? `, ${gouvernorat}` : ""}
                 </p>
-                {address ? <p className="text-sm text-ink/50">{address}</p> : null}
+                {address ? <p className="text-sm text-body/50">{address}</p> : null}
               </div>
 
               {/* Caractéristiques */}
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-ink/60">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-body/60">
                 {preview.surface ? (
                   <span className="flex items-center gap-1.5">
                     <RulerIcon width={15} height={15} />
@@ -575,24 +575,24 @@ export function PropertyForm({
               </div>
 
               {/* Prix */}
-              <p className="text-2xl font-bold text-darna">
+              <p className="text-2xl font-bold text-heading">
                 {preview.price.toLocaleString("fr-FR")} TND
                 {priceSuffix ? (
-                  <span className="ms-1 text-sm font-medium text-ink/55">{priceSuffix}</span>
+                  <span className="ms-1 text-sm font-medium text-body/55">{priceSuffix}</span>
                 ) : null}
               </p>
 
               {/* Équipements */}
               {preview.amenities.length > 0 ? (
                 <div className="space-y-2">
-                  <p className="text-sm font-semibold text-ink/70">
+                  <p className="text-sm font-semibold text-body/70">
                     {fr.annonceForm.equipements}
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {preview.amenities.map((a) => (
                       <span
                         key={a}
-                        className="rounded-full bg-cream px-3 py-1 text-xs font-medium text-ink ring-1 ring-darna/10"
+                        className="rounded-full bg-cream px-3 py-1 text-xs font-medium text-body ring-1 ring-darna/10"
                       >
                         {a}
                       </span>
@@ -602,7 +602,7 @@ export function PropertyForm({
               ) : null}
 
               {/* Description */}
-              <p className="whitespace-pre-line text-sm leading-relaxed text-ink/75">
+              <p className="whitespace-pre-line text-sm leading-relaxed text-body/75">
                 {description}
               </p>
             </div>
@@ -620,7 +620,7 @@ export function PropertyForm({
                 <button
                   type="button"
                   onClick={() => setPreview(null)}
-                  className="rounded-xl px-5 py-3 text-sm font-bold text-ink/70 transition hover:bg-cream"
+                  className="rounded-xl px-5 py-3 text-sm font-bold text-body/70 transition hover:bg-cream"
                 >
                   {fr.annonceForm.continuerEdition}
                 </button>

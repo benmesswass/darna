@@ -81,7 +81,7 @@ export function SectionHero({
         <h1 className="mt-3 text-3xl font-bold text-darna-dark sm:text-4xl">
           {title}
         </h1>
-        <p className="mt-2 max-w-xl text-sm font-medium text-ink/75 sm:text-base">
+        <p className="mt-2 max-w-xl text-sm font-medium text-body/75 sm:text-base">
           {description}
         </p>
       </div>

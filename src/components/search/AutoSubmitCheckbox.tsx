@@ -15,7 +15,7 @@ export function AutoSubmitCheckbox({
   defaultChecked?: boolean;
 }) {
   return (
-    <label className="flex items-center gap-2 text-sm text-ink/70">
+    <label className="flex items-center gap-2 text-sm text-body/70">
       <input
         type="checkbox"
         name={name}

@@ -68,41 +68,41 @@ export default async function AdminWakilsPage() {
       {/* ── Candidatures actives ─────────────────────────────────────── */}
       <section>
         <div className="mb-4 flex items-center gap-3">
-          <h3 className="text-xl font-bold text-darna">{fr.admin.candidaturesWakil}</h3>
+          <h3 className="text-xl font-bold text-heading">{fr.admin.candidaturesWakil}</h3>
           {active.length > 0 && (
             <span className="rounded-full bg-darna px-2.5 py-0.5 text-xs font-bold text-white">
               {active.length}
             </span>
           )}
         </div>
-        <p className="mb-6 text-sm text-ink/60">{fr.admin.candidaturesWakilDesc}</p>
+        <p className="mb-6 text-sm text-body/60">{fr.admin.candidaturesWakilDesc}</p>
 
         {active.length === 0 ? (
-          <p className="text-sm text-ink/50">{fr.admin.aucuneCandidature}</p>
+          <p className="text-sm text-body/50">{fr.admin.aucuneCandidature}</p>
         ) : (
           <div className="space-y-4">
             {active.map((app) => (
               <div
                 key={app.id}
-                className="rounded-2xl border border-ink/10 bg-white p-5 shadow-sm"
+                className="rounded-2xl border border-ink/10 bg-surface p-5 shadow-sm"
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <div className="font-semibold text-darna-dark">{app.name}</div>
-                    <div className="mt-0.5 text-xs text-ink/50">
+                    <div className="mt-0.5 text-xs text-body/50">
                       {app.email} · {app.phone} · {app.city}
                     </div>
                   </div>
                   <span
                     className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                      statusColor[app.status] ?? "bg-ink/10 text-ink/60"
+                      statusColor[app.status] ?? "bg-ink/10 text-body/60"
                     }`}
                   >
                     {app.status}
                   </span>
                 </div>
 
-                <p className="mt-3 text-sm text-ink/70 line-clamp-3">{app.motivation}</p>
+                <p className="mt-3 text-sm text-body/70 line-clamp-3">{app.motivation}</p>
 
                 {app.interviewAt ? (
                   <p className="mt-2 inline-flex items-center gap-1 rounded-lg bg-yellow-50 px-2.5 py-1 text-xs font-medium text-yellow-800">
@@ -111,7 +111,7 @@ export default async function AdminWakilsPage() {
                 ) : null}
 
                 {app.reviewedBy ? (
-                  <p className="mt-2 text-xs text-ink/40">
+                  <p className="mt-2 text-xs text-body/40">
                     {fr.admin.revuePar(app.reviewedBy.name)}
                   </p>
                 ) : null}
@@ -146,17 +146,17 @@ export default async function AdminWakilsPage() {
       {/* ── Candidatures archivées ─────────────────────────────────── */}
       <section>
         <div className="mb-4 flex items-center gap-3">
-          <h3 className="text-xl font-bold text-ink/50">{fr.admin.wakilsSupprimees}</h3>
+          <h3 className="text-xl font-bold text-body/50">{fr.admin.wakilsSupprimees}</h3>
           {archived.length > 0 && (
-            <span className="rounded-full bg-ink/10 px-2.5 py-0.5 text-xs font-bold text-ink/50">
+            <span className="rounded-full bg-ink/10 px-2.5 py-0.5 text-xs font-bold text-body/50">
               {archived.length}
             </span>
           )}
         </div>
-        <p className="mb-4 text-sm text-ink/50">{fr.admin.wakilsSupprimeeesDesc}</p>
+        <p className="mb-4 text-sm text-body/50">{fr.admin.wakilsSupprimeeesDesc}</p>
 
         {archived.length === 0 ? (
-          <p className="text-sm text-ink/40">{fr.admin.aucuneCandidatureSupprimee}</p>
+          <p className="text-sm text-body/40">{fr.admin.aucuneCandidatureSupprimee}</p>
         ) : (
           <div className="space-y-3">
             {archived.map((app) => (
@@ -166,13 +166,13 @@ export default async function AdminWakilsPage() {
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <span className="font-medium text-ink/60">{app.name}</span>
-                    <span className="ms-2 text-xs text-ink/40">
+                    <span className="font-medium text-body/60">{app.name}</span>
+                    <span className="ms-2 text-xs text-body/40">
                       {app.email} · {app.city}
                     </span>
                     <span
                       className={`ms-2 inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
-                        statusColor[app.status] ?? "bg-ink/10 text-ink/40"
+                        statusColor[app.status] ?? "bg-ink/10 text-body/40"
                       }`}
                     >
                       {app.status}

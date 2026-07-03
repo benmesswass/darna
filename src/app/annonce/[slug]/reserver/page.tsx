@@ -76,20 +76,20 @@ export default async function ReserverPage({
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
       {/* Réservation = parcours séjours : on garde la nav en surbrillance. */}
       <ActiveSection name="sejours" />
-      <h1 className="text-3xl font-bold text-darna">{fr.booking.titre}</h1>
-      <p className="mt-1 text-ink/60">
+      <h1 className="text-3xl font-bold text-heading">{fr.booking.titre}</h1>
+      <p className="mt-1 text-body/60">
         {property.title} — {property.city}
       </p>
 
       {isOwner ? (
         <div
           role="status"
-          className="mt-6 rounded-3xl bg-white p-8 text-center shadow-sm ring-1 ring-darna/10"
+          className="mt-6 rounded-3xl bg-surface p-8 text-center shadow-sm ring-1 ring-darna/10"
         >
-          <p className="text-lg font-bold text-darna">
+          <p className="text-lg font-bold text-heading">
             {fr.booking.proprietaireImpossible}
           </p>
-          <p className="mx-auto mt-2 max-w-md text-sm text-ink/60">
+          <p className="mx-auto mt-2 max-w-md text-sm text-body/60">
             {fr.booking.proprietaireImpossibleAide}
           </p>
         </div>

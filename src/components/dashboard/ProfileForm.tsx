@@ -12,7 +12,7 @@ import { CheckIcon, LockIcon, UserIcon } from "@/components/icons";
 const inputClass =
   "w-full rounded-xl border border-darna/15 bg-cream px-3.5 py-2.5 text-sm outline-none transition focus:border-darna focus:ring-2 focus:ring-darna/20";
 
-const labelClass = "text-sm font-semibold text-ink/70";
+const labelClass = "text-sm font-semibold text-body/70";
 
 function Feedback({ state }: { state: ProfileFormState }) {
   if (state?.error) {
@@ -55,8 +55,8 @@ export function ProfileForm({
   return (
     <div className="space-y-6">
       {/* Informations personnelles */}
-      <form action={infoAction} className="rounded-3xl bg-white p-6 ring-1 ring-darna/10">
-        <p className="flex items-center gap-2 font-semibold text-darna">
+      <form action={infoAction} className="rounded-3xl bg-surface p-6 ring-1 ring-darna/10">
+        <p className="flex items-center gap-2 font-semibold text-heading">
           <UserIcon width={18} height={18} />
           {fr.profil.infosTitre}
         </p>
@@ -84,15 +84,15 @@ export function ProfileForm({
               value={email}
               readOnly
               disabled
-              className={`${inputClass} cursor-not-allowed bg-darna/[0.04] text-ink/60`}
+              className={`${inputClass} cursor-not-allowed bg-darna/[0.04] text-body/60`}
             />
-            <span className="block text-xs text-ink/45">{fr.profil.emailAide}</span>
+            <span className="block text-xs text-body/45">{fr.profil.emailAide}</span>
           </label>
 
           <label className="block space-y-1.5">
             <span className={labelClass}>
               {fr.profil.telephone}{" "}
-              <span className="font-normal text-ink/40">({fr.common.optionnel})</span>
+              <span className="font-normal text-body/40">({fr.common.optionnel})</span>
             </span>
             <input
               name="phone"
@@ -115,12 +115,12 @@ export function ProfileForm({
       </form>
 
       {/* Mot de passe */}
-      <form action={pwAction} className="rounded-3xl bg-white p-6 ring-1 ring-darna/10">
-        <p className="flex items-center gap-2 font-semibold text-darna">
+      <form action={pwAction} className="rounded-3xl bg-surface p-6 ring-1 ring-darna/10">
+        <p className="flex items-center gap-2 font-semibold text-heading">
           <LockIcon width={18} height={18} />
           {fr.profil.mdpTitre}
         </p>
-        <p className="mt-1 text-sm text-ink/60">{fr.profil.mdpSousTitre}</p>
+        <p className="mt-1 text-sm text-body/60">{fr.profil.mdpSousTitre}</p>
 
         <div className="mt-5 space-y-4">
           <Feedback state={pwState} />
@@ -165,7 +165,7 @@ export function ProfileForm({
         <button
           type="submit"
           disabled={pwPending}
-          className="mt-5 rounded-xl border border-darna/20 px-6 py-2.5 text-sm font-bold text-darna transition hover:bg-darna hover:text-white disabled:opacity-60"
+          className="mt-5 rounded-xl border border-darna/20 px-6 py-2.5 text-sm font-bold text-heading transition hover:bg-darna hover:text-white disabled:opacity-60"
         >
           {pwPending ? fr.common.chargement : fr.profil.mdpChanger}
         </button>

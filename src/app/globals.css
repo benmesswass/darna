@@ -1,16 +1,39 @@
 @import "tailwindcss";
 
+/* Mode sombre par classe (`.dark` sur <html>, cf. src/lib/theme.ts + ThemeToggle)
+   plutôt que par media query : bascule explicite persistée, indépendante de
+   la préférence système une fois que l'utilisateur a choisi. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
-  /* Identité Sidi Bou Saïd — bleu méditerranéen (parent des deux verticales) */
+  /* Identité Sidi Bou Saïd — bleu méditerranéen (parent des deux verticales).
+     Ces tokens de MARQUE (boutons, bandeau, badges) restent volontairement
+     IDENTIQUES en mode sombre — seuls les tokens de SURFACE/TEXTE ci-dessous
+     s'adaptent (cf. --color-surface/--color-heading/--color-body plus bas). */
   --color-darna: #0f4c7c; /* bleu mer profond / Sidi Bou */
   --color-darna-dark: #0a3961;
   --color-darna-light: #1c6ba8;
   --color-sand: #e3a93c; /* jaune sable */
   --color-sand-light: #f5d99a;
-  --color-cream: #faf7f1; /* blanc cassé */
-  --color-ink: #1c2733;
+  --color-cream: #faf7f1; /* blanc cassé — fond de page */
+  --color-ink: #1c2733; /* réservé aux voiles/overlays sombres (photos, tooltips) — ne bouge jamais */
+
+  /* Tokens adaptatifs : surface = fond des cartes/panneaux (ex bg-white),
+     heading = texte de titre (ex text-darna), body = texte courant (ex
+     text-ink). Valeurs par défaut identiques aux anciennes pour ne rien
+     changer en clair ; seule la déclaration `.dark` plus bas les modifie. */
+  --color-surface: #ffffff;
+  --color-heading: #0f4c7c;
+  --color-body: #1c2733;
 
   --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+}
+
+.dark {
+  --color-cream: #0e1620;
+  --color-surface: #182430;
+  --color-heading: #7db4e6;
+  --color-body: #cbd5e1;
 }
 
 /* ── Accent dynamique par section ──────────────────────────────────────────

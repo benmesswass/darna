@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { Cairo, Outfit } from "next/font/google";
 import "./globals.css";
 import { fr } from "@/lib/i18n/fr";
 import { getDirection } from "@/lib/i18n";
 import { getLocale } from "@/lib/i18n/server";
 import { SITE_URL } from "@/lib/config";
+import { THEME_COOKIE, THEME_INIT_SCRIPT, isThemeChoice } from "@/lib/theme";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { HistoryNav } from "@/components/layout/HistoryNav";
@@ -42,9 +44,14 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const locale = await getLocale();
+  const themeCookie = (await cookies()).get(THEME_COOKIE)?.value;
+  const theme = isThemeChoice(themeCookie) ? themeCookie : null;
 
   return (
-    <html lang={locale} dir={getDirection(locale)}>
+    <html lang={locale} dir={getDirection(locale)} className={theme === "dark" ? "dark" : undefined}>
+      <head>
+        <script>{THEME_INIT_SCRIPT}</script>
+      </head>
       <body
         className={`${outfit.variable} ${cairo.variable} font-sans antialiased`}
       >

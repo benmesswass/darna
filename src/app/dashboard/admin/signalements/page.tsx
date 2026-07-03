@@ -46,12 +46,12 @@ export default async function SignalementsPage() {
 
   return (
     <div>
-      <h3 className="text-lg font-bold text-darna">{fr.admin.signalementsTitre}</h3>
-      <p className="mt-1 text-sm text-ink/60">{fr.admin.signalementsSousTitre}</p>
+      <h3 className="text-lg font-bold text-heading">{fr.admin.signalementsTitre}</h3>
+      <p className="mt-1 text-sm text-body/60">{fr.admin.signalementsSousTitre}</p>
 
       {flagged.length === 0 ? (
-        <div className="mt-6 rounded-3xl bg-white p-10 text-center ring-1 ring-darna/10">
-          <p className="text-sm text-ink/60">{fr.admin.signalementsVide}</p>
+        <div className="mt-6 rounded-3xl bg-surface p-10 text-center ring-1 ring-darna/10">
+          <p className="text-sm text-body/60">{fr.admin.signalementsVide}</p>
         </div>
       ) : (
         <ul className="mt-5 space-y-3">
@@ -62,11 +62,11 @@ export default async function SignalementsPage() {
             return (
               <li
                 key={m.id}
-                className="rounded-2xl bg-white p-4 text-start ring-1 ring-darna/10"
+                className="rounded-2xl bg-surface p-4 text-start ring-1 ring-darna/10"
               >
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-semibold text-ink">{m.sender.name}</span>
-                  <span className="text-xs text-ink/50">{m.sender.email}</span>
+                  <span className="font-semibold text-body">{m.sender.name}</span>
+                  <span className="text-xs text-body/50">{m.sender.email}</span>
                   <span
                     className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
                       escalated
@@ -87,15 +87,15 @@ export default async function SignalementsPage() {
                         : fr.admin.signalementsSuspendu}
                     </span>
                   ) : null}
-                  <span className="ms-auto text-xs text-ink/45">
+                  <span className="ms-auto text-xs text-body/45">
                     {formatDateShortFr(m.createdAt)}
                   </span>
                 </div>
-                <p className="mt-1.5 text-sm text-ink/80">“{m.body}”</p>
+                <p className="mt-1.5 text-sm text-body/80">“{m.body}”</p>
                 <div className="mt-1 flex flex-wrap items-center gap-3">
                   <Link
                     href={`/reservation/${m.booking.id}/messages`}
-                    className="text-xs font-semibold text-darna underline"
+                    className="text-xs font-semibold text-heading underline"
                   >
                     {m.booking.property.title}
                   </Link>
@@ -104,7 +104,7 @@ export default async function SignalementsPage() {
                       <input type="hidden" name="userId" value={m.senderId} />
                       <button
                         type="submit"
-                        className="rounded-full border border-darna/20 px-3 py-1 text-xs font-bold text-darna transition hover:bg-darna hover:text-white"
+                        className="rounded-full border border-darna/20 px-3 py-1 text-xs font-bold text-heading transition hover:bg-darna hover:text-white"
                       >
                         {fr.admin.reactiver}
                       </button>

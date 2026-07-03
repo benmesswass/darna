@@ -46,20 +46,20 @@ function StatCard({
   return (
     <div
       className={`rounded-2xl border p-5 shadow-sm ${
-        highlight ? "border-darna/30 bg-darna/5" : "border-ink/10 bg-white"
+        highlight ? "border-darna/30 bg-darna/5" : "border-ink/10 bg-surface"
       }`}
     >
-      <div className="text-xs font-semibold uppercase tracking-wide text-ink/50">
+      <div className="text-xs font-semibold uppercase tracking-wide text-body/50">
         {label}
       </div>
-      <div className="mt-1.5 text-2xl font-bold text-darna">{value}</div>
-      {sub ? <div className="mt-0.5 text-xs text-ink/50">{sub}</div> : null}
+      <div className="mt-1.5 text-2xl font-bold text-heading">{value}</div>
+      {sub ? <div className="mt-0.5 text-xs text-body/50">{sub}</div> : null}
     </div>
   );
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <h3 className="mb-4 text-xl font-bold text-darna">{children}</h3>;
+  return <h3 className="mb-4 text-xl font-bold text-heading">{children}</h3>;
 }
 
 /** Liste de segments en barres horizontales proportionnelles. */
@@ -75,7 +75,7 @@ function SegmentBars({
     <div className="space-y-2.5">
       {segments.map((s) => (
         <div key={s.label} className="flex items-center gap-3">
-          <span className="w-28 shrink-0 truncate text-sm text-ink/70">
+          <span className="w-28 shrink-0 truncate text-sm text-body/70">
             {labelMap?.[s.label] ?? s.label}
           </span>
           <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-sand">
@@ -112,9 +112,9 @@ export default async function AdminAnalyticsPage({
       <header>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-darna">{t.titre}</h2>
-            <p className="mt-1 max-w-2xl text-sm text-ink/60">{t.sousTitre}</p>
-            <p className="mt-1 text-xs text-ink/40">
+            <h2 className="text-2xl font-bold text-heading">{t.titre}</h2>
+            <p className="mt-1 max-w-2xl text-sm text-body/60">{t.sousTitre}</p>
+            <p className="mt-1 text-xs text-body/40">
               {t.genereLe(fmtDateTime(a.generatedAt))}
             </p>
           </div>
@@ -159,7 +159,7 @@ export default async function AdminAnalyticsPage({
       {/* ── Split par verticale STAY vs IMMO ────────────────────────── */}
       <section>
         <SectionTitle>{t.sectionVerticales}</SectionTitle>
-        <p className="mb-5 max-w-2xl text-sm text-ink/60">{t.verticalesDesc}</p>
+        <p className="mb-5 max-w-2xl text-sm text-body/60">{t.verticalesDesc}</p>
         <div className="grid gap-4 sm:grid-cols-2">
           {a.byVertical.map((v) => (
             <VerticalCard key={v.vertical} v={v} t={t} period={period} />
@@ -185,8 +185,8 @@ export default async function AdminAnalyticsPage({
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
           {/* Sparkline inscriptions / jour */}
-          <div className="rounded-2xl border border-ink/10 bg-white p-5 shadow-sm">
-            <div className="mb-4 text-sm font-semibold text-ink/70">
+          <div className="rounded-2xl border border-ink/10 bg-surface p-5 shadow-sm">
+            <div className="mb-4 text-sm font-semibold text-body/70">
               {t.inscriptionsParJour(a.acquisition.signupsWindowDays)}
             </div>
             <SignupBars points={a.acquisition.signupsByDay} />
@@ -194,19 +194,19 @@ export default async function AdminAnalyticsPage({
 
           {/* Répartition par rôle, par pays + annonceurs actifs */}
           <div className="space-y-6">
-            <div className="rounded-2xl border border-ink/10 bg-white p-5 shadow-sm">
-              <div className="mb-4 text-sm font-semibold text-ink/70">
+            <div className="rounded-2xl border border-ink/10 bg-surface p-5 shadow-sm">
+              <div className="mb-4 text-sm font-semibold text-body/70">
                 {t.repartitionRoles}
               </div>
               <SegmentBars segments={a.acquisition.byRole} labelMap={t.rolesLabel} />
             </div>
-            <div className="rounded-2xl border border-ink/10 bg-white p-5 shadow-sm">
-              <div className="mb-1 text-sm font-semibold text-ink/70">
+            <div className="rounded-2xl border border-ink/10 bg-surface p-5 shadow-sm">
+              <div className="mb-1 text-sm font-semibold text-body/70">
                 {t.repartitionPays}
               </div>
-              <p className="mb-4 text-xs text-ink/50">{t.repartitionPaysDesc}</p>
+              <p className="mb-4 text-xs text-body/50">{t.repartitionPaysDesc}</p>
               {a.acquisition.byCountry.length === 0 ? (
-                <p className="text-sm text-ink/40">{t.aucuneDonnee}</p>
+                <p className="text-sm text-body/40">{t.aucuneDonnee}</p>
               ) : (
                 <SegmentBars
                   segments={a.acquisition.byCountry}
@@ -226,12 +226,12 @@ export default async function AdminAnalyticsPage({
       {/* ── Funnel de réservation ───────────────────────────────────── */}
       <section>
         <SectionTitle>{t.sectionFunnel}</SectionTitle>
-        <p className="mb-2 max-w-2xl text-sm text-ink/60">{t.funnelDesc}</p>
-        <p className="mb-5 text-xs font-semibold uppercase tracking-wide text-darna/70">
+        <p className="mb-2 max-w-2xl text-sm text-body/60">{t.funnelDesc}</p>
+        <p className="mb-5 text-xs font-semibold uppercase tracking-wide text-heading/70">
           {t.surPeriode(t.periodeNom(period))}
         </p>
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
-          <div className="rounded-2xl border border-ink/10 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-ink/10 bg-surface p-5 shadow-sm">
             <FunnelChart
               steps={[
                 { label: t.funnelCreees, count: a.bookingFunnel.created },
@@ -262,7 +262,7 @@ export default async function AdminAnalyticsPage({
       {/* ── Rétention & churn ───────────────────────────────────────── */}
       <section>
         <SectionTitle>{t.sectionRetention}</SectionTitle>
-        <p className="mb-5 max-w-2xl text-sm text-ink/60">{t.retentionDesc}</p>
+        <p className="mb-5 max-w-2xl text-sm text-body/60">{t.retentionDesc}</p>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
             label={t.voyageursAyantReserve}
@@ -273,14 +273,14 @@ export default async function AdminAnalyticsPage({
           <StatCard label={t.perdus} value={fmtInt(a.retention.churned)} />
         </div>
 
-        <div className="mt-6 rounded-2xl border border-ink/10 bg-white p-5 shadow-sm">
-          <div className="mb-1 text-sm font-semibold text-ink/70">{t.cohortes}</div>
-          <p className="mb-4 text-xs text-ink/50">{t.cohortesDesc}</p>
+        <div className="mt-6 rounded-2xl border border-ink/10 bg-surface p-5 shadow-sm">
+          <div className="mb-1 text-sm font-semibold text-body/70">{t.cohortes}</div>
+          <p className="mb-4 text-xs text-body/50">{t.cohortesDesc}</p>
           {a.retention.cohorts.length === 0 ? (
-            <p className="text-sm text-ink/40">{t.aucuneDonnee}</p>
+            <p className="text-sm text-body/40">{t.aucuneDonnee}</p>
           ) : (
             <table className="w-full text-sm">
-              <thead className="text-xs font-semibold uppercase tracking-wide text-ink/50">
+              <thead className="text-xs font-semibold uppercase tracking-wide text-body/50">
                 <tr>
                   <th className="py-2 text-start">{t.moisInscription}</th>
                   <th className="py-2 text-end">{t.inscrits}</th>
@@ -291,7 +291,7 @@ export default async function AdminAnalyticsPage({
               <tbody className="divide-y divide-ink/5">
                 {a.retention.cohorts.map((c) => (
                   <tr key={c.month}>
-                    <td className="py-2 font-medium text-ink/80">{c.month}</td>
+                    <td className="py-2 font-medium text-body/80">{c.month}</td>
                     <td className="py-2 text-end">{fmtInt(c.signups)}</td>
                     <td className="py-2 text-end">{fmtInt(c.activated)}</td>
                     <td className="py-2 text-end font-semibold text-darna-dark">
@@ -309,12 +309,12 @@ export default async function AdminAnalyticsPage({
       <section>
         <SectionTitle>{t.sectionWakil}</SectionTitle>
         <div className="grid gap-6 lg:grid-cols-3">
-          <div className="rounded-2xl border border-ink/10 bg-white p-5 shadow-sm">
-            <div className="mb-4 text-sm font-semibold text-ink/70">
+          <div className="rounded-2xl border border-ink/10 bg-surface p-5 shadow-sm">
+            <div className="mb-4 text-sm font-semibold text-body/70">
               {t.candidaturesParStatut}
             </div>
             {a.wakil.applicationsByStatus.length === 0 ? (
-              <p className="text-sm text-ink/40">{t.aucuneDonnee}</p>
+              <p className="text-sm text-body/40">{t.aucuneDonnee}</p>
             ) : (
               <SegmentBars segments={a.wakil.applicationsByStatus} />
             )}
@@ -323,10 +323,10 @@ export default async function AdminAnalyticsPage({
             label={t.verificationsSurPlace}
             value={fmtInt(a.wakil.onSiteVerifications)}
           />
-          <div className="rounded-2xl border border-ink/10 bg-white p-5 shadow-sm">
-            <div className="mb-4 text-sm font-semibold text-ink/70">{t.topWakils}</div>
+          <div className="rounded-2xl border border-ink/10 bg-surface p-5 shadow-sm">
+            <div className="mb-4 text-sm font-semibold text-body/70">{t.topWakils}</div>
             {a.wakil.topWakils.length === 0 ? (
-              <p className="text-sm text-ink/40">{t.aucuneDonnee}</p>
+              <p className="text-sm text-body/40">{t.aucuneDonnee}</p>
             ) : (
               <SegmentBars segments={a.wakil.topWakils} />
             )}
@@ -337,13 +337,13 @@ export default async function AdminAnalyticsPage({
       {/* ── Activité récente (audit trail) ──────────────────────────── */}
       <section>
         <SectionTitle>{t.sectionEvenements}</SectionTitle>
-        <p className="mb-4 text-sm text-ink/60">{t.evenementsDesc}</p>
+        <p className="mb-4 text-sm text-body/60">{t.evenementsDesc}</p>
         <div className="overflow-hidden rounded-2xl border border-ink/10">
           {a.recentEvents.length === 0 ? (
-            <p className="p-5 text-sm text-ink/40">{t.aucuneDonnee}</p>
+            <p className="p-5 text-sm text-body/40">{t.aucuneDonnee}</p>
           ) : (
             <table className="w-full text-sm">
-              <thead className="bg-sand text-xs font-semibold uppercase tracking-wide text-ink/50">
+              <thead className="bg-sand text-xs font-semibold uppercase tracking-wide text-darna-dark/70">
                 <tr>
                   <th className="px-4 py-3 text-start">{t.evenement}</th>
                   <th className="px-4 py-3 text-start">{t.utilisateur}</th>
@@ -361,10 +361,10 @@ export default async function AdminAnalyticsPage({
                         </span>
                       ) : null}
                     </td>
-                    <td className="px-4 py-2.5 text-ink/70">
-                      {e.userName ?? <span className="text-ink/40">{t.systeme}</span>}
+                    <td className="px-4 py-2.5 text-body/70">
+                      {e.userName ?? <span className="text-body/40">{t.systeme}</span>}
                     </td>
-                    <td className="px-4 py-2.5 text-end text-xs text-ink/50">
+                    <td className="px-4 py-2.5 text-end text-xs text-body/50">
                       {fmtDateTime(e.createdAt)}
                     </td>
                   </tr>
@@ -393,10 +393,10 @@ function PeriodSelector({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-xs font-semibold uppercase tracking-wide text-ink/50">
+      <span className="text-xs font-semibold uppercase tracking-wide text-body/50">
         {label}
       </span>
-      <div className="inline-flex rounded-xl border border-ink/10 bg-white p-1 shadow-sm">
+      <div className="inline-flex rounded-xl border border-ink/10 bg-surface p-1 shadow-sm">
         {PERIOD_OPTIONS.map((opt) => {
           const key = opt === null ? "all" : String(opt);
           const active = opt === current;
@@ -406,7 +406,7 @@ function PeriodSelector({
               href={`?period=${key}`}
               scroll={false}
               className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                active ? "bg-darna text-white shadow-sm" : "text-ink/60 hover:text-darna"
+                active ? "bg-darna text-white shadow-sm" : "text-body/60 hover:text-heading"
               }`}
             >
               {options[key]}
@@ -423,7 +423,7 @@ function MiniStat({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <div className="text-lg font-bold text-darna-dark">{value}</div>
-      <div className="mt-0.5 text-[11px] text-ink/50">{label}</div>
+      <div className="mt-0.5 text-[11px] text-body/50">{label}</div>
     </div>
   );
 }
@@ -440,10 +440,10 @@ function VerticalCard({
 }) {
   const isStay = v.vertical === "STAY";
   return (
-    <div className="rounded-2xl border border-ink/10 bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border border-ink/10 bg-surface p-5 shadow-sm">
       <div className="flex items-center justify-between">
-        <h4 className="text-base font-bold text-darna">{t.verticalLabel[v.vertical]}</h4>
-        <span className="rounded-full bg-darna/10 px-2.5 py-0.5 text-[11px] font-semibold text-darna">
+        <h4 className="text-base font-bold text-heading">{t.verticalLabel[v.vertical]}</h4>
+        <span className="rounded-full bg-darna/10 px-2.5 py-0.5 text-[11px] font-semibold text-heading">
           {isStay ? t.vStayBadge : t.vImmoBadge}
         </span>
       </div>
@@ -463,7 +463,7 @@ function VerticalCard({
             <MiniStat label={t.vLeads} value={fmtInt(v.leads)} />
           </div>
         )}
-        <p className="mt-2 text-center text-[11px] text-ink/40">
+        <p className="mt-2 text-center text-[11px] text-body/40">
           {t.surPeriode(t.periodeNom(period))}
         </p>
       </div>
@@ -474,7 +474,7 @@ function VerticalCard({
 /** Petite étiquette compacte « libellé : valeur ». */
 function Pill({ label, value }: { label: string; value: string }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-sand px-3 py-1 font-medium text-ink/70">
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-sand px-3 py-1 font-medium text-darna-dark">
       {label}
       <span className="font-bold text-darna-dark">{value}</span>
     </span>
@@ -506,7 +506,7 @@ function FunnelChart({ steps }: { steps: { label: string; count: number }[] }) {
       {steps.map((s) => (
         <div key={s.label}>
           <div className="mb-1 flex items-center justify-between text-sm">
-            <span className="text-ink/70">{s.label}</span>
+            <span className="text-body/70">{s.label}</span>
             <span className="font-semibold text-darna-dark">{fmtInt(s.count)}</span>
           </div>
           <div className="h-3 overflow-hidden rounded-full bg-sand">

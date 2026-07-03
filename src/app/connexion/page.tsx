@@ -28,10 +28,10 @@ export default async function ConnexionPage({
 
   return (
     <div className="mx-auto max-w-md px-4 py-16 sm:px-6">
-      <h1 className="text-center text-3xl font-bold text-darna">
+      <h1 className="text-center text-3xl font-bold text-heading">
         {fr.auth.connexionTitre}
       </h1>
-      <div className="mt-8 rounded-3xl bg-white p-7 shadow-sm ring-1 ring-darna/10">
+      <div className="mt-8 rounded-3xl bg-surface p-7 shadow-sm ring-1 ring-darna/10">
         <LoginForm
           callbackUrl={callbackUrl ? cb : undefined}
           registered={registered === "1"}

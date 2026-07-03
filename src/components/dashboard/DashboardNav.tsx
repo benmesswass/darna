@@ -55,8 +55,8 @@ export function DashboardNav({ links }: { links: NavItem[] }) {
             href={href}
             className={`flex shrink-0 items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm font-medium transition ${
               active
-                ? "bg-white text-darna shadow-sm"
-                : "text-ink/70 hover:bg-white hover:text-darna hover:shadow-sm"
+                ? "bg-surface text-heading shadow-sm"
+                : "text-body/70 hover:bg-surface hover:text-heading hover:shadow-sm"
             }`}
           >
             <Icon width={17} height={17} />

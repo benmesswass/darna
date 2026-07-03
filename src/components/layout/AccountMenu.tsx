@@ -104,9 +104,9 @@ export function AccountMenu({
       {open ? (
         <div
           role="menu"
-          className="absolute end-0 top-full z-[1200] mt-2 w-60 overflow-hidden rounded-2xl bg-white py-2 text-ink shadow-xl ring-1 ring-darna/10"
+          className="absolute end-0 top-full z-[1200] mt-2 w-60 overflow-hidden rounded-2xl bg-surface py-2 text-body shadow-xl ring-1 ring-darna/10"
         >
-          <p className="truncate px-4 pb-2 pt-1 text-xs text-ink/50">{name}</p>
+          <p className="truncate px-4 pb-2 pt-1 text-xs text-body/50">{name}</p>
           <ul className="text-start">
             {links.map(({ href, label: l, icon, badge }) => {
               const Icon = ICONS[icon];
@@ -118,7 +118,7 @@ export function AccountMenu({
                   <Link
                     href={href}
                     role="menuitem"
-                    className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-ink/80 hover:bg-cream hover:text-darna"
+                    className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-body/80 hover:bg-cream hover:text-heading"
                   >
                     <Icon width={16} height={16} />
                     {l}
