@@ -222,7 +222,9 @@ export function BookingPanel({
           {complete && q ? (
             !isLoggedIn ? (
               <Link
-                href="/connexion"
+                href={`/connexion?callbackUrl=${encodeURIComponent(
+                  `/annonce/${slug}/reserver?arrivee=${checkIn}&depart=${checkOut}&voyageurs=${voyageurs}`
+                )}`}
                 className="mt-5 block rounded-2xl bg-darna px-6 py-3.5 text-center text-base font-bold text-white transition hover:bg-darna-light"
               >
                 {fr.booking.connexionRequise}
