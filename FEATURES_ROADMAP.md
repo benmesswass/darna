@@ -67,4 +67,7 @@
 
 ---
 
-_Voir aussi `DESIGN_ROADMAP.md` (UI/UX/animations) et `QA_ROADMAP.md` (qualité/sécurité)._
+_Voir aussi `DESIGN_ROADMAP.md` (UI/UX/animations), `QA_ROADMAP.md`
+(qualité/sécurité) et `PAIEMENT_SUR_PLACE_ROADMAP.md` (chantier dédié :
+paiement 100 % sur place + commission facturée à l'hôte pour le marché
+local tunisien)._
