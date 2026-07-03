@@ -125,9 +125,9 @@ minimum est payé — inchangé, c'est le comportement actuel.
 | PSP1 | Modèle de données : `Property.cashPaymentEnabled`/`cashTermsAcceptedAt`, `Booking.paymentMode`, nouveau modèle `HostInvoice` | P0 | ❌ | Migration Prisma + constantes `src/lib/constants.ts` |
 | PSP2 | CGU hôte (page légale) + toggle opt-in sur `PropertyForm.tsx` + consentement horodaté | P0 | ❌ | Bloquant avant d'exposer le mode à qui que ce soit |
 | PSP3 | Flux de réservation sans paiement en ligne : **acceptation hôte** (pas instantané, cf. section dédiée), éligibilité KYC `VERIFIE`, `escrow: AUCUN`, génération de la `HostInvoice` | P0 | ❌ | `src/actions/bookings.ts`, UI dédiée (remplace `DepositPayment` pour ce mode) |
-| PSP4 | Règlement de la facture hôte : lien de paiement Konnect ponctuel + webhook + page retour, idempotent | P0 | ❌ | Mirror de `src/lib/payments.ts`/`settleKonnectBooking` |
-| PSP5 | Dashboard hôte « Factures » : liste, statut, bouton payer | P1 | ❌ | `src/app/dashboard/factures/page.tsx` |
-| PSP6 | Levier de recouvrement : détection facture en retard + masquage des annonces de l'hôte tant qu'impayée | P1 | ❌ | Détection paresseuse (pas de cron), cf. `clearExpiredFeatured()` pour le patron |
+| PSP4 | Règlement de la facture hôte : lien de paiement Konnect ponctuel + webhook + page retour, idempotent | P0 | ❌ | Mirror de `src/lib/payments.ts`/`settleKonnectBooking` — hérite automatiquement de Flouci une fois PSP0 livré (même client Konnect partagé) |
+| PSP5 | Dashboard hôte « Factures » (liste, statut, payer) **+ rappels** (J-3, en retard) | P1 | ❌ | `src/app/dashboard/factures/page.tsx` + extension de `ensureExpiringSoonNotifications` (patron identique, pas de cron) |
+| PSP6 | Levier de recouvrement : masquage des annonces si facture en retard — **filtre Prisma dérivé, aucun statut stocké** | P1 | ❌ | `hasOverdueHostInvoice`, filtre relationnel dans `searchSejours`, même esprit que `Property.expiresAt` |
 | PSP7 | Durcissement sécurité/QA : tests idempotence/IDOR/non-bypass + mise à jour `QA_ROADMAP.md` | P0 | ❌ | Nouvelle surface paiement sensible — obligatoire avant merge final |
 
 ## Exécution (prioritisée)
@@ -198,7 +198,10 @@ Ajoute au schéma Prisma (prisma/schema.prisma) :
   onDelete Cascade), hostId (FK User onDelete Cascade), amount (Int, TND —
   copié de Booking.serviceFee au moment de la génération), status (String
   @default("EN_ATTENTE") — nouvelle enum HOST_INVOICE_STATUSES =
-  ["EN_ATTENTE", "PAYEE", "EN_RETARD"] dans constants.ts), paymentRef
+  ["EN_ATTENTE", "PAYEE"] dans constants.ts — VOLONTAIREMENT sans "EN_RETARD"
+  stocké : le retard est un DÉRIVÉ de status="EN_ATTENTE" && dueAt < now,
+  jamais persisté, exactement comme Property.expiresAt n'a pas besoin d'un
+  job qui bascule le statut à l'expiration — cf. §0bis et PSP6), paymentRef
   (String? @unique, référence Konnect), dueAt (DateTime), paidAt (DateTime?),
   createdAt. Index @@index([hostId, status]) et @@index([status, dueAt]).
   Ajoute la back-relation hostInvoices HostInvoice[] sur User.
@@ -340,25 +343,55 @@ concerné et le flux sandbox Konnect (rappelle si KONNECT_API_KEY n'est pas
 configuré en local, préciser que le test se limite au mode démo).
 ```
 
-### Prompt PSP5 — Dashboard hôte Factures
+### Prompt PSP5 — Dashboard hôte Factures + rappels
 
 ```
 Contexte : chantier "paiement sur place" de PAIEMENT_SUR_PLACE_ROADMAP.md
 (ligne PSP5). PSP1-PSP4 mergés.
 
-Nouvelle page src/app/dashboard/factures/page.tsx (lien dans la nav du
-dashboard hôte existant) : liste des HostInvoice de l'hôte connecté (le
-plus simple d'abord : status, montant, réservation liée, date d'échéance),
-avec bouton "Payer" (déclenche payHostInvoiceAction → redirige vers payUrl
-Konnect, même patron que KonnectPayButton.tsx pour les réservations).
-Distingue visuellement EN_ATTENTE / PAYEE / EN_RETARD.
+1. Nouvelle page src/app/dashboard/factures/page.tsx (lien dans la nav du
+   dashboard hôte existant) : liste des HostInvoice de l'hôte connecté
+   (status, montant, réservation liée, date d'échéance), avec bouton
+   "Payer" (déclenche payHostInvoiceAction → redirige vers payUrl Konnect,
+   même patron que KonnectPayButton.tsx). Distingue visuellement EN_ATTENTE
+   / PAYEE / EN_RETARD — "EN_RETARD" est un badge d'AFFICHAGE dérivé
+   (status === "EN_ATTENTE" && dueAt < now), il n'existe pas en base (cf.
+   PSP1/PSP6, ne pas le réintroduire comme statut stocké).
 
-i18n dans les trois dictionnaires. Notification in-app (réutilise le centre
-de notifications existant, src/lib/notification-center.ts) quand une
-nouvelle facture est générée pour un hôte.
+2. Rappels — même patron EXACTEMENT que ensureExpiringSoonNotifications
+   (src/lib/notification-center.ts:109), pas un nouveau mécanisme :
+   - Ajoute une fonction ensureHostInvoiceReminders(userId) appelée depuis
+     src/app/api/notifications/route.ts, juste après/à côté de l'appel
+     existant à ensureExpiringSoonNotifications (même route, sondée en
+     continu par NotificationBell tant que l'hôte est connecté).
+   - Deux nouveaux NotificationType : "FACTURE_BIENTOT_DUE" (dueAt dans
+     moins de 3 jours) et "FACTURE_EN_RETARD" (dueAt dépassée). Pour chaque
+     HostInvoice EN_ATTENTE de l'hôte qui matche l'un des deux seuils, crée
+     une Notification avec href pointant vers la facture précise (ex.
+     /dashboard/factures#<invoiceId>) — c'est CE href qui sert de clé de
+     dédoublonnage.
+   - Réutilise l'index unique PARTIEL déjà en place sur Notification
+     (userId, href) WHERE type = 'ANNONCE_EXPIRE_BIENTOT' : ajoute les deux
+     nouvelles valeurs de type à la même contrainte (migration Prisma), et
+     capture P2002 en silencieux exactement comme le fait
+     ensureExpiringSoonNotifications aujourd'hui (= "déjà relancé à ce
+     palier pour cette facture").
+   - E-mail en parallèle de la notif in-app (même patron non-bloquant que
+     sendBookingConfirmationEmail — log l'échec, ne fait jamais échouer
+     l'action).
+   - LIMITE À DOCUMENTER dans le commit/PR : cette détection ne se déclenche
+     qu'au sondage (hôte connecté ou récemment connecté) — pas de garantie
+     de délivrance si l'hôte n'ouvre jamais Darna, exactement comme pour
+     ANNONCE_EXPIRE_BIENTOT aujourd'hui. Compromis assumé du projet (pas de
+     cron) ; à revoir en P2 séparé si ça s'avère insuffisant en usage réel.
 
-Coche PSP5. Commit + push. Bloc "Comment tester" avec le compte hôte et une
-facture EN_ATTENTE générée via une réservation SUR_PLACE créée au préalable.
+i18n dans les trois dictionnaires (libellés des deux nouveaux types de
+notification + badges EN_RETARD).
+
+Coche PSP5. Commit + push. Bloc "Comment tester" avec le compte hôte, une
+facture EN_ATTENTE générée via une réservation SUR_PLACE créée au préalable,
+et une facture avec dueAt forcée proche/dépassée pour vérifier les deux
+paliers de rappel.
 ```
 
 ### Prompt PSP6 — Levier de recouvrement
@@ -367,29 +400,40 @@ facture EN_ATTENTE générée via une réservation SUR_PLACE créée au préalab
 Contexte : chantier "paiement sur place" de PAIEMENT_SUR_PLACE_ROADMAP.md
 (ligne PSP6). PSP1-PSP5 mergés.
 
-Détection PARESSEUSE (pas de cron — cf. le patron clearExpiredFeatured()
-dans src/lib/listings.ts ou la dédup des notifications d'expiration
-d'annonce) : une HostInvoice EN_ATTENTE dont dueAt est dépassée est
-considérée EN_RETARD au moment de la lecture (recalcul à la volée, pas de
-job planifié).
+AUCUN champ stocké, aucun job planifié — le retard est un FILTRE PRISMA
+RELATIONNEL calculé à chaque lecture, pas un statut qu'il faudrait faire
+"basculer" (même esprit que Property.expiresAt, jamais recalculé par un
+cron). Ajoute une fonction hasOverdueHostInvoice(hostId) qui interroge
+directement (pas de champ intermédiaire à synchroniser) :
 
-Ajoute une fonction hasOverdueHostInvoice(hostId) et branche-la : (a) dans
-searchSejours (src/lib/listings.ts) pour exclure des résultats de recherche
-les annonces ACTIVE dont l'hôte a une facture en retard — même logique que
-le filtre EXPIREE actuel ; (b) dans createBookingAction pour refuser toute
-NOUVELLE réservation (escrow ou sur place) sur une propriété dont l'hôte a
-une facture en retard, avec message clair. Bannière visible dans le
-dashboard hôte ("vos annonces sont masquées tant que la facture X n'est pas
-réglée", lien direct vers /dashboard/factures).
+  prisma.hostInvoice.count({
+    where: { hostId, status: "EN_ATTENTE", dueAt: { lt: new Date() } },
+  }) > 0
+
+Branche-la : (a) dans searchSejours (src/lib/listings.ts), en filtre
+RELATIONNEL directement sur le propriétaire — `owner: { hostInvoices: {
+none: { status: "EN_ATTENTE", dueAt: { lt: now } } } }` — même esprit que le
+filtre EXPIREE actuel, sans précalcul ni dénormalisation sur Property ; (b)
+dans createBookingAction pour refuser toute NOUVELLE réservation (escrow ou
+sur place) sur une propriété dont l'hôte a une facture en retard, avec
+message clair. Bannière visible dans le dashboard hôte ("vos annonces sont
+masquées tant que la facture X n'est pas réglée", lien direct vers
+/dashboard/factures) — calculée au chargement de la page via
+hasOverdueHostInvoice, pas stockée non plus.
+
+Avantage de cette approche : dès que la facture passe à PAYEE, la condition
+redevient fausse instantanément, sans rien à mettre à jour ailleurs — zéro
+risque de désynchronisation entre un statut stocké et la réalité.
 
 i18n dans les trois dictionnaires. Ajoute un test qui prouve qu'une annonce
 redevient visible/réservable immédiatement après règlement de la facture
 (pas de délai de propagation).
 
 Coche PSP6. Commit + push. Bloc "Comment tester" avec un compte hôte ayant
-une facture EN_RETARD (à forcer via seed/DB si besoin pour le test) —
+une HostInvoice EN_ATTENTE dont `dueAt` est forcée dans le passé (via
+Prisma Studio ou un script, pas un statut à poser — il n'y en a pas) —
 vérifier que ses annonces disparaissent de /sejours puis réapparaissent
-après règlement simulé.
+immédiatement après règlement simulé (paymentRef réglé → status PAYEE).
 ```
 
 ### Prompt PSP7 — Durcissement sécurité/QA
