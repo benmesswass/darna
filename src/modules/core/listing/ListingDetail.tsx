@@ -160,9 +160,9 @@ export async function ListingDetail({
               href="#avis"
               aria-label={fr.property.voirAvis}
               title={fr.property.voirAvis}
-              className="mt-1 inline-flex items-center justify-end gap-1 rounded-full text-sm text-body/70 underline-offset-4 transition hover:text-heading hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-darna/40"
+              className="mt-1 inline-flex items-center justify-end gap-1.5 rounded-full text-base font-semibold text-heading underline-offset-4 transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-darna/40"
             >
-              <StarIcon width={15} height={15} fill="currentColor" className="text-sand" />
+              <StarIcon width={20} height={20} fill="currentColor" className="text-sand" />
               {avgRating.toFixed(1)} · {fr.property.nbAvis(property.reviews.length)}
             </a>
           ) : null}
