@@ -98,10 +98,15 @@ export default async function HostPage({
           ) : null}
 
           {host.ratingAvg ? (
-            <span className="inline-flex items-center gap-1 text-sm text-body/70">
+            <a
+              href="#avis"
+              aria-label={fr.property.voirAvis}
+              title={fr.property.voirAvis}
+              className="inline-flex items-center gap-1 rounded-full text-sm text-body/70 underline-offset-4 transition hover:text-heading hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-darna/40"
+            >
               <StarIcon width={15} height={15} fill="currentColor" className="text-sand" />
               {host.ratingAvg.toFixed(1)} · {fr.property.nbAvis(host.ratingCount)}
-            </span>
+            </a>
           ) : (
             <span className="text-sm text-body/50">{fr.search.sansAvis}</span>
           )}
@@ -130,7 +135,7 @@ export default async function HostPage({
       )}
 
       {host.reviews.length > 0 ? (
-        <div className="mt-8">
+        <div id="avis" className="mt-8 scroll-mt-24">
           <h2 className="text-lg font-semibold text-heading">{fr.property.avis}</h2>
           <ReviewsList reviews={host.reviews} />
         </div>
