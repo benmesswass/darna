@@ -29,6 +29,23 @@ const DAY = 1000 * 60 * 60 * 24;
 const nightsBetween = (checkIn: Date, checkOut: Date) =>
   Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / DAY));
 
+/**
+ * Libellé de statut affiché — DISTINCT pour une réservation Rail 2 confirmée
+ * (paymentMode SUR_PLACE) : "Confirmée — paiement protégé" / "Payé le" sont
+ * FAUX dans ce cas (rien ne transite par Darna, tout se règle cash à
+ * l'arrivée). Cf. retour de test du 2026-07-05.
+ */
+function bookingStatusLabel(
+  status: string,
+  paymentMode: string,
+  fr: Awaited<ReturnType<typeof getT>>
+): string {
+  if (status === "CONFIRMEE" && paymentMode === "SUR_PLACE") {
+    return fr.dashboard.confirmeeCashLabel;
+  }
+  return fr.dashboard.statutReservation[status] ?? status;
+}
+
 export default async function MesReservationsPage() {
   const fr = await getT();
   const user = await getSessionUser();
@@ -67,9 +84,138 @@ export default async function MesReservationsPage() {
       orderBy: { checkIn: "desc" },
     });
 
+    // Rail 2 (PSP3) : une demande pas encore acceptée par l'hôte n'est pas
+    // encore un "voyageur" — section distincte de la liste principale (retour
+    // de test du 2026-07-05).
+    const pendingCashRequests = bookings.filter((b) => b.status === "EN_ATTENTE_ACCEPTATION");
+    const otherBookings = bookings.filter((b) => b.status !== "EN_ATTENTE_ACCEPTATION");
+
+    type HostBookingRow = (typeof bookings)[number];
+
+    /** Carte d'une réservation reçue (factorisée : réutilisée par les deux
+     *  sections "Demandes reçues" et "Mes voyageurs"). */
+    function HostBookingCard({ b }: { b: HostBookingRow }) {
+      return (
+        <li className="flex flex-col gap-4 rounded-3xl bg-surface p-4 ring-1 ring-darna/10 sm:flex-row">
+          <div className="relative h-24 w-full shrink-0 overflow-hidden rounded-2xl sm:w-36">
+            {b.property.photos[0] ? (
+              <Image
+                src={b.property.photos[0].url}
+                alt={b.property.title}
+                fill
+                sizes="144px"
+                className="object-cover"
+              />
+            ) : null}
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span
+                className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold ${STATUS_STYLES[b.status] ?? "bg-cream text-body"}`}
+              >
+                {bookingStatusLabel(b.status, b.paymentMode, fr)}
+              </span>
+              {b.paidAt ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
+                  ✓{" "}
+                  {b.paymentMode === "SUR_PLACE"
+                    ? fr.dashboard.confirmeeLe(formatDateShortFr(b.paidAt))
+                    : fr.dashboard.payeLe(formatDateShortFr(b.paidAt))}
+                </span>
+              ) : null}
+            </div>
+
+            <Link
+              href={`/annonce/${b.property.slug}`}
+              className="mt-1.5 block truncate font-semibold text-body hover:text-heading"
+            >
+              {b.property.title}
+            </Link>
+            <p className="text-sm text-body/60">
+              {b.property.city} ·{" "}
+              {fr.booking.sejourDates(
+                formatDateShortFr(b.checkIn),
+                formatDateShortFr(b.checkOut)
+              )}{" "}
+              · {fr.booking.nuits(nightsBetween(b.checkIn, b.checkOut))} ·{" "}
+              {fr.property.capacite(b.guests)}
+            </p>
+
+            {/* Gating anti-bypass : coordonnées du voyageur révélées
+                seulement une fois la fenêtre d'annulation gratuite passée
+                (sinon verrouillées avec date de déblocage). */}
+            {(() => {
+              const reveal = contactRevealState(
+                b.status,
+                b.checkIn,
+                b.property.cancelPolicy as CancelPolicy
+              );
+              const gate: ContactGate =
+                reveal.state === "revealed"
+                  ? { state: "revealed", viewer: "host", counterpart: b.guest }
+                  : reveal.state === "locked"
+                    ? { state: "locked", viewer: "host", revealAt: reveal.revealAt }
+                    : null;
+              return (
+                <ContactReveal
+                  contacts={gate}
+                  bookingId={b.id}
+                  className="mt-2"
+                />
+              );
+            })()}
+            {b.status === "CONFIRMEE" || b.status === "TERMINEE" ? (
+              <Link
+                href={`/reservation/${b.id}/messages`}
+                className="mt-2 inline-block text-xs font-bold text-heading underline"
+              >
+                {fr.messages.lien} →
+              </Link>
+            ) : null}
+
+            {/* Avis hôte → voyageur (F1) : possible seulement une fois le
+                séjour passé, une seule fois par réservation. */}
+            {b.guestReview ? (
+              <GuestReviewDisplay
+                rating={b.guestReview.rating}
+                comment={b.guestReview.comment}
+                label={fr.dashboard.votreAvisSurCeVoyageur}
+                className="mt-2"
+              />
+            ) : (b.status === "CONFIRMEE" || b.status === "TERMINEE") &&
+              b.checkOut.getTime() < Date.now() ? (
+              <GuestReviewForm bookingId={b.id} />
+            ) : null}
+
+            <p className="mt-1.5 text-sm">
+              <Price amount={b.totalPrice} className="font-bold text-heading" />
+            </p>
+
+            {/* Rail 2 (PSP3) : acceptation/refus d'une demande cash en attente. */}
+            {b.status === "EN_ATTENTE_ACCEPTATION" ? (
+              <div className="mt-3">
+                <CashBookingActions bookingId={b.id} montantCash={b.totalPrice} />
+              </div>
+            ) : null}
+
+            {/* Rail 2 : signalement no-show, uniquement une fois le
+                check-in passé sur une réservation cash confirmée. */}
+            {b.status === "CONFIRMEE" &&
+            b.paymentMode === "SUR_PLACE" &&
+            b.checkIn.getTime() < Date.now() ? (
+              <div className="mt-3">
+                <NoShowButton bookingId={b.id} />
+              </div>
+            ) : null}
+          </div>
+        </li>
+      );
+    }
+
     return (
       <div>
-        <h2 className="text-xl font-bold text-heading">{fr.dashboard.mesVoyageurs}</h2>
+        <h2 className="text-xl font-bold text-heading">{fr.dashboard.mesReservations}</h2>
 
         {bookings.length === 0 ? (
           <div className="mt-6 rounded-3xl bg-surface p-10 text-center ring-1 ring-darna/10">
@@ -87,124 +233,43 @@ export default async function MesReservationsPage() {
             </Link>
           </div>
         ) : (
-          <ul className="mt-5 space-y-4">
-            {bookings.map((b) => (
-              <li
-                key={b.id}
-                className="flex flex-col gap-4 rounded-3xl bg-surface p-4 ring-1 ring-darna/10 sm:flex-row"
-              >
-                <div className="relative h-24 w-full shrink-0 overflow-hidden rounded-2xl sm:w-36">
-                  {b.property.photos[0] ? (
-                    <Image
-                      src={b.property.photos[0].url}
-                      alt={b.property.title}
-                      fill
-                      sizes="144px"
-                      className="object-cover"
-                    />
-                  ) : null}
-                </div>
+          <>
+            {/* Rail 2 (PSP3) : demandes cash en attente d'une décision — section
+                DISTINCTE de "Mes voyageurs" (retour de test du 2026-07-05) : une
+                demande pas encore acceptée n'est pas encore un voyageur. */}
+            {pendingCashRequests.length > 0 ? (
+              <div className="mt-6">
+                <h3 className="text-base font-bold text-heading">
+                  {fr.dashboard.demandesCashTitre}
+                </h3>
+                <p className="mt-0.5 text-xs text-body/55">
+                  {fr.dashboard.demandesCashAide}
+                </p>
+                <ul className="mt-3 space-y-4">
+                  {pendingCashRequests.map((b) => (
+                    <HostBookingCard key={b.id} b={b} />
+                  ))}
+                </ul>
+              </div>
+            ) : null}
 
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span
-                      className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold ${STATUS_STYLES[b.status] ?? "bg-cream text-body"}`}
-                    >
-                      {fr.dashboard.statutReservation[b.status] ?? b.status}
-                    </span>
-                    {b.paidAt ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
-                        ✓ {fr.dashboard.payeLe(formatDateShortFr(b.paidAt))}
-                      </span>
-                    ) : null}
-                  </div>
-
-                  <Link
-                    href={`/annonce/${b.property.slug}`}
-                    className="mt-1.5 block truncate font-semibold text-body hover:text-heading"
-                  >
-                    {b.property.title}
-                  </Link>
-                  <p className="text-sm text-body/60">
-                    {b.property.city} ·{" "}
-                    {fr.booking.sejourDates(
-                      formatDateShortFr(b.checkIn),
-                      formatDateShortFr(b.checkOut)
-                    )}{" "}
-                    · {fr.booking.nuits(nightsBetween(b.checkIn, b.checkOut))} ·{" "}
-                    {fr.property.capacite(b.guests)}
-                  </p>
-
-                  {/* Gating anti-bypass : coordonnées du voyageur révélées
-                      seulement une fois la fenêtre d'annulation gratuite passée
-                      (sinon verrouillées avec date de déblocage). */}
-                  {(() => {
-                    const reveal = contactRevealState(
-                      b.status,
-                      b.checkIn,
-                      b.property.cancelPolicy as CancelPolicy
-                    );
-                    const gate: ContactGate =
-                      reveal.state === "revealed"
-                        ? { state: "revealed", viewer: "host", counterpart: b.guest }
-                        : reveal.state === "locked"
-                          ? { state: "locked", viewer: "host", revealAt: reveal.revealAt }
-                          : null;
-                    return (
-                      <ContactReveal
-                        contacts={gate}
-                        bookingId={b.id}
-                        className="mt-2"
-                      />
-                    );
-                  })()}
-                  {b.status === "CONFIRMEE" || b.status === "TERMINEE" ? (
-                    <Link
-                      href={`/reservation/${b.id}/messages`}
-                      className="mt-2 inline-block text-xs font-bold text-heading underline"
-                    >
-                      {fr.messages.lien} →
-                    </Link>
-                  ) : null}
-
-                  {/* Avis hôte → voyageur (F1) : possible seulement une fois le
-                      séjour passé, une seule fois par réservation. */}
-                  {b.guestReview ? (
-                    <GuestReviewDisplay
-                      rating={b.guestReview.rating}
-                      comment={b.guestReview.comment}
-                      label={fr.dashboard.votreAvisSurCeVoyageur}
-                      className="mt-2"
-                    />
-                  ) : (b.status === "CONFIRMEE" || b.status === "TERMINEE") &&
-                    b.checkOut.getTime() < Date.now() ? (
-                    <GuestReviewForm bookingId={b.id} />
-                  ) : null}
-
-                  <p className="mt-1.5 text-sm">
-                    <Price amount={b.totalPrice} className="font-bold text-heading" />
-                  </p>
-
-                  {/* Rail 2 (PSP3) : acceptation/refus d'une demande cash en attente. */}
-                  {b.status === "EN_ATTENTE_ACCEPTATION" ? (
-                    <div className="mt-3">
-                      <CashBookingActions bookingId={b.id} montantCash={b.totalPrice} />
-                    </div>
-                  ) : null}
-
-                  {/* Rail 2 : signalement no-show, uniquement une fois le
-                      check-in passé sur une réservation cash confirmée. */}
-                  {b.status === "CONFIRMEE" &&
-                  b.paymentMode === "SUR_PLACE" &&
-                  b.checkIn.getTime() < Date.now() ? (
-                    <div className="mt-3">
-                      <NoShowButton bookingId={b.id} />
-                    </div>
-                  ) : null}
-                </div>
-              </li>
-            ))}
-          </ul>
+            <div className="mt-6">
+              <h3 className="text-base font-bold text-heading">
+                {fr.dashboard.mesVoyageurs}
+              </h3>
+              {otherBookings.length === 0 ? (
+                <p className="mt-3 text-sm text-body/55">
+                  {fr.dashboard.aucuneReservationHote}
+                </p>
+              ) : (
+                <ul className="mt-3 space-y-4">
+                  {otherBookings.map((b) => (
+                    <HostBookingCard key={b.id} b={b} />
+                  ))}
+                </ul>
+              )}
+            </div>
+          </>
         )}
       </div>
     );
@@ -271,7 +336,7 @@ export default async function MesReservationsPage() {
                 <span
                   className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold ${STATUS_STYLES[b.status] ?? "bg-cream text-body"}`}
                 >
-                  {fr.dashboard.statutReservation[b.status] ?? b.status}
+                  {bookingStatusLabel(b.status, b.paymentMode, fr)}
                 </span>
                 <p className="mt-1.5 truncate font-semibold text-body">
                   {b.property.title}
@@ -350,10 +415,18 @@ export default async function MesReservationsPage() {
                     {fr.messages.lien}
                   </Link>
                 ) : null}
-                {/* Fiche hôte publique : réservée aux séjours confirmés/terminés
-                    (paiement engagé) — jamais accessible avant, cohérent avec le
-                    masquage anti-contournement de ListingDetail. */}
-                {b.status === "CONFIRMEE" || b.status === "TERMINEE" ? (
+                {/* Fiche hôte publique : gatée sur EXACTEMENT la même condition
+                    que le déverrouillage des coordonnées (contactRevealState),
+                    pas seulement le statut — sinon le nom de l'hôte serait
+                    visible via le profil avant même que les coordonnées ne se
+                    débloquent, contradiction relevée en test le 2026-07-05
+                    (auparavant gatée sur status seul, incohérent avec
+                    l'anti-contournement de ListingDetail). */}
+                {contactRevealState(
+                  b.status,
+                  b.checkIn,
+                  b.property.cancelPolicy as CancelPolicy
+                ).state === "revealed" ? (
                   <Link
                     href={`/hote/${b.property.owner.id}`}
                     className="rounded-xl border border-darna/15 px-3.5 py-2 text-center text-xs font-semibold text-heading hover:bg-darna/5"

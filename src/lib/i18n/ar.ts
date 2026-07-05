@@ -507,6 +507,10 @@ export const ar: Dictionary = {
     noShowAnnuler: "ارجع",
     noShowAvertissement:
       "أكّد غير إذا المسافر ماجاش بالفعل — هالإجراء يعلّق حساباتو.",
+    confirmeeCashLabel: "مؤكّد — يتخلص كاش وقت الوصول",
+    confirmeeLe: (date: string) => `تأكّد نهار ${date}`,
+    demandesCashTitre: "طلبات حجز بالكاش",
+    demandesCashAide: "طلبات حجز بالخلاص عالمكان، في انتظار قرارك.",
     remboursement: (montant: number) =>
       montant > 0 ? `استرجاع: ${montant} دينار` : "لا استرجاع حسب السياسة",
     cancelledAt: (date: string) => `ملغى في ${date}`,
@@ -1129,6 +1133,8 @@ export const ar: Dictionary = {
     cashEnAttenteExpire: (date: string) => `إذا مافماش جواب قبل ${date}، الطلب باش ينتهي أوتوماتيكيًا.`,
     noShowIndisponible: "هالإجراء ماهوش متوفّر لهالحجز.",
     noShowSignale: "الغياب اتبلّغ عليه.",
+    cashConfirmeeDetail:
+      "الحوت قبل طلبك. خلّص المبلغ الكامل كاش وقت وصولك — الحوت تعلّم بالخبر.",
   },
   messages: {
     titre: "المراسلة",

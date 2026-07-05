@@ -487,6 +487,11 @@ export const fr = {
     noShowAnnuler: "Revenir",
     noShowAvertissement:
       "Ne confirmez que si le voyageur ne s'est réellement pas présenté — cette action suspend son compte.",
+    confirmeeCashLabel: "Confirmée — à régler en cash à l'arrivée",
+    confirmeeLe: (date: string) => `Confirmée le ${date}`,
+    demandesCashTitre: "Demandes de réservation cash",
+    demandesCashAide:
+      "Demandes de réservation payées sur place, en attente de votre décision.",
     remboursement: (montant: number) =>
       montant > 0 ? `Remboursement : ${montant} TND` : "Aucun remboursement selon la politique",
     cancelledAt: (date: string) => `Annulée le ${date}`,
@@ -1122,6 +1127,8 @@ export const fr = {
     cashEnAttenteExpire: (date: string) => `Sans réponse avant le ${date}, la demande expirera automatiquement.`,
     noShowIndisponible: "Cette action n'est pas disponible pour cette réservation.",
     noShowSignale: "Absence signalée.",
+    cashConfirmeeDetail:
+      "L'hôte a accepté votre demande. Réglez le montant total en espèces à votre arrivée — l'hôte a été notifié.",
   },
   messages: {
     titre: "Messagerie",

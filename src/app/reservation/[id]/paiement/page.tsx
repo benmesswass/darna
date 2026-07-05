@@ -92,6 +92,9 @@ export default async function PaiementPage({
   // distinct, ni "confirmé" ni "en attente de paiement" (il n'y a pas de
   // paiement à effectuer sur cette page dans ce mode).
   const pendingAcceptance = booking.status === "EN_ATTENTE_ACCEPTATION";
+  // Rail 2 confirmé : "paiement protégé" est FAUX ici (rien ne transite par
+  // Darna) — cf. retour de test du 2026-07-05, texte dédié requis.
+  const isCashBooking = booking.paymentMode === "SUR_PLACE";
 
   // Coordonnées de l'hôte révélées au voyageur — UNIQUEMENT après confirmation,
   // via le gating serveur (jamais exposées dans les props avant l'acompte).
@@ -163,7 +166,7 @@ export default async function PaiementPage({
             {fr.booking.paiementConfirme}
           </h1>
           <p className="mx-auto mt-2 max-w-sm text-sm text-body/70">
-            {fr.booking.paiementConfirmeDetail}
+            {isCashBooking ? fr.booking.cashConfirmeeDetail : fr.booking.paiementConfirmeDetail}
           </p>
           <div className="mt-5 rounded-2xl bg-cream p-4 text-start text-sm">
             <p className="font-semibold text-body">{booking.property.title}</p>

@@ -486,6 +486,11 @@ export const en: Dictionary = {
     noShowAnnuler: "Go back",
     noShowAvertissement:
       "Only confirm if the guest genuinely didn't show up — this action suspends their account.",
+    confirmeeCashLabel: "Confirmed — to pay in cash on arrival",
+    confirmeeLe: (date: string) => `Confirmed on ${date}`,
+    demandesCashTitre: "Cash booking requests",
+    demandesCashAide:
+      "Pay-at-property booking requests awaiting your decision.",
     remboursement: (montant: number) =>
       montant > 0 ? `Refund: ${montant} TND` : "No refund under this policy",
     cancelledAt: (date: string) => `Cancelled on ${date}`,
@@ -1110,6 +1115,8 @@ export const en: Dictionary = {
     cashEnAttenteExpire: (date: string) => `Without a reply by ${date}, the request will expire automatically.`,
     noShowIndisponible: "This action isn't available for this booking.",
     noShowSignale: "No-show reported.",
+    cashConfirmeeDetail:
+      "The host has accepted your request. Pay the full amount in cash on arrival — the host has been notified.",
   },
   messages: {
     titre: "Messages",
