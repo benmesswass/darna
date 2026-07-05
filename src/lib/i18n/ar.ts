@@ -246,6 +246,7 @@ export const ar: Dictionary = {
     caracteristiques: "الخصائص",
     equipements: "التجهيزات",
     localisation: "الموقع",
+    ouvrirGoogleMaps: "فتح في خرائط Google",
     disponibilites: "التوفّر",
     avis: "تقييمات المسافرين",
     nbAvis: (n: number) =>

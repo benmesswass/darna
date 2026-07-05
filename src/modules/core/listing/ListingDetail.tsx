@@ -312,6 +312,15 @@ export async function ListingDetail({
                 ]}
               />
             </div>
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${property.latitude},${property.longitude}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-flex items-center gap-2 rounded-full border border-darna/15 px-4 py-2 text-sm font-semibold text-heading transition hover:bg-darna/5"
+            >
+              <MapPinIcon width={16} height={16} />
+              {fr.property.ouvrirGoogleMaps}
+            </a>
           </section>
 
           {/* Section spécifique verticale insérée après la localisation

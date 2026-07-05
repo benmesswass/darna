@@ -233,6 +233,7 @@ export const fr = {
     caracteristiques: "Caractéristiques",
     equipements: "Équipements",
     localisation: "Localisation",
+    ouvrirGoogleMaps: "Ouvrir dans Google Maps",
     disponibilites: "Disponibilités",
     avis: "Avis des voyageurs",
     nbAvis: (n: number) => (n === 1 ? "1 avis" : `${n} avis`),

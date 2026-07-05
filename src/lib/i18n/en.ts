@@ -232,6 +232,7 @@ export const en: Dictionary = {
     caracteristiques: "Features",
     equipements: "Amenities",
     localisation: "Location",
+    ouvrirGoogleMaps: "Open in Google Maps",
     disponibilites: "Availability",
     avis: "Traveller reviews",
     nbAvis: (n: number) => (n === 1 ? "1 review" : `${n} reviews`),
