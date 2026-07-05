@@ -1515,4 +1515,13 @@ export const ar: Dictionary = {
     aucuneAnnonceActive: "ما فماش إعلانات نشيطة توا.",
     retourAccueil: "ارجع للصفحة الرئيسية",
   },
+  traveler: {
+    voirProfil: "شوف البروفايل",
+    titre: (nom: string) => `بروفايل ${nom}`,
+    sousTitre: "مسافر",
+    membreDepuis: (annee: number) => `عضو من ${annee}`,
+    avisTitre: "تقييمات الأوتيلات",
+    avisRecus: (n: number) => (n === 1 ? "تقييم واحد" : `${n} تقييمات`),
+    aucunAvis: "ما فماش تقييمات لحد الآن.",
+  },
 };

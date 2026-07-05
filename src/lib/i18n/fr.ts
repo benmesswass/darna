@@ -1503,6 +1503,15 @@ export const fr = {
     aucuneAnnonceActive: "Aucune annonce active pour le moment.",
     retourAccueil: "Retour à l'accueil",
   },
+  traveler: {
+    voirProfil: "Voir le profil",
+    titre: (nom: string) => `Profil de ${nom}`,
+    sousTitre: "Voyageur",
+    membreDepuis: (annee: number) => `Membre depuis ${annee}`,
+    avisTitre: "Avis des hôtes",
+    avisRecus: (n: number) => (n === 1 ? "1 avis reçu" : `${n} avis reçus`),
+    aucunAvis: "Aucun avis reçu pour le moment.",
+  },
 };
 
 export type Dictionary = typeof fr;

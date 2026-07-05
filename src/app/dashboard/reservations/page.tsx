@@ -54,7 +54,7 @@ export default async function MesReservationsPage() {
             photos: { orderBy: { position: "asc" }, take: 1 },
           },
         },
-        guest: { select: { name: true, email: true, phone: true } },
+        guest: { select: { id: true, name: true, email: true, phone: true } },
         guestReview: { select: { rating: true, comment: true } },
       },
       orderBy: { checkIn: "desc" },

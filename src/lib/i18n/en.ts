@@ -1491,4 +1491,13 @@ export const en: Dictionary = {
     aucuneAnnonceActive: "No active listings at the moment.",
     retourAccueil: "Back to home",
   },
+  traveler: {
+    voirProfil: "View profile",
+    titre: (nom: string) => `${nom}'s profile`,
+    sousTitre: "Traveler",
+    membreDepuis: (annee: number) => `Member since ${annee}`,
+    avisTitre: "Reviews from hosts",
+    avisRecus: (n: number) => (n === 1 ? "1 review" : `${n} reviews`),
+    aucunAvis: "No reviews yet.",
+  },
 };
