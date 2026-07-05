@@ -163,7 +163,7 @@ export async function ListingDetail({
               title={fr.property.voirAvis}
               className="mt-2 flex items-center justify-end gap-2 text-sm font-semibold text-heading underline-offset-4 transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-darna/40"
             >
-              <RatingStars rating={avgRating} size={18} />
+              <RatingStars rating={avgRating} size={22} />
               {avgRating.toFixed(1)} · {fr.property.nbAvis(property.reviews.length)}
             </a>
           ) : null}

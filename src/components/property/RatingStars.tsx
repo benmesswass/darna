@@ -18,17 +18,17 @@ export function RatingStars({
 
   return (
     <span className={`relative inline-flex ${className}`} aria-hidden>
-      <span className="flex gap-0.5 text-body/20">
+      <span className="flex gap-1 text-sand/25">
         {[0, 1, 2, 3, 4].map((i) => (
-          <StarIcon key={i} width={size} height={size} fill="none" />
+          <StarIcon key={i} width={size} height={size} fill="currentColor" stroke="none" />
         ))}
       </span>
       <span
-        className="absolute inset-0 flex gap-0.5 overflow-hidden text-sand"
+        className="absolute inset-0 flex gap-1 overflow-hidden text-sand"
         style={{ width: `${fillPct}%` }}
       >
         {[0, 1, 2, 3, 4].map((i) => (
-          <StarIcon key={i} width={size} height={size} fill="currentColor" />
+          <StarIcon key={i} width={size} height={size} fill="currentColor" stroke="none" />
         ))}
       </span>
     </span>
