@@ -12,6 +12,13 @@
 > seul levier de recouvrement (modèle proche de Booking.com, cf. discussion du
 > 2026-07-03).
 >
+> **Mise à jour du 2026-07-06 :** les phases PSP4 (règlement facture hôte
+> via Konnect) et PSP6 (masquage annonces si facture en retard) seront
+> livrées dans le cadre de `ANNULATION_HOTE_ROADMAP.md` (chantier
+> annulation hôte), en généralisant `HostInvoice` aux deux `reason`
+> (`COMMISSION` et `PENALITE_ANNULATION`) — pas de double implémentation.
+> Cocher PSP4/PSP5/PSP6 ici une fois ces PR mergées, en pointant vers elles.
+>
 > **Prérequis bloquant hors code (Wassim, avant toute activation en
 > production réelle) :** structure juridique tunisienne assujettie à la TVA
 > (matricule fiscal) + validation de la formulation des CGU hôte et du régime
