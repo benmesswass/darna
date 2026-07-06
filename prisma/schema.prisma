@@ -181,6 +181,11 @@ model Property {
   // au client) — null tant que jamais activé.
   cashPaymentEnabled   Boolean   @default(false)
   cashTermsAcceptedAt  DateTime?
+  // Annulation hôte (ANNULATION_HOTE_ROADMAP.md) : date de fin du blocage
+  // temporaire de l'annonce suite à une annulation par l'hôte (null = pas
+  // bloquée). Même esprit que `expiresAt` : filtre paresseux sur une date,
+  // jamais de statut à faire basculer par un job.
+  cancelBlockedUntil   DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -311,6 +316,14 @@ model Booking {
   // Annulation : date + montant remboursable figé au moment de l'annulation.
   cancelledAt   DateTime?
   refundAmount  Int?      // TND ; null si non annulée ou politique 0 %
+  // Annulation À L'INITIATIVE DE L'HÔTE (ANNULATION_HOTE_ROADMAP.md), distincte
+  // d'une annulation voyageur (cancelBookingAction) : posée UNIQUEMENT par
+  // hostCancelBookingAction, jamais par le voyageur. Remboursement TOUJOURS
+  // intégral dans ce cas (cf. refundAmount = totalPrice), et hostCancelBlockDays
+  // trace le palier de blocage d'annonce appliqué (indépendant d'un futur
+  // changement du barème).
+  cancelledByHostAt   DateTime?
+  hostCancelBlockDays Int?
   createdAt    DateTime  @default(now())
 
   propertyId String
