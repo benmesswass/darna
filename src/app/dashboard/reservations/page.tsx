@@ -201,7 +201,7 @@ export default async function MesReservationsPage() {
                     ) : null}
                   </div>
 
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2 sm:w-56 sm:shrink-0">
                     <Link
                       href={`/annonce/${b.property.slug}`}
                       className="rounded-xl border border-darna/15 px-3.5 py-2 text-center text-xs font-semibold text-heading hover:bg-darna/5"
@@ -350,7 +350,7 @@ export default async function MesReservationsPage() {
                   />
                 ) : null}
               </div>
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 sm:w-56 sm:shrink-0">
                 <Link
                   href={`/annonce/${b.property.slug}`}
                   className="rounded-xl border border-darna/15 px-3.5 py-2 text-center text-xs font-semibold text-heading hover:bg-darna/5"

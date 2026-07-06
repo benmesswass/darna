@@ -46,7 +46,8 @@ export function HostCancelButton({ bookingId, checkIn }: Props) {
 
   return (
     <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs">
-      <p className="font-semibold text-red-800">{fr.dashboard.hostCancelAvertissement(blockDays)}</p>
+      <p className="font-semibold text-red-900">{fr.dashboard.hostCancelAvertissementHumain}</p>
+      <p className="mt-1.5 text-red-800">{fr.dashboard.hostCancelAvertissement(blockDays)}</p>
       {state?.error ? <p className="mt-1 text-red-600">{state.error}</p> : null}
       <form action={action} className="mt-2 flex gap-2">
         <input type="hidden" name="bookingId" value={bookingId} />

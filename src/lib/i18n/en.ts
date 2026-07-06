@@ -490,8 +490,10 @@ export const en: Dictionary = {
     noShowAvertissement:
       "Only confirm if the guest genuinely didn't show up — this action suspends their account.",
     annulerReservationHote: "Cancel this booking",
+    hostCancelAvertissementHumain:
+      "Cancelling a confirmed booking is not a small thing: your guest planned their stay trusting you. Only do this as a last resort.",
     hostCancelAvertissement: (jours: number) =>
-      `This listing will be hidden on Darna for ${jours} days if you confirm, and your account will be suspended. The guest will be fully refunded.`,
+      `If you confirm: the guest will be fully refunded, this listing will be hidden on Darna for ${jours} days, and your account will be suspended.`,
     confirmeeCashLabel: "Confirmed — to pay in cash on arrival",
     confirmeeLe: (date: string) => `Confirmed on ${date}`,
     demandesCashTitre: "Cash booking requests",
