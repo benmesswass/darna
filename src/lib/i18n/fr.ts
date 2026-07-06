@@ -462,6 +462,7 @@ export const fr = {
     suspenduProchaineIndefinie:
       "En cas de nouvelle tentative, votre compte sera suspendu de façon indéfinie (revue par un administrateur).",
     aucuneDemande: "Aucune demande reçue pour le moment.",
+    demandesContactTitre: "Demandes de contact",
     aucunFavori: "Aucun favori pour le moment.",
     reservationDe: (nom: string) => `Réservation de ${nom}`,
     demandeDe: (nom: string) => `Demande de ${nom}`,

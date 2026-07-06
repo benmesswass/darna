@@ -482,6 +482,7 @@ export const ar: Dictionary = {
     suspenduProchaineIndefinie:
       "كان تعاود، حسابك باش يتعلّق بلا أجل (يراجعو أدمين).",
     aucuneDemande: "حتى طلب للتوّ.",
+    demandesContactTitre: "طلبات التواصل",
     aucunFavori: "حتى مفضّلة للتوّ.",
     reservationDe: (nom: string) => `حجز من ${nom}`,
     demandeDe: (nom: string) => `طلب من ${nom}`,

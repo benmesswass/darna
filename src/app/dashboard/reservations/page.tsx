@@ -11,7 +11,6 @@ import { computeBookingRefund } from "@/lib/cancellation";
 import { contactRevealState, type ContactGate } from "@/lib/contact-reveal";
 import type { CancelPolicy } from "@/lib/constants";
 import { CancelBookingButton } from "@/components/booking/CancelBookingButton";
-import { CashBookingActions } from "@/components/booking/CashBookingActions";
 import { NoShowButton } from "@/components/booking/NoShowButton";
 import { ContactReveal } from "@/components/booking/ContactReveal";
 import { GuestReviewForm } from "@/components/booking/GuestReviewForm";
@@ -61,11 +60,13 @@ export default async function MesReservationsPage() {
       where: {
         property: { ownerId: user.id },
         status: { not: "ANNULEE" },
-        // On masque les EN_ATTENTE (paiement) et EN_ATTENTE_ACCEPTATION (Rail
-        // 2) déjà expirées — réservations/demandes abandonnées.
+        // Les demandes cash (Rail 2, EN_ATTENTE_ACCEPTATION) vivent dans
+        // « Demandes reçues », pas ici — cf. retour de test du 2026-07-06 :
+        // "Mes voyageurs" ne garde que les séjours confirmés/en cours/passés.
+        // On masque aussi les EN_ATTENTE (paiement) déjà expirées.
         NOT: [
+          { status: "EN_ATTENTE_ACCEPTATION" },
           { status: "EN_ATTENTE", expiresAt: { lt: new Date() } },
-          { status: "EN_ATTENTE_ACCEPTATION", expiresAt: { lt: new Date() } },
         ],
       },
       include: {
@@ -84,16 +85,8 @@ export default async function MesReservationsPage() {
       orderBy: { checkIn: "desc" },
     });
 
-    // Rail 2 (PSP3) : une demande pas encore acceptée par l'hôte n'est pas
-    // encore un "voyageur" — section distincte de la liste principale (retour
-    // de test du 2026-07-05).
-    const pendingCashRequests = bookings.filter((b) => b.status === "EN_ATTENTE_ACCEPTATION");
-    const otherBookings = bookings.filter((b) => b.status !== "EN_ATTENTE_ACCEPTATION");
-
     type HostBookingRow = (typeof bookings)[number];
 
-    /** Carte d'une réservation reçue (factorisée : réutilisée par les deux
-     *  sections "Demandes reçues" et "Mes voyageurs"). */
     function HostBookingCard({ b }: { b: HostBookingRow }) {
       return (
         <li className="flex flex-col gap-4 rounded-3xl bg-surface p-4 ring-1 ring-darna/10 sm:flex-row">
@@ -192,13 +185,6 @@ export default async function MesReservationsPage() {
               <Price amount={b.totalPrice} className="font-bold text-heading" />
             </p>
 
-            {/* Rail 2 (PSP3) : acceptation/refus d'une demande cash en attente. */}
-            {b.status === "EN_ATTENTE_ACCEPTATION" ? (
-              <div className="mt-3">
-                <CashBookingActions bookingId={b.id} montantCash={b.totalPrice} />
-              </div>
-            ) : null}
-
             {/* Rail 2 : signalement no-show, uniquement une fois le
                 check-in passé sur une réservation cash confirmée. */}
             {b.status === "CONFIRMEE" &&
@@ -233,43 +219,11 @@ export default async function MesReservationsPage() {
             </Link>
           </div>
         ) : (
-          <>
-            {/* Rail 2 (PSP3) : demandes cash en attente d'une décision — section
-                DISTINCTE de "Mes voyageurs" (retour de test du 2026-07-05) : une
-                demande pas encore acceptée n'est pas encore un voyageur. */}
-            {pendingCashRequests.length > 0 ? (
-              <div className="mt-6">
-                <h3 className="text-base font-bold text-heading">
-                  {fr.dashboard.demandesCashTitre}
-                </h3>
-                <p className="mt-0.5 text-xs text-body/55">
-                  {fr.dashboard.demandesCashAide}
-                </p>
-                <ul className="mt-3 space-y-4">
-                  {pendingCashRequests.map((b) => (
-                    <HostBookingCard key={b.id} b={b} />
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-
-            <div className="mt-6">
-              <h3 className="text-base font-bold text-heading">
-                {fr.dashboard.mesVoyageurs}
-              </h3>
-              {otherBookings.length === 0 ? (
-                <p className="mt-3 text-sm text-body/55">
-                  {fr.dashboard.aucuneReservationHote}
-                </p>
-              ) : (
-                <ul className="mt-3 space-y-4">
-                  {otherBookings.map((b) => (
-                    <HostBookingCard key={b.id} b={b} />
-                  ))}
-                </ul>
-              )}
-            </div>
-          </>
+          <ul className="mt-5 space-y-4">
+            {bookings.map((b) => (
+              <HostBookingCard key={b.id} b={b} />
+            ))}
+          </ul>
         )}
       </div>
     );

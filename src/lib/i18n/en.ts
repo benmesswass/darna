@@ -461,6 +461,7 @@ export const en: Dictionary = {
     suspenduProchaineIndefinie:
       "If you try again, your account will be suspended indefinitely (subject to admin review).",
     aucuneDemande: "No requests received yet.",
+    demandesContactTitre: "Contact requests",
     aucunFavori: "No favourites yet.",
     reservationDe: (nom: string) => `Booking from ${nom}`,
     demandeDe: (nom: string) => `Request from ${nom}`,
