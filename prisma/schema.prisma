@@ -62,6 +62,12 @@ model User {
   // (suspendedUntil null OU suspendedUntil > now) — cf. src/lib/suspension.ts.
   suspendedUntil  DateTime?
   suspensionCount Int       @default(0)
+  // Motif de la DERNIÈRE suspension (MESSAGE_BYPASS | BOOKING_NO_SHOW |
+  // HOST_CANCELLED_BOOKING, cf. SuspensionReason dans src/lib/suspension.ts) —
+  // permet au bandeau « Pourquoi ? » (dashboard/layout.tsx) d'expliquer la
+  // VRAIE raison plutôt qu'un texte générique. Null = jamais suspendu, ou
+  // suspendu avant l'introduction de ce champ (bascule sur le texte legacy).
+  suspensionReason String?
   // Pays de résidence déclaré à l'inscription (libellé FR, cf. PHONE_COUNTRIES) —
   // clé du pilotage diaspora (north-star marketing : cible France). Null tant
   // que non renseigné (comptes historiques ou inscription sans choix).

@@ -878,10 +878,7 @@ export async function hostCancelBookingAction(
     data: { cancelBlockedUntil: new Date(Date.now() + blockDays * DAY) },
   });
 
-  await applySuspension(user.id, {
-    reason: "HOST_CANCELLED_BOOKING",
-    bookingId: booking.id,
-  });
+  await applySuspension(user.id, "HOST_CANCELLED_BOOKING", { bookingId: booking.id });
 
   await logAudit({
     action: "HOST_CANCELLED_BOOKING",
@@ -1099,10 +1096,7 @@ export async function reportNoShowAction(
   // Concurrence (double clic) : déjà traité par une requête précédente.
   if (updated.count === 0) return { error: fr.booking.noShowIndisponible };
 
-  await applySuspension(booking.guestId, {
-    reason: "BOOKING_NO_SHOW",
-    bookingId: booking.id,
-  });
+  await applySuspension(booking.guestId, "BOOKING_NO_SHOW", { bookingId: booking.id });
 
   await logAudit({
     action: "BOOKING_NO_SHOW_REPORTED",

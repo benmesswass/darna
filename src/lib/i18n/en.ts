@@ -452,11 +452,15 @@ export const en: Dictionary = {
     suspenduJusqu: (date: string) => `Account suspended until ${date}`,
     suspenduIndefini: "Account suspended",
     suspenduDetail:
-      "You stay protected: you can still view and manage your ongoing bookings, contact the host of a confirmed stay, and cancel/get refunded. While suspended, you can't make a new booking or send messages.",
+      "The rest of your account stays accessible. While suspended, you can't make a new booking or send messages.",
     enSavoirPlus: "Learn more",
     suspenduPourquoiTitre: "Why?",
-    suspenduPourquoi:
+    suspenduPourquoiMessageBypass:
       "Several attempts to share contact details off Darna (phone or email) were detected in your messages, which isn't allowed until the booking is firm.",
+    suspenduPourquoiNoShow:
+      "You didn't show up for a confirmed pay-at-property stay, which penalizes the host who had reserved those dates for you.",
+    suspenduPourquoiHostCancel:
+      "You cancelled an already confirmed booking — the guest was fully refunded, but cancelling after confirmation is still penalized.",
     suspenduConsequencesTitre: "Consequences:",
     suspenduProchaine: (jours: number) =>
       `If you try again, the next suspension will last ${jours} days.`,
@@ -492,8 +496,8 @@ export const en: Dictionary = {
     annulerReservationHote: "Cancel this booking",
     hostCancelAvertissementHumain:
       "Cancelling a confirmed booking is not a small thing: your guest planned their stay trusting you. Only do this as a last resort.",
-    hostCancelAvertissement: (jours: number) =>
-      `If you confirm: the guest will be fully refunded, this listing will be hidden on Darna for ${jours} days, and your account will be suspended.`,
+    hostCancelAvertissement: (blockDays: number, suspensionDays: number | null) =>
+      `If you confirm: the guest will be fully refunded, this listing will be hidden on Darna for ${blockDays} days, and your account will be suspended ${suspensionDays ? `for ${suspensionDays} days` : "indefinitely"}.`,
     confirmeeCashLabel: "Confirmed — to pay in cash on arrival",
     confirmeeLe: (date: string) => `Confirmed on ${date}`,
     demandesCashTitre: "Cash booking requests",

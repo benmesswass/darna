@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
+import { nextSuspensionDays } from "@/lib/suspension";
 import { completeElapsedBookings } from "@/lib/bookings";
 import { formatDateShortFr } from "@/lib/format";
 import { Price } from "@/components/currency/Price";
@@ -50,6 +51,11 @@ export default async function MesReservationsPage() {
   const fr = await getT();
   const user = await getSessionUser();
   if (!user) redirect("/connexion");
+
+  // Jours de la PROCHAINE suspension si l'hôte annule une réservation
+  // (même valeur pour toutes les lignes de cette page — dépend seulement de
+  // son suspensionCount actuel, pas de la réservation ciblée).
+  const hostNextSuspensionDays = nextSuspensionDays(user.suspensionCount);
 
   // Complétion paresseuse : séjours terminés → TERMINEE + séquestre libéré.
   await completeElapsedBookings();
@@ -229,7 +235,11 @@ export default async function MesReservationsPage() {
                       </Link>
                     ) : null}
                     {b.status === "CONFIRMEE" ? (
-                      <HostCancelButton bookingId={b.id} checkIn={b.checkIn.toISOString()} />
+                      <HostCancelButton
+                        bookingId={b.id}
+                        checkIn={b.checkIn.toISOString()}
+                        suspensionDays={hostNextSuspensionDays}
+                      />
                     ) : null}
                   </div>
                 </li>

@@ -167,7 +167,7 @@ export async function sendMessageAction(
     // Au-delà du seuil de suspension : suspension PROGRESSIVE (temporaire puis
     // de plus en plus longue, indéfinie au-delà du dernier palier).
     if (maskedCount >= MESSAGE_FLAG_SUSPENSION_THRESHOLD) {
-      await applySuspension(user.id, { bookingId: booking.id, maskedCount });
+      await applySuspension(user.id, "MESSAGE_BYPASS", { bookingId: booking.id, maskedCount });
       suspended = true;
     }
   }

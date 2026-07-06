@@ -135,7 +135,11 @@ export default async function DashboardLayout({
                 <span className="font-semibold text-body">
                   {fr.dashboard.suspenduPourquoiTitre}
                 </span>{" "}
-                {fr.dashboard.suspenduPourquoi}
+                {user.suspensionReason === "BOOKING_NO_SHOW"
+                  ? fr.dashboard.suspenduPourquoiNoShow
+                  : user.suspensionReason === "HOST_CANCELLED_BOOKING"
+                    ? fr.dashboard.suspenduPourquoiHostCancel
+                    : fr.dashboard.suspenduPourquoiMessageBypass}
               </p>
               <p>
                 <span className="font-semibold text-body">

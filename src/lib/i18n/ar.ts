@@ -473,11 +473,15 @@ export const ar: Dictionary = {
     suspenduJusqu: (date: string) => `الحساب معلّق حتى ${date}`,
     suspenduIndefini: "الحساب معلّق",
     suspenduDetail:
-      "تبقى محمي : تنجّم تشوف وتسيّر حجوزاتك الجارية، تتواصل مع صاحب الدار متاع إقامة مؤكّدة، وتلغي/يتردّلك. وقت التعليق، ما تنجّمش تعمل حجز جديد ولا تبعث رسائل.",
+      "باقي الحساب متاعك يخدم عادي. وقت التعليق، ما تنجّمش تعمل حجز جديد ولا تبعث رسائل.",
     enSavoirPlus: "اعرف أكثر",
     suspenduPourquoiTitre: "علاش ؟",
-    suspenduPourquoi:
+    suspenduPourquoiMessageBypass:
       "تلقّاو برشة محاولات باش تبعث معلومات اتصال برّة دارنا (رقم ولا إيميل) في الرسائل متاعك، وهذا ممنوع قبل ما يولّي الحجز نهائي.",
+    suspenduPourquoiNoShow:
+      "ما جيتش لإقامة مؤكّدة تخلص عالمكان، وهذا يضرّ بالحوت اللي حجزلك الأيام.",
+    suspenduPourquoiHostCancel:
+      "لغيت حجز كان مؤكّد — رجعنا للمسافر فلوسو كاملة، ولكن الإلغاء بعد التأكيد يبقى معرّض للعقاب.",
     suspenduConsequencesTitre: "العواقب :",
     suspenduProchaine: (jours: number) =>
       `كان تعاود، التعليق الجاي باش يدوم ${jours} أيّام.`,
@@ -513,8 +517,8 @@ export const ar: Dictionary = {
     annulerReservationHote: "لغي الحجز هذا",
     hostCancelAvertissementHumain:
       "تلغي حجز مؤكّد موش حاجة بسيطة : المسافر متاعك رتّب سفرتو وهو واثق فيك. اعملها كان في آخر الحلول.",
-    hostCancelAvertissement: (jours: number) =>
-      `إذا أكّدت : المسافر باش يترجعلو الفلوس كاملة، والإعلان هذا باش يخفى من دارنا لمدة ${jours} يوم، وحسابك باش يتعلّق.`,
+    hostCancelAvertissement: (blockDays: number, suspensionDays: number | null) =>
+      `إذا أكّدت : المسافر باش يترجعلو الفلوس كاملة، والإعلان هذا باش يخفى من دارنا لمدة ${blockDays} يوم، وحسابك باش يتعلّق ${suspensionDays ? `لمدة ${suspensionDays} يوم` : "بلا مدة"}.`,
     confirmeeCashLabel: "مؤكّد — يتخلص كاش وقت الوصول",
     confirmeeLe: (date: string) => `تأكّد نهار ${date}`,
     demandesCashTitre: "طلبات حجز بالكاش",
