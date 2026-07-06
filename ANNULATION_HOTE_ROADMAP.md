@@ -6,46 +6,43 @@
 > n'existe côté hôte. Décidé en session produit du 2026-07-06, après étude
 > des politiques Airbnb/Vrbo/Booking.com (annulation hôte toujours
 > remboursée intégralement au voyageur côté marché, pénalité croissante côté
-> hôte, recouvrement par masquage plutôt que prélèvement automatique — aucune
-> des trois plateformes ne débite un compte bancaire hôte directement).
+> hôte, recouvrement par masquage plutôt que prélèvement automatique).
+>
+> **Pivot du 2026-07-06 (2e partie de la session) :** la pénalité
+> **financière** (facture `HostInvoice` à régler via Konnect) a été
+> **abandonnée** — sur une plateforme naissante sans levier réel pour forcer
+> le paiement d'une facture, personne ne la réglerait en pratique. Le seul
+> dissuasif retenu est un **blocage temporaire de l'ANNONCE concernée**
+> (retirée des résultats de recherche pour une durée croissante selon le
+> délai laissé au voyageur), combiné à la suspension progressive de
+> **compte** déjà existante. Aucune facturation, aucun lien de paiement,
+> aucun nouveau flux Konnect dans ce chantier.
 >
 > **Décisions produit actées (session du 2026-07-06) :**
 > 1. **Remboursement voyageur** : toujours intégral, quelle que soit la
 >    `cancelPolicy` de l'annonce — c'est l'hôte qui rompt, pas le voyageur.
-> 2. **Base de la pénalité hôte** : **% du prix total du séjour**
->    (`totalPrice`), pas de la commission Darna seule — sinon aucun pouvoir
->    dissuasif face à un hôte qui trouverait un locataire plus rémunérateur.
-> 3. **Mécanisme de recouvrement** : **aucun prélèvement automatique
->    possible** — Darna n'a aucun système de payout vers l'hôte
->    (`escrow: LIBERE` est un simple label en base, cf. `src/lib/bookings.ts`,
->    aucun virement réel n'est jamais déclenché). La pénalité est donc une
->    **facture ponctuelle par incident**, sur le modèle exact de `HostInvoice`
->    déjà conçu pour la commission Rail 2 (`PAIEMENT_SUR_PLACE_ROADMAP.md`) :
->    un lien de paiement Konnect à régler, recouvrement par **masquage des
->    annonces** si impayé — jamais de débit forcé.
-> 4. **Sanction de compte** : suspension **progressive dès la 1ère
->    annulation** (réutilise `suspensionCount`/`suspendedUntil`,
->    `SUSPENSION_DURATIONS_DAYS` — mêmes champs que l'anti-bypass messagerie,
->    pas de nouveau mécanisme). Contrairement au anti-bypass (seuil de 4
->    signalements avant la 1ère suspension), une annulation hôte est un
->    manquement direct et non ambigu : pas de tolérance avant sanction.
+> 2. **Dissuasif = blocage temporaire de l'annonce**, pas d'argent. Durée
+>    croissante selon le délai avant `checkIn` au moment de l'annulation
+>    (barème ci-dessous). Annonce simplement exclue des résultats de
+>    recherche pendant la durée du blocage — même idiome que
+>    `Property.expiresAt` (date de fin, filtre paresseux, aucun cron).
+> 3. **Modale d'avertissement obligatoire avant confirmation** : l'hôte doit
+>    voir clairement, AVANT de valider, la durée de blocage qui s'appliquera
+>    à CETTE annonce selon le délai restant — pas une surprise après coup.
+> 4. **Suspension de compte** : les deux leviers se cumulent dès la
+>    **1ère annulation** — blocage de l'annonce concernée ET suspension
+>    progressive du compte (réutilise `suspensionCount`/`suspendedUntil`,
+>    `SUSPENSION_DURATIONS_DAYS` — mêmes champs que l'anti-bypass
+>    messagerie, pas de nouveau mécanisme, pas de seuil de tolérance).
 > 5. **Libre-service, pas de motif obligatoire ni de revue admin** : le
->    bouton d'annulation reste toujours disponible côté hôte (comme
->    Airbnb/Vrbo) — la pénalité financière + la suspension progressive sont
->    le seul garde-fou. Pas de file d'attente de modération à construire
->    (Darna n'a pas d'équipe support).
+>    bouton d'annulation reste toujours disponible côté hôte — le blocage
+>    d'annonce + la suspension progressive sont le seul garde-fou. Pas de
+>    file d'attente de modération à construire (Darna n'a pas d'équipe
+>    support).
 > 6. **Geste commercial** : réduction ponctuelle liée à LA suggestion de
 >    relogement envoyée au voyageur (token signé, usage unique) — pas de
 >    nouveau modèle de crédit générique réutilisable sur n'importe quelle
 >    réservation (scope volontairement réduit pour cette première version).
->
-> **Chevauchement avec `PAIEMENT_SUR_PLACE_ROADMAP.md` :** ce chantier livre,
-> en généralisé, l'équivalent des phases **PSP4** (règlement facture hôte via
-> Konnect) et **PSP6** (masquage annonces si facture en retard) de ce
-> document — qui restaient ❌ non commencées. Une fois ce chantier mergé,
-> cocher PSP4/PSP6 dans `PAIEMENT_SUR_PLACE_ROADMAP.md` en pointant vers les
-> PR de ce chantier, plutôt que de les reconstruire en double lors du
-> chantier cash.
 >
 > **Règle de maintenance :** dès qu'une tâche est livrée (mergée), cocher la
 > case, passer son statut à `✅` et noter le(s) fichier(s)/PR. Ne jamais
@@ -56,21 +53,22 @@
 
 ---
 
-## Barème de pénalité proposé (à ajuster si besoin lors de la revue)
+## Barème de blocage d'annonce (à ajuster si besoin lors de la revue)
 
-Indépendant de la `cancelPolicy` de l'annonce (c'est une pénalité, pas une
-politique d'annulation voyageur) — calqué sur le barème Airbnb à 3 paliers,
-en jours avant `checkIn` :
+Indépendant de la `cancelPolicy` de l'annonce (c'est une sanction, pas une
+politique d'annulation voyageur) — en jours avant `checkIn` au moment où
+l'hôte annule :
 
-| Délai avant check-in au moment de l'annulation | Pénalité (% de `totalPrice`) |
+| Délai avant check-in au moment de l'annulation | Durée de blocage de l'annonce |
 |---|---|
-| ≥ 30 jours | 10 % |
-| 7 à 30 jours | 25 % |
-| < 7 jours (ou après le check-in — no-show hôte) | 50 % |
+| ≥ 30 jours | 3 jours |
+| 7 à 30 jours | 15 jours |
+| < 7 jours (ou après le check-in — no-show hôte) | 30 jours |
 
-**Plancher** : la pénalité ne descend jamais sous `serviceFee` (la commission
-que Darna aurait perçue) — Darna ne doit jamais être perdant sur une
-annulation hôte par rapport à un séjour honoré normalement.
+Pendant le blocage, l'annonce est exclue des résultats de recherche
+(`activeListingWhere()`) mais reste éditable par l'hôte (pas de suppression,
+juste une invisibilité temporaire — cohérent avec le traitement d'une
+annonce `expiresAt` dépassée).
 
 ---
 
@@ -78,25 +76,28 @@ annulation hôte par rapport à un séjour honoré normalement.
 
 - `computeBookingRefund`/`computeRefund` (`src/lib/cancellation.ts`) :
   calcul du remboursement voyageur — **réutilisable tel quel** en forçant
-  `refundRate = 1` (remboursement intégral, cf. décision produit n°1), pas
-  besoin de dupliquer la logique de calcul de montant.
+  `refundRate = 1` (remboursement intégral, décision n°1), pas besoin de
+  dupliquer la logique de calcul de montant.
 - `suspensionCount`/`suspendedUntil`, `SUSPENSION_DURATIONS_DAYS`,
   `src/lib/suspension.ts` : mécanisme de suspension progressive déjà
-  fonctionnel (anti-bypass messagerie) — réutiliser tel quel pour la
-  décision produit n°4, ne pas dupliquer.
-- `HostInvoice` (modèle Prisma), `HOST_INVOICE_STATUSES`
-  (`src/lib/constants.ts`) : structure de facturation par incident déjà
-  posée pour la commission Rail 2 — à **généraliser** (nouveau champ
-  `reason`), pas remplacer.
-- `AuditLog`/`logAudit` (`src/lib/audit.ts`), `Notification`/centre de
-  notifications (`src/lib/notification-center.ts`) : mêmes patrons à
-  réutiliser pour tracer l'annulation et notifier le voyageur.
+  fonctionnel (anti-bypass messagerie) — réutiliser tel quel (décision n°4).
+- `Property.expiresAt` + `activeListingWhere()` (`src/lib/listings.ts`) :
+  patron exact à suivre pour le blocage temporaire — un champ date de fin,
+  un filtre paresseux, **aucun job/cron**.
+- `AuditLog`/`logAudit` (`src/lib/audit.ts`), centre de notifications
+  (`src/lib/notification-center.ts`) : mêmes patrons à réutiliser pour
+  tracer l'annulation et notifier le voyageur.
 - `getSimilarListings` (`src/lib/listings.ts`, F6) : proche mais
-  insuffisant (pas de filtre dates/capacité/prix) — sert de modèle de style,
-  pas de base de code à étendre telle quelle (nouvelle fonction dédiée).
+  insuffisant (pas de filtre dates/capacité/prix) — sert de modèle de
+  style, pas de base de code à étendre telle quelle.
 - `blockingBookingOverlap` (`src/actions/bookings.ts`, privée au module) :
   logique de conflit de dates déjà écrite — à exporter pour la réutiliser
   dans le filtre de disponibilité des suggestions de relogement.
+
+**Explicitement HORS scope de ce chantier** (pivot du 2026-07-06) :
+`HostInvoice`, facturation Konnect, dashboard « Factures » — ces phases
+(PSP4/PSP5/PSP6 de `PAIEMENT_SUR_PLACE_ROADMAP.md`) restent un chantier
+séparé, non entamé par celui-ci.
 
 ---
 
@@ -104,24 +105,24 @@ annulation hôte par rapport à un séjour honoré normalement.
 
 | # | Tâche | Prio | Statut | Détail |
 |---|-------|------|--------|--------|
-| AH0 | Modèle de données : généraliser `HostInvoice` (`reason`), nouveau champ traçant l'annulation hôte sur `Booking` | P0 | ❌ | `prisma/schema.prisma` + migration |
-| AH1 | Server action `hostCancelBookingAction` : remboursement intégral voyageur, calcul + facturation de la pénalité, suspension progressive, audit log, notification | P0 | ❌ | `src/actions/bookings.ts` |
-| AH2 | Suggestions de relogement : `getRebookingSuggestions` (ville, capacité, prix, disponibilité réelle) | P0 | ❌ | `src/lib/listings.ts` |
-| AH3 | Réduction ponctuelle liée à la suggestion (token signé, usage unique) | P1 | ❌ | nouveau `src/lib/rebooking-discount.ts`, branché sur `createBookingAction` |
-| AH4 | UI hôte (bouton + pénalité prévisionnelle avant confirmation) et UI voyageur (notification + suggestions + réduction) | P0 | ❌ | `src/app/dashboard/reservations/page.tsx`, nouveau composant `HostCancelButton`, page/section de notification dédiée |
-| AH5 | Règlement de la `HostInvoice` (pénalité ET commission Rail 2 au passage) : lien Konnect ponctuel + webhook + page retour | P0 | ❌ | `src/lib/host-invoicing.ts`, `src/app/api/payments/konnect/host-invoice-webhook/route.ts` — généralise PSP4 |
-| AH6 | Dashboard hôte « Factures » + recouvrement par masquage si impayé | P1 | ❌ | `src/app/dashboard/factures/page.tsx`, `hasOverdueHostInvoice`, filtre dans `searchSejours` — généralise PSP5/PSP6 |
-| AH7 | Durcissement sécurité/QA : idempotence, IDOR, non-bypass (dates falsifiées, double annulation, token de réduction rejouable) + mise à jour `QA_ROADMAP.md` | P0 | ❌ | Nouvelle surface sensible (argent + réputation) — obligatoire avant merge final |
+| AH0 | Modèle de données : `Property.cancelBlockedUntil`, traçabilité sur `Booking` (`cancelledByHostAt`, `hostCancelBlockDays`) | P0 | ❌ | `prisma/schema.prisma` + migration |
+| AH1 | Server action `hostCancelBookingAction` : remboursement intégral voyageur, calcul + pose du blocage d'annonce, suspension progressive de compte, audit log, notification | P0 | ❌ | `src/actions/bookings.ts` |
+| AH2 | Filtre de recherche : exclure les annonces bloquées (`activeListingWhere()`) | P0 | ❌ | `src/lib/listings.ts` |
+| AH3 | Suggestions de relogement : `getRebookingSuggestions` (ville, capacité, prix, disponibilité réelle) | P0 | ❌ | `src/lib/listings.ts` |
+| AH4 | Réduction ponctuelle liée à la suggestion (token signé, usage unique) | P1 | ❌ | nouveau `src/lib/rebooking-discount.ts`, branché sur `createBookingAction` |
+| AH5 | UI hôte : modale d'avertissement (durée de blocage prévisionnelle affichée AVANT confirmation) + bouton d'annulation | P0 | ❌ | nouveau composant `HostCancelButton`, branché sur `src/app/dashboard/reservations/page.tsx` |
+| AH6 | UI voyageur : notification d'annulation + suggestions + réduction | P0 | ❌ | notification dédiée + page/section listant les suggestions |
+| AH7 | Durcissement sécurité/QA : idempotence, IDOR, non-bypass (dates falsifiées, double annulation, token de réduction rejouable, contournement du blocage d'annonce) + mise à jour `QA_ROADMAP.md` | P0 | ❌ | Nouvelle surface sensible (réputation + visibilité annonce) |
 
 ## Exécution (prioritisée)
 
 1. ❌ AH0 — modèle de données.
-2. ❌ AH1 — action d'annulation hôte (cœur du chantier : remboursement + pénalité + suspension).
-3. ❌ AH2 — moteur de suggestions.
-4. ❌ AH3 — réduction ponctuelle.
-5. ❌ AH4 — UI des deux côtés.
-6. ❌ AH5 — règlement Konnect de la facture (généralise PSP4).
-7. ❌ AH6 — dashboard factures + masquage (généralise PSP5/PSP6).
+2. ❌ AH1 — action d'annulation hôte (cœur du chantier : remboursement + blocage + suspension).
+3. ❌ AH2 — filtre de recherche (annonce bloquée invisible).
+4. ❌ AH3 — moteur de suggestions.
+5. ❌ AH4 — réduction ponctuelle.
+6. ❌ AH5 — UI hôte (modale d'avertissement).
+7. ❌ AH6 — UI voyageur.
 8. ❌ AH7 — tests + QA_ROADMAP.md.
 
 ---
@@ -131,25 +132,26 @@ annulation hôte par rapport à un séjour honoré normalement.
 > Copier-coller un prompt par session, dans l'ordre, une fois la phase
 > précédente mergée. `CLAUDE.md` est chargé automatiquement (règles PR,
 > i18n, tests, « Comment tester »). Travailler sur une branche dédiée à ce
-> chantier tant que la PR n'est pas mergée (règle CLAUDE.md : pas de nouvelle
-> branche pour une amélioration sur une PR déjà ouverte).
+> chantier tant que la PR n'est pas mergée (règle CLAUDE.md : pas de
+> nouvelle branche pour une amélioration sur une PR déjà ouverte).
 
 ### Prompt AH0 — Modèle de données
 
 ```
 Contexte : chantier "annulation hôte" de ANNULATION_HOTE_ROADMAP.md — lis ce
 fichier en entier d'abord, en particulier les "Décisions produit actées" et
-le barème de pénalité proposé.
+le barème de blocage proposé. AUCUNE facturation dans ce chantier (pivot du
+2026-07-06) — ne touche pas à HostInvoice.
 
 Dans prisma/schema.prisma :
-- Ajoute HostInvoice.reason String @default("COMMISSION") — nouvelle enum
-  HOST_INVOICE_REASONS = ["COMMISSION", "PENALITE_ANNULATION"] dans
-  src/lib/constants.ts. Le cas "COMMISSION" correspond à l'usage Rail 2 déjà
-  prévu (PAIEMENT_SUR_PLACE_ROADMAP.md), "PENALITE_ANNULATION" à ce chantier.
+- Ajoute Property.cancelBlockedUntil DateTime? — date de fin du blocage
+  temporaire suite à une annulation hôte (null = pas bloquée). Même esprit
+  que Property.expiresAt : un champ date, jamais de statut à faire
+  basculer par un job.
 - Ajoute sur Booking : cancelledByHostAt DateTime? et
-  hostCancelPenaltyRate Int? (taux appliqué en centièmes, ex. 10/25/50 —
-  traçabilité de quel palier a été appliqué, indépendant de toute
-  recalcul futur du barème).
+  hostCancelBlockDays Int? (nombre de jours de blocage appliqués —
+  traçabilité de quel palier a été utilisé, indépendant d'un futur
+  changement du barème).
 
 Génère la migration (npx prisma migrate dev --name add_host_cancellation).
 Vérifie que prisma/seed.ts tourne toujours sans modification obligatoire.
@@ -162,10 +164,11 @@ push. Bloc "Comment tester" habituel (CLAUDE.md).
 
 ```
 Contexte : chantier "annulation hôte" de ANNULATION_HOTE_ROADMAP.md (ligne
-AH1). AH0 mergé — vérifie que HostInvoice.reason et les deux champs sur
-Booking existent avant de commencer. Lis aussi cancelBookingAction existant
-(src/actions/bookings.ts) pour le patron à suivre (idempotence, IDOR,
-transaction).
+AH1). AH0 mergé — vérifie que Property.cancelBlockedUntil et les deux
+champs sur Booking existent avant de commencer. Lis aussi
+cancelBookingAction existant (src/actions/bookings.ts) pour le patron à
+suivre (idempotence, IDOR, transaction). AUCUNE facturation ici (pivot du
+2026-07-06) — pas de HostInvoice.
 
 Nouvelle server action hostCancelBookingAction(bookingId) dans
 src/actions/bookings.ts :
@@ -174,46 +177,69 @@ src/actions/bookings.ts :
    réservation (IDOR) et que status === "CONFIRMEE" (pas déjà
    TERMINEE/ANNULEE).
 2. Calcule le délai en jours entre maintenant et checkIn. Applique le
-   barème de ANNULATION_HOTE_ROADMAP.md (10 % / 25 % / 50 % de totalPrice
-   selon les seuils ≥30j / 7-30j / <7j-ou-après-checkin), avec un plancher
-   à serviceFee (Math.max(penalite, serviceFee)). Arrondis le montant en
-   TND (Math.round), documente le calcul dans un commentaire.
+   barème de ANNULATION_HOTE_ROADMAP.md (3j / 15j / 30j de blocage selon
+   les seuils ≥30j / 7-30j / <7j-ou-après-checkin).
 3. Transaction Prisma : passe le booking à ANNULEE, cancelledAt = now,
-   cancelledByHostAt = now, hostCancelPenaltyRate = le taux appliqué,
+   cancelledByHostAt = now, hostCancelBlockDays = le palier appliqué,
    refundAmount = totalPrice (remboursement TOUJOURS intégral, décision
    produit n°1 — réutilise computeBookingRefund en forçant le taux à 1
-   plutôt que dupliquer le calcul de montant). Crée dans la MÊME
-   transaction une HostInvoice(reason: "PENALITE_ANNULATION", amount: le
-   montant de pénalité calculé, dueAt: now + 7 jours, bookingId, hostId).
-4. Suspension progressive : incrémente suspensionCount de l'hôte et pose
-   suspendedUntil via la fonction déjà existante dans src/lib/suspension.ts
-   (même patron que l'anti-bypass messagerie — ne duplique pas la logique
-   de calcul de durée).
-5. logAudit HOST_CANCELLED_BOOKING (bookingId, penaltyAmount, penaltyRate).
+   plutôt que dupliquer le calcul). Pose Property.cancelBlockedUntil = now
+   + le nombre de jours calculé.
+4. Suspension progressive de compte : incrémente suspensionCount de
+   l'hôte et pose suspendedUntil via la fonction déjà existante dans
+   src/lib/suspension.ts (même patron que l'anti-bypass messagerie — ne
+   duplique pas la logique de calcul de durée). Se cumule avec le blocage
+   d'annonce, ne le remplace pas (décision produit n°4).
+5. logAudit HOST_CANCELLED_BOOKING (bookingId, propertyId, blockDays).
 6. Notification voyageur (centre de notifications existant, nouveau
    NotificationType RESERVATION_ANNULEE_PAR_HOTE) — le lien de cette
-   notification sera complété en AH3 avec les suggestions de relogement
-   (pour l'instant, pointe simplement vers /sejours, AH3 le remplacera).
+   notification sera complété en AH6 avec les suggestions de relogement
+   (pour l'instant, pointe simplement vers /sejours, AH6 le remplacera).
 7. E-mail de remboursement en parallèle (patron non-bloquant existant,
    voir sendBookingConfirmationEmail).
 
 Tests unitaires : le voyageur ne peut PAS appeler cette action sur sa
 propre réservation (IDOR inverse) ; un hôte ne peut pas l'appeler sur la
-réservation d'un autre hôte ; le montant de pénalité est bien recalculé
-serveur quel que soit ce qu'envoie le client (pas de champ "montant" côté
-formulaire) ; double appel = la 2e tentative échoue proprement (déjà
-ANNULEE) sans double pénalité ni double suspension.
+réservation d'un autre hôte ; le palier de blocage est bien recalculé
+serveur quel que soit ce qu'envoie le client ; double appel = la 2e
+tentative échoue proprement (déjà ANNULEE) sans double blocage ni double
+suspension.
 
 Coche AH1. Commit + push. Bloc "Comment tester" avec un compte hôte + une
 réservation CONFIRMEE identifiée dans le seed, à des délais différents
 avant check-in si possible pour couvrir plusieurs paliers.
 ```
 
-### Prompt AH2 — Suggestions de relogement
+### Prompt AH2 — Filtre de recherche (annonce bloquée invisible)
 
 ```
 Contexte : chantier "annulation hôte" de ANNULATION_HOTE_ROADMAP.md (ligne
-AH2). Indépendant de AH1 (peut être fait en parallèle ou avant).
+AH2). AH0-AH1 mergés.
+
+Étends activeListingWhere() dans src/lib/listings.ts pour exclure les
+annonces dont cancelBlockedUntil est dans le futur — même esprit que le
+filtre expiresAt existant (OR sur cancelBlockedUntil null OU <= now).
+Vérifie que cette fonction est bien le SEUL point d'entrée utilisé par
+searchSejours et les autres listes publiques (grep les usages), pour ne
+pas avoir à dupliquer le filtre ailleurs.
+
+Vérifie/ajoute un encart dans le dashboard hôte (annonces, ou sur la fiche
+annonce elle-même) indiquant qu'une annonce est temporairement invisible
+suite à une annulation, avec la date de fin — l'hôte ne doit pas découvrir
+par hasard que son annonce a disparu des résultats.
+
+Test : une annonce avec cancelBlockedUntil dans le futur n'apparaît plus
+dans /sejours ni sur la page hôte publique, puis réapparaît automatiquement
+une fois la date passée (pas de délai de propagation, pas de cron).
+
+Coche AH2. Commit + push. Bloc "Comment tester".
+```
+
+### Prompt AH3 — Suggestions de relogement
+
+```
+Contexte : chantier "annulation hôte" de ANNULATION_HOTE_ROADMAP.md (ligne
+AH3). Indépendant de AH0-AH2 (peut être fait en parallèle ou avant).
 
 Exporte blockingBookingOverlap depuis src/actions/bookings.ts (retire le
 "function" privé, exporte-la — vérifie qu'aucun autre changement de
@@ -227,27 +253,26 @@ Nouvelle fonction getRebookingSuggestions dans src/lib/listings.ts :
     take = 4
   ): Promise<ListingWithPhoto[]>
 
-Critères : activeListingWhere() existant, même city, capacite >= guests,
-pricePerNight entre 0.8x et 1.2x (bande ±20 %) du prix de la réservation
-annulée, id != propertyId annulée, ET aucune réservation bloquante sur les
-mêmes dates (réutilise blockingBookingOverlap exportée — la propriété ne
-doit PAS avoir de booking qui chevauche checkIn/checkOut). Trie par écart de
-prix croissant (le plus proche du prix payé d'abord) puis par note moyenne
-si tu as cette info facilement disponible dans listingCardInclude, sinon
-laisse l'ordre par écart de prix seul.
+Critères : activeListingWhere() existant (donc automatiquement, une
+annonce elle-même bloquée par AH2 n'apparaît jamais en suggestion), même
+city, capacite >= guests, pricePerNight entre 0.8x et 1.2x (bande ±20 %) du
+prix de la réservation annulée, id != propertyId annulée, ET aucune
+réservation bloquante sur les mêmes dates (réutilise blockingBookingOverlap
+exportée). Trie par écart de prix croissant (le plus proche du prix payé
+d'abord).
 
 Teste manuellement (script ou test unitaire) que la propriété annulée
 elle-même n'apparaît jamais, et qu'une propriété avec une réservation
 CONFIRMEE qui chevauche les dates est bien exclue.
 
-Coche AH2. Commit + push. Bloc "Comment tester".
+Coche AH3. Commit + push. Bloc "Comment tester".
 ```
 
-### Prompt AH3 — Réduction ponctuelle liée à la suggestion
+### Prompt AH4 — Réduction ponctuelle liée à la suggestion
 
 ```
 Contexte : chantier "annulation hôte" de ANNULATION_HOTE_ROADMAP.md (ligne
-AH3). AH1 et AH2 mergés.
+AH4). AH1 et AH3 mergés.
 
 Nouveau fichier src/lib/rebooking-discount.ts (serveur uniquement, pas
 "use server" — même raison que settleKonnectBooking : pas d'endpoint RPC
@@ -263,114 +288,79 @@ client) :
   Wassim).
 - verifyAndConsumeRebookingDiscount(token, guestId, newBookingPropertyId):
   vérifie la signature, que le token n'a pas déjà été consommé (nouveau
-  champ ou table minimale à toi de choisir — le plus simple est un champ
-  rebookingDiscountUsedFor sur le Booking annulé, pointant vers le nouveau
-  bookingId une fois utilisé), que guestId correspond bien au voyageur
-  concerné par l'annulation d'origine. Retourne le montant de réduction ou
-  null si invalide/déjà utilisé.
+  champ rebookingDiscountUsedFor sur le Booking annulé, pointant vers le
+  nouveau bookingId une fois utilisé), que guestId correspond bien au
+  voyageur concerné par l'annulation d'origine. Retourne le montant de
+  réduction ou null si invalide/déjà utilisé.
 
 Branche dans createBookingAction (src/actions/bookings.ts) : si un
 paramètre de réduction est présent (query param sur le lien de
 notification, à transmettre jusqu'au formulaire de réservation), applique
 la réduction sur le prix AVANT calcul du serviceFee (la réduction ampute le
-prix payé par le voyageur, pas la commission Darna — documente ce choix).
+prix payé par le voyageur, pas la commission Darna — documente ce choix,
+c'est un coût que Darna absorbe comme geste commercial).
 
-UI : le lien envoyé dans la notification voyageur (complète AH1 point 6)
-pointe vers l'annonce suggérée avec le token en query param ; un bandeau
-sur la page de réservation affiche "Réduction Darna appliquée : -X TND" si
-le token est valide.
+UI : le lien envoyé dans la notification voyageur pointe vers l'annonce
+suggérée avec le token en query param ; un bandeau sur la page de
+réservation affiche "Réduction Darna appliquée : -X TND" si le token est
+valide.
 
 Tests : un token ne peut pas être réutilisé deux fois ; un token signé pour
 le voyageur A ne peut pas être utilisé par le voyageur B ; un token expiré
 (ajoute une expiration raisonnable, ex. 30 jours) est rejeté.
 
-Coche AH3. Commit + push. Bloc "Comment tester".
+Coche AH4. Commit + push. Bloc "Comment tester".
 ```
 
-### Prompt AH4 — UI des deux côtés
+### Prompt AH5 — UI hôte (modale d'avertissement)
 
 ```
 Contexte : chantier "annulation hôte" de ANNULATION_HOTE_ROADMAP.md (ligne
-AH4). AH1-AH3 mergés.
+AH5). AH0-AH1 mergés.
 
-Côté hôte : nouveau composant HostCancelButton (src/components/booking/),
-même patron que CancelBookingButton.tsx existant (confirmation avant
-soumission, affiche le montant de pénalité PRÉVISIONNEL calculé côté client
-à partir du même barème que hostCancelBookingAction — recalcul strictement
-informatif, l'action revérifie tout serveur). Branché dans
-src/app/dashboard/reservations/page.tsx, colonne d'actions à droite (même
-alignement que le reste de cette page, cf. PR mergée du profil voyageur),
-visible uniquement pour une réservation CONFIRMEE.
+Nouveau composant HostCancelButton (src/components/booking/), même patron
+que CancelBookingButton.tsx existant MAIS avec une modale d'avertissement
+en amont (décision produit n°3) : avant toute soumission, affiche
+clairement — recalculé côté client à partir du même barème que
+hostCancelBookingAction, à titre INFORMATIF, l'action revérifie tout
+serveur — la durée de blocage qui s'appliquera à CETTE annonce précise
+selon le délai restant avant checkIn (ex. "Cette annonce sera invisible
+sur Darna pendant 30 jours si vous confirmez"), ET un rappel que la
+suspension progressive du compte s'applique aussi. Design "danger" clair
+(couleur d'alerte, texte explicite) — l'hôte doit comprendre la
+conséquence AVANT de cliquer confirmer, pas après.
 
-Côté voyageur : la notification RESERVATION_ANNULEE_PAR_HOTE (posée en AH1)
-doit maintenant pointer vers une page/section listant les suggestions de
-relogement (AH2) avec le lien à réduction (AH3) sur chacune — décide du
-meilleur emplacement (nouvelle route dédiée vs section sur /sejours avec
-un paramètre) et documente ton choix.
+Branché dans src/app/dashboard/reservations/page.tsx, colonne d'actions à
+droite (même alignement que le reste de cette page), visible uniquement
+pour une réservation CONFIRMEE.
 
 i18n dans les trois dictionnaires (fr/en/ar) pour tous les nouveaux
-libellés (confirmation d'annulation hôte, montant de pénalité affiché,
-message de notification, bandeau de réduction).
+libellés (titre/corps de la modale par palier, confirmation, bouton).
 
-Coche AH4. Commit + push. Bloc "Comment tester" complet couvrant le
+Coche AH5. Commit + push. Bloc "Comment tester" couvrant au moins deux
+paliers différents (un délai long, un délai court) pour vérifier que le
+message de la modale change bien.
+```
+
+### Prompt AH6 — UI voyageur
+
+```
+Contexte : chantier "annulation hôte" de ANNULATION_HOTE_ROADMAP.md (ligne
+AH6). AH1, AH3, AH4, AH5 mergés.
+
+La notification RESERVATION_ANNULEE_PAR_HOTE (posée en AH1) doit maintenant
+pointer vers une page/section listant les suggestions de relogement (AH3)
+avec le lien à réduction (AH4) sur chacune — décide du meilleur
+emplacement (nouvelle route dédiée vs section sur /sejours avec un
+paramètre) et documente ton choix. Message clair : réservation annulée par
+l'hôte, remboursement intégral déjà effectué, voici des alternatives
+similaires avec une réduction.
+
+i18n dans les trois dictionnaires pour tous les nouveaux libellés.
+
+Coche AH6. Commit + push. Bloc "Comment tester" complet couvrant le
 parcours hôte annule → voyageur reçoit notification → clique suggestion →
 réduction visible → réserve.
-```
-
-### Prompt AH5 — Règlement Konnect de la facture (généralise PSP4)
-
-```
-Contexte : chantier "annulation hôte" de ANNULATION_HOTE_ROADMAP.md (ligne
-AH5). Généralise la phase PSP4 de PAIEMENT_SUR_PLACE_ROADMAP.md (jamais
-commencée) pour les DEUX reasons de HostInvoice (COMMISSION ET
-PENALITE_ANNULATION), pas seulement la pénalité.
-
-Crée src/lib/host-invoicing.ts, en miroir de src/lib/payments.ts
-(settleKonnectBooking) : settleHostInvoice(ref: { invoiceId } |
-{ paymentRef }), NON "use server", idempotente via updateMany({ where:
-{ status: "EN_ATTENTE" } }), revérifie le montant reçu côté Konnect
-(getKonnectPayment) avant de passer HostInvoice.status à PAYEE + paidAt.
-
-Server action payHostInvoiceAction : vérifie hostId de l'appelant (IDOR),
-initialise un paiement Konnect (initKonnectPayment, amountTND =
-invoice.amount), webhook signé (réutilise signKonnectWebhook/
-verifyKonnectWebhook de src/lib/konnect.ts tel quel).
-
-Route webhook src/app/api/payments/konnect/host-invoice-webhook/route.ts,
-miroir de src/app/api/payments/konnect/webhook/route.ts (GET,
-?iid=<invoiceId>&sig=..., même garde de signature + rate limit).
-
-Coche AH5. Coche AUSSI PSP4 dans PAIEMENT_SUR_PLACE_ROADMAP.md en pointant
-vers cette PR (note explicite : livré dans le cadre du chantier annulation
-hôte, généralisé aux deux reasons). Commit + push. Bloc "Comment tester"
-(rappelle que sans KONNECT_API_KEY local, le test se limite au mode démo).
-```
-
-### Prompt AH6 — Dashboard factures + masquage (généralise PSP5/PSP6)
-
-```
-Contexte : chantier "annulation hôte" de ANNULATION_HOTE_ROADMAP.md (ligne
-AH6). Généralise PSP5/PSP6 de PAIEMENT_SUR_PLACE_ROADMAP.md. AH0-AH5 mergés.
-
-1. src/app/dashboard/factures/page.tsx : liste des HostInvoice de l'hôte
-   connecté (reason, montant, réservation liée, échéance, statut), bouton
-   "Payer" (payHostInvoiceAction). Badge "EN RETARD" dérivé à l'affichage
-   (status EN_ATTENTE && dueAt < now) — jamais stocké.
-2. hasOverdueHostInvoice(hostId) : filtre Prisma relationnel (pas de champ
-   dénormalisé), branché dans searchSejours (src/lib/listings.ts) pour
-   exclure les annonces d'un hôte avec facture en retard, ET dans
-   createBookingAction pour refuser toute nouvelle réservation sur ces
-   annonces (message clair).
-3. Bannière dans le dashboard hôte si facture en retard, lien vers
-   /dashboard/factures.
-
-i18n dans les trois dictionnaires. Test : une annonce redevient
-visible/réservable immédiatement après règlement (pas de délai de
-propagation, pas de cron).
-
-Coche AH6. Coche AUSSI PSP5/PSP6 dans PAIEMENT_SUR_PLACE_ROADMAP.md (note :
-livré dans le cadre du chantier annulation hôte). Commit + push. Bloc
-"Comment tester".
 ```
 
 ### Prompt AH7 — Durcissement sécurité/QA
@@ -378,32 +368,31 @@ livré dans le cadre du chantier annulation hôte). Commit + push. Bloc
 ```
 Contexte : chantier "annulation hôte" de ANNULATION_HOTE_ROADMAP.md (ligne
 AH7, phase finale). AH0-AH6 mergés. Lis QA_ROADMAP.md en entier avant de
-commencer — nouvelle surface sensible (argent + réputation + suspension de
-compte), couverte par la règle de ce fichier sur les surfaces sensibles.
+commencer — nouvelle surface sensible (visibilité d'annonce + réputation +
+suspension de compte), couverte par la règle de ce fichier sur les
+surfaces sensibles.
 
 Tests à ajouter (patron D1-D7 déjà établi dans QA_ROADMAP.md) :
-- IDOR : hostCancelBookingAction, payHostInvoiceAction, page
-  /dashboard/factures — un hôte B ne peut ni annuler ni payer/voir les
-  factures d'un hôte A.
-- Non-bypass : le taux de pénalité est bien recalculé serveur (impossible
-  de forcer un taux plus bas depuis le client) ; un voyageur ne peut pas
-  déclencher hostCancelBookingAction ; un token de réduction ne peut être
-  consommé qu'une fois, que par le bon voyageur, et expire correctement.
-- Idempotence : double annulation, double règlement de facture, double
-  webhook.
-- Recouvrement : la visibilité d'une annonce suit exactement l'état réel
-  de la facture, sans race condition entre le calcul "en retard" et un
-  paiement concurrent.
+- IDOR : hostCancelBookingAction — un hôte B ne peut pas annuler une
+  réservation sur une annonce d'un hôte A.
+- Non-bypass : le palier de blocage est bien recalculé serveur (impossible
+  de forcer un palier plus court depuis le client) ; un voyageur ne peut
+  pas déclencher hostCancelBookingAction ; un token de réduction ne peut
+  être consommé qu'une fois, que par le bon voyageur, et expire
+  correctement ; une annonce bloquée reste inaccessible même via un lien
+  direct de réservation (createBookingAction doit refuser, pas seulement
+  la masquer de la recherche).
+- Idempotence : double annulation.
 - Suspension : suspensionCount s'incrémente correctement à chaque
-  annulation hôte, la durée suit bien SUSPENSION_DURATIONS_DAYS.
+  annulation hôte, la durée suit bien SUSPENSION_DURATIONS_DAYS, se cumule
+  bien avec le blocage d'annonce sans interférence.
 
-Mets à jour QA_ROADMAP.md (nouvelle section, modèle sur l'existant pour
-HostInvoice/settleKonnectBooking).
+Mets à jour QA_ROADMAP.md (nouvelle section, modèle sur l'existant).
 
 Mets à jour ANNULATION_HOTE_ROADMAP.md : coche AH7, et si toutes les phases
 sont ✅, ajoute une ligne de conclusion. Commit + push. Rapport de test
 complet (CLAUDE.md, règle "Workflow PR" point 3) couvrant le parcours
-complet : hôte annule → pénalité facturée → voyageur remboursé + suggestions
-reçues → réduction appliquée sur une nouvelle réservation → facture réglée
-→ suspension purgée à son terme.
+complet : hôte annule → modale d'avertissement → annonce bloquée + compte
+suspendu → voyageur remboursé + suggestions reçues → réduction appliquée
+sur une nouvelle réservation → annonce redevient visible à l'échéance.
 ```

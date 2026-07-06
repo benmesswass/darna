@@ -71,5 +71,5 @@ _Voir aussi `DESIGN_ROADMAP.md` (UI/UX/animations), `QA_ROADMAP.md`
 (qualité/sécurité), `PAIEMENT_SUR_PLACE_ROADMAP.md` (chantier dédié :
 paiement 100 % sur place + commission facturée à l'hôte pour le marché
 local tunisien) et `ANNULATION_HOTE_ROADMAP.md` (chantier dédié :
-annulation à l'initiative de l'hôte, pénalité + suspension + relogement du
-voyageur)._
+annulation à l'initiative de l'hôte, blocage d'annonce + suspension +
+relogement du voyageur)._
