@@ -7,7 +7,7 @@ import { getTravelerProfile } from "@/lib/traveler-profile";
 import { getSessionUser } from "@/lib/session";
 import { CheckIcon, StarIcon } from "@/components/icons";
 import { AnimatedGrid } from "@/components/ui/AnimatedGrid";
-import { formatDateFr } from "@/lib/format";
+import { formatDateFr, formatDateShortFr } from "@/lib/format";
 import { GuestReviewForm } from "@/components/booking/GuestReviewForm";
 
 /** Initiales (1 à 2 lettres) dérivées du nom, pour l'avatar par défaut. */
@@ -112,7 +112,13 @@ export default async function TravelerPage({
           <div className="mt-4 space-y-3">
             {traveler.reviewableBookings.map((b) => (
               <div key={b.id}>
-                <p className="text-xs font-semibold text-body/50">{b.propertyTitle}</p>
+                <p className="text-xs font-semibold text-body/50">
+                  {b.propertyTitle} ·{" "}
+                  {fr.booking.sejourDates(
+                    formatDateShortFr(new Date(b.checkIn)),
+                    formatDateShortFr(new Date(b.checkOut))
+                  )}
+                </p>
                 <GuestReviewForm bookingId={b.id} />
               </div>
             ))}

@@ -19,6 +19,8 @@ export type TravelerGuestReview = {
 export type ReviewableBooking = {
   id: string;
   propertyTitle: string;
+  checkIn: string;
+  checkOut: string;
 };
 
 export type TravelerProfile = {
@@ -77,7 +79,7 @@ export async function getTravelerProfile(
         checkOut: { lt: new Date() },
         guestReview: null,
       },
-      select: { id: true, property: { select: { title: true } } },
+      select: { id: true, checkIn: true, checkOut: true, property: { select: { title: true } } },
       orderBy: { checkOut: "desc" },
     }),
   ]);
@@ -100,6 +102,8 @@ export async function getTravelerProfile(
     reviewableBookings: reviewableBookings.map((b) => ({
       id: b.id,
       propertyTitle: b.property.title,
+      checkIn: b.checkIn.toISOString(),
+      checkOut: b.checkOut.toISOString(),
     })),
   };
 }
