@@ -454,6 +454,7 @@ export const ar: Dictionary = {
     annonceMarquee: "الإعلان تحدّث.",
     voirAnnonce: "شوف الإعلان",
     voirProfilHote: "شوف بروفايل المالك",
+    voirProfilVoyageur: "شوف بروفايل المسافر",
     mettreALaUne: "حطّه في الواجهة",
     prolongerALaUne: "طوّل في الواجهة",
     alaUneActif: (date: string) => `في الواجهة حتى ${date}`,
@@ -1514,5 +1515,15 @@ export const ar: Dictionary = {
       n === 1 ? "إعلان واحد نشيط" : `${n} إعلانات نشيطة`,
     aucuneAnnonceActive: "ما فماش إعلانات نشيطة توا.",
     retourAccueil: "ارجع للصفحة الرئيسية",
+  },
+  traveler: {
+    voirProfil: "شوف البروفايل",
+    titre: (nom: string) => `بروفايل ${nom}`,
+    sousTitre: "مسافر",
+    membreDepuis: (annee: number) => `عضو من ${annee}`,
+    donnerAvis: "عطي تقييمك",
+    avisTitre: "تقييمات الأوتيلات",
+    avisRecus: (n: number) => (n === 1 ? "تقييم واحد" : `${n} تقييمات`),
+    aucunAvis: "ما فماش تقييمات لحد الآن.",
   },
 };

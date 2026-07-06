@@ -432,6 +432,7 @@ export const en: Dictionary = {
     annonceMarquee: "Listing updated.",
     voirAnnonce: "View listing",
     voirProfilHote: "View host profile",
+    voirProfilVoyageur: "View traveler profile",
     mettreALaUne: "Feature this listing",
     prolongerALaUne: "Extend featuring",
     alaUneActif: (date: string) => `Featured until ${date}`,
@@ -1490,5 +1491,15 @@ export const en: Dictionary = {
       n === 1 ? "1 active listing" : `${n} active listings`,
     aucuneAnnonceActive: "No active listings at the moment.",
     retourAccueil: "Back to home",
+  },
+  traveler: {
+    voirProfil: "View profile",
+    titre: (nom: string) => `${nom}'s profile`,
+    sousTitre: "Traveler",
+    membreDepuis: (annee: number) => `Member since ${annee}`,
+    donnerAvis: "Leave your review",
+    avisTitre: "Reviews from hosts",
+    avisRecus: (n: number) => (n === 1 ? "1 review" : `${n} reviews`),
+    aucunAvis: "No reviews yet.",
   },
 };
