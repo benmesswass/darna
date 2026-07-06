@@ -11,12 +11,14 @@ import { computeBookingRefund } from "@/lib/cancellation";
 import { contactRevealState, type ContactGate } from "@/lib/contact-reveal";
 import type { CancelPolicy } from "@/lib/constants";
 import { CancelBookingButton } from "@/components/booking/CancelBookingButton";
+import { NoShowButton } from "@/components/booking/NoShowButton";
 import { ContactReveal } from "@/components/booking/ContactReveal";
 import { GuestReviewForm } from "@/components/booking/GuestReviewForm";
 import { GuestReviewDisplay } from "@/components/booking/GuestReviewDisplay";
 
 const STATUS_STYLES: Record<string, string> = {
   EN_ATTENTE: "bg-amber-100 text-amber-800",
+  EN_ATTENTE_ACCEPTATION: "bg-sky-100 text-sky-800",
   CONFIRMEE: "bg-emerald-100 text-emerald-800",
   ANNULEE: "bg-red-100 text-red-700",
   TERMINEE: "bg-darna/10 text-heading",
@@ -25,6 +27,23 @@ const STATUS_STYLES: Record<string, string> = {
 const DAY = 1000 * 60 * 60 * 24;
 const nightsBetween = (checkIn: Date, checkOut: Date) =>
   Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / DAY));
+
+/**
+ * Libellé de statut affiché — DISTINCT pour une réservation Rail 2 confirmée
+ * (paymentMode SUR_PLACE) : "Confirmée — paiement protégé" / "Payé le" sont
+ * FAUX dans ce cas (rien ne transite par Darna, tout se règle cash à
+ * l'arrivée). Cf. retour de test du 2026-07-05.
+ */
+function bookingStatusLabel(
+  status: string,
+  paymentMode: string,
+  fr: Awaited<ReturnType<typeof getT>>
+): string {
+  if (status === "CONFIRMEE" && paymentMode === "SUR_PLACE") {
+    return fr.dashboard.confirmeeCashLabel;
+  }
+  return fr.dashboard.statutReservation[status] ?? status;
+}
 
 export default async function MesReservationsPage() {
   const fr = await getT();
@@ -41,8 +60,14 @@ export default async function MesReservationsPage() {
       where: {
         property: { ownerId: user.id },
         status: { not: "ANNULEE" },
-        // On masque les EN_ATTENTE déjà expirées (réservations abandonnées).
-        NOT: { status: "EN_ATTENTE", expiresAt: { lt: new Date() } },
+        // Les demandes cash (Rail 2, EN_ATTENTE_ACCEPTATION) vivent dans
+        // « Demandes reçues », pas ici — cf. retour de test du 2026-07-06 :
+        // "Mes voyageurs" ne garde que les séjours confirmés/en cours/passés.
+        // On masque aussi les EN_ATTENTE (paiement) déjà expirées.
+        NOT: [
+          { status: "EN_ATTENTE_ACCEPTATION" },
+          { status: "EN_ATTENTE", expiresAt: { lt: new Date() } },
+        ],
       },
       include: {
         property: {
@@ -62,7 +87,7 @@ export default async function MesReservationsPage() {
 
     return (
       <div>
-        <h2 className="text-xl font-bold text-heading">{fr.dashboard.mesVoyageurs}</h2>
+        <h2 className="text-xl font-bold text-heading">{fr.dashboard.mesReservations}</h2>
 
         {bookings.length === 0 ? (
           <div className="mt-6 rounded-3xl bg-surface p-10 text-center ring-1 ring-darna/10">
@@ -120,11 +145,14 @@ export default async function MesReservationsPage() {
                       <span
                         className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold ${STATUS_STYLES[b.status] ?? "bg-cream text-body"}`}
                       >
-                        {fr.dashboard.statutReservation[b.status] ?? b.status}
+                        {bookingStatusLabel(b.status, b.paymentMode, fr)}
                       </span>
                       {b.paidAt ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
-                          ✓ {fr.dashboard.payeLe(formatDateShortFr(b.paidAt))}
+                          ✓{" "}
+                          {b.paymentMode === "SUR_PLACE"
+                            ? fr.dashboard.confirmeeLe(formatDateShortFr(b.paidAt))
+                            : fr.dashboard.payeLe(formatDateShortFr(b.paidAt))}
                         </span>
                       ) : null}
                     </div>
@@ -159,6 +187,16 @@ export default async function MesReservationsPage() {
                     ) : (b.status === "CONFIRMEE" || b.status === "TERMINEE") &&
                       b.checkOut.getTime() < Date.now() ? (
                       <GuestReviewForm bookingId={b.id} />
+                    ) : null}
+
+                    {/* Rail 2 : signalement no-show, uniquement une fois le
+                        check-in passé sur une réservation cash confirmée. */}
+                    {b.status === "CONFIRMEE" &&
+                    b.paymentMode === "SUR_PLACE" &&
+                    b.checkIn.getTime() < Date.now() ? (
+                      <div className="mt-3">
+                        <NoShowButton bookingId={b.id} />
+                      </div>
                     ) : null}
                   </div>
 
@@ -260,7 +298,7 @@ export default async function MesReservationsPage() {
                 <span
                   className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold ${STATUS_STYLES[b.status] ?? "bg-cream text-body"}`}
                 >
-                  {fr.dashboard.statutReservation[b.status] ?? b.status}
+                  {bookingStatusLabel(b.status, b.paymentMode, fr)}
                 </span>
                 <p className="mt-1.5 truncate font-semibold text-body">
                   {b.property.title}
@@ -323,6 +361,14 @@ export default async function MesReservationsPage() {
                     {fr.booking.continuerPaiement}
                   </Link>
                 ) : null}
+                {b.status === "EN_ATTENTE_ACCEPTATION" ? (
+                  <Link
+                    href={`/reservation/${b.id}/paiement`}
+                    className="rounded-xl bg-sand px-3.5 py-2 text-center text-xs font-bold text-darna-dark hover:bg-sand-light"
+                  >
+                    {fr.dashboard.statutReservation.EN_ATTENTE_ACCEPTATION}
+                  </Link>
+                ) : null}
                 {b.status === "CONFIRMEE" || b.status === "TERMINEE" ? (
                   <Link
                     href={`/reservation/${b.id}/messages`}
@@ -331,10 +377,18 @@ export default async function MesReservationsPage() {
                     {fr.messages.lien}
                   </Link>
                 ) : null}
-                {/* Fiche hôte publique : réservée aux séjours confirmés/terminés
-                    (paiement engagé) — jamais accessible avant, cohérent avec le
-                    masquage anti-contournement de ListingDetail. */}
-                {b.status === "CONFIRMEE" || b.status === "TERMINEE" ? (
+                {/* Fiche hôte publique : gatée sur EXACTEMENT la même condition
+                    que le déverrouillage des coordonnées (contactRevealState),
+                    pas seulement le statut — sinon le nom de l'hôte serait
+                    visible via le profil avant même que les coordonnées ne se
+                    débloquent, contradiction relevée en test le 2026-07-05
+                    (auparavant gatée sur status seul, incohérent avec
+                    l'anti-contournement de ListingDetail). */}
+                {contactRevealState(
+                  b.status,
+                  b.checkIn,
+                  b.property.cancelPolicy as CancelPolicy
+                ).state === "revealed" ? (
                   <Link
                     href={`/hote/${b.property.owner.id}`}
                     className="rounded-xl border border-darna/15 px-3.5 py-2 text-center text-xs font-semibold text-heading hover:bg-darna/5"

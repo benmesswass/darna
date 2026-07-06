@@ -16,7 +16,10 @@ export type NotificationType =
   | "AVIS_RECU"
   | "AVIS_HOTE_RECU"
   | "ANNONCE_EXPIRE_BIENTOT"
-  | "ALERTE_NOUVELLE_ANNONCE";
+  | "ALERTE_NOUVELLE_ANNONCE"
+  // Rail 2 (paiement sur place, PAIEMENT_SUR_PLACE_ROADMAP.md §PSP3).
+  | "DEMANDE_CASH_RECUE"
+  | "RESERVATION_REFUSEE";
 
 async function createNotification(
   userId: string,
@@ -94,6 +97,32 @@ export async function notifyNewListingMatch(
   href: string
 ): Promise<void> {
   await createNotification(userId, "ALERTE_NOUVELLE_ANNONCE", { propertyTitle, href });
+}
+
+/** Notifie l'HÔTE d'une nouvelle demande de réservation Rail 2 (paiement sur place) à traiter. */
+export async function notifyCashBookingRequested(bookingId: string): Promise<void> {
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    select: { property: { select: { title: true, ownerId: true } } },
+  });
+  if (!booking) return;
+  await createNotification(booking.property.ownerId, "DEMANDE_CASH_RECUE", {
+    propertyTitle: booking.property.title,
+    href: "/dashboard/reservations",
+  });
+}
+
+/** Notifie le VOYAGEUR que l'hôte a décliné sa demande de réservation Rail 2. */
+export async function notifyCashBookingDeclined(bookingId: string): Promise<void> {
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    select: { guestId: true, property: { select: { title: true } } },
+  });
+  if (!booking) return;
+  await createNotification(booking.guestId, "RESERVATION_REFUSEE", {
+    propertyTitle: booking.property.title,
+    href: "/dashboard/reservations",
+  });
 }
 
 /**

@@ -10,11 +10,14 @@ export function BookingSubmit({
   arrivee,
   depart,
   voyageurs,
+  paymentMode = "ESCROW",
 }: {
   slug: string;
   arrivee: string;
   depart: string;
   voyageurs: number;
+  /** Rail 2 (PSP3) : "SUR_PLACE" envoie une demande d'acceptation, pas un paiement. */
+  paymentMode?: "ESCROW" | "SUR_PLACE";
 }) {
   const fr = useT();
   const [state, action, pending] = useActionState<BookingFormState, FormData>(
@@ -33,12 +36,17 @@ export function BookingSubmit({
       <input type="hidden" name="arrivee" value={arrivee} />
       <input type="hidden" name="depart" value={depart} />
       <input type="hidden" name="voyageurs" value={voyageurs} />
+      <input type="hidden" name="paymentMode" value={paymentMode} />
       <button
         type="submit"
         disabled={pending}
         className="w-full rounded-2xl bg-sand px-6 py-3.5 text-base font-bold text-darna-dark transition hover:bg-sand-light disabled:opacity-60"
       >
-        {pending ? fr.common.chargement : fr.booking.continuerPaiement}
+        {pending
+          ? fr.common.chargement
+          : paymentMode === "SUR_PLACE"
+            ? fr.booking.continuerDemandeCash
+            : fr.booking.continuerPaiement}
       </button>
     </form>
   );

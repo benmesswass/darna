@@ -40,6 +40,14 @@ export function clampPayAmount(
   return Math.min(Math.max(Math.round(payAmount), depositAmount), totalPrice);
 }
 
+/**
+ * Délai de paiement d'une HostInvoice (Rail 2, paiement sur place) — compté
+ * depuis la date de check-out de la réservation concernée. Paramètre business
+ * à confirmer avec Wassim (cf. PAIEMENT_SUR_PLACE_ROADMAP.md §PSP3) ; valeur
+ * provisoire raisonnable en attendant.
+ */
+export const HOST_INVOICE_DUE_DAYS = 14;
+
 /** Durée de vie d'une annonce avant expiration (fraîcheur des données). */
 export const LISTING_LIFETIME_DAYS = 30;
 

@@ -464,12 +464,14 @@ export const fr = {
     suspenduProchaineIndefinie:
       "En cas de nouvelle tentative, votre compte sera suspendu de façon indéfinie (revue par un administrateur).",
     aucuneDemande: "Aucune demande reçue pour le moment.",
+    demandesContactTitre: "Demandes de contact",
     aucunFavori: "Aucun favori pour le moment.",
     reservationDe: (nom: string) => `Réservation de ${nom}`,
     demandeDe: (nom: string) => `Demande de ${nom}`,
     contratBail: "Contrat de bail",
     statutReservation: {
       EN_ATTENTE: "En attente de paiement",
+      EN_ATTENTE_ACCEPTATION: "Demande cash — en attente de votre décision",
       CONFIRMEE: "Confirmée — paiement protégé",
       ANNULEE: "Annulée",
       TERMINEE: "Terminée",
@@ -477,6 +479,22 @@ export const fr = {
     annulerReservation: "Annuler cette réservation",
     annulerConfirm: "Confirmer l'annulation",
     annulerAnnuler: "Garder la réservation",
+    accepterDemande: "Accepter la demande",
+    refuserDemande: "Refuser",
+    refuserConfirmer: "Confirmer le refus",
+    refuserAnnuler: "Revenir",
+    demandeCashRecapAide: (montant: number) =>
+      `Le voyageur paiera ${montant} TND en espèces à l'arrivée. Votre commission Darna vous sera facturée séparément après acceptation.`,
+    signalerNoShow: "Signaler une absence du voyageur",
+    noShowConfirmer: "Confirmer l'absence",
+    noShowAnnuler: "Revenir",
+    noShowAvertissement:
+      "Ne confirmez que si le voyageur ne s'est réellement pas présenté — cette action suspend son compte.",
+    confirmeeCashLabel: "Confirmée — à régler en cash à l'arrivée",
+    confirmeeLe: (date: string) => `Confirmée le ${date}`,
+    demandesCashTitre: "Demandes de réservation cash",
+    demandesCashAide:
+      "Demandes de réservation payées sur place, en attente de votre décision.",
     remboursement: (montant: number) =>
       montant > 0 ? `Remboursement : ${montant} TND` : "Aucun remboursement selon la politique",
     cancelledAt: (date: string) => `Annulée le ${date}`,
@@ -1089,6 +1107,31 @@ export const fr = {
     contactDebloqueLe: (date: string) => `Débloquées le ${date}`,
     contactLockedAide:
       "Pour la sécurité de tous, les coordonnées directes sont échangées une fois la période d'annulation gratuite passée — votre réservation est alors ferme.",
+    // ── Rail 2 : paiement sur place (PAIEMENT_SUR_PLACE_ROADMAP.md §PSP3) ──
+    cashNonDisponible: "Ce logement n'accepte pas le paiement sur place.",
+    cashKycRequis:
+      "Le paiement sur place exige une identité vérifiée (CIN). Complétez votre vérification avant de continuer.",
+    modePaiementTitre: "Comment voulez-vous payer ?",
+    modeEscrowLabel: "Payer en ligne",
+    modeEscrowAide: "Acompte protégé par Darna, solde possible en cash à l'arrivée.",
+    modeCashLabel: "Payer sur place (cash)",
+    modeCashAide:
+      "0 TND en ligne — tout se règle en espèces à l'hôte. Votre demande doit d'abord être acceptée par l'hôte.",
+    cashRecapInfo: (montant: number) =>
+      `0 TND en ligne. ${montant} TND dus en espèces à l'hôte à l'arrivée. Votre demande sera confirmée seulement après acceptation de l'hôte.`,
+    continuerDemandeCash: "Envoyer la demande",
+    demandeIndisponible: "Cette demande n'est plus disponible.",
+    demandeExpiree: "Cette demande a expiré — l'hôte n'a pas répondu à temps.",
+    demandeAcceptee: "Réservation confirmée !",
+    demandeRefusee: "Demande refusée.",
+    cashEnAttenteTitre: "Demande envoyée — en attente de l'hôte",
+    cashEnAttenteDetail:
+      "L'hôte doit accepter votre demande avant que la réservation soit confirmée. Vous serez notifié de sa décision.",
+    cashEnAttenteExpire: (date: string) => `Sans réponse avant le ${date}, la demande expirera automatiquement.`,
+    noShowIndisponible: "Cette action n'est pas disponible pour cette réservation.",
+    noShowSignale: "Absence signalée.",
+    cashConfirmeeDetail:
+      "L'hôte a accepté votre demande. Réglez le montant total en espèces à votre arrivée — l'hôte a été notifié.",
   },
   messages: {
     titre: "Messagerie",
@@ -1149,6 +1192,10 @@ export const fr = {
       `« ${titre} » expire bientôt — pensez à la republier.`,
     alerteNouvelleAnnonce: (titre: string) =>
       `Une nouvelle annonce correspond à votre alerte : « ${titre} ».`,
+    demandeCashRecue: (titre: string) =>
+      `Nouvelle demande de réservation payée sur place sur « ${titre} » — à traiter.`,
+    reservationRefusee: (titre: string) =>
+      `Votre demande de réservation pour « ${titre} » a été déclinée par l'hôte.`,
   },
   alaUne: {
     titre: "Mettez votre annonce à la une",

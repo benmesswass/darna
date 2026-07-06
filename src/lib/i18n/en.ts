@@ -463,12 +463,14 @@ export const en: Dictionary = {
     suspenduProchaineIndefinie:
       "If you try again, your account will be suspended indefinitely (subject to admin review).",
     aucuneDemande: "No requests received yet.",
+    demandesContactTitre: "Contact requests",
     aucunFavori: "No favourites yet.",
     reservationDe: (nom: string) => `Booking from ${nom}`,
     demandeDe: (nom: string) => `Request from ${nom}`,
     contratBail: "Lease agreement",
     statutReservation: {
       EN_ATTENTE: "Awaiting payment",
+      EN_ATTENTE_ACCEPTATION: "Cash request — awaiting your decision",
       CONFIRMEE: "Confirmed — payment protected",
       ANNULEE: "Cancelled",
       TERMINEE: "Completed",
@@ -476,6 +478,22 @@ export const en: Dictionary = {
     annulerReservation: "Cancel this booking",
     annulerConfirm: "Confirm cancellation",
     annulerAnnuler: "Keep my booking",
+    accepterDemande: "Accept the request",
+    refuserDemande: "Decline",
+    refuserConfirmer: "Confirm decline",
+    refuserAnnuler: "Go back",
+    demandeCashRecapAide: (montant: number) =>
+      `The guest will pay ${montant} TND in cash on arrival. Your Darna commission will be invoiced to you separately after you accept.`,
+    signalerNoShow: "Report a guest no-show",
+    noShowConfirmer: "Confirm the no-show",
+    noShowAnnuler: "Go back",
+    noShowAvertissement:
+      "Only confirm if the guest genuinely didn't show up — this action suspends their account.",
+    confirmeeCashLabel: "Confirmed — to pay in cash on arrival",
+    confirmeeLe: (date: string) => `Confirmed on ${date}`,
+    demandesCashTitre: "Cash booking requests",
+    demandesCashAide:
+      "Pay-at-property booking requests awaiting your decision.",
     remboursement: (montant: number) =>
       montant > 0 ? `Refund: ${montant} TND` : "No refund under this policy",
     cancelledAt: (date: string) => `Cancelled on ${date}`,
@@ -1077,6 +1095,31 @@ export const en: Dictionary = {
     contactDebloqueLe: (date: string) => `Unlocked on ${date}`,
     contactLockedAide:
       "For everyone's safety, direct contact details are exchanged once the free-cancellation window has passed — your booking is then firm.",
+    // ── Rail 2: pay at property (PAIEMENT_SUR_PLACE_ROADMAP.md §PSP3) ──
+    cashNonDisponible: "This property doesn't accept pay-at-property bookings.",
+    cashKycRequis:
+      "Pay-at-property requires a verified identity (ID card). Complete your verification before continuing.",
+    modePaiementTitre: "How would you like to pay?",
+    modeEscrowLabel: "Pay online",
+    modeEscrowAide: "Deposit protected by Darna, balance possible in cash on arrival.",
+    modeCashLabel: "Pay at property (cash)",
+    modeCashAide:
+      "0 TND online — everything is settled in cash with the host. Your request must first be accepted by the host.",
+    cashRecapInfo: (montant: number) =>
+      `0 TND online. ${montant} TND due in cash to the host on arrival. Your booking is confirmed only once the host accepts.`,
+    continuerDemandeCash: "Send the request",
+    demandeIndisponible: "This request is no longer available.",
+    demandeExpiree: "This request has expired — the host didn't respond in time.",
+    demandeAcceptee: "Booking confirmed!",
+    demandeRefusee: "Request declined.",
+    cashEnAttenteTitre: "Request sent — awaiting the host",
+    cashEnAttenteDetail:
+      "The host must accept your request before the booking is confirmed. You'll be notified of their decision.",
+    cashEnAttenteExpire: (date: string) => `Without a reply by ${date}, the request will expire automatically.`,
+    noShowIndisponible: "This action isn't available for this booking.",
+    noShowSignale: "No-show reported.",
+    cashConfirmeeDetail:
+      "The host has accepted your request. Pay the full amount in cash on arrival — the host has been notified.",
   },
   messages: {
     titre: "Messages",
@@ -1136,6 +1179,10 @@ export const en: Dictionary = {
       `“${titre}” is expiring soon — consider republishing it.`,
     alerteNouvelleAnnonce: (titre: string) =>
       `A new listing matches your saved search: “${titre}”.`,
+    demandeCashRecue: (titre: string) =>
+      `New pay-at-property booking request on “${titre}” — action needed.`,
+    reservationRefusee: (titre: string) =>
+      `Your booking request for “${titre}” was declined by the host.`,
   },
   alaUne: {
     titre: "Feature your listing",

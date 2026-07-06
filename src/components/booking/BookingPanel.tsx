@@ -31,6 +31,7 @@ export function BookingPanel({
   defaultVoyageurs,
   isLoggedIn,
   verified,
+  cashPaymentEligible,
 }: {
   slug: string;
   unavailable: string[];
@@ -41,6 +42,8 @@ export function BookingPanel({
   isLoggedIn: boolean;
   /** Compte vérifié (e-mail + téléphone) : requis pour réserver. */
   verified: boolean;
+  /** Annonce cashPaymentEnabled ET voyageur KYC VERIFIE (Rail 2, PSP3). */
+  cashPaymentEligible: boolean;
 }) {
   const fr = useT();
   const locale = useLocale();
@@ -51,6 +54,7 @@ export function BookingPanel({
   const [voyageurs, setVoyageurs] = useState(defaultVoyageurs);
   const [quote, setQuote] = useState<BookingQuote | null>(null);
   const [pending, setPending] = useState(false);
+  const [paymentMode, setPaymentMode] = useState<"ESCROW" | "SUR_PLACE">("ESCROW");
 
   const summaryRef = useRef<HTMLDivElement>(null);
   const lastComplete = useRef<string>("");
@@ -215,6 +219,56 @@ export function BookingPanel({
                 <ShieldIcon width={15} height={15} />
                 {fr.booking.aucunFraisCache}
               </p>
+
+              {/* Rail 2 (PSP3) : choix du mode de paiement — visible uniquement
+                  si l'annonce l'accepte ET le voyageur est éligible (KYC vérifié). */}
+              {cashPaymentEligible ? (
+                <fieldset className="mt-4 space-y-2">
+                  <legend className="text-xs font-bold text-body/60">
+                    {fr.booking.modePaiementTitre}
+                  </legend>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {(
+                      [
+                        { value: "ESCROW", label: fr.booking.modeEscrowLabel, aide: fr.booking.modeEscrowAide },
+                        { value: "SUR_PLACE", label: fr.booking.modeCashLabel, aide: fr.booking.modeCashAide },
+                      ] as const
+                    ).map((opt) => {
+                      const selected = paymentMode === opt.value;
+                      return (
+                        <label
+                          key={opt.value}
+                          className={`flex cursor-pointer flex-col gap-1 rounded-xl border p-3 text-start transition ${
+                            selected
+                              ? "border-darna ring-2 ring-darna/30"
+                              : "border-darna/15 hover:border-darna/40"
+                          }`}
+                        >
+                          <span className="flex items-center gap-2">
+                            <input
+                              type="radio"
+                              name="paymentModeChoice"
+                              value={opt.value}
+                              checked={selected}
+                              onChange={() => setPaymentMode(opt.value)}
+                              className="h-4 w-4 accent-darna"
+                            />
+                            <span className="text-xs font-bold text-body">{opt.label}</span>
+                          </span>
+                          <span className="ps-6 text-[11px] leading-relaxed text-body/55">
+                            {opt.aide}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                  {paymentMode === "SUR_PLACE" && q ? (
+                    <p className="rounded-xl bg-sand-light/50 px-4 py-2.5 text-xs font-medium text-darna-dark">
+                      {fr.booking.cashRecapInfo(q.total)}
+                    </p>
+                  ) : null}
+                </fieldset>
+              ) : null}
             </>
           )}
 
@@ -249,6 +303,7 @@ export function BookingPanel({
                 arrivee={checkIn ?? ""}
                 depart={checkOut ?? ""}
                 voyageurs={voyageurs}
+                paymentMode={cashPaymentEligible ? paymentMode : "ESCROW"}
               />
             )
           ) : (

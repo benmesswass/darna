@@ -32,6 +32,10 @@ export function notificationMessage(
       return fr.notifications.annonceExpireBientot(n.propertyTitle ?? "");
     case "ALERTE_NOUVELLE_ANNONCE":
       return fr.notifications.alerteNouvelleAnnonce(n.propertyTitle ?? "");
+    case "DEMANDE_CASH_RECUE":
+      return fr.notifications.demandeCashRecue(n.propertyTitle ?? "");
+    case "RESERVATION_REFUSEE":
+      return fr.notifications.reservationRefusee(n.propertyTitle ?? "");
     default:
       return "";
   }
