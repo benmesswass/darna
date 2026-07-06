@@ -8,6 +8,7 @@ import { getSessionUser } from "@/lib/session";
 import { CheckIcon, StarIcon } from "@/components/icons";
 import { AnimatedGrid } from "@/components/ui/AnimatedGrid";
 import { formatDateFr } from "@/lib/format";
+import { GuestReviewForm } from "@/components/booking/GuestReviewForm";
 
 /** Initiales (1 à 2 lettres) dérivées du nom, pour l'avatar par défaut. */
 function initials(name: string): string {
@@ -104,6 +105,20 @@ export default async function TravelerPage({
           )}
         </div>
       </AnimatedGrid>
+
+      {traveler.reviewableBookings.length > 0 ? (
+        <div className="mt-8">
+          <h2 className="text-lg font-semibold text-heading">{fr.traveler.donnerAvis}</h2>
+          <div className="mt-4 space-y-3">
+            {traveler.reviewableBookings.map((b) => (
+              <div key={b.id}>
+                <p className="text-xs font-semibold text-body/50">{b.propertyTitle}</p>
+                <GuestReviewForm bookingId={b.id} />
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       <h2 className="mt-8 text-lg font-semibold text-heading">{fr.traveler.avisTitre}</h2>
 

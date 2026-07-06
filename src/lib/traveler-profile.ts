@@ -16,6 +16,11 @@ export type TravelerGuestReview = {
   authorName: string;
 };
 
+export type ReviewableBooking = {
+  id: string;
+  propertyTitle: string;
+};
+
 export type TravelerProfile = {
   id: string;
   name: string;
@@ -25,6 +30,9 @@ export type TravelerProfile = {
   ratingAvg: number | null;
   ratingCount: number;
   reviews: TravelerGuestReview[];
+  /** Séjours de CE hôte avec CE voyageur, terminés, pas encore notés — mêmes
+   * conditions que submitGuestReviewAction (formulaire proposé ici aussi). */
+  reviewableBookings: ReviewableBooking[];
 };
 
 export async function getTravelerProfile(
@@ -48,7 +56,7 @@ export async function getTravelerProfile(
 
   if (!target || target.role !== "VOYAGEUR" || !hasReceivedBooking) return null;
 
-  const [rating, reviews] = await Promise.all([
+  const [rating, reviews, reviewableBookings] = await Promise.all([
     prisma.guestReview.aggregate({
       where: { targetId: id },
       _avg: { rating: true },
@@ -58,6 +66,19 @@ export async function getTravelerProfile(
       where: { targetId: id },
       orderBy: { createdAt: "desc" },
       include: { author: { select: { name: true } } },
+    }),
+    // Mêmes conditions d'éligibilité que submitGuestReviewAction : le
+    // formulaire proposé ici n'est qu'un raccourci, l'action revérifie tout.
+    prisma.booking.findMany({
+      where: {
+        guestId: id,
+        property: { ownerId: viewerId },
+        status: { in: ["CONFIRMEE", "TERMINEE"] },
+        checkOut: { lt: new Date() },
+        guestReview: null,
+      },
+      select: { id: true, property: { select: { title: true } } },
+      orderBy: { checkOut: "desc" },
     }),
   ]);
 
@@ -75,6 +96,10 @@ export async function getTravelerProfile(
       comment: r.comment,
       createdAt: r.createdAt.toISOString(),
       authorName: r.author.name,
+    })),
+    reviewableBookings: reviewableBookings.map((b) => ({
+      id: b.id,
+      propertyTitle: b.property.title,
     })),
   };
 }

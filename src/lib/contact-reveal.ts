@@ -21,7 +21,6 @@ import type { CancelPolicy } from "@/lib/constants";
 
 /** Coordonnées révélées d'une partie (jamais exposées avant déblocage). */
 export type RevealedContact = {
-  id: string;
   name: string;
   email: string;
   phone: string | null;
@@ -93,12 +92,12 @@ export async function getRevealedContacts(
       status: true,
       guestId: true,
       checkIn: true,
-      guest: { select: { id: true, name: true, email: true, phone: true } },
+      guest: { select: { name: true, email: true, phone: true } },
       property: {
         select: {
           ownerId: true,
           cancelPolicy: true,
-          owner: { select: { id: true, name: true, email: true, phone: true } },
+          owner: { select: { name: true, email: true, phone: true } },
         },
       },
     },

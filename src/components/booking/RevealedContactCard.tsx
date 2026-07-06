@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { getT } from "@/lib/i18n/server";
 import { UserIcon, MailIcon, WhatsAppIcon } from "@/components/icons";
 import { toWhatsAppNumber } from "@/components/property/PropertyCtas";
@@ -35,21 +34,7 @@ export async function RevealedContactCard({
         <div className="flex items-center gap-2">
           <UserIcon width={15} height={15} className="shrink-0 text-heading" />
           <dt className="sr-only">{fr.booking.contactNom}</dt>
-          <dd className="font-semibold text-body">
-            {isGuestViewer ? (
-              counterpart.name
-            ) : (
-              // Le voyageur reste un particulier : sa fiche n'est jamais
-              // publique (cf. getTravelerProfile), seul l'hôte qui l'a reçu
-              // peut cliquer son nom pour la consulter.
-              <Link
-                href={`/voyageur/${counterpart.id}`}
-                className="underline-offset-4 hover:text-heading hover:underline"
-              >
-                {counterpart.name}
-              </Link>
-            )}
-          </dd>
+          <dd className="font-semibold text-body">{counterpart.name}</dd>
         </div>
         <div className="flex items-center gap-2">
           <MailIcon width={15} height={15} className="shrink-0 text-heading" />

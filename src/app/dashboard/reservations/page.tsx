@@ -159,6 +159,18 @@ export default async function MesReservationsPage() {
                       {fr.messages.lien} →
                     </Link>
                   ) : null}
+                  {/* Fiche voyageur : réservée aux séjours confirmés/terminés,
+                      symétrique de « Voir le profil de l'hôte » côté voyageur.
+                      Gating réel (autorisation) fait côté serveur par
+                      getTravelerProfile — ce lien n'est qu'un raccourci. */}
+                  {b.status === "CONFIRMEE" || b.status === "TERMINEE" ? (
+                    <Link
+                      href={`/voyageur/${b.guest.id}`}
+                      className="ms-3 mt-2 inline-block text-xs font-bold text-heading underline"
+                    >
+                      {fr.dashboard.voirProfilVoyageur}
+                    </Link>
+                  ) : null}
 
                   {/* Avis hôte → voyageur (F1) : possible seulement une fois le
                       séjour passé, une seule fois par réservation. */}
