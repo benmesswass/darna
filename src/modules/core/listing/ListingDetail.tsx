@@ -22,6 +22,7 @@ import {
   ShieldIcon,
   StarIcon,
 } from "@/components/icons";
+import { RatingStars } from "@/components/property/RatingStars";
 import { ReviewsSection } from "@/components/property/ReviewsSection";
 import { PropertyCard } from "@/components/property/PropertyCard";
 import { SimilarListingsCarousel } from "@/components/property/SimilarListingsCarousel";
@@ -160,9 +161,9 @@ export async function ListingDetail({
               href="#avis"
               aria-label={fr.property.voirAvis}
               title={fr.property.voirAvis}
-              className="mt-1 inline-flex items-center justify-end gap-1 rounded-full text-sm text-body/70 underline-offset-4 transition hover:text-heading hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-darna/40"
+              className="mt-2 flex items-center justify-end gap-2 text-sm font-semibold text-heading underline-offset-4 transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-darna/40"
             >
-              <StarIcon width={15} height={15} fill="currentColor" className="text-sand" />
+              <RatingStars rating={avgRating} size={22} />
               {avgRating.toFixed(1)} · {fr.property.nbAvis(property.reviews.length)}
             </a>
           ) : null}
@@ -312,6 +313,15 @@ export async function ListingDetail({
                 ]}
               />
             </div>
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${property.latitude},${property.longitude}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-flex items-center gap-2 rounded-full border border-darna/15 px-4 py-2 text-sm font-semibold text-heading transition hover:bg-darna/5"
+            >
+              <MapPinIcon width={16} height={16} />
+              {fr.property.ouvrirGoogleMaps}
+            </a>
           </section>
 
           {/* Section spécifique verticale insérée après la localisation

@@ -730,6 +730,7 @@ export async function submitGuestReviewAction(
   });
 
   revalidatePath("/dashboard/reservations");
+  revalidatePath(`/voyageur/${booking.guestId}`);
   return { success: fr.dashboard.avisVoyageurEnvoye };
 }
 

@@ -233,6 +233,7 @@ export const fr = {
     caracteristiques: "Caractéristiques",
     equipements: "Équipements",
     localisation: "Localisation",
+    ouvrirGoogleMaps: "Ouvrir dans Google Maps",
     disponibilites: "Disponibilités",
     avis: "Avis des voyageurs",
     nbAvis: (n: number) => (n === 1 ? "1 avis" : `${n} avis`),
@@ -432,6 +433,7 @@ export const fr = {
     annonceMarquee: "Annonce mise à jour.",
     voirAnnonce: "Voir l'annonce",
     voirProfilHote: "Voir le profil de l'hôte",
+    voirProfilVoyageur: "Voir le profil du voyageur",
     mettreALaUne: "Mettre à la une",
     prolongerALaUne: "Prolonger à la une",
     alaUneActif: (date: string) => `À la une jusqu'au ${date}`,
@@ -1548,6 +1550,16 @@ export const fr = {
       n === 1 ? "1 annonce active" : `${n} annonces actives`,
     aucuneAnnonceActive: "Aucune annonce active pour le moment.",
     retourAccueil: "Retour à l'accueil",
+  },
+  traveler: {
+    voirProfil: "Voir le profil",
+    titre: (nom: string) => `Profil de ${nom}`,
+    sousTitre: "Voyageur",
+    membreDepuis: (annee: number) => `Membre depuis ${annee}`,
+    donnerAvis: "Donner votre avis",
+    avisTitre: "Avis des hôtes",
+    avisRecus: (n: number) => (n === 1 ? "1 avis reçu" : `${n} avis reçus`),
+    aucunAvis: "Aucun avis reçu pour le moment.",
   },
 };
 
