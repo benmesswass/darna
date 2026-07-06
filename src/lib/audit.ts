@@ -51,7 +51,9 @@ export type AuditAction =
   | "CASH_BOOKING_ACCEPTED"
   | "CASH_BOOKING_DECLINED"
   | "HOST_INVOICE_GENERATED"
-  | "BOOKING_NO_SHOW_REPORTED";
+  | "BOOKING_NO_SHOW_REPORTED"
+  // Annulation hôte (ANNULATION_HOTE_ROADMAP.md §AH1).
+  | "HOST_CANCELLED_BOOKING";
 
 /**
  * Audit trail — chaque événement sensible est enregistré avec userId, IP et

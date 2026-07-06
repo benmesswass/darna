@@ -19,7 +19,9 @@ export type NotificationType =
   | "ALERTE_NOUVELLE_ANNONCE"
   // Rail 2 (paiement sur place, PAIEMENT_SUR_PLACE_ROADMAP.md §PSP3).
   | "DEMANDE_CASH_RECUE"
-  | "RESERVATION_REFUSEE";
+  | "RESERVATION_REFUSEE"
+  // Annulation hôte (ANNULATION_HOTE_ROADMAP.md §AH1).
+  | "RESERVATION_ANNULEE_PAR_HOTE";
 
 async function createNotification(
   userId: string,
@@ -69,6 +71,24 @@ export async function notifyBookingCancelled(bookingId: string): Promise<void> {
   await createNotification(booking.property.ownerId, "RESERVATION_ANNULEE", {
     propertyTitle: booking.property.title,
     href: "/dashboard/reservations",
+  });
+}
+
+/**
+ * Notifie le VOYAGEUR que l'hôte a annulé sa réservation (ANNULATION_HOTE_
+ * ROADMAP.md §AH1) — distinct de notifyBookingCancelled (annulation par le
+ * voyageur lui-même, notifie l'hôte). `href` pointe vers /sejours pour
+ * l'instant ; remplacé par les suggestions de relogement en AH6.
+ */
+export async function notifyBookingCancelledByHost(bookingId: string): Promise<void> {
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    select: { guestId: true, property: { select: { title: true } } },
+  });
+  if (!booking) return;
+  await createNotification(booking.guestId, "RESERVATION_ANNULEE_PAR_HOTE", {
+    propertyTitle: booking.property.title,
+    href: "/sejours",
   });
 }
 

@@ -11,6 +11,7 @@ import { computeBookingRefund } from "@/lib/cancellation";
 import { contactRevealState, type ContactGate } from "@/lib/contact-reveal";
 import type { CancelPolicy } from "@/lib/constants";
 import { CancelBookingButton } from "@/components/booking/CancelBookingButton";
+import { HostCancelButton } from "@/components/booking/HostCancelButton";
 import { NoShowButton } from "@/components/booking/NoShowButton";
 import { ContactReveal } from "@/components/booking/ContactReveal";
 import { GuestReviewForm } from "@/components/booking/GuestReviewForm";
@@ -226,6 +227,9 @@ export default async function MesReservationsPage() {
                       >
                         {fr.dashboard.voirProfilVoyageur}
                       </Link>
+                    ) : null}
+                    {b.status === "CONFIRMEE" ? (
+                      <HostCancelButton bookingId={b.id} checkIn={b.checkIn.toISOString()} />
                     ) : null}
                   </div>
                 </li>

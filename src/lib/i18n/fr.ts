@@ -490,6 +490,9 @@ export const fr = {
     noShowAnnuler: "Revenir",
     noShowAvertissement:
       "Ne confirmez que si le voyageur ne s'est réellement pas présenté — cette action suspend son compte.",
+    annulerReservationHote: "Annuler cette réservation",
+    hostCancelAvertissement: (jours: number) =>
+      `Cette annonce sera invisible sur Darna pendant ${jours} jours si vous confirmez, et votre compte recevra une suspension. Le voyageur sera intégralement remboursé.`,
     confirmeeCashLabel: "Confirmée — à régler en cash à l'arrivée",
     confirmeeLe: (date: string) => `Confirmée le ${date}`,
     demandesCashTitre: "Demandes de réservation cash",
@@ -1058,6 +1061,8 @@ export const fr = {
     selectionnezDates: "Sélectionnez vos dates",
     annulationImpossible: "Cette réservation ne peut plus être annulée.",
     annulationConfirmee: "Votre réservation a été annulée.",
+    annulationHoteConfirmee:
+      "Réservation annulée. Le voyageur a été intégralement remboursé et votre annonce sera temporairement invisible.",
     // ── Gating acompte (anti-bypass) : choix du montant à régler ──────────
     totalSejour: "Total du séjour",
     payerMaintenant: "Vous payez maintenant",
@@ -1196,6 +1201,8 @@ export const fr = {
       `Nouvelle demande de réservation payée sur place sur « ${titre} » — à traiter.`,
     reservationRefusee: (titre: string) =>
       `Votre demande de réservation pour « ${titre} » a été déclinée par l'hôte.`,
+    reservationAnnuleeParHote: (titre: string) =>
+      `Votre séjour « ${titre} » a été annulé par l'hôte — vous avez été intégralement remboursé.`,
   },
   alaUne: {
     titre: "Mettez votre annonce à la une",

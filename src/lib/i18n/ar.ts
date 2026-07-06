@@ -510,6 +510,9 @@ export const ar: Dictionary = {
     noShowAnnuler: "ارجع",
     noShowAvertissement:
       "أكّد غير إذا المسافر ماجاش بالفعل — هالإجراء يعلّق حساباتو.",
+    annulerReservationHote: "لغي الحجز هذا",
+    hostCancelAvertissement: (jours: number) =>
+      `الإعلان هذا باش يخفى من دارنا لمدة ${jours} يوم إذا أكّدت، وحسابك باش يتعلّق. المسافر باش يترجعلو الفلوس كاملة.`,
     confirmeeCashLabel: "مؤكّد — يتخلص كاش وقت الوصول",
     confirmeeLe: (date: string) => `تأكّد نهار ${date}`,
     demandesCashTitre: "طلبات حجز بالكاش",
@@ -1066,6 +1069,8 @@ export const ar: Dictionary = {
     selectionnezDates: "اختار التواريخ متاعك",
     annulationImpossible: "هذا الحجز ما ينجّمش يتلغى.",
     annulationConfirmee: "الحجز متاعك تلغى.",
+    annulationHoteConfirmee:
+      "الحجز تلغى. رجعنا للمسافر فلوسو كاملة والإعلان متاعك باش يخفى شوية وقت.",
     // ── حجز التسبقة (ضد التحويل خارج المنصّة) : قدّاش تخلّص توّا ──────────
     totalSejour: "إجمالي الإقامة",
     payerMaintenant: "تخلّص توّا",
@@ -1200,6 +1205,8 @@ export const ar: Dictionary = {
       `طلب حجز جديد بالخلاص عالمكان على « ${titre} » — لازم تتصرّف.`,
     reservationRefusee: (titre: string) =>
       `طلب الحجز متاعك لـ « ${titre} » اترفض من الحوت.`,
+    reservationAnnuleeParHote: (titre: string) =>
+      `السفرة متاعك « ${titre} » تلغات من الحوت — رجعنالك الفلوس كاملة.`,
   },
   alaUne: {
     titre: "حطّ إعلانك في الواجهة",

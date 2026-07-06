@@ -13,6 +13,7 @@ import {
   HOST_INVOICE_DUE_DAYS,
   computeDepositAmount,
   clampPayAmount,
+  hostCancelBlockDays,
 } from "@/lib/config";
 import { BOOKING_EXPIRY_MS, HOST_ACCEPTANCE_EXPIRY_MS, PAYMENT_MODES } from "@/lib/constants";
 import { logAudit, logStructured } from "@/lib/audit";
@@ -22,6 +23,7 @@ import { sendBookingConfirmationEmail } from "@/lib/notifications";
 import { computeBookingRefund } from "@/lib/cancellation";
 import {
   notifyBookingCancelled,
+  notifyBookingCancelledByHost,
   notifyBookingConfirmed,
   notifyCashBookingDeclined,
   notifyCashBookingRequested,
@@ -135,6 +137,7 @@ export async function createBookingAction(
       stay: { select: { maxGuests: true } },
       ownerId: true,
       cashPaymentEnabled: true,
+      cancelBlockedUntil: true,
     },
   });
 
@@ -142,7 +145,10 @@ export async function createBookingAction(
     !property ||
     property.type !== "SEJOUR" ||
     property.status !== "ACTIVE" ||
-    property.expiresAt.getTime() < Date.now()
+    property.expiresAt.getTime() < Date.now() ||
+    // Annonce temporairement bloquée suite à une annulation hôte (§AH2) :
+    // refusée même via un lien direct, pas seulement masquée de la recherche.
+    (property.cancelBlockedUntil && property.cancelBlockedUntil.getTime() > Date.now())
   ) {
     return { error: fr.booking.datesIndisponibles };
   }
@@ -800,6 +806,100 @@ export async function cancelBookingAction(
   revalidatePath("/dashboard/reservations");
   revalidatePath(`/annonce/${booking.property.slug}`);
   return { success: fr.booking.annulationConfirmee };
+}
+
+export type HostCancelState = { error?: string; success?: string } | undefined;
+
+/**
+ * Annulation à L'INITIATIVE DE L'HÔTE (ANNULATION_HOTE_ROADMAP.md §AH1) —
+ * distincte de cancelBookingAction ci-dessus (voyageur). Remboursement
+ * TOUJOURS intégral (indépendant de cancelPolicy : c'est l'hôte qui rompt,
+ * pas le voyageur), blocage temporaire de l'annonce (barème
+ * hostCancelBlockDays, src/lib/config.ts) ET suspension progressive de
+ * compte de l'hôte (applySuspension, src/lib/suspension.ts) — les deux
+ * leviers se cumulent, décision produit du 2026-07-06. Libre-service, sans
+ * motif ni revue admin : ces deux sanctions automatiques sont le seul
+ * garde-fou (pas de pénalité financière — cf. pivot noté dans le roadmap).
+ */
+export async function hostCancelBookingAction(
+  _prev: HostCancelState,
+  formData: FormData
+): Promise<HostCancelState> {
+  const fr = await getT();
+  const user = await requireUser();
+
+  const parsed = cancelSchema.safeParse({ bookingId: formData.get("bookingId") });
+  if (!parsed.success) return { error: fr.common.champsRequis };
+
+  const booking = await prisma.booking.findUnique({
+    where: { id: parsed.data.bookingId },
+    select: {
+      id: true,
+      status: true,
+      checkIn: true,
+      totalPrice: true,
+      property: { select: { id: true, ownerId: true, slug: true } },
+    },
+  });
+
+  // Autorisation stricte : seul le propriétaire de l'annonce peut annuler
+  // (IDOR) — jamais le voyageur, qui a déjà cancelBookingAction pour lui.
+  if (!booking || booking.property.ownerId !== user.id) {
+    return { error: fr.common.erreurInconnue };
+  }
+  if (booking.status !== "CONFIRMEE") {
+    return { error: fr.booking.annulationImpossible };
+  }
+
+  // Palier recalculé SERVEUR à partir du délai RÉEL restant — jamais depuis
+  // un champ envoyé par le client (le formulaire n'envoie que bookingId).
+  const daysUntilCheckIn = (booking.checkIn.getTime() - Date.now()) / DAY;
+  const blockDays = hostCancelBlockDays(daysUntilCheckIn);
+
+  // updateMany conditionné à CONFIRMEE : garde d'idempotence contre une
+  // double soumission (double clic, requêtes concurrentes) — une 2e
+  // tentative ne retrouve plus la réservation dans cet état et échoue
+  // proprement, sans double blocage ni double suspension.
+  const updated = await prisma.booking.updateMany({
+    where: { id: booking.id, status: "CONFIRMEE" },
+    data: {
+      status: "ANNULEE",
+      escrow: "AUCUN",
+      cancelledAt: new Date(),
+      cancelledByHostAt: new Date(),
+      hostCancelBlockDays: blockDays,
+      refundAmount: booking.totalPrice,
+    },
+  });
+  if (updated.count === 0) return { error: fr.booking.annulationImpossible };
+
+  await prisma.property.update({
+    where: { id: booking.property.id },
+    data: { cancelBlockedUntil: new Date(Date.now() + blockDays * DAY) },
+  });
+
+  await applySuspension(user.id, {
+    reason: "HOST_CANCELLED_BOOKING",
+    bookingId: booking.id,
+  });
+
+  await logAudit({
+    action: "HOST_CANCELLED_BOOKING",
+    userId: user.id,
+    success: true,
+    metadata: {
+      bookingId: booking.id,
+      propertyId: booking.property.id,
+      blockDays,
+      refundAmount: booking.totalPrice,
+    },
+  });
+
+  await notifyBookingCancelledByHost(booking.id);
+
+  revalidatePath("/dashboard/reservations");
+  revalidatePath(`/annonce/${booking.property.slug}`);
+  return { success: fr.booking.annulationHoteConfirmee };
 }
 
 // ── Rail 2 : paiement sur place (PAIEMENT_SUR_PLACE_ROADMAP.md §PSP3) ──────

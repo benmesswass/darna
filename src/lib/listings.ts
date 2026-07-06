@@ -17,10 +17,17 @@ const PAGE_SIZE = 24;
 /**
  * Fraîcheur des données : seules les annonces ACTIVE et non expirées
  * apparaissent dans les recherches — réponse structurelle aux annonces
- * périmées des concurrents.
+ * périmées des concurrents. Exclut aussi une annonce temporairement
+ * BLOQUÉE suite à une annulation hôte (ANNULATION_HOTE_ROADMAP.md §AH2) —
+ * même filtre paresseux sur une date que `expiresAt`, pas de statut à
+ * faire basculer par un job.
  */
 export function activeListingWhere(): Prisma.PropertyWhereInput {
-  return { status: "ACTIVE", expiresAt: { gt: new Date() } };
+  return {
+    status: "ACTIVE",
+    expiresAt: { gt: new Date() },
+    OR: [{ cancelBlockedUntil: null }, { cancelBlockedUntil: { lte: new Date() } }],
+  };
 }
 
 /** Une annonce est « à la une » tant que son boost payé n'a pas expiré. */

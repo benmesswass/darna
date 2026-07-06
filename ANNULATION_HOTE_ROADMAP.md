@@ -105,23 +105,23 @@ séparé, non entamé par celui-ci.
 
 | # | Tâche | Prio | Statut | Détail |
 |---|-------|------|--------|--------|
-| AH0 | Modèle de données : `Property.cancelBlockedUntil`, traçabilité sur `Booking` (`cancelledByHostAt`, `hostCancelBlockDays`) | P0 | ❌ | `prisma/schema.prisma` + migration |
-| AH1 | Server action `hostCancelBookingAction` : remboursement intégral voyageur, calcul + pose du blocage d'annonce, suspension progressive de compte, audit log, notification | P0 | ❌ | `src/actions/bookings.ts` |
-| AH2 | Filtre de recherche : exclure les annonces bloquées (`activeListingWhere()`) | P0 | ❌ | `src/lib/listings.ts` |
+| AH0 | Modèle de données : `Property.cancelBlockedUntil`, traçabilité sur `Booking` (`cancelledByHostAt`, `hostCancelBlockDays`) | P0 | ✅ | Migration `20260706160000_add_host_cancellation`. PR #102 (mergée). |
+| AH1 | Server action `hostCancelBookingAction` : remboursement intégral voyageur, calcul + pose du blocage d'annonce, suspension progressive de compte, audit log, notification | P0 | ✅ | `src/actions/bookings.ts` + `hostCancelBlockDays` (`src/lib/config.ts`) + `notifyBookingCancelledByHost` (`src/lib/notification-center.ts`). |
+| AH2 | Filtre de recherche : exclure les annonces bloquées (`activeListingWhere()`) + refus direct dans `createBookingAction` | P0 | ✅ | `src/lib/listings.ts`, `src/actions/bookings.ts` |
 | AH3 | Suggestions de relogement : `getRebookingSuggestions` (ville, capacité, prix, disponibilité réelle) | P0 | ❌ | `src/lib/listings.ts` |
 | AH4 | Réduction ponctuelle liée à la suggestion (token signé, usage unique) | P1 | ❌ | nouveau `src/lib/rebooking-discount.ts`, branché sur `createBookingAction` |
-| AH5 | UI hôte : modale d'avertissement (durée de blocage prévisionnelle affichée AVANT confirmation) + bouton d'annulation | P0 | ❌ | nouveau composant `HostCancelButton`, branché sur `src/app/dashboard/reservations/page.tsx` |
-| AH6 | UI voyageur : notification d'annulation + suggestions + réduction | P0 | ❌ | notification dédiée + page/section listant les suggestions |
+| AH5 | UI hôte : modale d'avertissement (durée de blocage prévisionnelle affichée AVANT confirmation) + bouton d'annulation | P0 | ✅ | `HostCancelButton` (`src/components/booking/`), branché sur `src/app/dashboard/reservations/page.tsx` — livré avec AH1 pour rester testable de bout en bout. |
+| AH6 | UI voyageur : notification d'annulation + suggestions + réduction | P0 | ❌ | La notification existe (AH1), le lien pointe vers `/sejours` en attendant les suggestions (AH3/AH4) |
 | AH7 | Durcissement sécurité/QA : idempotence, IDOR, non-bypass (dates falsifiées, double annulation, token de réduction rejouable, contournement du blocage d'annonce) + mise à jour `QA_ROADMAP.md` | P0 | ❌ | Nouvelle surface sensible (réputation + visibilité annonce) |
 
 ## Exécution (prioritisée)
 
-1. ❌ AH0 — modèle de données.
-2. ❌ AH1 — action d'annulation hôte (cœur du chantier : remboursement + blocage + suspension).
-3. ❌ AH2 — filtre de recherche (annonce bloquée invisible).
+1. ✅ AH0 — modèle de données.
+2. ✅ AH1 — action d'annulation hôte (cœur du chantier : remboursement + blocage + suspension).
+3. ✅ AH2 — filtre de recherche (annonce bloquée invisible) + refus direct.
 4. ❌ AH3 — moteur de suggestions.
 5. ❌ AH4 — réduction ponctuelle.
-6. ❌ AH5 — UI hôte (modale d'avertissement).
+6. ✅ AH5 — UI hôte (modale d'avertissement) — livrée avec AH1.
 7. ❌ AH6 — UI voyageur.
 8. ❌ AH7 — tests + QA_ROADMAP.md.
 
