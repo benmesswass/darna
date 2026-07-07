@@ -919,6 +919,27 @@ export const fr = {
         : "") +
       `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Le logement vérifié.</p>` +
       `</div>`,
+    bookingCancelledByHostSujet: (titre: string) =>
+      `Darna — votre séjour a été annulé : ${titre}`,
+    bookingCancelledByHostHtml: (p: {
+      guestName: string;
+      propertyTitle: string;
+      refund: string | null;
+      url: string;
+    }) =>
+      `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
+      `<h1 style="color:#b91c1c;font-size:20px">Votre séjour a été annulé</h1>` +
+      `<p>Bonjour ${p.guestName},</p>` +
+      `<p>Nous sommes désolés : l'hôte a annulé votre réservation pour <strong>${p.propertyTitle}</strong>. Cela ne dépend pas de vous, et le compte de cet hôte a été suspendu.</p>` +
+      (p.refund
+        ? `<table style="width:100%;border-collapse:collapse;margin:16px 0">` +
+          `<tr><td style="padding:10px 0;border-top:1px solid #e5e7eb;color:#6b7280">Montant remboursé</td><td style="padding:10px 0;border-top:1px solid #e5e7eb;text-align:right;font-weight:700;color:#0f766e">${p.refund}</td></tr>` +
+          `</table>`
+        : `<p>Aucun montant n'avait été réglé en ligne : vous n'avez rien à récupérer.</p>`) +
+      `<p>Nous vous avons préparé des logements de remplacement disponibles sur vos dates, avec une réduction sur votre prochaine réservation :</p>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">Voir les logements de remplacement</a></p>` +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Le logement vérifié.</p>` +
+      `</div>`,
     hostInvoiceReminderSujet: (titre: string) =>
       `Darna — rappel : facture de commission en attente (${titre})`,
     hostInvoiceReminderHtml: (p: { hostName: string; propertyTitle: string; amount: string; dueDate: string; url: string }) =>

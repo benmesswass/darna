@@ -78,6 +78,52 @@ export async function sendBookingConfirmationEmail(bookingId: string): Promise<v
   }
 }
 
+/**
+ * Envoie au VOYAGEUR l'e-mail d'annulation par l'hôte (ANNULATION_HOTE_CORRECTIFS
+ * _ROADMAP.md §AHC4). Appelé APRÈS la transaction d'annulation, best-effort :
+ * un échec d'envoi ne remet jamais en cause l'annulation déjà actée. Cible
+ * diaspora : la perte du logement doit sortir de l'app (réservation faite des
+ * mois à l'avance, app pas consultée quotidiennement). `refundAmount` est lu en
+ * base (posé dans la transaction, §AHC1) — nul/0 en Rail 2 SUR_PLACE.
+ */
+export async function sendBookingCancelledByHostEmail(bookingId: string): Promise<void> {
+  try {
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      select: {
+        refundAmount: true,
+        guest: { select: { email: true, name: true } },
+        property: { select: { title: true } },
+      },
+    });
+
+    if (!booking) {
+      logStructured("warn", "notif.host_cancel_not_found", { bookingId });
+      return;
+    }
+
+    await sendEmail({
+      to: booking.guest.email,
+      subject: frMail.email.bookingCancelledByHostSujet(booking.property.title),
+      html: frMail.email.bookingCancelledByHostHtml({
+        guestName: booking.guest.name,
+        propertyTitle: booking.property.title,
+        refund:
+          booking.refundAmount && booking.refundAmount > 0
+            ? formatTndServer(booking.refundAmount)
+            : null,
+        url: `${SITE_URL}/relogement/${bookingId}`,
+      }),
+    });
+  } catch (err) {
+    // Non bloquant : l'annulation est actée quoi qu'il arrive à l'e-mail.
+    logStructured("error", "notif.host_cancel_failed", {
+      bookingId,
+      error: (err as Error).message,
+    });
+  }
+}
+
 /** Échappe le HTML d'un extrait de message inséré dans le corps de l'e-mail. */
 function escapeHtml(s: string): string {
   return s

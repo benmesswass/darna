@@ -26,7 +26,10 @@ import {
 } from "@/lib/rebooking-discount";
 import { initKonnectPayment, isKonnectEnabled, signKonnectWebhook } from "@/lib/konnect";
 import { hasOverdueHostInvoice } from "@/lib/host-invoicing";
-import { sendBookingConfirmationEmail } from "@/lib/notifications";
+import {
+  sendBookingConfirmationEmail,
+  sendBookingCancelledByHostEmail,
+} from "@/lib/notifications";
 import { computeBookingRefund } from "@/lib/cancellation";
 import {
   notifyBookingCancelled,
@@ -996,7 +999,11 @@ export async function hostCancelBookingAction(
     },
   });
 
+  // Effets best-effort hors transaction (§AHC2) : notification in-app +
+  // e-mail au voyageur (§AHC4, cible diaspora). Ni l'un ni l'autre ne peut
+  // faire échouer l'annulation déjà actée.
   await notifyBookingCancelledByHost(booking.id);
+  await sendBookingCancelledByHostEmail(booking.id);
 
   revalidatePath("/dashboard/reservations");
   revalidatePath(`/annonce/${booking.property.slug}`);

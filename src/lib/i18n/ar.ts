@@ -921,6 +921,27 @@ export const ar: Dictionary = {
         : "") +
       `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — السكن المضمون.</p>` +
       `</div>`,
+    bookingCancelledByHostSujet: (titre: string) =>
+      `Darna — السفرة متاعك تلغات : ${titre}`,
+    bookingCancelledByHostHtml: (p: {
+      guestName: string;
+      propertyTitle: string;
+      refund: string | null;
+      url: string;
+    }) =>
+      `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937" dir="rtl">` +
+      `<h1 style="color:#b91c1c;font-size:20px">السفرة متاعك تلغات</h1>` +
+      `<p>أهلا ${p.guestName}،</p>` +
+      `<p>آسفين : المالك لغى الحجز متاعك لـ <strong>${p.propertyTitle}</strong>. الموضوع ماهوش منك، وحساب المالك ولّى معلّق.</p>` +
+      (p.refund
+        ? `<table style="width:100%;border-collapse:collapse;margin:16px 0">` +
+          `<tr><td style="padding:10px 0;border-top:1px solid #e5e7eb;color:#6b7280">المبلغ اللي رجعناهولك</td><td style="padding:10px 0;border-top:1px solid #e5e7eb;text-align:left;font-weight:700;color:#0f766e">${p.refund}</td></tr>` +
+          `</table>`
+        : `<p>ما خلّصت شيء أونلاين، ما فمّاش علاش ترجّع.</p>`) +
+      `<p>حضّرنالك بلايص بديلة موجودة في نفس التواريخ، مع تخفيض على الحجز الجاي متاعك :</p>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">شوف البلايص البديلة</a></p>` +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — السكن الموثوق.</p>` +
+      `</div>`,
     hostInvoiceReminderSujet: (titre: string) =>
       `Darna — تفكرة : فاتورة الكوميسيون في الانتظار (${titre})`,
     hostInvoiceReminderHtml: (p: { hostName: string; propertyTitle: string; amount: string; dueDate: string; url: string }) =>

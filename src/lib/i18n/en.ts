@@ -905,6 +905,27 @@ export const en: Dictionary = {
         : "") +
       `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Verified stays.</p>` +
       `</div>`,
+    bookingCancelledByHostSujet: (titre: string) =>
+      `Darna — your stay was cancelled: ${titre}`,
+    bookingCancelledByHostHtml: (p: {
+      guestName: string;
+      propertyTitle: string;
+      refund: string | null;
+      url: string;
+    }) =>
+      `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
+      `<h1 style="color:#b91c1c;font-size:20px">Your stay was cancelled</h1>` +
+      `<p>Hi ${p.guestName},</p>` +
+      `<p>We're sorry: the host cancelled your booking for <strong>${p.propertyTitle}</strong>. This is not your fault, and the host's account has been suspended.</p>` +
+      (p.refund
+        ? `<table style="width:100%;border-collapse:collapse;margin:16px 0">` +
+          `<tr><td style="padding:10px 0;border-top:1px solid #e5e7eb;color:#6b7280">Amount refunded</td><td style="padding:10px 0;border-top:1px solid #e5e7eb;text-align:right;font-weight:700;color:#0f766e">${p.refund}</td></tr>` +
+          `</table>`
+        : `<p>Nothing had been paid online, so there is nothing to recover.</p>`) +
+      `<p>We've lined up replacement stays available on your dates, with a discount on your next booking:</p>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">See replacement stays</a></p>` +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Verified stays.</p>` +
+      `</div>`,
     hostInvoiceReminderSujet: (titre: string) =>
       `Darna — reminder: commission invoice pending (${titre})`,
     hostInvoiceReminderHtml: (p: { hostName: string; propertyTitle: string; amount: string; dueDate: string; url: string }) =>

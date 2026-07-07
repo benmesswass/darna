@@ -8,7 +8,10 @@ vi.mock("@/lib/prisma", () => ({
 vi.mock("@/lib/mailer", () => ({ sendEmail: vi.fn() }));
 vi.mock("@/lib/audit", () => ({ logStructured: vi.fn() }));
 
-import { sendBookingConfirmationEmail } from "@/lib/notifications";
+import {
+  sendBookingConfirmationEmail,
+  sendBookingCancelledByHostEmail,
+} from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/mailer";
 import { logStructured } from "@/lib/audit";
@@ -83,6 +86,72 @@ describe("sendBookingConfirmationEmail", () => {
     expect(logged).toHaveBeenCalledWith(
       "error",
       "notif.booking_confirm_failed",
+      expect.objectContaining({ bookingId: "bk_1" })
+    );
+  });
+});
+
+describe("sendBookingCancelledByHostEmail (§AHC4)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    send.mockResolvedValue(true);
+  });
+
+  it("envoie au voyageur l'annulation avec le montant remboursé et le lien de relogement", async () => {
+    findUnique.mockResolvedValue({
+      refundAmount: 206,
+      guest: { email: "voyageur@example.com", name: "Wassim" },
+      property: { title: "Villa Hammamet" },
+    });
+
+    await sendBookingCancelledByHostEmail("bk_1");
+
+    expect(send).toHaveBeenCalledTimes(1);
+    const arg = send.mock.calls[0][0];
+    expect(arg.to).toBe("voyageur@example.com");
+    expect(arg.subject).toContain("Villa Hammamet");
+    expect(arg.html).toContain("Wassim");
+    expect(arg.html).toContain("206 TND");
+    expect(arg.html).toContain("/relogement/bk_1");
+  });
+
+  it("cas SUR_PLACE (refundAmount 0) : pas de montant, mention « rien à récupérer »", async () => {
+    findUnique.mockResolvedValue({
+      refundAmount: 0,
+      guest: { email: "voyageur@example.com", name: "Wassim" },
+      property: { title: "Villa Hammamet" },
+    });
+
+    await sendBookingCancelledByHostEmail("bk_1");
+
+    const arg = send.mock.calls[0][0];
+    expect(arg.html).not.toContain("TND");
+    expect(arg.html).toContain("récupérer");
+  });
+
+  it("ne tente rien et journalise si la réservation est introuvable", async () => {
+    findUnique.mockResolvedValue(null);
+    await sendBookingCancelledByHostEmail("nope");
+    expect(send).not.toHaveBeenCalled();
+    expect(logged).toHaveBeenCalledWith(
+      "warn",
+      "notif.host_cancel_not_found",
+      expect.objectContaining({ bookingId: "nope" })
+    );
+  });
+
+  it("est NON BLOQUANT : un échec d'envoi est avalé", async () => {
+    findUnique.mockResolvedValue({
+      refundAmount: 206,
+      guest: { email: "voyageur@example.com", name: "Wassim" },
+      property: { title: "Villa Hammamet" },
+    });
+    send.mockRejectedValue(new Error("Resend 500"));
+
+    await expect(sendBookingCancelledByHostEmail("bk_1")).resolves.toBeUndefined();
+    expect(logged).toHaveBeenCalledWith(
+      "error",
+      "notif.host_cancel_failed",
       expect.objectContaining({ bookingId: "bk_1" })
     );
   });
