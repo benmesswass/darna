@@ -437,6 +437,8 @@ export const en: Dictionary = {
     prolongerALaUne: "Extend featuring",
     alaUneActif: (date: string) => `Featured until ${date}`,
     alaUneSucces: "Your listing is now featured! 🎉",
+    annonceMasqueeBanner: (date: string) =>
+      `Listing temporarily hidden from search following a cancellation on your part — it reappears on ${date}.`,
     promoAlaUneTitre: "Feature your listings",
     promoAlaUneDesc:
       "Top of results and on the homepage for 7 days, with an eye-catching gold badge. Featured listings get seen far more often.",
@@ -1267,6 +1269,8 @@ export const en: Dictionary = {
       `Your booking request for “${titre}” was declined by the host.`,
     reservationAnnuleeParHote: (titre: string) =>
       `Your stay “${titre}” was cancelled by the host — you've been fully refunded. We're sorry about this: this host's account has been suspended.`,
+    annonceMasqueeAnnulation: (titre: string) =>
+      `Following your cancellation, “${titre}” is temporarily hidden from search. It will reappear automatically once the block period ends.`,
     hostInvoiceRelance: (titre: string) =>
       `Reminder: the commission invoice for “${titre}” is still awaiting payment.`,
     factureBientotDue: (titre: string) =>

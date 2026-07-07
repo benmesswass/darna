@@ -438,6 +438,8 @@ export const fr = {
     prolongerALaUne: "Prolonger à la une",
     alaUneActif: (date: string) => `À la une jusqu'au ${date}`,
     alaUneSucces: "Votre annonce est désormais à la une ! 🎉",
+    annonceMasqueeBanner: (date: string) =>
+      `Annonce temporairement masquée des recherches suite à une annulation de votre part — elle réapparaît le ${date}.`,
     promoAlaUneTitre: "Passez vos annonces à la une",
     promoAlaUneDesc:
       "En tête des résultats et sur l'accueil pendant 7 jours, avec un badge doré qui attire l'œil. Les annonces mises en avant sont vues bien plus souvent.",
@@ -1285,6 +1287,8 @@ export const fr = {
       `Votre demande de réservation pour « ${titre} » a été déclinée par l'hôte.`,
     reservationAnnuleeParHote: (titre: string) =>
       `Votre séjour « ${titre} » a été annulé par l'hôte — vous avez été intégralement remboursé. Nous en sommes désolés : le compte de cet hôte a été suspendu.`,
+    annonceMasqueeAnnulation: (titre: string) =>
+      `Suite à votre annulation, « ${titre} » est temporairement masquée des recherches. Elle réapparaîtra automatiquement à la fin de la période de blocage.`,
     hostInvoiceRelance: (titre: string) =>
       `Rappel : la facture de commission pour « ${titre} » est toujours en attente de règlement.`,
     factureBientotDue: (titre: string) =>

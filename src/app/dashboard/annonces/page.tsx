@@ -152,6 +152,14 @@ export default async function MesAnnoncesPage({
                       {fr.dashboard.alaUneActif(formatDateFr(p.featuredUntil))}
                     </p>
                   ) : null}
+                  {/* §AHC3 — encart de blocage : l'hôte voit que son annonce est
+                      masquée suite à SON annulation, avec la date de réapparition.
+                      Filtre paresseux (comparaison à nowMs), pas de cron. */}
+                  {p.cancelBlockedUntil && p.cancelBlockedUntil.getTime() > nowMs ? (
+                    <p className="mt-1.5 rounded-lg bg-red-50 px-2.5 py-1.5 text-xs font-semibold text-red-700">
+                      {fr.dashboard.annonceMasqueeBanner(formatDateFr(p.cancelBlockedUntil))}
+                    </p>
+                  ) : null}
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 sm:flex-col sm:items-stretch">
