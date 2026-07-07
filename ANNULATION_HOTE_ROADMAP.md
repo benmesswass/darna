@@ -112,7 +112,9 @@ séparé, non entamé par celui-ci.
 | AH4 | Réduction ponctuelle liée aux suggestions (token signé, usage unique, portable — applicable à N'IMPORTE QUELLE annonce réservée dans les 30 jours, pas seulement celle suggérée) | P1 | ✅ | `src/lib/rebooking-discount.ts`, branché sur `createBookingAction`/`quoteBookingAction`. PR AH3/AH4/AH6 (branche `claude/host-cancellation-ah3`). |
 | AH5 | UI hôte : modale d'avertissement (durée de blocage prévisionnelle affichée AVANT confirmation) + bouton d'annulation | P0 | ✅ | `HostCancelButton` (`src/components/booking/`), branché sur `src/app/dashboard/reservations/page.tsx` — livré avec AH1 pour rester testable de bout en bout. |
 | AH6 | UI voyageur : notification d'annulation + page listant les suggestions + réduction | P0 | ✅ | `src/app/relogement/[bookingId]/page.tsx` — jusqu'à 10 cartes (`PropertyCard`), calculées à la consultation (pas figées à l'annulation), réduction générée à l'affichage et propagée sur chaque carte. Notification (AH1) pointe vers cette page. PR AH3/AH4/AH6 (branche `claude/host-cancellation-ah3`). |
-| AH7 | Durcissement sécurité/QA : idempotence, IDOR, non-bypass (dates falsifiées, double annulation, token de réduction rejouable, contournement du blocage d'annonce) + mise à jour `QA_ROADMAP.md` | P0 | ❌ | Nouvelle surface sensible (réputation + visibilité annonce) |
+| AH7 | Durcissement sécurité/QA : idempotence, IDOR, non-bypass (dates falsifiées, double annulation, token de réduction rejouable, contournement du blocage d'annonce) + mise à jour `QA_ROADMAP.md` | P0 | ✅ | `tests/host-cancellation-security.test.ts` (IDOR D8, idempotence D9, palier D10, blocage direct-link D11), `tests/rebooking-discount.test.ts` (token D12). Bug trouvé et corrigé en testant en direct : `quoteBookingAction` ne vérifiait pas `cancelBlockedUntil` (`src/actions/bookings.ts`) — le devis semblait valide, seule la soumission finale refusait. `QA_ROADMAP.md` §3 (D8-D12) et §4.5 mis à jour. |
+
+**Chantier "annulation hôte" terminé : AH0 à AH7 tous ✅.**
 
 ## Exécution (prioritisée)
 
@@ -123,7 +125,7 @@ séparé, non entamé par celui-ci.
 5. ✅ AH4 — réduction ponctuelle.
 6. ✅ AH5 — UI hôte (modale d'avertissement) — livrée avec AH1.
 7. ✅ AH6 — UI voyageur (page de relogement).
-8. ❌ AH7 — tests + QA_ROADMAP.md.
+8. ✅ AH7 — tests + QA_ROADMAP.md.
 
 ---
 

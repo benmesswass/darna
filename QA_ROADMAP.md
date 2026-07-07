@@ -116,6 +116,11 @@ that never double-charges." The guards exist in code; the demo gap is that the
 | D5 | **Mock payment exclusivity**: `confirmPaymentAction` (demo escrow) refuses to run when Konnect is enabled | **P1** | A real booking being "confirmed" without real money | Prevents demo/real mode confusion (`bookings.ts:311`). |
 | D6 | **Price integrity**: server ignores any client-supplied price; total is recomputed from `nights × nightlyPrice + serviceFee` | **P1** | Amount manipulation at booking time | Confirms the "prices always recalculated server-side" invariant. |
 | D7 | **Upload rejection E2E-lite**: a polyglot/oversized/wrong-magic file is rejected by the action (not only the lib) | **P2** | Malicious upload reaching disk/S3 | `storage.test.ts` covers the lib; this proves the action wires it. |
+| D8 | **Host cancellation IDOR**: host B cannot `hostCancelBookingAction` on host A's property/booking | **P0** | Tampering with another host's reservations (fake cancellation, forced refund/suspension against a rival) | `ANNULATION_HOTE_ROADMAP.md` §AH7. Test: `tests/host-cancellation-security.test.ts`. |
+| D9 | **Host cancellation idempotence**: a 2nd cancel attempt on an already-`ANNULEE` booking (explicit status check + `updateMany` race guard) does not double-apply the listing block or the account suspension | **P0** | Double-punishment / suspension counter drift under double-click or concurrent requests | Test: `tests/host-cancellation-security.test.ts`. |
+| D10 | **Host cancellation block-tier non-bypass**: the blocking duration (3/15/30 days) is recomputed server-side from `booking.checkIn` — the form only sends `bookingId`, no client-controlled tier | **P1** | A host forcing the shortest block regardless of real notice given | Test: `tests/host-cancellation-security.test.ts`. |
+| D11 | **Blocked listing unreachable via direct link**: `createBookingAction` AND `quoteBookingAction` both refuse a booking on a listing still under `cancelBlockedUntil`, even when the search filter is bypassed by guessing/bookmarking the URL | **P0** | A blocked (reputationally sanctioned) listing still taking real bookings | Found via live testing that `quoteBookingAction` was missing the check (quote looked valid, only the final submit rejected it) — fixed in the same pass. Test: `tests/host-cancellation-security.test.ts`. |
+| D12 | **Rebooking discount token security**: usage-once (atomic `updateMany` re-check), bound to the correct guest only, rejects a tampered signature, expires after `REBOOKING_DISCOUNT_VALIDITY_DAYS` | **P1** | A discount replayed on multiple bookings, or transferred/guessed by another account | Test: `tests/rebooking-discount.test.ts`. |
 
 > **Scope discipline:** do **not** add CSRF/SSRF/E2E/load tests for the demo —
 > they are documented in §5/§4 for Beta/Production. Adding them now violates
@@ -179,6 +184,9 @@ work is due.
 | State machine CONFIRMEE→TERMINEE, escrow lifecycle | unit | ✅ | Demo | P1 | Wrong financial state |
 | Self-booking (host books own property) policy | unit | ❌ | Beta | P2 | Review/ranking gaming |
 | Cancellation/refund policy | integration | ❌ (feature) | Beta | P1 | Refund disputes |
+| Host cancellation IDOR + idempotence + block-tier non-bypass | unit → **D8-D10** | ✅ | Demo | P0 | Tampering / double-punishment / forced-shortest-block |
+| Blocked listing unreachable via direct link (create + quote) | unit → **D11** | ✅ | Demo | P0 | Sanctioned listing still bookable |
+| Rebooking discount token: usage-once, guest-bound, tamper/expiry-proof | unit → **D12** | ✅ | Demo | P1 | Discount replay/theft |
 
 ### 4.6 Payments → see [§6](#6-payment-test-suite-bank-grade)
 

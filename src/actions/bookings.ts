@@ -364,13 +364,19 @@ export async function quoteBookingAction(input: {
       price: true,
       // Capacité depuis la table satellite (M2).
       stay: { select: { maxGuests: true } },
+      cancelBlockedUntil: true,
     },
   });
   if (
     !property ||
     property.type !== "SEJOUR" ||
     property.status !== "ACTIVE" ||
-    property.expiresAt.getTime() < Date.now()
+    property.expiresAt.getTime() < Date.now() ||
+    // Annonce bloquée suite à une annulation hôte (§AH2) : le devis doit déjà
+    // le signaler — sinon le voyageur ne le découvre qu'au clic "Continuer
+    // vers le paiement" (createBookingAction refuse de toute façon, mais
+    // tard et de façon surprenante).
+    (property.cancelBlockedUntil && property.cancelBlockedUntil.getTime() > Date.now())
   ) {
     return { ok: false, error: fr.booking.datesIndisponibles };
   }
