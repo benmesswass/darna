@@ -21,7 +21,9 @@ export type NotificationType =
   | "DEMANDE_CASH_RECUE"
   | "RESERVATION_REFUSEE"
   // Annulation hôte (ANNULATION_HOTE_ROADMAP.md §AH1).
-  | "RESERVATION_ANNULEE_PAR_HOTE";
+  | "RESERVATION_ANNULEE_PAR_HOTE"
+  // Dashboard admin factures (PAIEMENT_SUR_PLACE_ROADMAP.md §PSP8).
+  | "HOST_INVOICE_RELANCE";
 
 async function createNotification(
   userId: string,
@@ -145,6 +147,23 @@ export async function notifyCashBookingDeclined(bookingId: string): Promise<void
   await createNotification(booking.guestId, "RESERVATION_REFUSEE", {
     propertyTitle: booking.property.title,
     href: "/dashboard/reservations",
+  });
+}
+
+/**
+ * Relance MANUELLE d'un hôte pour une facture impayée (PAIEMENT_SUR_PLACE_
+ * ROADMAP.md §PSP8, dashboard admin) — déclenchée par un admin, pas par un
+ * job. Pointe vers la page de paiement de CETTE facture précise.
+ */
+export async function notifyHostInvoiceReminder(invoiceId: string): Promise<void> {
+  const invoice = await prisma.hostInvoice.findUnique({
+    where: { id: invoiceId },
+    select: { hostId: true, booking: { select: { property: { select: { title: true } } } } },
+  });
+  if (!invoice) return;
+  await createNotification(invoice.hostId, "HOST_INVOICE_RELANCE", {
+    propertyTitle: invoice.booking.property.title,
+    href: `/dashboard/factures/${invoiceId}`,
   });
 }
 

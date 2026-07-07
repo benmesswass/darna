@@ -125,10 +125,11 @@ minimum est payé — inchangé, c'est le comportement actuel.
 | PSP1 | Modèle de données : `Property.cashPaymentEnabled`/`cashTermsAcceptedAt`, `Booking.paymentMode`, nouveau modèle `HostInvoice` | P0 | ✅ | Migration `20260703143110_add_cash_payment_mode` + constantes `PAYMENT_MODES`/`HOST_INVOICE_STATUSES` (`src/lib/constants.ts`). PR sur `claude/airbnb-cash-payment-model-xco95m` (2026-07-03). |
 | PSP2 | CGU hôte (page légale) + toggle opt-in sur `PropertyForm.tsx` + consentement horodaté | P0 | ✅ | `src/app/cgu-hote/page.tsx`, `LegalArticle` (prop `avertissement`), toggle + `resolveCashPayment` dans `src/actions/properties.ts` (create + update, transition false→true uniquement). PR sur `claude/airbnb-cash-payment-model-xco95m` (2026-07-03). |
 | PSP3 | Flux de réservation sans paiement en ligne : **acceptation hôte** (pas instantané, cf. section dédiée), éligibilité KYC `VERIFIE`, `escrow: AUCUN`, génération de la `HostInvoice` | P0 | ✅ | Nouveau statut `EN_ATTENTE_ACCEPTATION` (48h, `HOST_ACCEPTANCE_EXPIRY_MS`), `acceptCashBookingAction`/`declineCashBookingAction`/`reportNoShowAction` (`src/actions/bookings.ts`), UI dédiée (`BookingPanel`, page paiement), `CashBookingActions`/`NoShowButton`, `applySuspension` partagé (`src/lib/suspension.ts`), 12 tests (`tests/cash-booking.test.ts`). PR sur `claude/airbnb-cash-payment-model-xco95m` (2026-07-03). **Corrections post-test (2026-07-05/06)** : libellés cash-vs-escrow (`bookingStatusLabel`), lien profil hôte gaté sur `contactRevealState` (cohérent avec `ContactReveal`), et déplacement de la section « Demandes de réservation cash » de `dashboard/reservations` (« Mes voyageurs », réservé aux séjours confirmés/en cours/passés) vers `dashboard/demandes` (« Demandes reçues », regroupée avec les demandes de contact). |
-| PSP4 | Règlement de la facture hôte : lien de paiement Konnect ponctuel + webhook + page retour, idempotent | P0 | ❌ | Mirror de `src/lib/payments.ts`/`settleKonnectBooking` — hérite automatiquement de Flouci une fois PSP0 livré (même client Konnect partagé) |
+| PSP4 | Règlement de la facture hôte : lien de paiement Konnect ponctuel + webhook + page retour, idempotent | P0 | ✅ | `src/lib/host-invoicing.ts` (`settleHostInvoice`, miroir de `settleKonnectBooking`), `src/actions/host-invoices.ts` (`payHostInvoiceAction` réel + `confirmHostInvoiceAction` démo, IDOR sur `hostId`), webhook dédié `src/app/api/payments/konnect/host-invoice-webhook/route.ts`, page de paiement unique `src/app/dashboard/factures/[id]/page.tsx` (filet `?konnect=success`, PSP5 fera la liste complète). 15 tests (`tests/host-invoicing.test.ts`, `tests/host-invoice-payment.test.ts`). |
 | PSP5 | Dashboard hôte « Factures » (liste, statut, payer) **+ rappels** (J-3, en retard) | P1 | ❌ | `src/app/dashboard/factures/page.tsx` + extension de `ensureExpiringSoonNotifications` (patron identique, pas de cron) |
 | PSP6 | Levier de recouvrement : masquage des annonces si facture en retard — **filtre Prisma dérivé, aucun statut stocké** | P1 | ❌ | `hasOverdueHostInvoice`, filtre relationnel dans `searchSejours`, même esprit que `Property.expiresAt` |
 | PSP7 | Durcissement sécurité/QA : tests idempotence/IDOR/non-bypass + mise à jour `QA_ROADMAP.md` | P0 | ❌ | Nouvelle surface paiement sensible — obligatoire avant merge final |
+| PSP8 | Dashboard **ADMIN** factures (vue globale comptable, distinct du dashboard hôte §PSP5) : total dû/encaissé/en retard, relance manuelle (in-app + e-mail), suspension manuelle. Décisions (2026-07-07, demandées par Wassim) : la suspension manuelle réutilise l'échelle progressive existante (3j → 14j → indéfinie, pas de palier dédié aux impayés) ; la relance manuelle envoie in-app **et** e-mail. | P1 | ✅ | `src/app/dashboard/admin/factures/page.tsx` (ADMIN only, pas Wakil — vue financière). `sendHostInvoiceReminderAction`/`suspendHostForInvoiceAction` (`src/actions/admin.ts`), `notifyHostInvoiceReminder` (`src/lib/notification-center.ts`), `sendHostInvoiceReminderEmail` (`src/lib/notifications.ts`), motif `HOST_INVOICE_OVERDUE` (`src/lib/suspension.ts`), champ `HostInvoice.lastReminderAt` (migration `20260707160000_add_host_invoice_reminder`). 5 tests (`tests/admin-host-invoices.test.ts`). |
 
 ## Exécution (prioritisée)
 
@@ -141,12 +142,15 @@ minimum est payé — inchangé, c'est le comportement actuel.
 3. ✅ PSP3 — réservation sans paiement en ligne (acceptation hôte + éligibilité KYC).
 
 **Facturation :**
-4. ❌ PSP4 — règlement facture hôte (lien Konnect + webhook).
+4. ✅ PSP4 — règlement facture hôte (lien Konnect + webhook).
 5. ❌ PSP5 — dashboard hôte Factures.
 
 **Recouvrement & robustesse :**
 6. ❌ PSP6 — masquage annonces si impayé.
 7. ❌ PSP7 — tests + QA_ROADMAP.md (à faire progressivement à chaque phase, pas uniquement à la fin — chaque prompt ci-dessous l'inclut déjà pour sa portion).
+
+**Outillage admin (indépendant de PSP5/PSP6, peut être fait en parallèle) :**
+8. ✅ PSP8 — dashboard admin factures (vue comptable + relance/suspension manuelles).
 
 ---
 

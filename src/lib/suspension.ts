@@ -14,6 +14,10 @@ export const SUSPENSION_REASONS = [
   "MESSAGE_BYPASS",
   "BOOKING_NO_SHOW",
   "HOST_CANCELLED_BOOKING",
+  // Décision manuelle admin (PAIEMENT_SUR_PLACE_ROADMAP.md §PSP8) : facture
+  // hôte impayée malgré relance — pas de palier automatique dédié, réutilise
+  // la même échelle progressive que les autres motifs.
+  "HOST_INVOICE_OVERDUE",
 ] as const;
 export type SuspensionReason = (typeof SUSPENSION_REASONS)[number];
 

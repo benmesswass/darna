@@ -43,14 +43,18 @@ export default async function DashboardLayout({
   let pendingAnnonces = 0;
   let pendingWakils = 0;
   let flaggedMessages = 0;
+  let overdueInvoices = 0;
   if (isAdminOrWakil) {
-    [pendingAnnonces, pendingWakils, flaggedMessages] = await Promise.all([
+    [pendingAnnonces, pendingWakils, flaggedMessages, overdueInvoices] = await Promise.all([
       prisma.property.count({ where: { status: "EN_ATTENTE_VALIDATION" } }),
       user.role === "ADMIN"
         ? prisma.wakilApplication.count({ where: { status: "RECUE", deletedAt: null } })
         : Promise.resolve(0),
       user.role === "ADMIN"
         ? prisma.message.count({ where: { flagged: true } })
+        : Promise.resolve(0),
+      user.role === "ADMIN"
+        ? prisma.hostInvoice.count({ where: { status: "EN_ATTENTE", dueAt: { lt: new Date() } } })
         : Promise.resolve(0),
     ]);
   }
@@ -65,6 +69,7 @@ export default async function DashboardLayout({
     "/dashboard/admin/annonces": pendingAnnonces > 0 ? pendingAnnonces : undefined,
     "/dashboard/admin/wakils": pendingWakils > 0 ? pendingWakils : undefined,
     "/dashboard/admin/signalements": flaggedMessages > 0 ? flaggedMessages : undefined,
+    "/dashboard/admin/factures": overdueInvoices > 0 ? overdueInvoices : undefined,
   };
   const links = buildDashboardLinks(user, fr).map((l) => ({
     ...l,
@@ -139,7 +144,9 @@ export default async function DashboardLayout({
                   ? fr.dashboard.suspenduPourquoiNoShow
                   : user.suspensionReason === "HOST_CANCELLED_BOOKING"
                     ? fr.dashboard.suspenduPourquoiHostCancel
-                    : fr.dashboard.suspenduPourquoiMessageBypass}
+                    : user.suspensionReason === "HOST_INVOICE_OVERDUE"
+                      ? fr.dashboard.suspenduPourquoiFactureImpayee
+                      : fr.dashboard.suspenduPourquoiMessageBypass}
               </p>
               <p>
                 <span className="font-semibold text-body">

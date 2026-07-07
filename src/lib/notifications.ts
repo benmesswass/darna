@@ -146,3 +146,45 @@ export async function sendNewMessageEmail(messageId: string): Promise<void> {
     });
   }
 }
+
+/**
+ * Relance MANUELLE (dashboard admin factures — PAIEMENT_SUR_PLACE_ROADMAP.md
+ * §PSP8) d'un hôte pour une HostInvoice impayée. Déclenchée par un admin,
+ * jamais par un job planifié.
+ */
+export async function sendHostInvoiceReminderEmail(invoiceId: string): Promise<void> {
+  try {
+    const invoice = await prisma.hostInvoice.findUnique({
+      where: { id: invoiceId },
+      select: {
+        amount: true,
+        dueAt: true,
+        host: { select: { name: true, email: true } },
+        booking: { select: { property: { select: { title: true } } } },
+      },
+    });
+
+    if (!invoice) {
+      logStructured("warn", "notif.host_invoice_reminder_not_found", { invoiceId });
+      return;
+    }
+
+    await sendEmail({
+      to: invoice.host.email,
+      subject: frMail.email.hostInvoiceReminderSujet(invoice.booking.property.title),
+      html: frMail.email.hostInvoiceReminderHtml({
+        hostName: invoice.host.name,
+        propertyTitle: invoice.booking.property.title,
+        amount: formatTndServer(invoice.amount),
+        dueDate: formatDateFr(invoice.dueAt),
+        url: `${SITE_URL}/dashboard/factures/${invoiceId}`,
+      }),
+    });
+  } catch (err) {
+    // Non bloquant : la relance admin ne doit jamais planter sur un échec d'e-mail.
+    logStructured("error", "notif.host_invoice_reminder_failed", {
+      invoiceId,
+      error: (err as Error).message,
+    });
+  }
+}

@@ -7,6 +7,9 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin, requireWakilOrAdmin } from "@/lib/session";
 import { logAudit } from "@/lib/audit";
 import { notifyMatchingSavedSearches } from "@/lib/saved-search";
+import { applySuspension } from "@/lib/suspension";
+import { notifyHostInvoiceReminder } from "@/lib/notification-center";
+import { sendHostInvoiceReminderEmail } from "@/lib/notifications";
 
 export type AdminActionState = { error?: string; success?: string } | undefined;
 
@@ -298,4 +301,72 @@ export async function reactivateUserAction(formData: FormData): Promise<void> {
   });
 
   revalidatePath("/dashboard/admin/signalements");
+}
+
+// ── Dashboard admin factures (PAIEMENT_SUR_PLACE_ROADMAP.md §PSP8) ───────────
+
+const invoiceIdSchema = z.object({ invoiceId: z.string().cuid() });
+
+/**
+ * Relance MANUELLE d'un hôte pour une facture impayée : notification in-app +
+ * e-mail. Admin only. Action à FormData directe (formulaire serveur dans la
+ * page « Factures »). Silencieuse sur une facture déjà réglée ou introuvable
+ * — pas de valeur à relancer une dette qui n'existe plus.
+ */
+export async function sendHostInvoiceReminderAction(formData: FormData): Promise<void> {
+  const actor = await requireAdmin();
+  const parsed = invoiceIdSchema.safeParse({ invoiceId: formData.get("invoiceId") });
+  if (!parsed.success) return;
+
+  const invoice = await prisma.hostInvoice.findUnique({
+    where: { id: parsed.data.invoiceId },
+    select: { status: true },
+  });
+  if (!invoice || invoice.status !== "EN_ATTENTE") return;
+
+  await notifyHostInvoiceReminder(parsed.data.invoiceId);
+  await sendHostInvoiceReminderEmail(parsed.data.invoiceId);
+  await prisma.hostInvoice.update({
+    where: { id: parsed.data.invoiceId },
+    data: { lastReminderAt: new Date() },
+  });
+
+  await logAudit({
+    action: "HOST_INVOICE_REMINDER_SENT",
+    userId: actor.id,
+    success: true,
+    metadata: { invoiceId: parsed.data.invoiceId },
+  });
+
+  revalidatePath("/dashboard/admin/factures");
+}
+
+/**
+ * Suspension MANUELLE d'un hôte pour facture impayée malgré relance. Admin
+ * only. Réutilise le mécanisme de suspension progressive existant
+ * (applySuspension) — même échelle (3j → 14j → indéfinie) que les autres
+ * motifs, décision produit du 2026-07-07 (pas de palier dédié aux impayés).
+ */
+export async function suspendHostForInvoiceAction(formData: FormData): Promise<void> {
+  const actor = await requireAdmin();
+  const parsed = z
+    .object({ hostId: z.string().cuid(), invoiceId: z.string().cuid() })
+    .safeParse({ hostId: formData.get("hostId"), invoiceId: formData.get("invoiceId") });
+  if (!parsed.success) return;
+
+  // applySuspension journalise déjà ACCOUNT_SUSPENDED (userId = hôte visé) ;
+  // on journalise ICI en plus QUI (quel admin) a déclenché la sanction —
+  // même convention que hostCancelBookingAction (src/actions/bookings.ts).
+  await applySuspension(parsed.data.hostId, "HOST_INVOICE_OVERDUE", {
+    invoiceId: parsed.data.invoiceId,
+  });
+
+  await logAudit({
+    action: "HOST_INVOICE_MANUAL_SUSPENSION",
+    userId: actor.id,
+    success: true,
+    metadata: { hostId: parsed.data.hostId, invoiceId: parsed.data.invoiceId },
+  });
+
+  revalidatePath("/dashboard/admin/factures");
 }
