@@ -913,6 +913,34 @@ export const en: Dictionary = {
       `<p><a href="${p.url}" style="display:inline-block;background:#0f4c7c;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">Pay the invoice</a></p>` +
       `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Verified stays.</p>` +
       `</div>`,
+    hostInvoiceDueSoonSujet: (titre: string) =>
+      `Darna — commission invoice due soon (${titre})`,
+    hostInvoiceDueSoonHtml: (p: { hostName: string; propertyTitle: string; amount: string; dueDate: string; url: string }) =>
+      `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
+      `<h1 style="color:#0f4c7c;font-size:20px">Commission invoice due soon</h1>` +
+      `<p>Hello ${p.hostName},</p>` +
+      `<p>The Darna commission for your booking "<strong>${p.propertyTitle}</strong>" (pay-at-property) is due in a few days.</p>` +
+      `<table style="width:100%;border-collapse:collapse;margin:16px 0">` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Amount due</td><td style="padding:6px 0;text-align:right;font-weight:700;color:#0f4c7c">${p.amount}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Due before</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.dueDate}</td></tr>` +
+      `</table>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f4c7c;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">Pay the invoice</a></p>` +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Verified stays.</p>` +
+      `</div>`,
+    hostInvoiceOverdueSujet: (titre: string) =>
+      `Darna — commission invoice overdue (${titre})`,
+    hostInvoiceOverdueHtml: (p: { hostName: string; propertyTitle: string; amount: string; dueDate: string; url: string }) =>
+      `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
+      `<h1 style="color:#b91c1c;font-size:20px">Commission invoice overdue</h1>` +
+      `<p>Hello ${p.hostName},</p>` +
+      `<p>The Darna commission for your booking "<strong>${p.propertyTitle}</strong>" (pay-at-property) is past its due date. Please settle it as soon as possible.</p>` +
+      `<table style="width:100%;border-collapse:collapse;margin:16px 0">` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Amount due</td><td style="padding:6px 0;text-align:right;font-weight:700;color:#b91c1c">${p.amount}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Was due on</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.dueDate}</td></tr>` +
+      `</table>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#b91c1c;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">Pay the invoice</a></p>` +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Verified stays.</p>` +
+      `</div>`,
     newMessageSujet: (titre: string) => `Darna — new message · ${titre}`,
     newMessageHtml: (p: {
       recipientName: string;
@@ -1241,6 +1269,10 @@ export const en: Dictionary = {
       `Your stay “${titre}” was cancelled by the host — you've been fully refunded. We're sorry about this: this host's account has been suspended.`,
     hostInvoiceRelance: (titre: string) =>
       `Reminder: the commission invoice for “${titre}” is still awaiting payment.`,
+    factureBientotDue: (titre: string) =>
+      `Your commission invoice for “${titre}” is due soon.`,
+    factureEnRetard: (titre: string) =>
+      `Your commission invoice for “${titre}” is now overdue.`,
   },
   alaUne: {
     titre: "Feature your listing",
@@ -1639,5 +1671,10 @@ export const en: Dictionary = {
     factureIndisponible: "This invoice is no longer available.",
     paiementErreur: "Error initializing the payment.",
     factureReglee: "Invoice paid.",
+    listeTitre: "My invoices",
+    listeSousTitre: "Darna commissions owed for your pay-at-property bookings.",
+    statutEnRetard: "Overdue",
+    vide: "No invoices yet.",
+    voirFacture: "View invoice",
   },
 };

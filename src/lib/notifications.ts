@@ -188,3 +188,77 @@ export async function sendHostInvoiceReminderEmail(invoiceId: string): Promise<v
     });
   }
 }
+
+/**
+ * Rappel AUTOMATIQUE (détection paresseuse, §PSP5) qu'une HostInvoice arrive
+ * bientôt à échéance — distinct de sendHostInvoiceReminderEmail (relance
+ * MANUELLE admin, §PSP8). Appelée depuis ensureHostInvoiceReminders
+ * uniquement quand une notif in-app vient d'être créée (jamais de doublon).
+ */
+export async function sendHostInvoiceDueSoonEmail(invoiceId: string): Promise<void> {
+  try {
+    const invoice = await prisma.hostInvoice.findUnique({
+      where: { id: invoiceId },
+      select: {
+        amount: true,
+        dueAt: true,
+        host: { select: { name: true, email: true } },
+        booking: { select: { property: { select: { title: true } } } },
+      },
+    });
+    if (!invoice) return;
+
+    await sendEmail({
+      to: invoice.host.email,
+      subject: frMail.email.hostInvoiceDueSoonSujet(invoice.booking.property.title),
+      html: frMail.email.hostInvoiceDueSoonHtml({
+        hostName: invoice.host.name,
+        propertyTitle: invoice.booking.property.title,
+        amount: formatTndServer(invoice.amount),
+        dueDate: formatDateFr(invoice.dueAt),
+        url: `${SITE_URL}/dashboard/factures/${invoiceId}`,
+      }),
+    });
+  } catch (err) {
+    logStructured("error", "notif.host_invoice_due_soon_failed", {
+      invoiceId,
+      error: (err as Error).message,
+    });
+  }
+}
+
+/**
+ * Rappel AUTOMATIQUE (détection paresseuse, §PSP5) qu'une HostInvoice a
+ * dépassé son échéance — même garde anti-doublon que sendHostInvoiceDueSoonEmail.
+ */
+export async function sendHostInvoiceOverdueEmail(invoiceId: string): Promise<void> {
+  try {
+    const invoice = await prisma.hostInvoice.findUnique({
+      where: { id: invoiceId },
+      select: {
+        amount: true,
+        dueAt: true,
+        host: { select: { name: true, email: true } },
+        booking: { select: { property: { select: { title: true } } } },
+      },
+    });
+    if (!invoice) return;
+
+    await sendEmail({
+      to: invoice.host.email,
+      subject: frMail.email.hostInvoiceOverdueSujet(invoice.booking.property.title),
+      html: frMail.email.hostInvoiceOverdueHtml({
+        hostName: invoice.host.name,
+        propertyTitle: invoice.booking.property.title,
+        amount: formatTndServer(invoice.amount),
+        dueDate: formatDateFr(invoice.dueAt),
+        url: `${SITE_URL}/dashboard/factures/${invoiceId}`,
+      }),
+    });
+  } catch (err) {
+    logStructured("error", "notif.host_invoice_overdue_failed", {
+      invoiceId,
+      error: (err as Error).message,
+    });
+  }
+}

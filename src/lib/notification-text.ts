@@ -40,6 +40,10 @@ export function notificationMessage(
       return fr.notifications.reservationAnnuleeParHote(n.propertyTitle ?? "");
     case "HOST_INVOICE_RELANCE":
       return fr.notifications.hostInvoiceRelance(n.propertyTitle ?? "");
+    case "FACTURE_BIENTOT_DUE":
+      return fr.notifications.factureBientotDue(n.propertyTitle ?? "");
+    case "FACTURE_EN_RETARD":
+      return fr.notifications.factureEnRetard(n.propertyTitle ?? "");
     default:
       return "";
   }

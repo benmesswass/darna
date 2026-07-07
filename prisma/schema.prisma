@@ -484,12 +484,15 @@ model Notification {
 
   @@index([userId, readAt])
   @@index([userId, createdAt])
-  // NB : un index UNIQUE PARTIEL supplémentaire existe en base — (userId, href)
-  // WHERE type = 'ANNONCE_EXPIRE_BIENTOT' — pour dédoublonner les alertes
-  // d'expiration sous requêtes concurrentes. Non représentable dans le DSL
-  // Prisma (pas de clause WHERE sur @@unique) ; ajouté à la main dans la
-  // migration 20260702170000_add_notification. Ne PAS le supprimer via
-  // `migrate dev` sans le recréer manuellement (cf. src/lib/notification-center.ts).
+  // NB : des index UNIQUES PARTIELS supplémentaires existent en base — chacun
+  // (userId, href) WHERE type = '<un type précis>' — pour dédoublonner les
+  // alertes sous requêtes concurrentes. Non représentables dans le DSL Prisma
+  // (pas de clause WHERE sur @@unique) ; ajoutés à la main :
+  //  - ANNONCE_EXPIRE_BIENTOT — migration 20260702170000_add_notification
+  //  - FACTURE_BIENTOT_DUE / FACTURE_EN_RETARD — migration
+  //    20260707170000_add_host_invoice_reminder_notif (§PSP5)
+  // Ne PAS les supprimer via `migrate dev` sans les recréer manuellement
+  // (cf. src/lib/notification-center.ts).
 }
 
 // Alerte de recherche sauvegardée (F7) : ville + fourchette de prix. Un

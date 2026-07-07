@@ -59,6 +59,13 @@ export default async function DashboardLayout({
     ]);
   }
 
+  // Factures EN_ATTENTE de l'hôte lui-même (§PSP5) — pastille sur son propre
+  // lien « Mes factures », distincte du compteur admin ci-dessus (toutes les
+  // factures, tous les hôtes).
+  const hostPendingInvoices = isLister
+    ? await prisma.hostInvoice.count({ where: { hostId: user.id, status: "EN_ATTENTE" } })
+    : 0;
+
   // Messages non lus (tous fils confondus) → pastille « Messagerie », pour tous.
   const unreadMessages = await countUnreadMessages(user.id);
 
@@ -70,6 +77,7 @@ export default async function DashboardLayout({
     "/dashboard/admin/wakils": pendingWakils > 0 ? pendingWakils : undefined,
     "/dashboard/admin/signalements": flaggedMessages > 0 ? flaggedMessages : undefined,
     "/dashboard/admin/factures": overdueInvoices > 0 ? overdueInvoices : undefined,
+    "/dashboard/factures": hostPendingInvoices > 0 ? hostPendingInvoices : undefined,
   };
   const links = buildDashboardLinks(user, fr).map((l) => ({
     ...l,

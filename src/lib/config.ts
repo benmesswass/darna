@@ -82,6 +82,10 @@ export const LISTING_LIFETIME_DAYS = 30;
  *  « bientôt expirée » dans le centre de notifications (F9). */
 export const LISTING_EXPIRE_SOON_DAYS = 5;
 
+/** Seuil (jours restants) à partir duquel une HostInvoice EN_ATTENTE est
+ *  signalée « bientôt due » (PAIEMENT_SUR_PLACE_ROADMAP.md §PSP5). */
+export const HOST_INVOICE_DUE_SOON_DAYS = 3;
+
 /** Mise en avant payante (« à la une ») : durée du boost et prix unique. */
 export const FEATURED_DURATION_DAYS = 7;
 /** Prix en TND du boost « à la une » pour une semaine (paiement mock). */
