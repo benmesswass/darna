@@ -1600,6 +1600,24 @@ export const fr = {
     avisRecus: (n: number) => (n === 1 ? "1 avis reçu" : `${n} avis reçus`),
     aucunAvis: "Aucun avis reçu pour le moment.",
   },
+  factures: {
+    titre: "Facture hôte",
+    commissionPour: (titre: string) => `Commission Darna — ${titre}`,
+    statutEnAttente: "En attente de règlement",
+    statutPayee: "Réglée",
+    montantDu: "Montant dû",
+    echeance: (date: string) => `À régler avant le ${date}`,
+    payeLe: (date: string) => `Réglée le ${date}`,
+    payerKonnect: "Payer la commission",
+    redirectionKonnect: "Redirection vers le paiement…",
+    payerSimulation: "Marquer comme réglée (simulation)",
+    paiementEnVerification: "Paiement en cours de vérification…",
+    actualiser: "Actualiser",
+    paiementEchoue: "Le paiement a échoué. Merci de réessayer.",
+    factureIndisponible: "Cette facture n'est plus disponible.",
+    paiementErreur: "Erreur lors de l'initialisation du paiement.",
+    factureReglee: "Facture réglée.",
+  },
 };
 
 export type Dictionary = typeof fr;

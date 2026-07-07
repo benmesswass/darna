@@ -53,7 +53,11 @@ export type AuditAction =
   | "HOST_INVOICE_GENERATED"
   | "BOOKING_NO_SHOW_REPORTED"
   // Annulation hôte (ANNULATION_HOTE_ROADMAP.md §AH1).
-  | "HOST_CANCELLED_BOOKING";
+  | "HOST_CANCELLED_BOOKING"
+  // Règlement de la facture hôte (PAIEMENT_SUR_PLACE_ROADMAP.md §PSP4).
+  | "HOST_INVOICE_PAYMENT_INITIATED"
+  | "HOST_INVOICE_PAYMENT_FAILED"
+  | "HOST_INVOICE_PAID";
 
 /**
  * Audit trail — chaque événement sensible est enregistré avec userId, IP et
