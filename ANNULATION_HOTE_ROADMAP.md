@@ -114,17 +114,20 @@ séparé, non entamé par celui-ci.
 | AH6 | UI voyageur : notification d'annulation + page listant les suggestions + réduction | P0 | ✅ | `src/app/relogement/[bookingId]/page.tsx` — jusqu'à 10 cartes (`PropertyCard`), calculées à la consultation (pas figées à l'annulation), réduction générée à l'affichage et propagée sur chaque carte. Notification (AH1) pointe vers cette page. PR AH3/AH4/AH6 (branche `claude/host-cancellation-ah3`). |
 | AH7 | Durcissement sécurité/QA : idempotence, IDOR, non-bypass (dates falsifiées, double annulation, token de réduction rejouable, contournement du blocage d'annonce) + mise à jour `QA_ROADMAP.md` | P0 | ✅ | `tests/host-cancellation-security.test.ts` (IDOR D8, idempotence D9, palier D10, blocage direct-link D11), `tests/rebooking-discount.test.ts` (token D12). Bug trouvé et corrigé en testant en direct : `quoteBookingAction` ne vérifiait pas `cancelBlockedUntil` (`src/actions/bookings.ts`) — le devis semblait valide, seule la soumission finale refusait. `QA_ROADMAP.md` §3 (D8-D12) et §4.5 mis à jour. |
 
-**Chantier "annulation hôte" terminé : AH0 à AH7 tous ✅.**
+**Chantier "annulation hôte" — clôture à confirmer par Wassim (pas encore
+terminé). Statut des phases dans le tableau ci-dessus.**
 
 > **Suite (2026-07-07) :** l'analyse critique du code livré a relevé un bug
-> économique de remboursement + des manques UX/robustesse. Ce fichier-ci reste
-> **figé** (chantier initial terminé), les correctifs vivent dans le nouveau.
+> économique de remboursement + des manques UX/robustesse, regroupés dans un
+> sous-chantier de correctifs distinct (`ANNULATION_HOTE_CORRECTIFS_ROADMAP.md`).
 >
-> **➡️ CONTINUATION : `ANNULATION_HOTE_CORRECTIFS_ROADMAP.md`** — toutes les
-> phases AH0→AH7 étant `✅`, « suivant » / « enchaîne » sur l'annulation hôte
-> bascule automatiquement sur ce fichier et attaque sa première tâche non
-> cochée (AHC1, `P0`). Cf. règle « Chaînage automatique des roadmaps » de
-> `CLAUDE.md`.
+> **⏳ CONTINUATION EN ATTENTE : `ANNULATION_HOTE_CORRECTIFS_ROADMAP.md`** — le
+> chantier annulation hôte **n'est pas encore clos** (décision de Wassim). Tant
+> que ce pointeur reste ⏳, « suivant » / « enchaîne » **continue d'abord les
+> phases AH ci-dessus**. **Quand Wassim déclarera le chantier terminé**, passer
+> ce pointeur à **➡️ ACTIF** — « suivant » / « enchaîne » basculera alors
+> automatiquement sur les correctifs (AHC1, `P0`). Cf. règle « Chaînage
+> automatique des roadmaps » de `CLAUDE.md`.
 
 ## Exécution (prioritisée)
 

@@ -196,8 +196,8 @@ attendre un autre rendu.
 
 ---
 
-> **➡️ CONTINUATION (une fois AHC1→AHC8 tous `✅`) : `FEATURES_ROADMAP.md` /
-> `QA_ROADMAP.md`** — le chantier annulation hôte (initial + correctifs) sera
-> alors clos ; « suivant » / « enchaîne » reprend la priorité la plus haute
-> (`P0`/`P1`) des roadmaps produit/QA générales. Cf. règle « Chaînage
+> **⏳ CONTINUATION EN ATTENTE (à l'achèvement de AHC1→AHC8) : `FEATURES_ROADMAP.md` /
+> `QA_ROADMAP.md`** — une fois tous les correctifs `✅`, passer ce pointeur à
+> **➡️ ACTIF** ; « suivant » / « enchaîne » reprendra alors la priorité la plus
+> haute (`P0`/`P1`) des roadmaps produit/QA générales. Cf. règle « Chaînage
 > automatique des roadmaps » de `CLAUDE.md`.
