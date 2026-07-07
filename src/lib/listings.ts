@@ -10,6 +10,7 @@ import {
 } from "@/lib/constants";
 import type { MapMarker } from "@/components/map/types";
 import type { ReviewItem } from "@/components/property/ReviewsSection";
+import { blockingBookingOverlap } from "@/lib/booking-overlap";
 
 /** Taille de page pour les listings (protection DoS + UX). */
 const PAGE_SIZE = 24;
@@ -590,6 +591,53 @@ export async function getSimilarListings(
     orderBy: listingOrderBy,
     take,
   });
+}
+
+/**
+ * Suggestions de relogement après une annulation À L'INITIATIVE DE L'HÔTE
+ * (ANNULATION_HOTE_ROADMAP.md §AH3) : même ville, capacité suffisante, prix
+ * comparable (±20 % de la nuitée payée) et RÉELLEMENT disponible sur les
+ * mêmes dates (contrairement à getSimilarListings, qui ignore dates/
+ * capacité/prix — pas adapté à un relogement concret). L'annonce annulée
+ * elle-même n'apparaît jamais : `activeListingWhere()` l'exclut déjà si
+ * elle est bloquée (§AH2), et `id: { not }` couvre le cas où elle ne l'est
+ * pas encore (annulation très en amont, blocage court).
+ */
+export async function getRebookingSuggestions(
+  booking: {
+    propertyId: string;
+    city: string;
+    guests: number;
+    checkIn: Date;
+    checkOut: Date;
+    nightlyPrice: number;
+  },
+  take = 4
+): Promise<ListingWithPhoto[]> {
+  const priceMin = Math.floor(booking.nightlyPrice * 0.8);
+  const priceMax = Math.ceil(booking.nightlyPrice * 1.2);
+
+  const candidates = await prisma.property.findMany({
+    where: {
+      ...activeListingWhere(),
+      type: "SEJOUR",
+      city: booking.city,
+      id: { not: booking.propertyId },
+      price: { gte: priceMin, lte: priceMax },
+      stay: { maxGuests: { gte: booking.guests } },
+      bookings: { none: blockingBookingOverlap(booking.checkIn, booking.checkOut) },
+    },
+    include: listingCardInclude,
+    // Marge avant le tri par écart de prix ci-dessous (take final plus petit).
+    take: take * 3,
+  });
+
+  return candidates
+    .sort(
+      (a, b) =>
+        Math.abs(a.price - booking.nightlyPrice) - Math.abs(b.price - booking.nightlyPrice)
+    )
+    .slice(0, take);
 }
 
 export async function getFeaturedListings(take = 6) {

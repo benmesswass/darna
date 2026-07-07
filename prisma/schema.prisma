@@ -330,6 +330,12 @@ model Booking {
   // changement du barème).
   cancelledByHostAt   DateTime?
   hostCancelBlockDays Int?
+  // Geste commercial (ANNULATION_HOTE_ROADMAP.md §AH4) : id de la NOUVELLE
+  // réservation pour laquelle le voyageur a consommé la réduction ponctuelle
+  // liée à CETTE annulation (token signé, cf. src/lib/rebooking-discount.ts).
+  // Null tant que non utilisée. Posée UNE SEULE FOIS (condition d'unicité
+  // appliquée par l'updateMany qui la consomme) — usage unique garanti.
+  rebookingDiscountUsedFor String?
   createdAt    DateTime  @default(now())
 
   propertyId String

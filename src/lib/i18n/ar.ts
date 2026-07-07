@@ -1024,6 +1024,7 @@ export const ar: Dictionary = {
     fraisService: "معلوم خدمة دارنا",
     fraisServiceAide: "يموّل توثيق الإعلانات وحماية الخلاصات.",
     total: "المبلغ الجملي",
+    reductionRelogement: "تخفيض دارنا",
     aucunFraisCache: "حتى معلوم آخر ما يتطلب منك. أبدًا.",
     continuerPaiement: "كمّل للخلاص",
     holdLabel: "بلاصتك محجوزة — خلّص في ظرف",

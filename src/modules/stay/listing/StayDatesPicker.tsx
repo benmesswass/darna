@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useT } from "@/components/i18n/LocaleProvider";
 import { BookingDatePicker } from "@/components/booking/BookingDatePicker";
 
@@ -25,9 +26,14 @@ export function StayDatesPicker({
   const [checkOut, setCheckOut] = useState<string | null>(null);
   const ready = Boolean(checkIn && checkOut);
 
+  // Réduction ponctuelle (§AH4) : le token arrive en query param sur CETTE
+  // page (lien de la notification d'annulation hôte) — on le fait suivre
+  // jusqu'au funnel de réservation, seul endroit où il sera vérifié/consommé.
+  const promo = useSearchParams().get("promo");
+  const promoParam = promo ? `&promo=${encodeURIComponent(promo)}` : "";
   const href = ready
-    ? `/annonce/${slug}/reserver?arrivee=${checkIn}&depart=${checkOut}`
-    : `/annonce/${slug}/reserver`;
+    ? `/annonce/${slug}/reserver?arrivee=${checkIn}&depart=${checkOut}${promoParam}`
+    : `/annonce/${slug}/reserver${promo ? `?promo=${encodeURIComponent(promo)}` : ""}`;
 
   return (
     <div className="space-y-4">

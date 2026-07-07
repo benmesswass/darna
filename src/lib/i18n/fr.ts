@@ -1016,6 +1016,7 @@ export const fr = {
     fraisServiceAide:
       "Ils financent la vérification des annonces et la protection des paiements.",
     total: "Total à payer",
+    reductionRelogement: "Réduction Darna",
     aucunFraisCache: "Aucun autre frais ne vous sera demandé. Jamais.",
     continuerPaiement: "Continuer vers le paiement",
     holdLabel: "Place gardée — paiement sous",

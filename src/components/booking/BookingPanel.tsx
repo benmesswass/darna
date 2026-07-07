@@ -32,6 +32,7 @@ export function BookingPanel({
   isLoggedIn,
   verified,
   cashPaymentEligible,
+  discountToken,
 }: {
   slug: string;
   unavailable: string[];
@@ -44,6 +45,10 @@ export function BookingPanel({
   verified: boolean;
   /** Annonce cashPaymentEnabled ET voyageur KYC VERIFIE (Rail 2, PSP3). */
   cashPaymentEligible: boolean;
+  /** Réduction ponctuelle (§AH4) — déjà vérifiée serveur (page.tsx), jamais
+   * confiance ici : quoteBookingAction et createBookingAction revérifient
+   * tout de toute façon. Absent si aucun token valide. */
+  discountToken?: string;
 }) {
   const fr = useT();
   const locale = useLocale();
@@ -70,7 +75,7 @@ export function BookingPanel({
     }
     let active = true;
     setPending(true);
-    quoteBookingAction({ slug, arrivee: checkIn, depart: checkOut, voyageurs }).then(
+    quoteBookingAction({ slug, arrivee: checkIn, depart: checkOut, voyageurs, discountToken }).then(
       (q) => {
         if (active) {
           setQuote(q);
@@ -81,7 +86,7 @@ export function BookingPanel({
     return () => {
       active = false;
     };
-  }, [slug, checkIn, checkOut, voyageurs]);
+  }, [slug, checkIn, checkOut, voyageurs, discountToken]);
 
   // Sur mobile, amener le récapitulatif sous les yeux dès qu'une plage est
   // complète (sur desktop la carte est déjà sticky et visible).
@@ -204,6 +209,14 @@ export function BookingPanel({
                       <Price amount={q.serviceFee} className="font-semibold text-body" />
                     </dd>
                   </div>
+                  {q.discount ? (
+                    <div className="flex items-center justify-between text-emerald-700">
+                      <dt className="font-semibold">{fr.booking.reductionRelogement}</dt>
+                      <dd className="font-bold">
+                        −<Price amount={q.discount} className="font-bold" />
+                      </dd>
+                    </div>
+                  ) : null}
                   <div className="flex items-center justify-between border-t border-darna/10 pt-3 text-base">
                     <dt className="font-bold text-heading">{fr.booking.total}</dt>
                     <dd>
@@ -304,6 +317,7 @@ export function BookingPanel({
                 depart={checkOut ?? ""}
                 voyageurs={voyageurs}
                 paymentMode={cashPaymentEligible ? paymentMode : "ESCROW"}
+                discountToken={q.discount ? discountToken : undefined}
               />
             )
           ) : (

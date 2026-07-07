@@ -1004,6 +1004,7 @@ export const en: Dictionary = {
     fraisServiceAide:
       "It funds listing verification and payment protection.",
     total: "Total to pay",
+    reductionRelogement: "Darna discount",
     aucunFraisCache: "No other fee will ever be asked of you. Ever.",
     continuerPaiement: "Continue to payment",
     holdLabel: "Spot held — pay within",

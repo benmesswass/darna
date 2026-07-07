@@ -9,6 +9,8 @@
 import { prisma } from "@/lib/prisma";
 import { logStructured } from "@/lib/audit";
 import { LISTING_EXPIRE_SOON_DAYS } from "@/lib/config";
+import { getRebookingSuggestions } from "@/lib/listings";
+import { signRebookingDiscount } from "@/lib/rebooking-discount";
 
 export type NotificationType =
   | "RESERVATION_CONFIRMEE"
@@ -76,19 +78,48 @@ export async function notifyBookingCancelled(bookingId: string): Promise<void> {
 
 /**
  * Notifie le VOYAGEUR que l'hôte a annulé sa réservation (ANNULATION_HOTE_
- * ROADMAP.md §AH1) — distinct de notifyBookingCancelled (annulation par le
- * voyageur lui-même, notifie l'hôte). `href` pointe vers /sejours pour
- * l'instant ; remplacé par les suggestions de relogement en AH6.
+ * ROADMAP.md §AH1/§AH3/§AH4) — distinct de notifyBookingCancelled (annulation
+ * par le voyageur lui-même, notifie l'hôte). Pointe vers la meilleure
+ * suggestion de relogement (même ville, capacité, prix comparable, dates
+ * réellement libres) avec un token de réduction ponctuelle signé pour CE
+ * voyageur ; à défaut de suggestion, repli sur /sejours.
  */
 export async function notifyBookingCancelledByHost(bookingId: string): Promise<void> {
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
-    select: { guestId: true, property: { select: { title: true } } },
+    select: {
+      guestId: true,
+      propertyId: true,
+      guests: true,
+      checkIn: true,
+      checkOut: true,
+      nightlyPrice: true,
+      property: { select: { title: true, city: true } },
+    },
   });
   if (!booking) return;
+
+  const [suggestion] = await getRebookingSuggestions(
+    {
+      propertyId: booking.propertyId,
+      city: booking.property.city,
+      guests: booking.guests,
+      checkIn: booking.checkIn,
+      checkOut: booking.checkOut,
+      nightlyPrice: booking.nightlyPrice,
+    },
+    1
+  );
+
+  const href = suggestion
+    ? `/annonce/${suggestion.slug}?promo=${encodeURIComponent(
+        signRebookingDiscount(bookingId, booking.guestId)
+      )}`
+    : "/sejours";
+
   await createNotification(booking.guestId, "RESERVATION_ANNULEE_PAR_HOTE", {
     propertyTitle: booking.property.title,
-    href: "/sejours",
+    href,
   });
 }
 
