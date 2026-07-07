@@ -463,6 +463,10 @@ export const en: Dictionary = {
       "You cancelled an already confirmed booking — the guest was fully refunded, but cancelling after confirmation is still penalized.",
     suspenduPourquoiFactureImpayee:
       "A Darna commission invoice remains unpaid despite a reminder — please settle it to lift the suspension.",
+    facturesEnRetardBanniereTitre: "Listings hidden: overdue invoice",
+    facturesEnRetardBanniereDetail:
+      "Until you settle your overdue commission invoice, all your listings are invisible to travelers and cannot be booked.",
+    facturesEnRetardBanniereCta: "View my invoices",
     suspenduConsequencesTitre: "Consequences:",
     suspenduProchaine: (jours: number) =>
       `If you try again, the next suspension will last ${jours} days.`,
@@ -1080,6 +1084,8 @@ export const en: Dictionary = {
     datesInvalides: "Invalid dates — check-out must come after check-in.",
     datesIndisponibles:
       "These dates are no longer available. Please choose different ones.",
+    hoteFactureImpayee:
+      "This listing is temporarily unavailable for booking (host invoice overdue).",
     proprietaireImpossible: "You can't book your own listing.",
     proprietaireImpossibleAide:
       "This is your listing. To test it as a traveller, sign in with another account.",

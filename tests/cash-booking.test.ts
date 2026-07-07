@@ -22,6 +22,7 @@ vi.mock("@/lib/prisma", () => ({
 }));
 vi.mock("@/lib/session", () => ({ requireUser: vi.fn() }));
 vi.mock("@/lib/notifications", () => ({ sendBookingConfirmationEmail: vi.fn() }));
+vi.mock("@/lib/host-invoicing", () => ({ hasOverdueHostInvoice: vi.fn(() => false) }));
 vi.mock("@/lib/notification-center", () => ({
   notifyBookingConfirmed: vi.fn(),
   notifyCashBookingRequested: vi.fn(),

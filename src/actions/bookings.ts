@@ -25,6 +25,7 @@ import {
   isRebookingDiscountValid,
 } from "@/lib/rebooking-discount";
 import { initKonnectPayment, isKonnectEnabled, signKonnectWebhook } from "@/lib/konnect";
+import { hasOverdueHostInvoice } from "@/lib/host-invoicing";
 import { sendBookingConfirmationEmail } from "@/lib/notifications";
 import { computeBookingRefund } from "@/lib/cancellation";
 import {
@@ -146,6 +147,13 @@ export async function createBookingAction(
   // GUARD : un hôte ne peut pas réserver son propre logement
   if (property.ownerId === user.id) {
     return { error: fr.booking.proprietaireImpossible };
+  }
+
+  // Levier de recouvrement (§PSP6) : aucune nouvelle réservation (escrow ou
+  // sur place) tant que l'hôte a une facture de commission en retard —
+  // refusé même via un lien direct, pas seulement masqué de la recherche.
+  if (await hasOverdueHostInvoice(property.ownerId)) {
+    return { error: fr.booking.hoteFactureImpayee };
   }
 
   if (property.stay?.maxGuests && parsed.data.voyageurs > property.stay.maxGuests) {

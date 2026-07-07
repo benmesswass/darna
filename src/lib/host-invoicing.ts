@@ -96,3 +96,17 @@ export async function settleHostInvoice(
 
   return "PAYEE";
 }
+
+/**
+ * Levier de recouvrement (PAIEMENT_SUR_PLACE_ROADMAP.md §PSP6) : un hôte a
+ * au moins une HostInvoice EN_ATTENTE dont l'échéance est dépassée. AUCUN
+ * champ stocké, aucun job planifié — filtre calculé à chaque lecture (même
+ * esprit que `Property.expiresAt` / `activeListingWhere`). Dès que la
+ * facture passe à PAYEE, la condition redevient fausse instantanément.
+ */
+export async function hasOverdueHostInvoice(hostId: string): Promise<boolean> {
+  const count = await prisma.hostInvoice.count({
+    where: { hostId, status: "EN_ATTENTE", dueAt: { lt: new Date() } },
+  });
+  return count > 0;
+}

@@ -21,13 +21,20 @@ const PAGE_SIZE = 24;
  * périmées des concurrents. Exclut aussi une annonce temporairement
  * BLOQUÉE suite à une annulation hôte (ANNULATION_HOTE_ROADMAP.md §AH2) —
  * même filtre paresseux sur une date que `expiresAt`, pas de statut à
- * faire basculer par un job.
+ * faire basculer par un job. Exclut aussi TOUTES les annonces d'un hôte
+ * ayant une HostInvoice EN_ATTENTE en retard (levier de recouvrement,
+ * PAIEMENT_SUR_PLACE_ROADMAP.md §PSP6) — filtre relationnel, pas de champ
+ * dénormalisé sur Property : dès que la facture est réglée, l'annonce
+ * redevient visible immédiatement (cf. `hasOverdueHostInvoice`).
  */
 export function activeListingWhere(): Prisma.PropertyWhereInput {
   return {
     status: "ACTIVE",
     expiresAt: { gt: new Date() },
     OR: [{ cancelBlockedUntil: null }, { cancelBlockedUntil: { lte: new Date() } }],
+    owner: {
+      hostInvoices: { none: { status: "EN_ATTENTE", dueAt: { lt: new Date() } } },
+    },
   };
 }
 

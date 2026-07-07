@@ -468,6 +468,13 @@ export const fr = {
       "Vous avez annulé une réservation déjà confirmée — le voyageur a été intégralement remboursé, mais annuler après confirmation reste pénalisé.",
     suspenduPourquoiFactureImpayee:
       "Une facture de commission Darna reste impayée malgré une relance — merci de la régler pour lever la suspension.",
+    // Levier de recouvrement (§PSP6) : bannière tant qu'une facture de
+    // commission dépasse son échéance — distincte de la suspension (peut
+    // survenir avant qu'un admin ne suspende manuellement).
+    facturesEnRetardBanniereTitre: "Annonces masquées : facture en retard",
+    facturesEnRetardBanniereDetail:
+      "Le temps de régler votre facture de commission en retard, toutes vos annonces sont invisibles pour les voyageurs et non réservables.",
+    facturesEnRetardBanniereCta: "Voir mes factures",
     suspenduConsequencesTitre: "Conséquences :",
     suspenduProchaine: (jours: number) =>
       `En cas de nouvelle tentative, la prochaine suspension durera ${jours} jours.`,
@@ -1093,6 +1100,8 @@ export const fr = {
     datesInvalides: "Dates invalides — la date de départ doit suivre l'arrivée.",
     datesIndisponibles:
       "Ces dates ne sont plus disponibles. Merci d'en choisir d'autres.",
+    hoteFactureImpayee:
+      "Ce logement est temporairement indisponible à la réservation (facture hôte en retard).",
     proprietaireImpossible: "Vous ne pouvez pas réserver votre propre logement.",
     proprietaireImpossibleAide:
       "C'est votre annonce. Pour la tester en tant que voyageur, connectez-vous avec un autre compte.",
