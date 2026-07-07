@@ -376,6 +376,10 @@ model HostInvoice {
   dueAt      DateTime
   paidAt     DateTime?
   createdAt  DateTime  @default(now())
+  // Dernière relance MANUELLE envoyée par un admin (dashboard §PSP8) — permet
+  // d'afficher "Relancé le X" plutôt qu'un clic sans retour visible. Distinct
+  // des futures relances automatiques (§PSP5), pas encore implémentées.
+  lastReminderAt DateTime?
 
   bookingId String  @unique
   booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)

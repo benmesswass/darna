@@ -466,6 +466,8 @@ export const fr = {
       "Vous ne vous êtes pas présenté pour un séjour confirmé payé sur place, ce qui pénalise l'hôte qui vous avait réservé les dates.",
     suspenduPourquoiHostCancel:
       "Vous avez annulé une réservation déjà confirmée — le voyageur a été intégralement remboursé, mais annuler après confirmation reste pénalisé.",
+    suspenduPourquoiFactureImpayee:
+      "Une facture de commission Darna reste impayée malgré une relance — merci de la régler pour lever la suspension.",
     suspenduConsequencesTitre: "Conséquences :",
     suspenduProchaine: (jours: number) =>
       `En cas de nouvelle tentative, la prochaine suspension durera ${jours} jours.`,
@@ -735,6 +737,28 @@ export const fr = {
     wakilsSupprimeeesDesc: "Ces candidatures ont été archivées. Vous pouvez les supprimer définitivement.",
     supprimerDefinitivement: "Supprimer",
     aucuneCandidatureSupprimee: "Aucune candidature archivée.",
+    navFactures: "Factures hôtes",
+    facturesTitre: "Factures hôtes — paiement sur place",
+    facturesSousTitre:
+      "Commissions Darna dues par les hôtes en Rail 2 (paiement sur place). Relance et suspension manuelles.",
+    facturesVide: "Aucune facture pour le moment.",
+    facturesTotalDu: "Total dû",
+    facturesTotalEncaisse: "Total encaissé",
+    facturesEnRetard: (n: number) =>
+      n === 1 ? "1 facture en retard" : `${n} factures en retard`,
+    facturesColHote: "Hôte",
+    facturesColAnnonce: "Annonce",
+    facturesColMontant: "Montant",
+    facturesColEcheance: "Échéance",
+    facturesColStatut: "Statut",
+    facturesStatutEnAttente: "En attente",
+    facturesStatutPayee: "Réglée",
+    facturesStatutEnRetard: "En retard",
+    facturesRelancer: "Relancer",
+    facturesRelanceLe: (date: string) => `Relancé le ${date}`,
+    facturesSuspendre: "Suspendre le compte",
+    facturesSuspendreConfirm:
+      "Suspendre ce compte hôte pour facture impayée ? Il ne pourra plus publier ni recevoir de réservations jusqu'à réactivation.",
   },
   // Tableau de bord founder — suivi d'adoption (ADMIN uniquement)
   analytics: {
@@ -884,6 +908,20 @@ export const fr = {
       (p.demo
         ? `<p style="background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:10px;font-size:13px;color:#92400e">Mode démonstration : aucun paiement réel n'a été effectué.</p>`
         : "") +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Le logement vérifié.</p>` +
+      `</div>`,
+    hostInvoiceReminderSujet: (titre: string) =>
+      `Darna — rappel : facture de commission en attente (${titre})`,
+    hostInvoiceReminderHtml: (p: { hostName: string; propertyTitle: string; amount: string; dueDate: string; url: string }) =>
+      `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
+      `<h1 style="color:#0f4c7c;font-size:20px">Facture de commission en attente</h1>` +
+      `<p>Bonjour ${p.hostName},</p>` +
+      `<p>La commission Darna pour votre réservation « <strong>${p.propertyTitle}</strong> » (paiement sur place) est toujours en attente de règlement.</p>` +
+      `<table style="width:100%;border-collapse:collapse;margin:16px 0">` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Montant dû</td><td style="padding:6px 0;text-align:right;font-weight:700;color:#0f4c7c">${p.amount}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">À régler avant le</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.dueDate}</td></tr>` +
+      `</table>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f4c7c;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">Régler la facture</a></p>` +
       `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Le logement vérifié.</p>` +
       `</div>`,
     newMessageSujet: (titre: string) => `Darna — nouveau message · ${titre}`,
@@ -1219,6 +1257,8 @@ export const fr = {
       `Votre demande de réservation pour « ${titre} » a été déclinée par l'hôte.`,
     reservationAnnuleeParHote: (titre: string) =>
       `Votre séjour « ${titre} » a été annulé par l'hôte — vous avez été intégralement remboursé. Nous en sommes désolés : le compte de cet hôte a été suspendu.`,
+    hostInvoiceRelance: (titre: string) =>
+      `Rappel : la facture de commission pour « ${titre} » est toujours en attente de règlement.`,
   },
   alaUne: {
     titre: "Mettez votre annonce à la une",

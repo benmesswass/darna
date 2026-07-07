@@ -57,7 +57,10 @@ export type AuditAction =
   // Règlement de la facture hôte (PAIEMENT_SUR_PLACE_ROADMAP.md §PSP4).
   | "HOST_INVOICE_PAYMENT_INITIATED"
   | "HOST_INVOICE_PAYMENT_FAILED"
-  | "HOST_INVOICE_PAID";
+  | "HOST_INVOICE_PAID"
+  // Dashboard admin factures (PAIEMENT_SUR_PLACE_ROADMAP.md §PSP8).
+  | "HOST_INVOICE_REMINDER_SENT"
+  | "HOST_INVOICE_MANUAL_SUSPENSION";
 
 /**
  * Audit trail — chaque événement sensible est enregistré avec userId, IP et

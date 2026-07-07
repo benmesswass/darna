@@ -461,6 +461,8 @@ export const en: Dictionary = {
       "You didn't show up for a confirmed pay-at-property stay, which penalizes the host who had reserved those dates for you.",
     suspenduPourquoiHostCancel:
       "You cancelled an already confirmed booking — the guest was fully refunded, but cancelling after confirmation is still penalized.",
+    suspenduPourquoiFactureImpayee:
+      "A Darna commission invoice remains unpaid despite a reminder — please settle it to lift the suspension.",
     suspenduConsequencesTitre: "Consequences:",
     suspenduProchaine: (jours: number) =>
       `If you try again, the next suspension will last ${jours} days.`,
@@ -727,6 +729,27 @@ export const en: Dictionary = {
     wakilsSupprimeeesDesc: "These applications have been archived. You can permanently delete them.",
     supprimerDefinitivement: "Delete",
     aucuneCandidatureSupprimee: "No archived applications.",
+    navFactures: "Host invoices",
+    facturesTitre: "Host invoices — pay at property",
+    facturesSousTitre:
+      "Darna commissions owed by hosts in Rail 2 (pay at property). Manual reminder and suspension.",
+    facturesVide: "No invoices yet.",
+    facturesTotalDu: "Total due",
+    facturesTotalEncaisse: "Total collected",
+    facturesEnRetard: (n: number) => (n === 1 ? "1 overdue invoice" : `${n} overdue invoices`),
+    facturesColHote: "Host",
+    facturesColAnnonce: "Listing",
+    facturesColMontant: "Amount",
+    facturesColEcheance: "Due date",
+    facturesColStatut: "Status",
+    facturesStatutEnAttente: "Pending",
+    facturesStatutPayee: "Paid",
+    facturesStatutEnRetard: "Overdue",
+    facturesRelancer: "Send reminder",
+    facturesRelanceLe: (date: string) => `Reminded on ${date}`,
+    facturesSuspendre: "Suspend account",
+    facturesSuspendreConfirm:
+      "Suspend this host's account for unpaid invoice? They won't be able to publish or receive bookings until reactivated.",
   },
   analytics: {
     titre: "Dashboard",
@@ -874,6 +897,20 @@ export const en: Dictionary = {
       (p.demo
         ? `<p style="background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:10px;font-size:13px;color:#92400e">Demo mode: no real payment was made.</p>`
         : "") +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Verified stays.</p>` +
+      `</div>`,
+    hostInvoiceReminderSujet: (titre: string) =>
+      `Darna — reminder: commission invoice pending (${titre})`,
+    hostInvoiceReminderHtml: (p: { hostName: string; propertyTitle: string; amount: string; dueDate: string; url: string }) =>
+      `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
+      `<h1 style="color:#0f4c7c;font-size:20px">Commission invoice pending</h1>` +
+      `<p>Hello ${p.hostName},</p>` +
+      `<p>The Darna commission for your booking "<strong>${p.propertyTitle}</strong>" (pay-at-property) is still awaiting payment.</p>` +
+      `<table style="width:100%;border-collapse:collapse;margin:16px 0">` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Amount due</td><td style="padding:6px 0;text-align:right;font-weight:700;color:#0f4c7c">${p.amount}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Due before</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.dueDate}</td></tr>` +
+      `</table>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f4c7c;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">Pay the invoice</a></p>` +
       `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Verified stays.</p>` +
       `</div>`,
     newMessageSujet: (titre: string) => `Darna — new message · ${titre}`,
@@ -1202,6 +1239,8 @@ export const en: Dictionary = {
       `Your booking request for “${titre}” was declined by the host.`,
     reservationAnnuleeParHote: (titre: string) =>
       `Your stay “${titre}” was cancelled by the host — you've been fully refunded. We're sorry about this: this host's account has been suspended.`,
+    hostInvoiceRelance: (titre: string) =>
+      `Reminder: the commission invoice for “${titre}” is still awaiting payment.`,
   },
   alaUne: {
     titre: "Feature your listing",

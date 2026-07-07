@@ -482,6 +482,8 @@ export const ar: Dictionary = {
       "ما جيتش لإقامة مؤكّدة تخلص عالمكان، وهذا يضرّ بالمالك اللي حجزلك الأيام.",
     suspenduPourquoiHostCancel:
       "لغيت حجز كان مؤكّد — رجعنا للمسافر فلوسو كاملة، ولكن الإلغاء بعد التأكيد يبقى معرّض للعقاب.",
+    suspenduPourquoiFactureImpayee:
+      "فاتورة كوميسيون دارنا مازالت ما تخلصتش رغم التفكرة — خلّصها باش يترفع التعليق.",
     suspenduConsequencesTitre: "العواقب :",
     suspenduProchaine: (jours: number) =>
       `كان تعاود، التعليق الجاي باش يدوم ${jours} أيّام.`,
@@ -745,6 +747,25 @@ export const ar: Dictionary = {
     wakilsSupprimeeesDesc: "هذه الطلبات تمّت أرشفتها. يمكنك حذفها نهائياً.",
     supprimerDefinitivement: "حذف",
     aucuneCandidatureSupprimee: "لا توجد طلبات مؤرشفة.",
+    navFactures: "فواتير المالكين",
+    facturesTitre: "فواتير المالكين — الخلاص عالمكان",
+    facturesSousTitre: "الكوميسيونات اللي يستوجبوها المالكين في الرايل 2 (الخلاص عالمكان). تفكرة وتعليق مانويل.",
+    facturesVide: "ما فماش فواتير لحد الآن.",
+    facturesTotalDu: "الجملة المستوجبة",
+    facturesTotalEncaisse: "الجملة المقبوضة",
+    facturesEnRetard: (n: number) => (n === 1 ? "فاتورة واحدة متأخرة" : `${n} فواتير متأخرة`),
+    facturesColHote: "المالك",
+    facturesColAnnonce: "الإعلان",
+    facturesColMontant: "المبلغ",
+    facturesColEcheance: "الأجل",
+    facturesColStatut: "الحالة",
+    facturesStatutEnAttente: "في الانتظار",
+    facturesStatutPayee: "مخلّصة",
+    facturesStatutEnRetard: "متأخرة",
+    facturesRelancer: "تفكرة",
+    facturesRelanceLe: (date: string) => `تفكّرنا نهار ${date}`,
+    facturesSuspendre: "علّق الحساب",
+    facturesSuspendreConfirm: "تعلّق حساب هذا المالك على فاتورة ما تخلصتش؟ ما ينجمش ينشر ولا يتقبل حجوزات حتى يترجع الحساب.",
   },
   analytics: {
     titre: "لوحة القيادة",
@@ -892,6 +913,20 @@ export const ar: Dictionary = {
       (p.demo
         ? `<p style="background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:10px;font-size:13px;color:#92400e">وضع التجربة: ما صار حتّى خلاص حقيقي.</p>`
         : "") +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — السكن المضمون.</p>` +
+      `</div>`,
+    hostInvoiceReminderSujet: (titre: string) =>
+      `Darna — تفكرة : فاتورة الكوميسيون في الانتظار (${titre})`,
+    hostInvoiceReminderHtml: (p: { hostName: string; propertyTitle: string; amount: string; dueDate: string; url: string }) =>
+      `<div dir="rtl" style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
+      `<h1 style="color:#0f4c7c;font-size:20px">فاتورة كوميسيون في الانتظار</h1>` +
+      `<p>أهلا ${p.hostName}،</p>` +
+      `<p>كوميسيون دارنا للحجز متاعك في <strong>${p.propertyTitle}</strong> (خلاص عالمكان) مازالت في انتظار الخلاص.</p>` +
+      `<table style="width:100%;border-collapse:collapse;margin:16px 0">` +
+      `<tr><td style="padding:6px 0;color:#6b7280">المبلغ المستوجب</td><td style="padding:6px 0;text-align:left;font-weight:700;color:#0f4c7c">${p.amount}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">لازم تخلّص قبل</td><td style="padding:6px 0;text-align:left;font-weight:600">${p.dueDate}</td></tr>` +
+      `</table>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f4c7c;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">خلّص الفاتورة</a></p>` +
       `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — السكن المضمون.</p>` +
       `</div>`,
     newMessageSujet: (titre: string) => `Darna — رسالة جديدة · ${titre}`,
@@ -1219,6 +1254,8 @@ export const ar: Dictionary = {
       `طلب الحجز متاعك لـ « ${titre} » اترفض من المالك.`,
     reservationAnnuleeParHote: (titre: string) =>
       `السفرة متاعك « ${titre} » تلغات من المالك — رجعنالك الفلوس كاملة. آسفين على هذا: حسابه معلّق توّا.`,
+    hostInvoiceRelance: (titre: string) =>
+      `تفكرة : فاتورة الكوميسيون لـ « ${titre} » مازالت في انتظار الخلاص.`,
   },
   alaUne: {
     titre: "حطّ إعلانك في الواجهة",

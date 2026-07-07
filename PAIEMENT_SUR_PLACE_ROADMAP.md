@@ -129,6 +129,7 @@ minimum est payé — inchangé, c'est le comportement actuel.
 | PSP5 | Dashboard hôte « Factures » (liste, statut, payer) **+ rappels** (J-3, en retard) | P1 | ❌ | `src/app/dashboard/factures/page.tsx` + extension de `ensureExpiringSoonNotifications` (patron identique, pas de cron) |
 | PSP6 | Levier de recouvrement : masquage des annonces si facture en retard — **filtre Prisma dérivé, aucun statut stocké** | P1 | ❌ | `hasOverdueHostInvoice`, filtre relationnel dans `searchSejours`, même esprit que `Property.expiresAt` |
 | PSP7 | Durcissement sécurité/QA : tests idempotence/IDOR/non-bypass + mise à jour `QA_ROADMAP.md` | P0 | ❌ | Nouvelle surface paiement sensible — obligatoire avant merge final |
+| PSP8 | Dashboard **ADMIN** factures (vue globale comptable, distinct du dashboard hôte §PSP5) : total dû/encaissé/en retard, relance manuelle (in-app + e-mail), suspension manuelle. Décisions (2026-07-07, demandées par Wassim) : la suspension manuelle réutilise l'échelle progressive existante (3j → 14j → indéfinie, pas de palier dédié aux impayés) ; la relance manuelle envoie in-app **et** e-mail. | P1 | ✅ | `src/app/dashboard/admin/factures/page.tsx` (ADMIN only, pas Wakil — vue financière). `sendHostInvoiceReminderAction`/`suspendHostForInvoiceAction` (`src/actions/admin.ts`), `notifyHostInvoiceReminder` (`src/lib/notification-center.ts`), `sendHostInvoiceReminderEmail` (`src/lib/notifications.ts`), motif `HOST_INVOICE_OVERDUE` (`src/lib/suspension.ts`), champ `HostInvoice.lastReminderAt` (migration `20260707160000_add_host_invoice_reminder`). 5 tests (`tests/admin-host-invoices.test.ts`). |
 
 ## Exécution (prioritisée)
 
@@ -147,6 +148,9 @@ minimum est payé — inchangé, c'est le comportement actuel.
 **Recouvrement & robustesse :**
 6. ❌ PSP6 — masquage annonces si impayé.
 7. ❌ PSP7 — tests + QA_ROADMAP.md (à faire progressivement à chaque phase, pas uniquement à la fin — chaque prompt ci-dessous l'inclut déjà pour sa portion).
+
+**Outillage admin (indépendant de PSP5/PSP6, peut être fait en parallèle) :**
+8. ✅ PSP8 — dashboard admin factures (vue comptable + relance/suspension manuelles).
 
 ---
 
