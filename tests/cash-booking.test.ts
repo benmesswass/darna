@@ -331,6 +331,7 @@ describe("reportNoShowAction — IDOR + idempotence", () => {
     });
     expect(applySuspensionMock).toHaveBeenCalledWith(
       GUEST_ID,
+      "BOOKING_NO_SHOW",
       expect.objectContaining({ bookingId: BOOKING_ID })
     );
   });
