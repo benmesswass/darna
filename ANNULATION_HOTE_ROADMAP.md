@@ -117,9 +117,14 @@ séparé, non entamé par celui-ci.
 **Chantier "annulation hôte" terminé : AH0 à AH7 tous ✅.**
 
 > **Suite (2026-07-07) :** l'analyse critique du code livré a relevé un bug
-> économique de remboursement + des manques UX/robustesse — suivis dans
-> `ANNULATION_HOTE_CORRECTIFS_ROADMAP.md` (AHC1→AHC8). Ce fichier-ci reste figé
-> (chantier initial), les correctifs vivent dans le nouveau.
+> économique de remboursement + des manques UX/robustesse. Ce fichier-ci reste
+> **figé** (chantier initial terminé), les correctifs vivent dans le nouveau.
+>
+> **➡️ CONTINUATION : `ANNULATION_HOTE_CORRECTIFS_ROADMAP.md`** — toutes les
+> phases AH0→AH7 étant `✅`, « suivant » / « enchaîne » sur l'annulation hôte
+> bascule automatiquement sur ce fichier et attaque sa première tâche non
+> cochée (AHC1, `P0`). Cf. règle « Chaînage automatique des roadmaps » de
+> `CLAUDE.md`.
 
 ## Exécution (prioritisée)
 

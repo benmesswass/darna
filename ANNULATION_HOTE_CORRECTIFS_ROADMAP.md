@@ -193,3 +193,11 @@ attendre un autre rendu.
 | Qualité code / archi | 9/10 | — (déjà excellent) |
 | Positionnement concurrentiel | 8/10 | AHC7 |
 | **Global** | **7/10 → ~8.5/10 visé** | AHC1-AHC5 = l'essentiel du gain |
+
+---
+
+> **➡️ CONTINUATION (une fois AHC1→AHC8 tous `✅`) : `FEATURES_ROADMAP.md` /
+> `QA_ROADMAP.md`** — le chantier annulation hôte (initial + correctifs) sera
+> alors clos ; « suivant » / « enchaîne » reprend la priorité la plus haute
+> (`P0`/`P1`) des roadmaps produit/QA générales. Cf. règle « Chaînage
+> automatique des roadmaps » de `CLAUDE.md`.
