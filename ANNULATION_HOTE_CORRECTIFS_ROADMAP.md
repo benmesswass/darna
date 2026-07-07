@@ -32,8 +32,8 @@
 
 | # | Tâche | Prio | Statut | Détail |
 |---|-------|------|--------|--------|
-| AHC1 | **Remboursement = `amountPaid`, pas `totalPrice`** (sur-remboursement, cas Rail 2 = remboursement total sur 0 encaissé) | **P0** | ❌ | `src/actions/bookings.ts:921` |
-| AHC2 | **Annulation hôte atomique** (mutation multi-tables hors transaction → état partiel non récupérable) | **P0** | ❌ | `src/actions/bookings.ts:913-945` |
+| AHC1 | **Remboursement = `amountPaid`, pas `totalPrice`** (sur-remboursement, cas Rail 2 = remboursement total sur 0 encaissé) | **P0** | ✅ | `src/actions/bookings.ts` (`hostCancelBookingAction` : `refundAmount = amountPaid > 0 ? amountPaid : null`). Tests `tests/host-cancellation-security.test.ts` (ESCROW partiel → refund `amountPaid`, SUR_PLACE `amountPaid` 0 → refund `null`, prépaiement 100 % → refund inchangé). |
+| AHC2 | **Annulation hôte atomique** (mutation multi-tables hors transaction → état partiel non récupérable) | **P0** | ✅ | `src/actions/bookings.ts` (cœur booking + property + suspension dans un `$transaction` Serializable ; `applySuspension` accepte un `tx` optionnel — `src/lib/suspension.ts` ; notification/e-mail/audit best-effort hors-tx). Test de rollback sur échec `property.update`. `QA_ROADMAP.md` §3 (D13) mis à jour. |
 | AHC3 | **Visibilité hôte du blocage** : encart dashboard + notification (AH2 exigeait l'encart, non livré) | P1 | ❌ | `dashboard/annonces`, `notification-center` |
 | AHC4 | **E-mail d'annulation au voyageur** (in-app seul aujourd'hui ; cible diaspora) | P1 | ❌ | `src/actions/bookings.ts:945` |
 | AHC5 | **Réduction affichée = réduction appliquée** (plafond `subtotal` → bandeau parfois trompeur) | P1 | ❌ | `src/actions/bookings.ts:232`, `quoteBookingAction` |

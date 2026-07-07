@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { SUSPENSION_DURATIONS_DAYS } from "@/lib/config";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
@@ -67,19 +68,26 @@ export function nextSuspensionDays(currentCount: number): number | null {
  * (src/actions/messages.ts) et le signalement de no-show Rail 2
  * (src/actions/bookings.ts, cf. PAIEMENT_SUR_PLACE_ROADMAP.md §PSP3). Un seul
  * mécanisme de suspension dans tout le projet, jamais dupliqué.
+ *
+ * `client` accepte un client de transaction Prisma (`tx`) pour enrôler la
+ * pose de suspension dans une transaction appelante — l'annulation hôte
+ * (§AHC2) doit poser le blocage d'annonce ET la suspension de façon atomique.
+ * Défaut : le client global (appel autonome hors transaction). Le `logAudit`
+ * reste best-effort hors transaction (jamais bloquant, cf. audit.ts).
  */
 export async function applySuspension(
   userId: string,
   reason: SuspensionReason,
-  metadata: Record<string, unknown> = {}
+  metadata: Record<string, unknown> = {},
+  client: Prisma.TransactionClient = prisma
 ): Promise<{ level: number; until: Date | null }> {
-  const current = await prisma.user.findUnique({
+  const current = await client.user.findUnique({
     where: { id: userId },
     select: { suspensionCount: true },
   });
   const level = (current?.suspensionCount ?? 0) + 1;
   const { until } = nextSuspension(level);
-  await prisma.user.update({
+  await client.user.update({
     where: { id: userId },
     data: {
       suspended: true,
