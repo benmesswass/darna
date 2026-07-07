@@ -21,6 +21,7 @@ export function buildDashboardLinks(user: SessionUser, fr: Dictionary): NavItem[
       { href: "/dashboard/demandes", label: fr.dashboard.demandesRecues, icon: "UsersIcon" },
       { href: "/dashboard/reservations", label: fr.dashboard.mesVoyageurs, icon: "CalendarIcon" },
       { href: "/dashboard/revenus", label: fr.dashboard.revenus, icon: "CoinsIcon" },
+      { href: "/dashboard/factures", label: fr.factures.listeTitre, icon: "ShieldIcon" },
       { href: "/dashboard/yield", label: fr.dashboard.yieldAdvisor, icon: "SparklesIcon" }
     );
   } else {

@@ -8,7 +8,8 @@
 
 import { prisma } from "@/lib/prisma";
 import { logStructured } from "@/lib/audit";
-import { LISTING_EXPIRE_SOON_DAYS } from "@/lib/config";
+import { HOST_INVOICE_DUE_SOON_DAYS, LISTING_EXPIRE_SOON_DAYS } from "@/lib/config";
+import { sendHostInvoiceDueSoonEmail, sendHostInvoiceOverdueEmail } from "@/lib/notifications";
 
 export type NotificationType =
   | "RESERVATION_CONFIRMEE"
@@ -23,7 +24,10 @@ export type NotificationType =
   // Annulation hôte (ANNULATION_HOTE_ROADMAP.md §AH1).
   | "RESERVATION_ANNULEE_PAR_HOTE"
   // Dashboard admin factures (PAIEMENT_SUR_PLACE_ROADMAP.md §PSP8).
-  | "HOST_INVOICE_RELANCE";
+  | "HOST_INVOICE_RELANCE"
+  // Rappels automatiques HostInvoice (PAIEMENT_SUR_PLACE_ROADMAP.md §PSP5).
+  | "FACTURE_BIENTOT_DUE"
+  | "FACTURE_EN_RETARD";
 
 async function createNotification(
   userId: string,
@@ -203,5 +207,56 @@ export async function ensureExpiringSoonNotifications(userId: string): Promise<v
         });
       }
     }
+  }
+}
+
+/**
+ * Détection paresseuse des HostInvoice EN_ATTENTE bientôt dues / en retard
+ * (PAIEMENT_SUR_PLACE_ROADMAP.md §PSP5) — MÊME idiome exact que
+ * ensureExpiringSoonNotifications ci-dessus : pas de cron, calculé au sondage
+ * (NotificationBell via /api/notifications), dédupliqué par un index unique
+ * PARTIEL en base PAR TYPE (cf. migration 20260707170000_add_host_invoice_
+ * reminder_notif) — une facture peut recevoir AU PLUS une notif
+ * FACTURE_BIENTOT_DUE puis, plus tard, AU PLUS une notif FACTURE_EN_RETARD
+ * (types distincts, indexés séparément → pas de collision entre les deux).
+ * P2002 attendu et silencieux = « déjà notifié à ce palier pour cette facture ».
+ *
+ * LIMITE ASSUMÉE (comme pour ANNONCE_EXPIRE_BIENTOT) : ne se déclenche qu'au
+ * sondage, donc seulement si l'hôte est connecté ou récemment connecté — pas
+ * de garantie de délivrance sinon. Compromis du projet (pas de cron) ; à
+ * revoir en P2 séparé si insuffisant en usage réel.
+ */
+export async function ensureHostInvoiceReminders(userId: string): Promise<void> {
+  const now = new Date();
+  const soon = new Date(now.getTime() + HOST_INVOICE_DUE_SOON_DAYS * 24 * 60 * 60 * 1000);
+
+  const invoices = await prisma.hostInvoice.findMany({
+    where: { hostId: userId, status: "EN_ATTENTE", dueAt: { lte: soon } },
+    select: { id: true, dueAt: true, booking: { select: { property: { select: { title: true } } } } },
+  });
+
+  for (const inv of invoices) {
+    const overdue = inv.dueAt < now;
+    const type: NotificationType = overdue ? "FACTURE_EN_RETARD" : "FACTURE_BIENTOT_DUE";
+    // Pointe directement vers la page de paiement de CETTE facture (§PSP4) —
+    // plus actionnable qu'une simple ancre sur la liste.
+    const href = `/dashboard/factures/${inv.id}`;
+    try {
+      await prisma.notification.create({
+        data: { userId, type, propertyTitle: inv.booking.property.title, href },
+      });
+    } catch (err) {
+      if ((err as { code?: string }).code === "P2002") continue; // déjà notifié à ce palier
+      logStructured("error", "notif.host_invoice_reminder_lazy_failed", {
+        userId,
+        invoiceId: inv.id,
+        error: (err as Error).message,
+      });
+      continue;
+    }
+
+    // E-mail UNIQUEMENT quand une notif a été réellement créée (pas de doublon).
+    if (overdue) await sendHostInvoiceOverdueEmail(inv.id);
+    else await sendHostInvoiceDueSoonEmail(inv.id);
   }
 }

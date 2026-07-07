@@ -924,6 +924,34 @@ export const fr = {
       `<p><a href="${p.url}" style="display:inline-block;background:#0f4c7c;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">Régler la facture</a></p>` +
       `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Le logement vérifié.</p>` +
       `</div>`,
+    hostInvoiceDueSoonSujet: (titre: string) =>
+      `Darna — facture de commission bientôt due (${titre})`,
+    hostInvoiceDueSoonHtml: (p: { hostName: string; propertyTitle: string; amount: string; dueDate: string; url: string }) =>
+      `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
+      `<h1 style="color:#0f4c7c;font-size:20px">Facture de commission bientôt due</h1>` +
+      `<p>Bonjour ${p.hostName},</p>` +
+      `<p>La commission Darna pour votre réservation « <strong>${p.propertyTitle}</strong> » (paiement sur place) arrive à échéance dans quelques jours.</p>` +
+      `<table style="width:100%;border-collapse:collapse;margin:16px 0">` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Montant dû</td><td style="padding:6px 0;text-align:right;font-weight:700;color:#0f4c7c">${p.amount}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">À régler avant le</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.dueDate}</td></tr>` +
+      `</table>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f4c7c;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">Régler la facture</a></p>` +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Le logement vérifié.</p>` +
+      `</div>`,
+    hostInvoiceOverdueSujet: (titre: string) =>
+      `Darna — facture de commission en retard (${titre})`,
+    hostInvoiceOverdueHtml: (p: { hostName: string; propertyTitle: string; amount: string; dueDate: string; url: string }) =>
+      `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
+      `<h1 style="color:#b91c1c;font-size:20px">Facture de commission en retard</h1>` +
+      `<p>Bonjour ${p.hostName},</p>` +
+      `<p>La commission Darna pour votre réservation « <strong>${p.propertyTitle}</strong> » (paiement sur place) a dépassé sa date d'échéance. Merci de la régler dès que possible.</p>` +
+      `<table style="width:100%;border-collapse:collapse;margin:16px 0">` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Montant dû</td><td style="padding:6px 0;text-align:right;font-weight:700;color:#b91c1c">${p.amount}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Échéance dépassée le</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.dueDate}</td></tr>` +
+      `</table>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#b91c1c;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">Régler la facture</a></p>` +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Le logement vérifié.</p>` +
+      `</div>`,
     newMessageSujet: (titre: string) => `Darna — nouveau message · ${titre}`,
     newMessageHtml: (p: {
       recipientName: string;
@@ -1259,6 +1287,10 @@ export const fr = {
       `Votre séjour « ${titre} » a été annulé par l'hôte — vous avez été intégralement remboursé. Nous en sommes désolés : le compte de cet hôte a été suspendu.`,
     hostInvoiceRelance: (titre: string) =>
       `Rappel : la facture de commission pour « ${titre} » est toujours en attente de règlement.`,
+    factureBientotDue: (titre: string) =>
+      `Votre facture de commission pour « ${titre} » arrive bientôt à échéance.`,
+    factureEnRetard: (titre: string) =>
+      `Votre facture de commission pour « ${titre} » a dépassé son échéance.`,
   },
   alaUne: {
     titre: "Mettez votre annonce à la une",
@@ -1657,6 +1689,11 @@ export const fr = {
     factureIndisponible: "Cette facture n'est plus disponible.",
     paiementErreur: "Erreur lors de l'initialisation du paiement.",
     factureReglee: "Facture réglée.",
+    listeTitre: "Mes factures",
+    listeSousTitre: "Commissions Darna dues pour vos réservations en paiement sur place.",
+    statutEnRetard: "En retard",
+    vide: "Aucune facture pour le moment.",
+    voirFacture: "Voir la facture",
   },
 };
 

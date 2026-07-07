@@ -929,6 +929,34 @@ export const ar: Dictionary = {
       `<p><a href="${p.url}" style="display:inline-block;background:#0f4c7c;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">خلّص الفاتورة</a></p>` +
       `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — السكن المضمون.</p>` +
       `</div>`,
+    hostInvoiceDueSoonSujet: (titre: string) =>
+      `Darna — فاتورة الكوميسيون قريبة توصل لأجلها (${titre})`,
+    hostInvoiceDueSoonHtml: (p: { hostName: string; propertyTitle: string; amount: string; dueDate: string; url: string }) =>
+      `<div dir="rtl" style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
+      `<h1 style="color:#0f4c7c;font-size:20px">فاتورة كوميسيون قريبة توصل لأجلها</h1>` +
+      `<p>أهلا ${p.hostName}،</p>` +
+      `<p>كوميسيون دارنا للحجز متاعك في <strong>${p.propertyTitle}</strong> (خلاص عالمكان) باش توصل لأجل خلاصها في قريب.</p>` +
+      `<table style="width:100%;border-collapse:collapse;margin:16px 0">` +
+      `<tr><td style="padding:6px 0;color:#6b7280">المبلغ المستوجب</td><td style="padding:6px 0;text-align:left;font-weight:700;color:#0f4c7c">${p.amount}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">لازم تخلّص قبل</td><td style="padding:6px 0;text-align:left;font-weight:600">${p.dueDate}</td></tr>` +
+      `</table>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f4c7c;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">خلّص الفاتورة</a></p>` +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — السكن المضمون.</p>` +
+      `</div>`,
+    hostInvoiceOverdueSujet: (titre: string) =>
+      `Darna — فاتورة الكوميسيون متأخرة (${titre})`,
+    hostInvoiceOverdueHtml: (p: { hostName: string; propertyTitle: string; amount: string; dueDate: string; url: string }) =>
+      `<div dir="rtl" style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
+      `<h1 style="color:#b91c1c;font-size:20px">فاتورة كوميسيون متأخرة</h1>` +
+      `<p>أهلا ${p.hostName}،</p>` +
+      `<p>كوميسيون دارنا للحجز متاعك في <strong>${p.propertyTitle}</strong> (خلاص عالمكان) فاتها أجل الخلاص. خلّصها بأسرع وقت.</p>` +
+      `<table style="width:100%;border-collapse:collapse;margin:16px 0">` +
+      `<tr><td style="padding:6px 0;color:#6b7280">المبلغ المستوجب</td><td style="padding:6px 0;text-align:left;font-weight:700;color:#b91c1c">${p.amount}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">كان لازم تخلّص نهار</td><td style="padding:6px 0;text-align:left;font-weight:600">${p.dueDate}</td></tr>` +
+      `</table>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#b91c1c;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">خلّص الفاتورة</a></p>` +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — السكن المضمون.</p>` +
+      `</div>`,
     newMessageSujet: (titre: string) => `Darna — رسالة جديدة · ${titre}`,
     newMessageHtml: (p: {
       recipientName: string;
@@ -1256,6 +1284,10 @@ export const ar: Dictionary = {
       `السفرة متاعك « ${titre} » تلغات من المالك — رجعنالك الفلوس كاملة. آسفين على هذا: حسابه معلّق توّا.`,
     hostInvoiceRelance: (titre: string) =>
       `تفكرة : فاتورة الكوميسيون لـ « ${titre} » مازالت في انتظار الخلاص.`,
+    factureBientotDue: (titre: string) =>
+      `فاتورة الكوميسيون متاعك لـ « ${titre} » قريب توصل لأجل خلاصها.`,
+    factureEnRetard: (titre: string) =>
+      `فاتورة الكوميسيون متاعك لـ « ${titre} » فاتها أجل الخلاص.`,
   },
   alaUne: {
     titre: "حطّ إعلانك في الواجهة",
@@ -1660,5 +1692,10 @@ export const ar: Dictionary = {
     factureIndisponible: "هالفاتورة ماعادش متوفّرة.",
     paiementErreur: "خطأ في بداية الخلاص.",
     factureReglee: "الفاتورة تخلّصت.",
+    listeTitre: "الفواتير متاعي",
+    listeSousTitre: "كوميسيونات دارنا المستوجبة على حجوزاتك بالخلاص عالمكان.",
+    statutEnRetard: "متأخرة",
+    vide: "ما فماش فواتير لحد الآن.",
+    voirFacture: "شوف الفاتورة",
   },
 };
