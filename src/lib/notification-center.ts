@@ -23,6 +23,8 @@ export type NotificationType =
   | "RESERVATION_REFUSEE"
   // Annulation hôte (ANNULATION_HOTE_ROADMAP.md §AH1).
   | "RESERVATION_ANNULEE_PAR_HOTE"
+  // Visibilité hôte du blocage d'annonce (ANNULATION_HOTE_CORRECTIFS_ROADMAP.md §AHC3).
+  | "ANNONCE_MASQUEE_ANNULATION"
   // Dashboard admin factures (PAIEMENT_SUR_PLACE_ROADMAP.md §PSP8).
   | "HOST_INVOICE_RELANCE"
   // Rappels automatiques HostInvoice (PAIEMENT_SUR_PLACE_ROADMAP.md §PSP5).
@@ -91,13 +93,25 @@ export async function notifyBookingCancelled(bookingId: string): Promise<void> {
 export async function notifyBookingCancelledByHost(bookingId: string): Promise<void> {
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
-    select: { guestId: true, property: { select: { title: true } } },
+    select: {
+      guestId: true,
+      property: { select: { title: true, ownerId: true } },
+    },
   });
   if (!booking) return;
 
   await createNotification(booking.guestId, "RESERVATION_ANNULEE_PAR_HOTE", {
     propertyTitle: booking.property.title,
     href: `/relogement/${bookingId}`,
+  });
+
+  // §AHC3 — l'HÔTE aussi est notifié : son annonce vient d'être masquée des
+  // recherches suite à SON annulation. Il ne doit pas le découvrir par hasard
+  // (l'encart de dashboard/annonces le rappelle en permanence). Renvoie vers
+  // la liste de ses annonces où l'encart affiche la date de réapparition.
+  await createNotification(booking.property.ownerId, "ANNONCE_MASQUEE_ANNULATION", {
+    propertyTitle: booking.property.title,
+    href: "/dashboard/annonces",
   });
 }
 

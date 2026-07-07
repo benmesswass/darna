@@ -459,6 +459,8 @@ export const ar: Dictionary = {
     prolongerALaUne: "طوّل في الواجهة",
     alaUneActif: (date: string) => `في الواجهة حتى ${date}`,
     alaUneSucces: "إعلانك ولّى في الواجهة! 🎉",
+    annonceMasqueeBanner: (date: string) =>
+      `الإعلان تحجب مؤقتًا من نتائج البحث على خاطر إلغاء من عندك — باش يرجع يبان في ${date}.`,
     promoAlaUneTitre: "حطّ إعلاناتك في الواجهة",
     promoAlaUneDesc:
       "في قمة النتائج وفي صفحة الاستقبال مدّة 7 أيام، مع شارة ذهبية تجبد العين. الإعلانات اللي في الواجهة تتشاف أكثر برشة.",
@@ -1282,6 +1284,8 @@ export const ar: Dictionary = {
       `طلب الحجز متاعك لـ « ${titre} » اترفض من المالك.`,
     reservationAnnuleeParHote: (titre: string) =>
       `السفرة متاعك « ${titre} » تلغات من المالك — رجعنالك الفلوس كاملة. آسفين على هذا: حسابه معلّق توّا.`,
+    annonceMasqueeAnnulation: (titre: string) =>
+      `على خاطر الإلغاء متاعك، « ${titre} » تحجبت مؤقتًا من نتائج البحث. باش ترجع تبان وحدها كي تكمل فترة الحجب.`,
     hostInvoiceRelance: (titre: string) =>
       `تفكرة : فاتورة الكوميسيون لـ « ${titre} » مازالت في انتظار الخلاص.`,
     factureBientotDue: (titre: string) =>

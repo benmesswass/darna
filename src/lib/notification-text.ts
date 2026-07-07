@@ -38,6 +38,8 @@ export function notificationMessage(
       return fr.notifications.reservationRefusee(n.propertyTitle ?? "");
     case "RESERVATION_ANNULEE_PAR_HOTE":
       return fr.notifications.reservationAnnuleeParHote(n.propertyTitle ?? "");
+    case "ANNONCE_MASQUEE_ANNULATION":
+      return fr.notifications.annonceMasqueeAnnulation(n.propertyTitle ?? "");
     case "HOST_INVOICE_RELANCE":
       return fr.notifications.hostInvoiceRelance(n.propertyTitle ?? "");
     case "FACTURE_BIENTOT_DUE":
