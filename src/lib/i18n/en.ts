@@ -1560,12 +1560,16 @@ export const en: Dictionary = {
   },
   relogement: {
     titre: "Find another place",
-    desole:
-      "We're truly sorry about this cancellation — this isn't the experience we want for you. You've been fully refunded, and we've suspended this host's account over this.",
+    headline: "The host cancelled — we're sorry",
+    resume:
+      "You've been fully refunded. Here are listings matching your search, plus a discount offered by Darna.",
+    reductionChip: (percent: number, cap: number) =>
+      `Darna discount offered — ${percent}%, up to ${cap} TND`,
+    enSavoirPlus: "Learn more",
+    detailParagraphe: (jours: number) =>
+      `The host cancelled this booking — neither Darna nor you did anything wrong. This kind of cancellation is never acceptable on our platform, whatever the reason, and we've taken action against this host (account suspended). The discount above is valid for ${jours} days, on any of the listings suggested below.`,
     intro: (titre: string) =>
-      `Here are alternatives to "${titre}" available for the same dates, in the same city or nearby.`,
-    reductionInfo: (percent: number, cap: number, jours: number) =>
-      `A ${percent}% discount (up to ${cap} TND) is automatically applied to whichever listing you choose below — valid for ${jours} days.`,
+      `Alternatives to "${titre}", same dates, same city or nearby.`,
     aucuneSuggestion: "No alternative available right now for the same dates. Browse all our stays.",
     voirTousLesSejours: "See all stays",
   },

@@ -8,6 +8,7 @@ import { REBOOKING_DISCOUNT_CAP_TND, REBOOKING_DISCOUNT_RATE, REBOOKING_DISCOUNT
 import { getFavoriteContext, favoritePropFor } from "@/lib/favorites";
 import { PropertyCard } from "@/components/property/PropertyCard";
 import { AnimatedGrid } from "@/components/ui/AnimatedGrid";
+import { HeartIcon, ChevronLeftIcon } from "@/components/icons";
 import Link from "next/link";
 
 /**
@@ -59,20 +60,42 @@ export default async function RelogementPage({
   const promo = signRebookingDiscount(bookingId, user.id);
   const query = `?promo=${encodeURIComponent(promo)}`;
 
+  const percent = Math.round(REBOOKING_DISCOUNT_RATE * 100);
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
       <h1 className="text-2xl font-bold text-heading">{fr.relogement.titre}</h1>
-      <p className="mt-3 max-w-2xl rounded-2xl bg-cream px-4 py-3 text-body/80 ring-1 ring-darna/10">
-        {fr.relogement.desole}
-      </p>
-      <p className="mt-3 max-w-2xl text-body/70">{fr.relogement.intro(booking.property.title)}</p>
-      <p className="mt-2 max-w-2xl text-sm font-medium text-emerald-700">
-        {fr.relogement.reductionInfo(
-          Math.round(REBOOKING_DISCOUNT_RATE * 100),
-          REBOOKING_DISCOUNT_CAP_TND,
-          REBOOKING_DISCOUNT_VALIDITY_DAYS
-        )}
-      </p>
+
+      <div className="mt-3 flex max-w-2xl items-start gap-3.5 rounded-2xl bg-surface p-4 ring-1 ring-darna/10">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sand/20">
+          <HeartIcon width={18} height={18} className="text-sand" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="font-bold text-heading">{fr.relogement.headline}</p>
+          <p className="mt-0.5 text-sm text-body/70">{fr.relogement.resume}</p>
+          <div className="mt-2.5 flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700">
+              {fr.relogement.reductionChip(percent, REBOOKING_DISCOUNT_CAP_TND)}
+            </span>
+          </div>
+          <details className="group mt-2">
+            <summary className="inline-flex cursor-pointer items-center gap-1 text-sm font-bold text-heading">
+              <ChevronLeftIcon
+                width={11}
+                height={11}
+                strokeWidth={2.5}
+                className="rotate-180 transition group-open:-rotate-90"
+              />
+              {fr.relogement.enSavoirPlus}
+            </summary>
+            <p className="mt-2 max-w-xl text-sm leading-relaxed text-body/70">
+              {fr.relogement.detailParagraphe(REBOOKING_DISCOUNT_VALIDITY_DAYS)}
+            </p>
+          </details>
+        </div>
+      </div>
+
+      <p className="mt-5 max-w-2xl text-body/70">{fr.relogement.intro(booking.property.title)}</p>
 
       {suggestions.length > 0 ? (
         <AnimatedGrid className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

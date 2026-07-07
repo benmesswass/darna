@@ -1576,12 +1576,16 @@ export const fr = {
   },
   relogement: {
     titre: "Trouvez un autre logement",
-    desole:
-      "Nous sommes sincèrement désolés pour cette annulation — ce n'est pas l'expérience que nous voulons pour vous. Vous avez été intégralement remboursé, et nous avons suspendu le compte de cet hôte pour ce manquement.",
+    headline: "L'hôte a annulé — nous nous excusons",
+    resume:
+      "Remboursement intégral effectué. Voici des logements avec les mêmes critères, et une réduction offerte par Darna.",
+    reductionChip: (percent: number, cap: number) =>
+      `Réduction Darna offerte — ${percent} %, jusqu'à ${cap} TND`,
+    enSavoirPlus: "En savoir plus",
+    detailParagraphe: (jours: number) =>
+      `C'est l'hôte qui a annulé cette réservation — ni Darna, ni vous n'y êtes pour quelque chose. Ce genre d'annulation n'est jamais acceptable sur notre plateforme, quelle que soit la raison, et nous avons pris des mesures contre cet hôte (suspension de son compte). La réduction ci-dessus est valable ${jours} jours, sur n'importe lequel des logements proposés plus bas.`,
     intro: (titre: string) =>
-      `Voici des alternatives à « ${titre} » disponibles pour les mêmes dates, dans la même ville ou à proximité.`,
-    reductionInfo: (percent: number, cap: number, jours: number) =>
-      `Une réduction de ${percent} % (jusqu'à ${cap} TND) est appliquée automatiquement sur le logement que vous choisirez ci-dessous — valable ${jours} jours.`,
+      `Alternatives à « ${titre} », mêmes dates, même ville ou à proximité.`,
     aucuneSuggestion:
       "Aucune alternative disponible pour le moment aux mêmes dates. Explorez tous nos séjours.",
     voirTousLesSejours: "Voir tous les séjours",
