@@ -62,7 +62,10 @@ export default async function RelogementPage({
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
       <h1 className="text-2xl font-bold text-heading">{fr.relogement.titre}</h1>
-      <p className="mt-2 max-w-2xl text-body/70">{fr.relogement.intro(booking.property.title)}</p>
+      <p className="mt-3 max-w-2xl rounded-2xl bg-cream px-4 py-3 text-body/80 ring-1 ring-darna/10">
+        {fr.relogement.desole}
+      </p>
+      <p className="mt-3 max-w-2xl text-body/70">{fr.relogement.intro(booking.property.title)}</p>
       <p className="mt-2 max-w-2xl text-sm font-medium text-emerald-700">
         {fr.relogement.reductionInfo(
           Math.round(REBOOKING_DISCOUNT_RATE * 100),

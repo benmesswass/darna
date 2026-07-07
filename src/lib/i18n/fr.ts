@@ -1218,7 +1218,7 @@ export const fr = {
     reservationRefusee: (titre: string) =>
       `Votre demande de réservation pour « ${titre} » a été déclinée par l'hôte.`,
     reservationAnnuleeParHote: (titre: string) =>
-      `Votre séjour « ${titre} » a été annulé par l'hôte — vous avez été intégralement remboursé.`,
+      `Votre séjour « ${titre} » a été annulé par l'hôte — vous avez été intégralement remboursé. Nous en sommes désolés : le compte de cet hôte a été suspendu.`,
   },
   alaUne: {
     titre: "Mettez votre annonce à la une",
@@ -1576,8 +1576,10 @@ export const fr = {
   },
   relogement: {
     titre: "Trouvez un autre logement",
+    desole:
+      "Nous sommes sincèrement désolés pour cette annulation — ce n'est pas l'expérience que nous voulons pour vous. Vous avez été intégralement remboursé, et nous avons suspendu le compte de cet hôte pour ce manquement.",
     intro: (titre: string) =>
-      `Votre séjour « ${titre} » a été annulé par l'hôte et intégralement remboursé. Voici des alternatives disponibles pour les mêmes dates, dans la même ville ou à proximité.`,
+      `Voici des alternatives à « ${titre} » disponibles pour les mêmes dates, dans la même ville ou à proximité.`,
     reductionInfo: (percent: number, cap: number, jours: number) =>
       `Une réduction de ${percent} % (jusqu'à ${cap} TND) est appliquée automatiquement sur le logement que vous choisirez ci-dessous — valable ${jours} jours.`,
     aucuneSuggestion:

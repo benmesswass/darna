@@ -1201,7 +1201,7 @@ export const en: Dictionary = {
     reservationRefusee: (titre: string) =>
       `Your booking request for “${titre}” was declined by the host.`,
     reservationAnnuleeParHote: (titre: string) =>
-      `Your stay “${titre}” was cancelled by the host — you've been fully refunded.`,
+      `Your stay “${titre}” was cancelled by the host — you've been fully refunded. We're sorry about this: this host's account has been suspended.`,
   },
   alaUne: {
     titre: "Feature your listing",
@@ -1560,8 +1560,10 @@ export const en: Dictionary = {
   },
   relogement: {
     titre: "Find another place",
+    desole:
+      "We're truly sorry about this cancellation — this isn't the experience we want for you. You've been fully refunded, and we've suspended this host's account over this.",
     intro: (titre: string) =>
-      `Your stay "${titre}" was cancelled by the host and fully refunded. Here are available alternatives for the same dates, in the same city or nearby.`,
+      `Here are alternatives to "${titre}" available for the same dates, in the same city or nearby.`,
     reductionInfo: (percent: number, cap: number, jours: number) =>
       `A ${percent}% discount (up to ${cap} TND) is automatically applied to whichever listing you choose below — valid for ${jours} days.`,
     aucuneSuggestion: "No alternative available right now for the same dates. Browse all our stays.",
