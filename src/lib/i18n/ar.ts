@@ -1581,6 +1581,15 @@ export const ar: Dictionary = {
     aucuneAnnonceActive: "ما فماش إعلانات نشيطة توا.",
     retourAccueil: "ارجع للصفحة الرئيسية",
   },
+  relogement: {
+    titre: "لقى مكان آخر",
+    intro: (titre: string) =>
+      `الإقامة متاعك « ${titre} » تلغات من صاحب المكان وترجّع لك فلوسك كاملة. هاذي بعض البدائل الموجودة فنفس التواريخ، في نفس المدينة ولا حداها.`,
+    reductionInfo: (percent: number, cap: number, jours: number) =>
+      `تخفيض ${percent}٪ (يوصل ل ${cap} دينار) يتطبّق تلقائيًا على المكان اللي تختاره تحت — صالح ${jours} يوم.`,
+    aucuneSuggestion: "ما فماش بديل توا فنفس التواريخ. شوف كل الإقامات متاعنا.",
+    voirTousLesSejours: "شوف كل الإقامات",
+  },
   traveler: {
     voirProfil: "شوف البروفايل",
     titre: (nom: string) => `بروفايل ${nom}`,

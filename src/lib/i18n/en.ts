@@ -1558,6 +1558,15 @@ export const en: Dictionary = {
     aucuneAnnonceActive: "No active listings at the moment.",
     retourAccueil: "Back to home",
   },
+  relogement: {
+    titre: "Find another place",
+    intro: (titre: string) =>
+      `Your stay "${titre}" was cancelled by the host and fully refunded. Here are available alternatives for the same dates, in the same city or nearby.`,
+    reductionInfo: (percent: number, cap: number, jours: number) =>
+      `A ${percent}% discount (up to ${cap} TND) is automatically applied to whichever listing you choose below — valid for ${jours} days.`,
+    aucuneSuggestion: "No alternative available right now for the same dates. Browse all our stays.",
+    voirTousLesSejours: "See all stays",
+  },
   traveler: {
     voirProfil: "View profile",
     titre: (nom: string) => `${nom}'s profile`,

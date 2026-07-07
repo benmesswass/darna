@@ -595,13 +595,17 @@ export async function getSimilarListings(
 
 /**
  * Suggestions de relogement après une annulation À L'INITIATIVE DE L'HÔTE
- * (ANNULATION_HOTE_ROADMAP.md §AH3) : même ville, capacité suffisante, prix
- * comparable (±20 % de la nuitée payée) et RÉELLEMENT disponible sur les
- * mêmes dates (contrairement à getSimilarListings, qui ignore dates/
- * capacité/prix — pas adapté à un relogement concret). L'annonce annulée
- * elle-même n'apparaît jamais : `activeListingWhere()` l'exclut déjà si
- * elle est bloquée (§AH2), et `id: { not }` couvre le cas où elle ne l'est
- * pas encore (annulation très en amont, blocage court).
+ * (ANNULATION_HOTE_ROADMAP.md §AH3) : capacité suffisante, ville d'origine ou
+ * une ville voisine (`nearbyCities`, 3 max — élargissement géographique pour
+ * ne pas se limiter à une seule ville souvent pauvre en résultats), et
+ * RÉELLEMENT disponible sur les mêmes dates (contrairement à
+ * getSimilarListings, qui ignore dates/capacité — pas adapté à un relogement
+ * concret). Le prix n'est PAS un filtre dur (choix produit : plus de choix
+ * plutôt qu'une bande ±20 % trop restrictive une fois la ville élargie) — il
+ * ne sert qu'au tri, après la ville. L'annonce annulée elle-même n'apparaît
+ * jamais : `activeListingWhere()` l'exclut déjà si elle est bloquée (§AH2),
+ * et `id: { not }` couvre le cas où elle ne l'est pas encore (annulation très
+ * en amont, blocage court).
  */
 export async function getRebookingSuggestions(
   booking: {
@@ -612,31 +616,29 @@ export async function getRebookingSuggestions(
     checkOut: Date;
     nightlyPrice: number;
   },
-  take = 4
+  take = 10
 ): Promise<ListingWithPhoto[]> {
-  const priceMin = Math.floor(booking.nightlyPrice * 0.8);
-  const priceMax = Math.ceil(booking.nightlyPrice * 1.2);
+  const nearby = nearbyCities(booking.city, 3).map((c) => c.name);
+  const cityRank = [booking.city, ...nearby];
 
   const candidates = await prisma.property.findMany({
     where: {
       ...activeListingWhere(),
       type: "SEJOUR",
-      city: booking.city,
+      city: { in: cityRank },
       id: { not: booking.propertyId },
-      price: { gte: priceMin, lte: priceMax },
       stay: { maxGuests: { gte: booking.guests } },
       bookings: { none: blockingBookingOverlap(booking.checkIn, booking.checkOut) },
     },
     include: listingCardInclude,
-    // Marge avant le tri par écart de prix ci-dessous (take final plus petit).
-    take: take * 3,
   });
 
   return candidates
-    .sort(
-      (a, b) =>
-        Math.abs(a.price - booking.nightlyPrice) - Math.abs(b.price - booking.nightlyPrice)
-    )
+    .sort((a, b) => {
+      const rankDiff = cityRank.indexOf(a.city) - cityRank.indexOf(b.city);
+      if (rankDiff !== 0) return rankDiff;
+      return Math.abs(a.price - booking.nightlyPrice) - Math.abs(b.price - booking.nightlyPrice);
+    })
     .slice(0, take);
 }
 

@@ -1574,6 +1574,16 @@ export const fr = {
     aucuneAnnonceActive: "Aucune annonce active pour le moment.",
     retourAccueil: "Retour à l'accueil",
   },
+  relogement: {
+    titre: "Trouvez un autre logement",
+    intro: (titre: string) =>
+      `Votre séjour « ${titre} » a été annulé par l'hôte et intégralement remboursé. Voici des alternatives disponibles pour les mêmes dates, dans la même ville ou à proximité.`,
+    reductionInfo: (percent: number, cap: number, jours: number) =>
+      `Une réduction de ${percent} % (jusqu'à ${cap} TND) est appliquée automatiquement sur le logement que vous choisirez ci-dessous — valable ${jours} jours.`,
+    aucuneSuggestion:
+      "Aucune alternative disponible pour le moment aux mêmes dates. Explorez tous nos séjours.",
+    voirTousLesSejours: "Voir tous les séjours",
+  },
   traveler: {
     voirProfil: "Voir le profil",
     titre: (nom: string) => `Profil de ${nom}`,
