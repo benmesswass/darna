@@ -121,6 +121,7 @@ that never double-charges." The guards exist in code; the demo gap is that the
 | D10 | **Host cancellation block-tier non-bypass**: the blocking duration (3/15/30 days) is recomputed server-side from `booking.checkIn` — the form only sends `bookingId`, no client-controlled tier | **P1** | A host forcing the shortest block regardless of real notice given | Test: `tests/host-cancellation-security.test.ts`. |
 | D11 | **Blocked listing unreachable via direct link**: `createBookingAction` AND `quoteBookingAction` both refuse a booking on a listing still under `cancelBlockedUntil`, even when the search filter is bypassed by guessing/bookmarking the URL | **P0** | A blocked (reputationally sanctioned) listing still taking real bookings | Found via live testing that `quoteBookingAction` was missing the check (quote looked valid, only the final submit rejected it) — fixed in the same pass. Test: `tests/host-cancellation-security.test.ts`. |
 | D12 | **Rebooking discount token security**: usage-once (atomic `updateMany` re-check), bound to the correct guest only, rejects a tampered signature, expires after `REBOOKING_DISCOUNT_VALIDITY_DAYS` | **P1** | A discount replayed on multiple bookings, or transferred/guessed by another account | Test: `tests/rebooking-discount.test.ts`. |
+| D13 | **Host cancellation atomicity**: the critical core (booking flip → listing block → account suspension) runs inside a single Serializable `$transaction` — a failure after the `ANNULEE` flip rolls back instead of leaving a partial, non-recoverable state (idempotence guard would otherwise block any retry from applying the missing block/suspension) | **P0** | A booking stuck `ANNULEE` with no listing block and no suspension, forever un-retriable — a host cancels with zero reputational/visibility penalty | `ANNULATION_HOTE_CORRECTIFS_ROADMAP.md` §AHC2. Notification/e-mail/audit stay best-effort outside the tx. Test: `tests/host-cancellation-security.test.ts` (rollback on `property.update` failure). |
 
 > **Scope discipline:** do **not** add CSRF/SSRF/E2E/load tests for the demo —
 > they are documented in §5/§4 for Beta/Production. Adding them now violates
@@ -187,6 +188,7 @@ work is due.
 | Host cancellation IDOR + idempotence + block-tier non-bypass | unit → **D8-D10** | ✅ | Demo | P0 | Tampering / double-punishment / forced-shortest-block |
 | Blocked listing unreachable via direct link (create + quote) | unit → **D11** | ✅ | Demo | P0 | Sanctioned listing still bookable |
 | Rebooking discount token: usage-once, guest-bound, tamper/expiry-proof | unit → **D12** | ✅ | Demo | P1 | Discount replay/theft |
+| Host cancellation atomicity (booking + block + suspension in one tx) | unit → **D13** | ✅ | Demo | P0 | Partial, un-retriable cancel state |
 
 ### 4.6 Payments → see [§6](#6-payment-test-suite-bank-grade)
 

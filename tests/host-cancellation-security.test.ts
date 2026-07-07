@@ -70,6 +70,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { applySuspension } from "@/lib/suspension";
+import { notifyBookingCancelledByHost } from "@/lib/notification-center";
 
 const bookingFindUnique = prisma.booking.findUnique as unknown as Mock;
 const bookingUpdateMany = prisma.booking.updateMany as unknown as Mock;
@@ -90,12 +91,13 @@ function idForm(): FormData {
   return fd;
 }
 
-function confirmedBooking(daysUntilCheckIn: number) {
+function confirmedBooking(daysUntilCheckIn: number, amountPaid = 200) {
   return {
     id: BOOKING_ID,
     status: "CONFIRMEE",
     checkIn: new Date(Date.now() + daysUntilCheckIn * DAY),
     totalPrice: 500,
+    amountPaid,
     property: { id: PROPERTY_ID, ownerId: HOST_A.id, slug: "villa-hammamet-abc123" },
   };
 }
@@ -105,6 +107,17 @@ beforeEach(() => {
   applySuspensionMock.mockResolvedValue({ level: 1, until: null });
   bookingUpdateMany.mockResolvedValue({ count: 1 });
   propertyUpdate.mockResolvedValue({});
+  // §AHC2 — le cœur critique (booking + property + suspension) passe par un
+  // prisma.$transaction. Par défaut, le mock exécute le callback avec un `tx`
+  // qui réutilise les mêmes mocks de mutation (applySuspension étant lui-même
+  // mocké, il n'accède pas à tx). Le contrôle positif D11 le surcharge.
+  (prisma.$transaction as unknown as Mock).mockImplementation(
+    async (cb: (tx: unknown) => Promise<unknown>) =>
+      cb({
+        booking: { updateMany: bookingUpdateMany },
+        property: { update: propertyUpdate },
+      })
+  );
 });
 
 describe("hostCancelBookingAction — IDOR (D8)", () => {
@@ -131,7 +144,8 @@ describe("hostCancelBookingAction — IDOR (D8)", () => {
     expect(applySuspensionMock).toHaveBeenCalledWith(
       HOST_A.id,
       "HOST_CANCELLED_BOOKING",
-      expect.objectContaining({ bookingId: BOOKING_ID })
+      expect.objectContaining({ bookingId: BOOKING_ID }),
+      expect.anything() // §AHC2 : le client de transaction (tx)
     );
   });
 });
@@ -191,6 +205,62 @@ describe("hostCancelBookingAction — palier de blocage non-bypassable (D10)", (
     const expectedMs = Date.now() + expectedBlockDays * DAY;
     // Tolérance de quelques secondes (temps d'exécution du test).
     expect(Math.abs(untilArg.getTime() - expectedMs)).toBeLessThan(5000);
+  });
+});
+
+describe("hostCancelBookingAction — remboursement = amountPaid, pas totalPrice (§AHC1)", () => {
+  // Le remboursement doit porter sur l'ENCAISSÉ EN LIGNE (amountPaid), jamais
+  // sur le prix total : le solde totalPrice − amountPaid est dû cash à
+  // l'arrivée, donc jamais versé et jamais à rembourser.
+  it("ESCROW acompte partiel (200 encaissé / 500 total) → refund = 200", async () => {
+    requireUserMock.mockResolvedValue(HOST_A);
+    bookingFindUnique.mockResolvedValue(confirmedBooking(20, 200));
+
+    await hostCancelBookingAction(undefined, idForm());
+
+    expect(bookingUpdateMany).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ refundAmount: 200 }) })
+    );
+  });
+
+  it("Rail 2 SUR_PLACE (amountPaid = 0) → refund null (rien encaissé en ligne)", async () => {
+    requireUserMock.mockResolvedValue(HOST_A);
+    bookingFindUnique.mockResolvedValue(confirmedBooking(20, 0));
+
+    await hostCancelBookingAction(undefined, idForm());
+
+    expect(bookingUpdateMany).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ refundAmount: null }) })
+    );
+  });
+
+  it("prépaiement à 100 % (500 encaissé / 500 total) → refund = 500 (inchangé)", async () => {
+    requireUserMock.mockResolvedValue(HOST_A);
+    bookingFindUnique.mockResolvedValue(confirmedBooking(20, 500));
+
+    await hostCancelBookingAction(undefined, idForm());
+
+    expect(bookingUpdateMany).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ refundAmount: 500 }) })
+    );
+  });
+});
+
+describe("hostCancelBookingAction — atomicité (§AHC2)", () => {
+  it("un échec de property.update fait échouer l'action sans poser la suspension (rollback)", async () => {
+    requireUserMock.mockResolvedValue(HOST_A);
+    bookingFindUnique.mockResolvedValue(confirmedBooking(20));
+    // Le flip ANNULEE réussit, mais la pose du blocage d'annonce échoue : la
+    // transaction rollback (Prisma réel), et surtout la suspension n'est
+    // JAMAIS posée sur un état partiel. Sans transaction, l'ancien code
+    // laissait la résa ANNULEE sans blocage ni possibilité de rejeu.
+    propertyUpdate.mockRejectedValue(new Error("db down"));
+
+    await expect(hostCancelBookingAction(undefined, idForm())).rejects.toThrow("db down");
+
+    expect(bookingUpdateMany).toHaveBeenCalledTimes(1);
+    expect(applySuspensionMock).not.toHaveBeenCalled();
+    expect(notifyBookingCancelledByHost).not.toHaveBeenCalled();
   });
 });
 

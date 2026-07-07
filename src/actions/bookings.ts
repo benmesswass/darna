@@ -67,6 +67,17 @@ class BookingConflictError extends Error {
   }
 }
 
+/**
+ * Erreur interne signalant que l'annulation hôte n'a rien changé (garde
+ * d'idempotence : la réservation n'est plus CONFIRMEE). Levée DANS la
+ * transaction pour la faire rollback sans laisser d'état partiel (§AHC2).
+ */
+class HostCancelIdempotentError extends Error {
+  constructor() {
+    super("HOST_CANCEL_IDEMPOTENT");
+  }
+}
+
 export async function createBookingAction(
   _prev: BookingFormState,
   formData: FormData
@@ -888,6 +899,7 @@ export async function hostCancelBookingAction(
       status: true,
       checkIn: true,
       totalPrice: true,
+      amountPaid: true,
       property: { select: { id: true, ownerId: true, slug: true } },
     },
   });
@@ -903,32 +915,66 @@ export async function hostCancelBookingAction(
 
   // Palier recalculé SERVEUR à partir du délai RÉEL restant — jamais depuis
   // un champ envoyé par le client (le formulaire n'envoie que bookingId).
-  const daysUntilCheckIn = (booking.checkIn.getTime() - Date.now()) / DAY;
+  const now = new Date();
+  const daysUntilCheckIn = (booking.checkIn.getTime() - now.getTime()) / DAY;
   const blockDays = hostCancelBlockDays(daysUntilCheckIn);
 
+  // §AHC1 — Remboursement = ENCAISSÉ EN LIGNE (amountPaid), jamais totalPrice.
+  // Le modèle est un acompte : le voyageur ne règle en ligne que amountPaid,
+  // le solde (totalPrice − amountPaid) étant dû cash à l'arrivée — jamais
+  // versé, donc jamais à rembourser. « Intégral » = 100 % de l'encaissé (pas
+  // d'amputation par cancelPolicy, c'est l'hôte qui rompt). Rail 2 SUR_PLACE :
+  // amountPaid = 0 → aucun remboursement en ligne (refundAmount null).
+  const refundAmount = booking.amountPaid > 0 ? booking.amountPaid : null;
+
+  // §AHC2 — Cœur critique atomique : flip ANNULEE + blocage d'annonce + pose
+  // de suspension dans UNE transaction Serializable. Sans ça, un échec après
+  // le flip ANNULEE laissait un état partiel non récupérable (la garde
+  // d'idempotence status===CONFIRMEE empêchait tout rejeu d'appliquer le
+  // blocage/suspension manquants). Notification + e-mail + audit restent
+  // HORS transaction (effets best-effort, non critiques).
+  //
   // updateMany conditionné à CONFIRMEE : garde d'idempotence contre une
   // double soumission (double clic, requêtes concurrentes) — une 2e
-  // tentative ne retrouve plus la réservation dans cet état et échoue
-  // proprement, sans double blocage ni double suspension.
-  const updated = await prisma.booking.updateMany({
-    where: { id: booking.id, status: "CONFIRMEE" },
-    data: {
-      status: "ANNULEE",
-      escrow: "AUCUN",
-      cancelledAt: new Date(),
-      cancelledByHostAt: new Date(),
-      hostCancelBlockDays: blockDays,
-      refundAmount: booking.totalPrice,
-    },
-  });
-  if (updated.count === 0) return { error: fr.booking.annulationImpossible };
+  // tentative ne retrouve plus la réservation dans cet état, la transaction
+  // rollback et l'action échoue proprement, sans double blocage ni double
+  // suspension.
+  try {
+    await prisma.$transaction(
+      async (tx) => {
+        const updated = await tx.booking.updateMany({
+          where: { id: booking.id, status: "CONFIRMEE" },
+          data: {
+            status: "ANNULEE",
+            escrow: "AUCUN",
+            cancelledAt: now,
+            cancelledByHostAt: now,
+            hostCancelBlockDays: blockDays,
+            refundAmount,
+          },
+        });
+        if (updated.count === 0) throw new HostCancelIdempotentError();
 
-  await prisma.property.update({
-    where: { id: booking.property.id },
-    data: { cancelBlockedUntil: new Date(Date.now() + blockDays * DAY) },
-  });
+        await tx.property.update({
+          where: { id: booking.property.id },
+          data: { cancelBlockedUntil: new Date(now.getTime() + blockDays * DAY) },
+        });
 
-  await applySuspension(user.id, "HOST_CANCELLED_BOOKING", { bookingId: booking.id });
+        await applySuspension(
+          user.id,
+          "HOST_CANCELLED_BOOKING",
+          { bookingId: booking.id },
+          tx
+        );
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+    );
+  } catch (err) {
+    if (err instanceof HostCancelIdempotentError) {
+      return { error: fr.booking.annulationImpossible };
+    }
+    throw err;
+  }
 
   await logAudit({
     action: "HOST_CANCELLED_BOOKING",
@@ -938,7 +984,7 @@ export async function hostCancelBookingAction(
       bookingId: booking.id,
       propertyId: booking.property.id,
       blockDays,
-      refundAmount: booking.totalPrice,
+      refundAmount,
     },
   });
 
