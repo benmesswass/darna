@@ -499,10 +499,15 @@ export const fr = {
     noShowAvertissement:
       "Ne confirmez que si le voyageur ne s'est réellement pas présenté — cette action suspend son compte.",
     annulerReservationHote: "Annuler cette réservation",
+    hostCancelModalTitre: "Annuler cette réservation ?",
     hostCancelAvertissementHumain:
-      "Annuler une réservation déjà confirmée n'est pas un geste anodin : votre voyageur a organisé son séjour en vous faisant confiance. Ne le faites qu'en dernier recours.",
-    hostCancelAvertissement: (blockDays: number, suspensionDays: number | null) =>
-      `Si vous confirmez : le voyageur sera intégralement remboursé, cette annonce sera invisible sur Darna pendant ${blockDays} jours, et votre compte sera suspendu ${suspensionDays ? `${suspensionDays} jours` : "indéfiniment"}.`,
+      "Ce n'est pas un geste anodin : votre voyageur a organisé son séjour en vous faisant confiance. Ne le faites qu'en dernier recours.",
+    hostCancelConsequencesTitre: "Si vous confirmez :",
+    hostCancelConsequenceRemboursement: "Le voyageur sera intégralement remboursé",
+    hostCancelConsequenceBlocage: (jours: number) =>
+      `Cette annonce sera invisible sur Darna pendant ${jours} jours`,
+    hostCancelConsequenceSuspension: (jours: number | null) =>
+      `Votre compte sera suspendu ${jours ? `${jours} jours` : "indéfiniment"}`,
     confirmeeCashLabel: "Confirmée — à régler en cash à l'arrivée",
     confirmeeLe: (date: string) => `Confirmée le ${date}`,
     demandesCashTitre: "Demandes de réservation cash",

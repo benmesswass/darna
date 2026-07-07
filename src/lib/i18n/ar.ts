@@ -515,10 +515,15 @@ export const ar: Dictionary = {
     noShowAvertissement:
       "أكّد غير إذا المسافر ماجاش بالفعل — هالإجراء يعلّق حساباتو.",
     annulerReservationHote: "لغي الحجز هذا",
+    hostCancelModalTitre: "تلغي الحجز هذا ؟",
     hostCancelAvertissementHumain:
       "تلغي حجز مؤكّد موش حاجة بسيطة : المسافر متاعك رتّب سفرتو وهو واثق فيك. اعملها كان في آخر الحلول.",
-    hostCancelAvertissement: (blockDays: number, suspensionDays: number | null) =>
-      `إذا أكّدت : المسافر باش يترجعلو الفلوس كاملة، والإعلان هذا باش يخفى من دارنا لمدة ${blockDays} يوم، وحسابك باش يتعلّق ${suspensionDays ? `لمدة ${suspensionDays} يوم` : "بلا مدة"}.`,
+    hostCancelConsequencesTitre: "إذا أكّدت :",
+    hostCancelConsequenceRemboursement: "المسافر باش يترجعلو الفلوس كاملة",
+    hostCancelConsequenceBlocage: (jours: number) =>
+      `الإعلان هذا باش يخفى من دارنا لمدة ${jours} يوم`,
+    hostCancelConsequenceSuspension: (jours: number | null) =>
+      `حسابك باش يتعلّق ${jours ? `لمدة ${jours} يوم` : "بلا مدة"}`,
     confirmeeCashLabel: "مؤكّد — يتخلص كاش وقت الوصول",
     confirmeeLe: (date: string) => `تأكّد نهار ${date}`,
     demandesCashTitre: "طلبات حجز بالكاش",
