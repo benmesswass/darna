@@ -41,6 +41,7 @@ Jamais livrer du code sans dire à Wassim comment le vérifier. Si une migration
 - **Carte annonce / vignette** : `src/components/property/PropertyCard.tsx`.
 - Géo & translittération villes : `src/lib/geo.ts` (`resolveCity()`). Constantes/« enums » : `src/lib/constants.ts`. CSP nonce : `src/middleware.ts`. Audit : `src/lib/audit.ts`.
 - i18n : `src/lib/i18n/server.ts` (`getT`), `src/components/i18n/LocaleProvider.tsx` (`useT`), dictionnaires `src/lib/i18n/{fr,en,ar}.ts`.
+- Navigation flottante précédent/suivant (site entier) : `src/components/layout/HistoryNav.tsx`, ancrée `fixed bottom-4 start-4` — délibérément **jamais en haut** (une position en haut chevauche systématiquement le H1 des pages). **Règle durable** : avant d'ajouter/déplacer un contrôle flottant (`fixed`/`sticky`), vérifier qu'il ne recouvre aucun texte ni aucun autre bouton sur les pages concernées (capture d'écran à l'appui) — un seul autre élément flotte en bas sur le site, `MessagesNotifier` (`bottom-4 end-4`), garder les deux sur des côtés opposés.
 
 ## i18n
 
