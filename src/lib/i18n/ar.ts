@@ -473,11 +473,15 @@ export const ar: Dictionary = {
     suspenduJusqu: (date: string) => `الحساب معلّق حتى ${date}`,
     suspenduIndefini: "الحساب معلّق",
     suspenduDetail:
-      "تبقى محمي : تنجّم تشوف وتسيّر حجوزاتك الجارية، تتواصل مع صاحب الدار متاع إقامة مؤكّدة، وتلغي/يتردّلك. وقت التعليق، ما تنجّمش تعمل حجز جديد ولا تبعث رسائل.",
+      "باقي الحساب متاعك يخدم عادي. وقت التعليق، ما تنجّمش تعمل حجز جديد ولا تبعث رسائل.",
     enSavoirPlus: "اعرف أكثر",
     suspenduPourquoiTitre: "علاش ؟",
-    suspenduPourquoi:
+    suspenduPourquoiMessageBypass:
       "تلقّاو برشة محاولات باش تبعث معلومات اتصال برّة دارنا (رقم ولا إيميل) في الرسائل متاعك، وهذا ممنوع قبل ما يولّي الحجز نهائي.",
+    suspenduPourquoiNoShow:
+      "ما جيتش لإقامة مؤكّدة تخلص عالمكان، وهذا يضرّ بالحوت اللي حجزلك الأيام.",
+    suspenduPourquoiHostCancel:
+      "لغيت حجز كان مؤكّد — رجعنا للمسافر فلوسو كاملة، ولكن الإلغاء بعد التأكيد يبقى معرّض للعقاب.",
     suspenduConsequencesTitre: "العواقب :",
     suspenduProchaine: (jours: number) =>
       `كان تعاود، التعليق الجاي باش يدوم ${jours} أيّام.`,
@@ -510,6 +514,16 @@ export const ar: Dictionary = {
     noShowAnnuler: "ارجع",
     noShowAvertissement:
       "أكّد غير إذا المسافر ماجاش بالفعل — هالإجراء يعلّق حساباتو.",
+    annulerReservationHote: "لغي الحجز هذا",
+    hostCancelModalTitre: "تلغي الحجز هذا ؟",
+    hostCancelAvertissementHumain:
+      "تلغي حجز مؤكّد موش حاجة بسيطة : المسافر متاعك رتّب سفرتو وهو واثق فيك. اعملها كان في آخر الحلول.",
+    hostCancelConsequencesTitre: "إذا أكّدت :",
+    hostCancelConsequenceRemboursement: "المسافر باش يترجعلو الفلوس كاملة",
+    hostCancelConsequenceBlocage: (jours: number) =>
+      `الإعلان هذا باش يخفى من دارنا لمدة ${jours} يوم`,
+    hostCancelConsequenceSuspension: (jours: number | null) =>
+      `حسابك باش يتعلّق ${jours ? `لمدة ${jours} يوم` : "بلا مدة"}`,
     confirmeeCashLabel: "مؤكّد — يتخلص كاش وقت الوصول",
     confirmeeLe: (date: string) => `تأكّد نهار ${date}`,
     demandesCashTitre: "طلبات حجز بالكاش",
@@ -1066,6 +1080,8 @@ export const ar: Dictionary = {
     selectionnezDates: "اختار التواريخ متاعك",
     annulationImpossible: "هذا الحجز ما ينجّمش يتلغى.",
     annulationConfirmee: "الحجز متاعك تلغى.",
+    annulationHoteConfirmee:
+      "الحجز تلغى. رجعنا للمسافر فلوسو كاملة والإعلان متاعك باش يخفى شوية وقت.",
     // ── حجز التسبقة (ضد التحويل خارج المنصّة) : قدّاش تخلّص توّا ──────────
     totalSejour: "إجمالي الإقامة",
     payerMaintenant: "تخلّص توّا",
@@ -1200,6 +1216,8 @@ export const ar: Dictionary = {
       `طلب حجز جديد بالخلاص عالمكان على « ${titre} » — لازم تتصرّف.`,
     reservationRefusee: (titre: string) =>
       `طلب الحجز متاعك لـ « ${titre} » اترفض من الحوت.`,
+    reservationAnnuleeParHote: (titre: string) =>
+      `السفرة متاعك « ${titre} » تلغات من الحوت — رجعنالك الفلوس كاملة.`,
   },
   alaUne: {
     titre: "حطّ إعلانك في الواجهة",

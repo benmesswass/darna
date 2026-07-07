@@ -453,11 +453,19 @@ export const fr = {
     suspenduJusqu: (date: string) => `Compte suspendu jusqu'au ${date}`,
     suspenduIndefini: "Compte suspendu",
     suspenduDetail:
-      "Vous restez protégé : vous pouvez consulter et gérer vos réservations en cours, contacter l'hôte d'un séjour confirmé, et annuler/être remboursé. Pendant la suspension, vous ne pouvez pas faire de nouvelle réservation ni envoyer de messages.",
+      "Le reste de votre compte reste accessible. Pendant la suspension, vous ne pouvez pas faire de nouvelle réservation ni envoyer de messages.",
     enSavoirPlus: "En savoir plus",
     suspenduPourquoiTitre: "Pourquoi ?",
-    suspenduPourquoi:
+    // Motif RÉEL de la suspension (User.suspensionReason) — jamais le même
+    // texte générique pour toutes les causes possibles. Le cas legacy (null,
+    // suspendu avant l'introduction de ce champ) retombe sur le motif
+    // historique, seul possible à l'époque.
+    suspenduPourquoiMessageBypass:
       "Plusieurs tentatives de partage de coordonnées hors Darna (numéro ou e-mail) ont été détectées dans vos messages, ce qui n'est pas autorisé tant que la réservation n'est pas ferme.",
+    suspenduPourquoiNoShow:
+      "Vous ne vous êtes pas présenté pour un séjour confirmé payé sur place, ce qui pénalise l'hôte qui vous avait réservé les dates.",
+    suspenduPourquoiHostCancel:
+      "Vous avez annulé une réservation déjà confirmée — le voyageur a été intégralement remboursé, mais annuler après confirmation reste pénalisé.",
     suspenduConsequencesTitre: "Conséquences :",
     suspenduProchaine: (jours: number) =>
       `En cas de nouvelle tentative, la prochaine suspension durera ${jours} jours.`,
@@ -490,6 +498,16 @@ export const fr = {
     noShowAnnuler: "Revenir",
     noShowAvertissement:
       "Ne confirmez que si le voyageur ne s'est réellement pas présenté — cette action suspend son compte.",
+    annulerReservationHote: "Annuler cette réservation",
+    hostCancelModalTitre: "Annuler cette réservation ?",
+    hostCancelAvertissementHumain:
+      "Ce n'est pas un geste anodin : votre voyageur a organisé son séjour en vous faisant confiance. Ne le faites qu'en dernier recours.",
+    hostCancelConsequencesTitre: "Si vous confirmez :",
+    hostCancelConsequenceRemboursement: "Le voyageur sera intégralement remboursé",
+    hostCancelConsequenceBlocage: (jours: number) =>
+      `Cette annonce sera invisible sur Darna pendant ${jours} jours`,
+    hostCancelConsequenceSuspension: (jours: number | null) =>
+      `Votre compte sera suspendu ${jours ? `${jours} jours` : "indéfiniment"}`,
     confirmeeCashLabel: "Confirmée — à régler en cash à l'arrivée",
     confirmeeLe: (date: string) => `Confirmée le ${date}`,
     demandesCashTitre: "Demandes de réservation cash",
@@ -1058,6 +1076,8 @@ export const fr = {
     selectionnezDates: "Sélectionnez vos dates",
     annulationImpossible: "Cette réservation ne peut plus être annulée.",
     annulationConfirmee: "Votre réservation a été annulée.",
+    annulationHoteConfirmee:
+      "Réservation annulée. Le voyageur a été intégralement remboursé et votre annonce sera temporairement invisible.",
     // ── Gating acompte (anti-bypass) : choix du montant à régler ──────────
     totalSejour: "Total du séjour",
     payerMaintenant: "Vous payez maintenant",
@@ -1196,6 +1216,8 @@ export const fr = {
       `Nouvelle demande de réservation payée sur place sur « ${titre} » — à traiter.`,
     reservationRefusee: (titre: string) =>
       `Votre demande de réservation pour « ${titre} » a été déclinée par l'hôte.`,
+    reservationAnnuleeParHote: (titre: string) =>
+      `Votre séjour « ${titre} » a été annulé par l'hôte — vous avez été intégralement remboursé.`,
   },
   alaUne: {
     titre: "Mettez votre annonce à la une",

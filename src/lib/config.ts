@@ -48,6 +48,21 @@ export function clampPayAmount(
  */
 export const HOST_INVOICE_DUE_DAYS = 14;
 
+/**
+ * Barème de blocage temporaire d'une annonce suite à une annulation À
+ * L'INITIATIVE DE L'HÔTE (ANNULATION_HOTE_ROADMAP.md) : plus le préavis
+ * laissé au voyageur est court, plus le blocage est long. Pivot du
+ * 2026-07-06 — pas de pénalité financière (personne ne réglerait une
+ * facture sur une plateforme naissante sans levier réel) : le seul
+ * dissuasif est la perte de visibilité de l'annonce, cumulée à la
+ * suspension progressive de compte (src/lib/suspension.ts).
+ */
+export function hostCancelBlockDays(daysUntilCheckIn: number): number {
+  if (daysUntilCheckIn >= 30) return 3;
+  if (daysUntilCheckIn >= 7) return 15;
+  return 30;
+}
+
 /** Durée de vie d'une annonce avant expiration (fraîcheur des données). */
 export const LISTING_LIFETIME_DAYS = 30;
 

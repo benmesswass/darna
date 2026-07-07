@@ -36,6 +36,8 @@ export function notificationMessage(
       return fr.notifications.demandeCashRecue(n.propertyTitle ?? "");
     case "RESERVATION_REFUSEE":
       return fr.notifications.reservationRefusee(n.propertyTitle ?? "");
+    case "RESERVATION_ANNULEE_PAR_HOTE":
+      return fr.notifications.reservationAnnuleeParHote(n.propertyTitle ?? "");
     default:
       return "";
   }

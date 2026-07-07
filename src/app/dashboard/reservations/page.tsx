@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
+import { nextSuspensionDays } from "@/lib/suspension";
 import { completeElapsedBookings } from "@/lib/bookings";
 import { formatDateShortFr } from "@/lib/format";
 import { Price } from "@/components/currency/Price";
@@ -11,6 +12,7 @@ import { computeBookingRefund } from "@/lib/cancellation";
 import { contactRevealState, type ContactGate } from "@/lib/contact-reveal";
 import type { CancelPolicy } from "@/lib/constants";
 import { CancelBookingButton } from "@/components/booking/CancelBookingButton";
+import { HostCancelButton } from "@/components/booking/HostCancelButton";
 import { NoShowButton } from "@/components/booking/NoShowButton";
 import { ContactReveal } from "@/components/booking/ContactReveal";
 import { GuestReviewForm } from "@/components/booking/GuestReviewForm";
@@ -49,6 +51,11 @@ export default async function MesReservationsPage() {
   const fr = await getT();
   const user = await getSessionUser();
   if (!user) redirect("/connexion");
+
+  // Jours de la PROCHAINE suspension si l'hôte annule une réservation
+  // (même valeur pour toutes les lignes de cette page — dépend seulement de
+  // son suspensionCount actuel, pas de la réservation ciblée).
+  const hostNextSuspensionDays = nextSuspensionDays(user.suspensionCount);
 
   // Complétion paresseuse : séjours terminés → TERMINEE + séquestre libéré.
   await completeElapsedBookings();
@@ -200,7 +207,7 @@ export default async function MesReservationsPage() {
                     ) : null}
                   </div>
 
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2 sm:w-56 sm:shrink-0">
                     <Link
                       href={`/annonce/${b.property.slug}`}
                       className="rounded-xl border border-darna/15 px-3.5 py-2 text-center text-xs font-semibold text-heading hover:bg-darna/5"
@@ -226,6 +233,13 @@ export default async function MesReservationsPage() {
                       >
                         {fr.dashboard.voirProfilVoyageur}
                       </Link>
+                    ) : null}
+                    {b.status === "CONFIRMEE" ? (
+                      <HostCancelButton
+                        bookingId={b.id}
+                        checkIn={b.checkIn.toISOString()}
+                        suspensionDays={hostNextSuspensionDays}
+                      />
                     ) : null}
                   </div>
                 </li>
@@ -346,7 +360,7 @@ export default async function MesReservationsPage() {
                   />
                 ) : null}
               </div>
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 sm:w-56 sm:shrink-0">
                 <Link
                   href={`/annonce/${b.property.slug}`}
                   className="rounded-xl border border-darna/15 px-3.5 py-2 text-center text-xs font-semibold text-heading hover:bg-darna/5"

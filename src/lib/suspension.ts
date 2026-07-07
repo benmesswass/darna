@@ -4,6 +4,19 @@ import { logAudit } from "@/lib/audit";
 
 const DAY_MS = 86_400_000;
 
+/**
+ * Motif d'une suspension — stocké sur `User.suspensionReason` pour que le
+ * bandeau « Pourquoi ? » (src/app/dashboard/layout.tsx) explique la VRAIE
+ * raison plutôt qu'un texte générique. Un seul mécanisme de suspension pour
+ * tout le projet (cf. applySuspension) mais plusieurs déclencheurs possibles.
+ */
+export const SUSPENSION_REASONS = [
+  "MESSAGE_BYPASS",
+  "BOOKING_NO_SHOW",
+  "HOST_CANCELLED_BOOKING",
+] as const;
+export type SuspensionReason = (typeof SUSPENSION_REASONS)[number];
+
 /** Vue minimale d'un compte pour évaluer sa suspension. */
 export type SuspensionState = {
   suspended: boolean;
@@ -53,6 +66,7 @@ export function nextSuspensionDays(currentCount: number): number | null {
  */
 export async function applySuspension(
   userId: string,
+  reason: SuspensionReason,
   metadata: Record<string, unknown> = {}
 ): Promise<{ level: number; until: Date | null }> {
   const current = await prisma.user.findUnique({
@@ -68,13 +82,14 @@ export async function applySuspension(
       suspendedAt: new Date(),
       suspendedUntil: until,
       suspensionCount: level,
+      suspensionReason: reason,
     },
   });
   await logAudit({
     action: "ACCOUNT_SUSPENDED",
     userId,
     success: false,
-    metadata: { ...metadata, level, until: until?.toISOString() ?? null },
+    metadata: { ...metadata, reason, level, until: until?.toISOString() ?? null },
   });
   return { level, until };
 }

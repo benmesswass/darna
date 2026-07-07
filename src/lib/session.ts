@@ -16,6 +16,7 @@ export type SessionUser = {
   suspended: boolean;
   suspendedUntil: Date | null;
   suspensionCount: number;
+  suspensionReason: string | null;
 };
 
 /**
@@ -43,6 +44,7 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
       suspended: true,
       suspendedUntil: true,
       suspensionCount: true,
+      suspensionReason: true,
       tokenVersion: true,
     },
   });

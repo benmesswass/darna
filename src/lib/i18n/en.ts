@@ -452,11 +452,15 @@ export const en: Dictionary = {
     suspenduJusqu: (date: string) => `Account suspended until ${date}`,
     suspenduIndefini: "Account suspended",
     suspenduDetail:
-      "You stay protected: you can still view and manage your ongoing bookings, contact the host of a confirmed stay, and cancel/get refunded. While suspended, you can't make a new booking or send messages.",
+      "The rest of your account stays accessible. While suspended, you can't make a new booking or send messages.",
     enSavoirPlus: "Learn more",
     suspenduPourquoiTitre: "Why?",
-    suspenduPourquoi:
+    suspenduPourquoiMessageBypass:
       "Several attempts to share contact details off Darna (phone or email) were detected in your messages, which isn't allowed until the booking is firm.",
+    suspenduPourquoiNoShow:
+      "You didn't show up for a confirmed pay-at-property stay, which penalizes the host who had reserved those dates for you.",
+    suspenduPourquoiHostCancel:
+      "You cancelled an already confirmed booking — the guest was fully refunded, but cancelling after confirmation is still penalized.",
     suspenduConsequencesTitre: "Consequences:",
     suspenduProchaine: (jours: number) =>
       `If you try again, the next suspension will last ${jours} days.`,
@@ -489,6 +493,16 @@ export const en: Dictionary = {
     noShowAnnuler: "Go back",
     noShowAvertissement:
       "Only confirm if the guest genuinely didn't show up — this action suspends their account.",
+    annulerReservationHote: "Cancel this booking",
+    hostCancelModalTitre: "Cancel this booking?",
+    hostCancelAvertissementHumain:
+      "This is not a small thing: your guest planned their stay trusting you. Only do this as a last resort.",
+    hostCancelConsequencesTitre: "If you confirm:",
+    hostCancelConsequenceRemboursement: "The guest will be fully refunded",
+    hostCancelConsequenceBlocage: (jours: number) =>
+      `This listing will be hidden on Darna for ${jours} days`,
+    hostCancelConsequenceSuspension: (jours: number | null) =>
+      `Your account will be suspended ${jours ? `for ${jours} days` : "indefinitely"}`,
     confirmeeCashLabel: "Confirmed — to pay in cash on arrival",
     confirmeeLe: (date: string) => `Confirmed on ${date}`,
     demandesCashTitre: "Cash booking requests",
@@ -1047,6 +1061,8 @@ export const en: Dictionary = {
     selectionnezDates: "Select your dates",
     annulationImpossible: "This booking can no longer be cancelled.",
     annulationConfirmee: "Your booking has been cancelled.",
+    annulationHoteConfirmee:
+      "Booking cancelled. The guest has been fully refunded and your listing will be temporarily hidden.",
     // ── Deposit gating (anti-bypass): choosing how much to pay now ─────────
     totalSejour: "Stay total",
     payerMaintenant: "You pay now",
@@ -1183,6 +1199,8 @@ export const en: Dictionary = {
       `New pay-at-property booking request on “${titre}” — action needed.`,
     reservationRefusee: (titre: string) =>
       `Your booking request for “${titre}” was declined by the host.`,
+    reservationAnnuleeParHote: (titre: string) =>
+      `Your stay “${titre}” was cancelled by the host — you've been fully refunded.`,
   },
   alaUne: {
     titre: "Feature your listing",
