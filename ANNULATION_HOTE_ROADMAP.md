@@ -116,6 +116,11 @@ séparé, non entamé par celui-ci.
 
 **Chantier "annulation hôte" terminé : AH0 à AH7 tous ✅.**
 
+> **Suite (2026-07-07) :** l'analyse critique du code livré a relevé un bug
+> économique de remboursement + des manques UX/robustesse — suivis dans
+> `ANNULATION_HOTE_CORRECTIFS_ROADMAP.md` (AHC1→AHC8). Ce fichier-ci reste figé
+> (chantier initial), les correctifs vivent dans le nouveau.
+
 ## Exécution (prioritisée)
 
 1. ✅ AH0 — modèle de données.
