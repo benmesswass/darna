@@ -6,7 +6,7 @@ import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireUser, getSessionUser } from "@/lib/session";
 import {
   SERVICE_FEE_RATE,
   SITE_URL,
@@ -18,6 +18,12 @@ import {
 import { BOOKING_EXPIRY_MS, HOST_ACCEPTANCE_EXPIRY_MS, PAYMENT_MODES } from "@/lib/constants";
 import { logAudit, logStructured } from "@/lib/audit";
 import { recomputePropertyRating } from "@/lib/listings";
+import { blockingBookingOverlap } from "@/lib/booking-overlap";
+import {
+  claimRebookingDiscount,
+  computeRebookingDiscount,
+  isRebookingDiscountValid,
+} from "@/lib/rebooking-discount";
 import { initKonnectPayment, isKonnectEnabled, signKonnectWebhook } from "@/lib/konnect";
 import { sendBookingConfirmationEmail } from "@/lib/notifications";
 import { computeBookingRefund } from "@/lib/cancellation";
@@ -46,6 +52,12 @@ const createSchema = z.object({
   // PAIEMENT_SUR_PLACE_ROADMAP.md §PSP3. Toujours revérifié serveur
   // (éligibilité propriété + KYC), jamais pris tel quel.
   paymentMode: z.enum(PAYMENT_MODES).optional().default("ESCROW"),
+  // Réduction ponctuelle (ANNULATION_HOTE_ROADMAP.md §AH4) : optionnel, token
+  // signé transmis par le lien de la notification d'annulation hôte. Jamais
+  // pris tel quel — revérifié et consommé atomiquement dans la transaction
+  // (claimRebookingDiscount), un token invalide/déjà utilisé est simplement
+  // ignoré (pas d'erreur bloquante sur une réservation par ailleurs valide).
+  discountToken: z.string().trim().min(1).optional(),
 });
 
 /** Erreur interne signalant un conflit de disponibilité à l'intérieur de la transaction. */
@@ -53,29 +65,6 @@ class BookingConflictError extends Error {
   constructor() {
     super("BOOKING_CONFLICT");
   }
-}
-
-/**
- * Filtre Prisma des réservations qui bloquent RÉELLEMENT un créneau : les
- * réservations confirmées + les holds EN_ATTENTE encore vivants + les
- * demandes Rail 2 EN_ATTENTE_ACCEPTATION encore vivantes (même logique : tant
- * que l'hôte n'a pas refusé/laissé expirer, ces dates ne sont pas libres pour
- * un autre voyageur). Les holds/demandes expirés (créés lors d'une tentative
- * abandonnée, pas encore balayés en ANNULEE) NE bloquent PAS : sinon un panier
- * expiré rendrait les dates « indisponibles » alors que le calendrier les
- * propose librement (la page reserver filtre déjà `expiresAt > now`). C'est
- * exactement le même critère, gardé cohérent ici.
- */
-function blockingBookingOverlap(checkIn: Date, checkOut: Date) {
-  return {
-    checkIn: { lt: checkOut },
-    checkOut: { gt: checkIn },
-    OR: [
-      { status: "CONFIRMEE" },
-      { status: "EN_ATTENTE", expiresAt: { gt: new Date() } },
-      { status: "EN_ATTENTE_ACCEPTATION", expiresAt: { gt: new Date() } },
-    ],
-  };
 }
 
 export async function createBookingAction(
@@ -104,6 +93,7 @@ export async function createBookingAction(
     depart: formData.get("depart"),
     voyageurs: formData.get("voyageurs"),
     paymentMode: formData.get("paymentMode") || undefined,
+    discountToken: formData.get("discountToken") || undefined,
   });
   if (!parsed.success) return { error: fr.booking.datesInvalides };
 
@@ -175,10 +165,7 @@ export async function createBookingAction(
 
   const subtotal = property.price * nights;
   const serviceFee = Math.round(subtotal * SERVICE_FEE_RATE);
-  const totalPrice = subtotal + serviceFee;
-  // Acompte minimum dû en ligne, figé dès la création du hold (anti-bypass).
-  // Sans objet en Rail 2 : zéro paiement en ligne, tout est dû cash à l'arrivée.
-  const depositAmount = wantsCash ? 0 : computeDepositAmount(totalPrice, serviceFee);
+  const fullTotalPrice = subtotal + serviceFee;
   // Rail 2 : fenêtre d'ACCEPTATION hôte (48h, pas d'urgence de paiement) ;
   // ESCROW : fenêtre de PAIEMENT (15 min, hold classique) — inchangé.
   const expiresAt = new Date(
@@ -186,6 +173,7 @@ export async function createBookingAction(
   );
 
   let bookingId: string;
+  let finalTotalPrice: number;
 
   try {
     /**
@@ -228,8 +216,28 @@ export async function createBookingAction(
 
       if (conflict) throw new BookingConflictError();
 
+      // 2bis. Réduction ponctuelle (§AH4) : réclamation ATOMIQUE dans la
+      // MÊME transaction — anti-rejeu sous concurrence. Un token invalide ou
+      // déjà consommé n'échoue jamais la réservation, il ne fait juste rien.
+      let totalPrice = fullTotalPrice;
+      let discountClaimedFrom: string | null = null;
+      if (parsed.data.discountToken) {
+        discountClaimedFrom = await claimRebookingDiscount(
+          tx,
+          parsed.data.discountToken,
+          user.id
+        );
+        if (discountClaimedFrom) {
+          const discount = computeRebookingDiscount(subtotal);
+          totalPrice = Math.max(subtotal, fullTotalPrice - discount);
+        }
+      }
+      // Acompte minimum dû en ligne, figé dès la création du hold (anti-bypass).
+      // Sans objet en Rail 2 : zéro paiement en ligne, tout est dû cash à l'arrivée.
+      const depositAmount = wantsCash ? 0 : computeDepositAmount(totalPrice, serviceFee);
+
       // 3. Création de la réservation — prix TOUJOURS calculé côté serveur
-      return tx.booking.create({
+      const created = await tx.booking.create({
         data: {
           propertyId: property.id,
           guestId: user.id,
@@ -244,11 +252,23 @@ export async function createBookingAction(
           status: wantsCash ? "EN_ATTENTE_ACCEPTATION" : "EN_ATTENTE",
           expiresAt,
         },
-        select: { id: true },
+        select: { id: true, totalPrice: true },
       });
+
+      // Marqueur "PENDING" posé par claimRebookingDiscount remplacé par le
+      // VRAI id de la nouvelle réservation (inconnu avant sa création).
+      if (discountClaimedFrom) {
+        await tx.booking.update({
+          where: { id: discountClaimedFrom },
+          data: { rebookingDiscountUsedFor: created.id },
+        });
+      }
+
+      return created;
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
 
     bookingId = booking.id;
+    finalTotalPrice = booking.totalPrice;
   } catch (err) {
     if (err instanceof BookingConflictError) {
       logStructured("warn", "booking.conflict", {
@@ -272,7 +292,7 @@ export async function createBookingAction(
       checkIn: parsed.data.arrivee,
       checkOut: parsed.data.depart,
       nights,
-      totalPrice,
+      totalPrice: finalTotalPrice,
       paymentMode: wantsCash ? "SUR_PLACE" : "ESCROW",
     },
   });
@@ -287,7 +307,15 @@ export async function createBookingAction(
 }
 
 export type BookingQuote =
-  | { ok: true; nights: number; subtotal: number; serviceFee: number; total: number }
+  | {
+      ok: true;
+      nights: number;
+      subtotal: number;
+      serviceFee: number;
+      total: number;
+      /** Réduction ponctuelle appliquée (§AH4), TND — absent si aucun token valide. */
+      discount?: number;
+    }
   | { ok: false; error: string };
 
 const quoteSchema = z.object({
@@ -295,6 +323,7 @@ const quoteSchema = z.object({
   arrivee: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   depart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   voyageurs: z.coerce.number().int().min(1).max(30),
+  discountToken: z.string().trim().min(1).optional(),
 });
 
 /**
@@ -309,6 +338,7 @@ export async function quoteBookingAction(input: {
   arrivee: string;
   depart: string;
   voyageurs: number;
+  discountToken?: string;
 }): Promise<BookingQuote> {
   const fr = await getT();
   const parsed = quoteSchema.safeParse(input);
@@ -367,7 +397,21 @@ export async function quoteBookingAction(input: {
 
   const subtotal = property.price * nights;
   const serviceFee = Math.round(subtotal * SERVICE_FEE_RATE);
-  return { ok: true, nights, subtotal, serviceFee, total: subtotal + serviceFee };
+  const fullTotal = subtotal + serviceFee;
+
+  // Réduction ponctuelle (§AH4) : APERÇU seulement (lecture seule, jamais
+  // consommée ici) — anonyme ou token invalide → devis normal sans erreur.
+  let discount: number | undefined;
+  let total = fullTotal;
+  if (parsed.data.discountToken) {
+    const user = await getSessionUser();
+    if (user && (await isRebookingDiscountValid(parsed.data.discountToken, user.id))) {
+      discount = computeRebookingDiscount(subtotal);
+      total = Math.max(subtotal, fullTotal - discount);
+    }
+  }
+
+  return { ok: true, nights, subtotal, serviceFee, total, discount };
 }
 
 /** Montant choisi à la réservation : borné [acompte, total] côté serveur. */

@@ -63,6 +63,18 @@ export function hostCancelBlockDays(daysUntilCheckIn: number): number {
   return 30;
 }
 
+/**
+ * Geste commercial (ANNULATION_HOTE_ROADMAP.md §AH4) : réduction ponctuelle
+ * proposée au voyageur sur une suggestion de relogement après une annulation
+ * hôte — 10 % du prix de la NOUVELLE réservation, plafonnée pour rester un
+ * geste symbolique plutôt qu'une charge imprévisible pour Darna. Paramètres
+ * business à confirmer avec Wassim, valeurs provisoires raisonnables.
+ */
+export const REBOOKING_DISCOUNT_RATE = 0.1;
+export const REBOOKING_DISCOUNT_CAP_TND = 150;
+/** Durée de validité du token de réduction (jours depuis l'annulation). */
+export const REBOOKING_DISCOUNT_VALIDITY_DAYS = 30;
+
 /** Durée de vie d'une annonce avant expiration (fraîcheur des données). */
 export const LISTING_LIFETIME_DAYS = 30;
 

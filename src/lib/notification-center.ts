@@ -76,9 +76,11 @@ export async function notifyBookingCancelled(bookingId: string): Promise<void> {
 
 /**
  * Notifie le VOYAGEUR que l'hôte a annulé sa réservation (ANNULATION_HOTE_
- * ROADMAP.md §AH1) — distinct de notifyBookingCancelled (annulation par le
- * voyageur lui-même, notifie l'hôte). `href` pointe vers /sejours pour
- * l'instant ; remplacé par les suggestions de relogement en AH6.
+ * ROADMAP.md §AH1/§AH3/§AH4/§AH6) — distinct de notifyBookingCancelled
+ * (annulation par le voyageur lui-même, notifie l'hôte). Pointe vers
+ * `/relogement/[bookingId]`, qui calcule la liste de suggestions au moment
+ * de la consultation (pas figée à l'instant de l'annulation) et génère lui-
+ * même le token de réduction ponctuelle — voir cette page pour le calcul.
  */
 export async function notifyBookingCancelledByHost(bookingId: string): Promise<void> {
   const booking = await prisma.booking.findUnique({
@@ -86,9 +88,10 @@ export async function notifyBookingCancelledByHost(bookingId: string): Promise<v
     select: { guestId: true, property: { select: { title: true } } },
   });
   if (!booking) return;
+
   await createNotification(booking.guestId, "RESERVATION_ANNULEE_PAR_HOTE", {
     propertyTitle: booking.property.title,
-    href: "/sejours",
+    href: `/relogement/${bookingId}`,
   });
 }
 

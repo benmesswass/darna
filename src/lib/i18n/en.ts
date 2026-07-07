@@ -1004,6 +1004,7 @@ export const en: Dictionary = {
     fraisServiceAide:
       "It funds listing verification and payment protection.",
     total: "Total to pay",
+    reductionRelogement: "Darna discount",
     aucunFraisCache: "No other fee will ever be asked of you. Ever.",
     continuerPaiement: "Continue to payment",
     holdLabel: "Spot held — pay within",
@@ -1200,7 +1201,7 @@ export const en: Dictionary = {
     reservationRefusee: (titre: string) =>
       `Your booking request for “${titre}” was declined by the host.`,
     reservationAnnuleeParHote: (titre: string) =>
-      `Your stay “${titre}” was cancelled by the host — you've been fully refunded.`,
+      `Your stay “${titre}” was cancelled by the host — you've been fully refunded. We're sorry about this: this host's account has been suspended.`,
   },
   alaUne: {
     titre: "Feature your listing",
@@ -1556,6 +1557,21 @@ export const en: Dictionary = {
       n === 1 ? "1 active listing" : `${n} active listings`,
     aucuneAnnonceActive: "No active listings at the moment.",
     retourAccueil: "Back to home",
+  },
+  relogement: {
+    titre: "Find another place",
+    headline: "The host cancelled — we're sorry",
+    resume:
+      "You've been fully refunded. Here are listings matching your search, plus a discount offered by Darna.",
+    reductionChip: (percent: number, cap: number) =>
+      `Darna discount offered — ${percent}%, up to ${cap} TND`,
+    enSavoirPlus: "Learn more",
+    detailParagraphe: (jours: number) =>
+      `The host cancelled this booking — neither Darna nor you did anything wrong. This kind of cancellation is never acceptable on our platform, whatever the reason, and we've taken action against this host (account suspended). The discount above is valid for ${jours} days, on any of the listings suggested below.`,
+    intro: (titre: string) =>
+      `Alternatives to "${titre}", same dates, same city or nearby.`,
+    aucuneSuggestion: "No alternative available right now for the same dates. Browse all our stays.",
+    voirTousLesSejours: "See all stays",
   },
   traveler: {
     voirProfil: "View profile",

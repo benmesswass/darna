@@ -8,6 +8,7 @@ import { stayEnabled } from "@/lib/modes";
 import { BookingPanel } from "@/components/booking/BookingPanel";
 import { ActiveSection } from "@/components/layout/ActiveSection";
 import { expandUnavailable } from "@/lib/availability";
+import { isRebookingDiscountValid } from "@/lib/rebooking-discount";
 
 export const metadata: Metadata = { title: frMeta.booking.titre };
 
@@ -16,7 +17,12 @@ export default async function ReserverPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ arrivee?: string; depart?: string; voyageurs?: string }>;
+  searchParams: Promise<{
+    arrivee?: string;
+    depart?: string;
+    voyageurs?: string;
+    promo?: string;
+  }>;
 }) {
   const fr = await getT();
   const { slug } = await params;
@@ -68,6 +74,14 @@ export default async function ReserverPage({
   // plutôt que de laisser le formulaire échouer après affichage du prix.
   const isOwner = Boolean(user && user.id === property.ownerId);
 
+  // Réduction ponctuelle (§AH4) : vérifiée ICI (lecture seule) pour ne
+  // transmettre au client qu'un token dont on sait déjà qu'il est valide —
+  // la consommation réelle, atomique, reste dans createBookingAction.
+  const discountToken =
+    sp.promo && user && (await isRebookingDiscountValid(sp.promo, user.id))
+      ? sp.promo
+      : undefined;
+
   const maxGuests = property.stay?.maxGuests ?? 30;
   const voyageurs = Math.max(1, Math.min(maxGuests, Number(sp.voyageurs) || 1));
 
@@ -111,6 +125,7 @@ export default async function ReserverPage({
           cashPaymentEligible={Boolean(
             property.cashPaymentEnabled && user?.kycStatus === "VERIFIE"
           )}
+          discountToken={discountToken}
         />
       )}
     </div>

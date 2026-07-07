@@ -108,10 +108,10 @@ séparé, non entamé par celui-ci.
 | AH0 | Modèle de données : `Property.cancelBlockedUntil`, traçabilité sur `Booking` (`cancelledByHostAt`, `hostCancelBlockDays`) | P0 | ✅ | Migration `20260706160000_add_host_cancellation`. PR #102 (mergée). |
 | AH1 | Server action `hostCancelBookingAction` : remboursement intégral voyageur, calcul + pose du blocage d'annonce, suspension progressive de compte, audit log, notification | P0 | ✅ | `src/actions/bookings.ts` + `hostCancelBlockDays` (`src/lib/config.ts`) + `notifyBookingCancelledByHost` (`src/lib/notification-center.ts`). |
 | AH2 | Filtre de recherche : exclure les annonces bloquées (`activeListingWhere()`) + refus direct dans `createBookingAction` | P0 | ✅ | `src/lib/listings.ts`, `src/actions/bookings.ts` |
-| AH3 | Suggestions de relogement : `getRebookingSuggestions` (ville, capacité, prix, disponibilité réelle) | P0 | ❌ | `src/lib/listings.ts` |
-| AH4 | Réduction ponctuelle liée à la suggestion (token signé, usage unique) | P1 | ❌ | nouveau `src/lib/rebooking-discount.ts`, branché sur `createBookingAction` |
+| AH3 | Suggestions de relogement : `getRebookingSuggestions` — jusqu'à 10, ville d'origine + villes voisines (`nearbyCities`), capacité et dates réellement libres en filtres durs, prix en simple critère de tri (pas de bande ±20 % dure, décision produit du 07/07) | P0 | ✅ | `src/lib/listings.ts`. PR AH3/AH4/AH6 (branche `claude/host-cancellation-ah3`). |
+| AH4 | Réduction ponctuelle liée aux suggestions (token signé, usage unique, portable — applicable à N'IMPORTE QUELLE annonce réservée dans les 30 jours, pas seulement celle suggérée) | P1 | ✅ | `src/lib/rebooking-discount.ts`, branché sur `createBookingAction`/`quoteBookingAction`. PR AH3/AH4/AH6 (branche `claude/host-cancellation-ah3`). |
 | AH5 | UI hôte : modale d'avertissement (durée de blocage prévisionnelle affichée AVANT confirmation) + bouton d'annulation | P0 | ✅ | `HostCancelButton` (`src/components/booking/`), branché sur `src/app/dashboard/reservations/page.tsx` — livré avec AH1 pour rester testable de bout en bout. |
-| AH6 | UI voyageur : notification d'annulation + suggestions + réduction | P0 | ❌ | La notification existe (AH1), le lien pointe vers `/sejours` en attendant les suggestions (AH3/AH4) |
+| AH6 | UI voyageur : notification d'annulation + page listant les suggestions + réduction | P0 | ✅ | `src/app/relogement/[bookingId]/page.tsx` — jusqu'à 10 cartes (`PropertyCard`), calculées à la consultation (pas figées à l'annulation), réduction générée à l'affichage et propagée sur chaque carte. Notification (AH1) pointe vers cette page. PR AH3/AH4/AH6 (branche `claude/host-cancellation-ah3`). |
 | AH7 | Durcissement sécurité/QA : idempotence, IDOR, non-bypass (dates falsifiées, double annulation, token de réduction rejouable, contournement du blocage d'annonce) + mise à jour `QA_ROADMAP.md` | P0 | ❌ | Nouvelle surface sensible (réputation + visibilité annonce) |
 
 ## Exécution (prioritisée)
@@ -119,10 +119,10 @@ séparé, non entamé par celui-ci.
 1. ✅ AH0 — modèle de données.
 2. ✅ AH1 — action d'annulation hôte (cœur du chantier : remboursement + blocage + suspension).
 3. ✅ AH2 — filtre de recherche (annonce bloquée invisible) + refus direct.
-4. ❌ AH3 — moteur de suggestions.
-5. ❌ AH4 — réduction ponctuelle.
+4. ✅ AH3 — moteur de suggestions.
+5. ✅ AH4 — réduction ponctuelle.
 6. ✅ AH5 — UI hôte (modale d'avertissement) — livrée avec AH1.
-7. ❌ AH6 — UI voyageur.
+7. ✅ AH6 — UI voyageur (page de relogement).
 8. ❌ AH7 — tests + QA_ROADMAP.md.
 
 ---

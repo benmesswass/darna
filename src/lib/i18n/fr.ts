@@ -1016,6 +1016,7 @@ export const fr = {
     fraisServiceAide:
       "Ils financent la vérification des annonces et la protection des paiements.",
     total: "Total à payer",
+    reductionRelogement: "Réduction Darna",
     aucunFraisCache: "Aucun autre frais ne vous sera demandé. Jamais.",
     continuerPaiement: "Continuer vers le paiement",
     holdLabel: "Place gardée — paiement sous",
@@ -1217,7 +1218,7 @@ export const fr = {
     reservationRefusee: (titre: string) =>
       `Votre demande de réservation pour « ${titre} » a été déclinée par l'hôte.`,
     reservationAnnuleeParHote: (titre: string) =>
-      `Votre séjour « ${titre} » a été annulé par l'hôte — vous avez été intégralement remboursé.`,
+      `Votre séjour « ${titre} » a été annulé par l'hôte — vous avez été intégralement remboursé. Nous en sommes désolés : le compte de cet hôte a été suspendu.`,
   },
   alaUne: {
     titre: "Mettez votre annonce à la une",
@@ -1572,6 +1573,22 @@ export const fr = {
       n === 1 ? "1 annonce active" : `${n} annonces actives`,
     aucuneAnnonceActive: "Aucune annonce active pour le moment.",
     retourAccueil: "Retour à l'accueil",
+  },
+  relogement: {
+    titre: "Trouvez un autre logement",
+    headline: "L'hôte a annulé — nous nous excusons",
+    resume:
+      "Remboursement intégral effectué. Voici des logements avec les mêmes critères, et une réduction offerte par Darna.",
+    reductionChip: (percent: number, cap: number) =>
+      `Réduction Darna offerte — ${percent} %, jusqu'à ${cap} TND`,
+    enSavoirPlus: "En savoir plus",
+    detailParagraphe: (jours: number) =>
+      `C'est l'hôte qui a annulé cette réservation — ni Darna, ni vous n'y êtes pour quelque chose. Ce genre d'annulation n'est jamais acceptable sur notre plateforme, quelle que soit la raison, et nous avons pris des mesures contre cet hôte (suspension de son compte). La réduction ci-dessus est valable ${jours} jours, sur n'importe lequel des logements proposés plus bas.`,
+    intro: (titre: string) =>
+      `Alternatives à « ${titre} », mêmes dates, même ville ou à proximité.`,
+    aucuneSuggestion:
+      "Aucune alternative disponible pour le moment aux mêmes dates. Explorez tous nos séjours.",
+    voirTousLesSejours: "Voir tous les séjours",
   },
   traveler: {
     voirProfil: "Voir le profil",

@@ -11,6 +11,7 @@ export function BookingSubmit({
   depart,
   voyageurs,
   paymentMode = "ESCROW",
+  discountToken,
 }: {
   slug: string;
   arrivee: string;
@@ -18,6 +19,9 @@ export function BookingSubmit({
   voyageurs: number;
   /** Rail 2 (PSP3) : "SUR_PLACE" envoie une demande d'acceptation, pas un paiement. */
   paymentMode?: "ESCROW" | "SUR_PLACE";
+  /** Réduction ponctuelle (§AH4), déjà validée pour l'affichage — revérifiée
+   * et consommée atomiquement côté serveur (createBookingAction). */
+  discountToken?: string;
 }) {
   const fr = useT();
   const [state, action, pending] = useActionState<BookingFormState, FormData>(
@@ -37,6 +41,9 @@ export function BookingSubmit({
       <input type="hidden" name="depart" value={depart} />
       <input type="hidden" name="voyageurs" value={voyageurs} />
       <input type="hidden" name="paymentMode" value={paymentMode} />
+      {discountToken ? (
+        <input type="hidden" name="discountToken" value={discountToken} />
+      ) : null}
       <button
         type="submit"
         disabled={pending}

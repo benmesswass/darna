@@ -131,26 +131,33 @@ export function HistoryNav() {
     router.forward();
   }, [router]);
 
-  // Deux boutons indépendants, ancrés sous l'en-tête sticky (h-16) avec une
-  // marge : « précédent » côté start (gauche en LTR, droite en RTL), « suivant »
-  // côté end. En arabe la disposition se reflète, comme les flèches du navigateur.
+  // Groupés dans UN SEUL conteneur flottant, ancré en bas-côté-start (jamais
+  // en haut : cette zone est systématiquement occupée par le H1/en-tête des
+  // pages, ce qui masquait le titre — cf. retour Wassim). Bas-start reste
+  // le coin le moins disputé du site ; seul MessagesNotifier flotte aussi en
+  // bas, mais côté end exclusivement (bottom-4 end-4). Icônes SEULES (jamais
+  // de libellé texte, même sur grand écran) : un petit disque de 2.5rem a
+  // beaucoup moins de chances de recouvrir un bouton/texte voisin qu'une
+  // pastille large avec libellé (constaté avec le CTA « Nouvelle annonce »
+  // du dashboard hôte à cet endroit). Toujours vérifier qu'un contrôle
+  // flottant ne recouvre ni texte ni un autre bouton avant de l'ajouter
+  // (règle durable, voir CLAUDE.md).
   const buttonClass =
-    "no-print accent-transition fixed top-20 z-[1000] flex items-center gap-1.5 rounded-full border border-black/5 bg-cream/90 px-3.5 py-2 text-sm font-semibold text-heading shadow-lg backdrop-blur disabled:cursor-not-allowed disabled:opacity-40 enabled:hover:bg-darna/10";
+    "no-print accent-transition flex h-10 w-10 items-center justify-center rounded-full border border-black/5 bg-cream/90 text-heading shadow-lg backdrop-blur disabled:cursor-not-allowed disabled:opacity-40 enabled:hover:bg-darna/10";
 
-  // Boutons MASQUÉS quand inutilisables (plutôt que grisés) : pas de « Précédent »
-  // sur l'accueil, pas de « Suivant » sans historique avant.
+  if (!canBack && !canForward) return null;
+
   return (
-    <>
+    <div className="no-print fixed bottom-4 start-4 z-[1000] flex items-center gap-2">
       {canBack ? (
         <button
           type="button"
           onClick={goBack}
           aria-label={fr.nav.precedent}
           title={fr.nav.precedent}
-          className={`${buttonClass} start-4`}
+          className={buttonClass}
         >
           <ChevronLeftIcon width={18} height={18} className="rtl:rotate-180" />
-          <span className="hidden sm:inline">{fr.nav.precedent}</span>
         </button>
       ) : null}
 
@@ -160,16 +167,11 @@ export function HistoryNav() {
           onClick={goForward}
           aria-label={fr.nav.suivant}
           title={fr.nav.suivant}
-          className={`${buttonClass} end-4`}
+          className={buttonClass}
         >
-          <span className="hidden sm:inline">{fr.nav.suivant}</span>
-          <ChevronLeftIcon
-            width={18}
-            height={18}
-            className="rotate-180 rtl:rotate-0"
-          />
+          <ChevronLeftIcon width={18} height={18} className="rotate-180 rtl:rotate-0" />
         </button>
       ) : null}
-    </>
+    </div>
   );
 }
