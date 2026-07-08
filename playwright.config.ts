@@ -13,6 +13,10 @@ export default defineConfig({
   // Défaut (30s) trop court : parcours multi-pages (goto + server action +
   // poll DB) sur un `next dev` à froid (compilation Turbopack par route).
   timeout: 60_000,
+  // Défaut Playwright (5s) trop court pour les `expect.poll()` attendant une
+  // mutation serveur (server action + DB) sous forte charge parallèle
+  // (`fullyParallel`, plusieurs specs + compilations Turbopack simultanées).
+  expect: { timeout: 15_000 },
   reporter: [["list"], ["allure-playwright", { outputFolder: "allure-results" }]],
   globalSetup: "./tests/e2e/global-setup.ts",
   use: {
