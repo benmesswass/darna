@@ -433,10 +433,20 @@ satisfont via leur rapport Allure.
       PR — cf. `.github/workflows/ci.yml`.
 
 ### Phase 4 — Contrat API & sécurité automatisée *(P1, ~3-4 j)*
-- [ ] Tests HTTP des routes `api/**` (webhooks idempotence/montant/inconnu).
-- [ ] **Signature webhook Konnect** (impl + test) — reco QA_ROADMAP.
+- [x] Tests HTTP des routes `api/**` (webhooks idempotence/montant/inconnu) —
+      `tests/api/webhook-konnect.spec.ts` (400/401/429/INTROUVABLE/idempotent),
+      `tests/e2e/09-webhook-disabled.spec.ts` (404 désactivé). Job CI `api`
+      isolé (§7.4) — `PAYMENT_MODE=konnect` incompatible avec `e2e`.
+- [x] **Signature webhook Konnect** (impl + test) — déjà implémentée
+      (`src/lib/konnect.ts`) et testée unitairement (`tests/konnect.test.ts`) ;
+      `QA_ROADMAP.md` affirmait à tort que c'était manquant (corrigé). Désormais
+      aussi exercée en HTTP réel (`tests/api/webhook-konnect.spec.ts`).
 - [ ] Semgrep en CI + Dependabot/Renovate.
-- [ ] Régressions sécurité figées (énumération, open-redirect, CSRF, SSRF geocode).
+- [~] Régressions sécurité figées (`tests/api/security-regressions.spec.ts`) :
+      open-redirect (`safeCallbackUrl`) ✅, CSRF (same-origin natif Next.js) ✅,
+      SSRF geocode (hôte de sortie figé) ✅. **Énumération non couverte ici**
+      (chemin via Server Action, nécessiterait de fabriquer un JWT NextAuth à
+      la main — déjà couverte au niveau UI par `tests/e2e/01-auth.spec.ts`).
 
 ### Phase 5 — Perf, a11y, DAST, visuel *(P2/P3, ~4-5 j)*
 - [ ] k6 : recherche + course booking, seuils p95.
