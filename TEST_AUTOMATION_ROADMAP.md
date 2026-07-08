@@ -341,6 +341,30 @@ corriger au même titre qu'un test cassé. (Applicable dès qu'un nouveau type d
 test est ajouté — composant, E2E, sécurité… : il doit apparaître dans ce même
 rapport.)
 
+### 7.4 Isolation CI par type de test + rapports Allure (règle permanente)
+
+> **Les tests lourds — E2E, front et backend — ne sont PAS fondus dans le job
+> `build`. Chaque type vit dans un job CI dédié, relançable manuellement et
+> indépendamment, et publie son propre rapport Allure consultable directement.**
+
+- **Restent regroupés** (job `build`, cf. §7.1) : unit + composant rapides
+  (Vitest/jsdom). Décision assumée — pas de surcoût CI pour ces tests courts.
+- **Isolés, un job par type** — a minima `e2e` (Playwright), `front`, `backend`
+  (intégration DB/API). Chaque job :
+  - est **déclenchable et relançable seul** (`workflow_dispatch` + re-run du job
+    unique, sans rejouer tout le pipeline) ;
+  - apparaît comme **check GitHub distinct** → statut par type visible d'un coup
+    d'œil sur la PR ;
+  - produit un **rapport Allure dédié** (`allure-playwright`, `allure-vitest`…)
+    **publié et consultable directement** (GitHub Pages ou artifact Allure
+    ouvrable) — pas seulement un step summary ni un statut vert/rouge.
+- **Objectif** : relancer un seul type après un flake ou un fix ciblé, et ouvrir
+  son rapport Allure sans fouiller les logs.
+
+**Invariant** : tout nouveau type de test lourd ⇒ job isolé + rapport Allure. La
+règle §7.3 reste l'exigence pour les tests regroupés ; les tests isolés la
+satisfont via leur rapport Allure.
+
 ---
 
 ## 8. Roadmap séquencée
