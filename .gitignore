@@ -13,6 +13,13 @@
 # testing
 /coverage
 
+# e2e (Playwright) — jetons de session vivants + rapports générés localement
+/tests/e2e/.auth/
+/allure-results/
+/allure-report/
+/playwright-report/
+/test-results/
+
 # next.js
 /.next/
 /out/

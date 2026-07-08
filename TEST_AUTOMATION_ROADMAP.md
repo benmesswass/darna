@@ -292,9 +292,10 @@ dépendre de l'ordre du seed.
 ## 7. Portes de qualité CI/CD
 
 ### 7.1 État CI actuel (`.github/workflows/ci.yml`)
-`migrate deploy` (dérive) → `lint` → `tsc --noEmit` → `vitest` → `build` →
-`npm audit --high`. **Solide mais incomplet** : ni couverture, ni front, ni E2E,
-ni SAST.
+Job `build` : `migrate deploy` (dérive) → `lint` → `tsc --noEmit` → `vitest` →
+`build` → `npm audit --high`. Job `e2e` (Phase 3, isolé — cf. §7.4) : Playwright
+Chromium + rapport Allure en artifact. **Reste incomplet** : ni front/backend
+isolés, ni SAST.
 
 ### 7.2 Gates cibles (progressifs)
 
@@ -361,6 +362,13 @@ rapport.)
 - **Objectif** : relancer un seul type après un flake ou un fix ciblé, et ouvrir
   son rapport Allure sans fouiller les logs.
 
+**Statut** : `e2e` ✅ livré (Phase 3 — job isolé sans `needs: build`, rapport
+Allure en artifact GitHub téléchargeable ; pas de GitHub Pages, le repo étant
+privé). Le lien de téléchargement est aussi publié dans `$GITHUB_STEP_SUMMARY`
+(visible en haut de la page du run, pas enfoui dans l'onglet Artifacts).
+`front`/`backend` restent groupés dans `build` (périmètre §7.1 actuel, hors
+scope Phase 3).
+
 **Invariant** : tout nouveau type de test lourd ⇒ job isolé + rapport Allure. La
 règle §7.3 reste l'exigence pour les tests regroupés ; les tests isolés la
 satisfont via leur rapport Allure.
@@ -407,11 +415,22 @@ satisfont via leur rapport Allure.
 > qui pollue son `textContent` (comportement voulu, pas un bug) — ces champs sont
 > ciblés par `input[name=...]`, comme le ferait `label.control` du navigateur.
 
-### Phase 3 — E2E Playwright *(P0, ~5-6 j)*
-- [ ] Setup Playwright (Chromium préinstallé), `storageState` multi-rôles, seed.
-- [ ] MSW / mode simulé pour Konnect/OTP/e-mail.
-- [ ] Scénarios J1..J7 happy + échecs clés (dont IDOR 2 onglets).
-- [ ] Traces/artefacts en CI, retry x1, gate parcours P0 sur PR.
+### Phase 3 — E2E Playwright *(P0, ~5-6 j)* — ✅ **LIVRÉE**
+- [x] Setup Playwright (Chromium), `storageState` multi-rôles (`tests/e2e/global-setup.ts` :
+      connexion réelle via l'UI par rôle, IP factice dédiée par login pour ne
+      pas partager le rate-limit "connexion" avec les specs), seed Postgres
+      direct (comptes + annonces + réservations pré-existantes, 1 slug dédié
+      par scénario pour tenir sous `fullyParallel`).
+- [x] **Pas de MSW** : mode démo déjà natif pour Konnect (`PAYMENT_MODE=demo`)
+      et OTP e-mail/téléphone (code renvoyé au client et affiché à l'écran
+      quand aucun provider réel n'est configuré) — aucun mock nécessaire.
+- [x] 8 scénarios P0/P1 (`tests/e2e/01-auth.spec.ts` … `08-i18n.spec.ts`) :
+      auth + rate-limit, réservation/paiement/avis, double-réservation 2
+      onglets (assertion sur l'invariant DB, pas sur le timing UI — robuste
+      sous forte charge parallèle), IDOR, paiement sur place + no-show,
+      annulation hôte + relogement, gating KYC, i18n RTL.
+- [x] Traces/vidéos en cas d'échec, retry ×1 en CI, job `e2e` isolé (§7.4) sur
+      PR — cf. `.github/workflows/ci.yml`.
 
 ### Phase 4 — Contrat API & sécurité automatisée *(P1, ~3-4 j)*
 - [ ] Tests HTTP des routes `api/**` (webhooks idempotence/montant/inconnu).
