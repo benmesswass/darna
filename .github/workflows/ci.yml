@@ -57,8 +57,11 @@ jobs:
       - name: Typecheck
         run: npx tsc --noEmit
 
-      - name: Tests (chemins critiques — paiement, booking, rate limiting)
-        run: npm test
+      - name: Tests + couverture (chemins critiques — paiement, booking, concurrence)
+        # `test:coverage` applique le gate de couverture (seuils vitest.config.ts)
+        # ET exécute les tests d'intégration sur la vraie base (DATABASE_URL du
+        # service Postgres ci-dessus) — dont la concurrence anti double-réservation.
+        run: npm run test:coverage
 
       - name: Build
         run: npm run build

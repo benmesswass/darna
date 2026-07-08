@@ -53,11 +53,11 @@ bas :
 | Couche | État | Verdict |
 |--------|------|---------|
 | Unit / domaine (lib, helpers) | ✅ Bon | Solide, à compléter sur la couverture mesurée |
-| Intégration Server Actions | ✅ Bon | Nombreux tests, mais **DB souvent mockée**, pas de vraie transaction Postgres |
+| Intégration Server Actions | ✅ Bon | Nombreux tests ; **concurrence booking désormais prouvée sur vraie DB** (Phase 1), reste à étendre l'intégration DB réelle aux autres actions |
 | Contrat API / webhooks | ⚠️ Partiel | Webhook Konnect testé en logique, **pas de test HTTP de la route** ni de signature |
 | **Composant / front (React)** | ❌ **Absent** | **0 test `.tsx`**, aucun `@testing-library`, aucun `jsdom` |
 | **E2E navigateur** | ❌ **Absent** | **Aucun Playwright**, aucun parcours signup→KYC→booking→paiement automatisé |
-| **Couverture mesurée** | ❌ **Absente** | Pas de provider de coverage, **aucun seuil en CI** |
+| **Couverture mesurée** | ✅ **En place (Phase 1)** | `@vitest/coverage-v8` + seuils ratchet bloquants en CI (`src/lib`+`src/actions`) |
 | Sécurité automatisée | ⚠️ Partiel | Invariants testés en Vitest, mais **pas de SAST/DAST/dep-scan structuré** hors `npm audit` |
 | Performance / charge | ❌ Absent | Aucun test de charge sur la recherche ni la fenêtre de course booking |
 | Accessibilité | ❌ Absent | Aucun `axe`, site trilingue + RTL non testé |
@@ -94,13 +94,16 @@ Domaines déjà couverts : `auth-register`, `bookings`, `booking-conflict`,
 - ❌ **Aucun E2E** → les parcours de bout en bout (inscription → connexion →
   recherche → réservation → paiement → avis) ne sont jamais rejoués dans un
   navigateur réel.
-- ❌ **Pas de vraie DB en test d'intégration** → la garde anti-double-réservation
-  (`$transaction` SERIALIZABLE) n'est **pas prouvée sous concurrence réelle** ;
-  la plupart des tests mockent Prisma.
+- ⚠️ **Vraie DB en intégration : amorcée (Phase 1)** → la garde
+  anti-double-réservation (`$transaction` SERIALIZABLE) est désormais **prouvée
+  sous concurrence Postgres réelle** (`tests/integration/`) ; reste à étendre ce
+  socle aux autres actions (paiement, annulation, cash), la majorité des tests
+  mockant encore Prisma.
 - ❌ **Pas de test HTTP des routes** `api/**` (webhooks Konnect, notifications,
   unread-count) ni de vérification de signature webhook.
-- ❌ **Pas de couverture mesurée** → impossible de savoir ce qui n'est pas testé
-  ni de bloquer une régression de couverture.
+- ✅ **Couverture mesurée & gardée (Phase 1)** → `@vitest/coverage-v8` +
+  seuils ratchet bloquants en CI sur `src/lib`+`src/actions` (plancher du jour :
+  ~45 % lignes) ; à remonter au fil des phases (cible `src/lib` ≥ 85 %).
 - ❌ **i18n/RTL non testé** → trilingue fr/en/ar avec `dir="rtl"` : aucune
   garantie automatisée qu'une clé manque ou qu'un layout casse en arabe.
 
@@ -316,12 +319,19 @@ ni SAST.
 > Chaque phase = un incrément livrable et mergé indépendamment. Estimations en
 > jours-homme QA indicatives.
 
-### Phase 1 — Fondations mesure & DB réelle *(P0, ~3-4 j)*
-- [ ] Ajouter `@vitest/coverage-v8` + seuils + rapport CI.
-- [ ] Introduire **Postgres jetable** en intégration (Testcontainers ou service CI).
-- [ ] **Test de concurrence J1** : double-booking prouvé sous vraie transaction.
-- [ ] Factories de test + reset DB entre tests.
-- [ ] Gate couverture en CI (bloquant).
+### Phase 1 — Fondations mesure & DB réelle *(P0, ~3-4 j)* — ✅ **LIVRÉE**
+- [x] Ajouter `@vitest/coverage-v8` + seuils + rapport CI. → `vitest.config.ts` (provider v8, seuils ratchet, reporters text/html/lcov), script `test:coverage`.
+- [x] Introduire **Postgres jetable** en intégration (service Postgres CI existant + gate `DATABASE_URL`). → `tests/integration/helpers.ts`.
+- [x] **Test de concurrence J1** : double-booking prouvé sous vraie transaction SERIALIZABLE. → `tests/integration/booking-concurrency.integration.test.ts` (déclenche empiriquement l'abort P2034 du perdant, invariant « 1 seule résa active » vérifié).
+- [x] Factories de test + nettoyage DB par préfixe. → `tests/integration/helpers.ts` (`createUser`, `createStayProperty`, `cleanupByPrefix`).
+- [x] Gate couverture en CI (bloquant). → `.github/workflows/ci.yml` (step `npm run test:coverage`).
+
+> **Constat empirique Phase 1 :** le test de concurrence confirme le gap noté
+> dans `bookings.ts` — sous course réelle, la transaction perdante est avortée
+> par Postgres (`P2034`) et remonte en erreur brute au lieu d'un
+> `datesIndisponibles` propre. **À traiter en Phase 2** (retry applicatif sur
+> `P2034`). L'invariant métier (jamais deux résas actives qui se chevauchent)
+> est lui **prouvé et tenu**.
 
 ### Phase 2 — Tests composant / front *(P0, ~4-5 j)*
 - [ ] Projet Vitest `jsdom` + Testing Library + user-event.
