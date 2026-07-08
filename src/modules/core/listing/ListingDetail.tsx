@@ -328,7 +328,8 @@ export async function ListingDetail({
               (ex. contact direct côté location / vente). */}
           {afterLocation}
 
-          {/* Avis — uniquement de voyageurs ayant réservé */}
+          {/* Avis — uniquement de voyageurs ayant réservé, + entrées système
+              « annulé par l'hôte » (§AHC7). */}
           <ReviewsSection
             propertyId={property.id}
             propertyType={property.type}
@@ -344,6 +345,7 @@ export async function ListingDetail({
               authorName: r.author.name,
               createdAt: r.createdAt.toISOString(),
             }))}
+            cancellations={property.hostCancellations}
           />
         </div>
 

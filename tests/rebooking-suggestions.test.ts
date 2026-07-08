@@ -17,9 +17,10 @@ vi.mock("@/lib/geo", () => ({
   nearbyCities: vi.fn(() => [{ name: "Nabeul" }, { name: "Sousse" }]),
 }));
 
-import { getRebookingSuggestions } from "@/lib/listings";
+import { getRebookingSuggestions, getHostCancellationSignals } from "@/lib/listings";
 import { prisma } from "@/lib/prisma";
 import { nearbyCities } from "@/lib/geo";
+import { HOST_CANCELLATION_SIGNAL_DAYS } from "@/lib/config";
 
 const findMany = prisma.property.findMany as unknown as Mock;
 const bookingFindMany = prisma.booking.findMany as unknown as Mock;
@@ -76,5 +77,39 @@ describe("getRebookingSuggestions — fenêtre ±2 jours (§AHC6)", () => {
     findMany.mockResolvedValue([]);
     await getRebookingSuggestions(booking);
     expect(nearbyCitiesMock).toHaveBeenCalledWith("Hammamet", 5);
+  });
+});
+
+describe("getHostCancellationSignals — signal réputationnel §AHC7", () => {
+  const bookingFindMany2 = prisma.booking.findMany as unknown as Mock;
+
+  it("interroge dans la fenêtre glissante configurée, scopée à CETTE annonce", async () => {
+    bookingFindMany2.mockResolvedValue([]);
+    await getHostCancellationSignals("prop-1");
+
+    expect(bookingFindMany2).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          propertyId: "prop-1",
+          cancelledByHostAt: { gte: expect.any(Date) },
+        }),
+      })
+    );
+    const cutoff = bookingFindMany2.mock.calls[0][0].where.cancelledByHostAt.gte as Date;
+    const expected = Date.now() - HOST_CANCELLATION_SIGNAL_DAYS * DAY;
+    expect(Math.abs(cutoff.getTime() - expected)).toBeLessThan(5000);
+  });
+
+  it("ne renvoie QUE l'id et la date — jamais le voyageur concerné (vie privée)", async () => {
+    bookingFindMany2.mockResolvedValue([
+      { id: "bk1", cancelledByHostAt: new Date("2026-06-01T00:00:00.000Z") },
+    ]);
+
+    const result = await getHostCancellationSignals("prop-1");
+
+    expect(result).toEqual([{ id: "bk1", cancelledAt: "2026-06-01T00:00:00.000Z" }]);
+    // select ne demande que id + cancelledByHostAt.
+    const selectArg = bookingFindMany2.mock.calls[0][0].select;
+    expect(selectArg).toEqual({ id: true, cancelledByHostAt: true });
   });
 });

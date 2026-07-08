@@ -79,6 +79,15 @@ export const REBOOKING_DISCOUNT_CAP_TND = 150;
 /** Durée de validité du token de réduction (jours depuis l'annulation). */
 export const REBOOKING_DISCOUNT_VALIDITY_DAYS = 30;
 
+/**
+ * Signal réputationnel « annulé par l'hôte » (ANNULATION_HOTE_CORRECTIFS
+ * _ROADMAP.md §AHC7, benchmark Airbnb) : chaque annulation hôte apparaît
+ * comme une entrée système dans les avis de l'ANNONCE concernée, dès la 1re
+ * (pas de seuil), sur une fenêtre glissante — décision produit du 2026-07-08.
+ * Filtre paresseux à la lecture (comme cancelBlockedUntil), pas de cron.
+ */
+export const HOST_CANCELLATION_SIGNAL_DAYS = 90;
+
 /** Durée de vie d'une annonce avant expiration (fraîcheur des données). */
 export const LISTING_LIFETIME_DAYS = 30;
 

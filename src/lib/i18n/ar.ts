@@ -263,6 +263,8 @@ export const ar: Dictionary = {
       "كل تقييم جاي من حجز مؤكّد على دارنا — مستحيل تنشر تقييم بلاش ما تكون قعدت.",
     aucunAvis: "حتى تقييم للتوّ — كن أول واحد بعد إقامتك.",
     avisVerifie: "إقامة موثّقة",
+    avisSystemeAnnulationHote: (date: string) => `الحجز تلغى من المالك في ${date}`,
+    avisSystemeLabel: "تنبيه آلي من دارنا",
     noteGlobale: "التقييم العام",
     surface: (m: number) => `${m} م²`,
     pieces: (n: number) =>
