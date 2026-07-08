@@ -194,7 +194,7 @@ describe("hostCancelBookingAction — palier de blocage non-bypassable (D10)", (
   // "durée de blocage" n'existe côté client à falsifier. Le palier est
   // entièrement recalculé serveur depuis `booking.checkIn` (lu en base).
   it.each([
-    [40, 3], // ≥ 30 jours avant check-in → 3 jours de blocage
+    [40, 7], // ≥ 30 jours avant check-in → 7 jours de blocage (§AHC6, recalibré)
     [15, 15], // entre 7 et 30 jours → 15 jours
     [3, 30], // < 7 jours → 30 jours
   ])("check-in dans %i jours → blocage de %i jours", async (daysUntilCheckIn, expectedBlockDays) => {
