@@ -434,8 +434,15 @@ export async function quoteBookingAction(input: {
   if (parsed.data.discountToken) {
     const user = await getSessionUser();
     if (user && (await isRebookingDiscountValid(parsed.data.discountToken, user.id))) {
-      discount = computeRebookingDiscount(subtotal);
-      total = Math.max(subtotal, fullTotal - discount);
+      const rawDiscount = computeRebookingDiscount(subtotal);
+      total = Math.max(subtotal, fullTotal - rawDiscount);
+      // §AHC5 — on renvoie la réduction RÉELLEMENT appliquée (fullTotal − total),
+      // pas le brut computeRebookingDiscount : le total est plancherné à
+      // `subtotal` (la réduction n'ampute que la commission), donc afficher le
+      // brut tromperait le voyageur (« −50 TND » alors qu'il n'économise que la
+      // commission). Le fond est correct (Darna absorbe, payout hôte protégé) —
+      // seul l'affichage doit refléter l'économie réelle.
+      discount = fullTotal - total;
     }
   }
 

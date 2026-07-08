@@ -13,7 +13,7 @@ import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     booking: { findUnique: vi.fn(), updateMany: vi.fn() },
-    property: { findUnique: vi.fn(), update: vi.fn() },
+    property: { findUnique: vi.fn(), findFirst: vi.fn(), update: vi.fn() },
     $transaction: vi.fn(),
   },
 }));
@@ -72,9 +72,13 @@ import {
   quoteBookingAction,
 } from "@/actions/bookings";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireUser, getSessionUser } from "@/lib/session";
 import { applySuspension } from "@/lib/suspension";
 import { notifyBookingCancelledByHost } from "@/lib/notification-center";
+import {
+  computeRebookingDiscount,
+  isRebookingDiscountValid,
+} from "@/lib/rebooking-discount";
 
 const bookingFindUnique = prisma.booking.findUnique as unknown as Mock;
 const bookingUpdateMany = prisma.booking.updateMany as unknown as Mock;
@@ -368,5 +372,54 @@ describe("createBookingAction — annonce bloquée inaccessible même via lien d
     });
 
     expect(result).toEqual({ ok: false, error: "Dates indisponibles." });
+  });
+});
+
+describe("quoteBookingAction — réduction affichée = réduction appliquée (§AHC5)", () => {
+  const getSessionUserMock = getSessionUser as unknown as Mock;
+  const isDiscountValidMock = isRebookingDiscountValid as unknown as Mock;
+  const computeDiscountMock = computeRebookingDiscount as unknown as Mock;
+  const propertyFindFirst = prisma.property.findFirst as unknown as Mock;
+
+  function ymdUtc(offset: number): string {
+    const d = new Date();
+    d.setUTCHours(0, 0, 0, 0);
+    d.setUTCDate(d.getUTCDate() + offset);
+    return d.toISOString().slice(0, 10);
+  }
+
+  it("plafonné : le champ discount vaut la baisse RÉELLE du total, pas le brut", async () => {
+    // subtotal 500 · serviceFee 40 (8 %) · fullTotal 540. Le brut vaut 50 mais
+    // le total est plancherné à subtotal (500) : la réduction n'ampute que la
+    // commission → économie réelle 40, pas 50. Le devis doit renvoyer 40.
+    getSessionUserMock.mockResolvedValue({ id: "guest-1" });
+    isDiscountValidMock.mockResolvedValue(true);
+    computeDiscountMock.mockReturnValue(50);
+    propertyFindFirst.mockResolvedValue(null); // aucun conflit de dispo
+    propertyFindUnique.mockResolvedValue({
+      id: PROPERTY_ID,
+      type: "SEJOUR",
+      status: "ACTIVE",
+      expiresAt: new Date(Date.now() + 30 * DAY),
+      price: 500,
+      stay: { maxGuests: 4 },
+      cancelBlockedUntil: null,
+    });
+
+    const result = await quoteBookingAction({
+      slug: "villa-hammamet-abc123",
+      arrivee: ymdUtc(10),
+      depart: ymdUtc(11), // 1 nuit → subtotal 500
+      voyageurs: 2,
+      discountToken: "signed.token",
+    });
+
+    expect(result).toMatchObject({ ok: true, subtotal: 500, serviceFee: 40 });
+    if (result.ok) {
+      expect(result.discount).toBe(40); // baisse réelle, pas 50
+      expect(result.total).toBe(500); // fullTotal 540 − 40
+      // Cohérence : le bandeau (−discount) == baisse effective du total.
+      expect(540 - result.total).toBe(result.discount);
+    }
   });
 });
