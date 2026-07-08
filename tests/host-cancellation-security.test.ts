@@ -79,6 +79,7 @@ import {
   computeRebookingDiscount,
   isRebookingDiscountValid,
 } from "@/lib/rebooking-discount";
+import { revalidatePath } from "next/cache";
 
 const bookingFindUnique = prisma.booking.findUnique as unknown as Mock;
 const bookingUpdateMany = prisma.booking.updateMany as unknown as Mock;
@@ -155,6 +156,9 @@ describe("hostCancelBookingAction — IDOR (D8)", () => {
       expect.objectContaining({ bookingId: BOOKING_ID }),
       expect.anything() // §AHC2 : le client de transaction (tx)
     );
+    // §AHC8(b) — l'annonce bloquée disparaît de /sejours sans attendre un
+    // autre rendu (pas seulement le filtre paresseux au prochain accès).
+    expect(revalidatePath).toHaveBeenCalledWith("/sejours");
   });
 });
 
