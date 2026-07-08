@@ -10,7 +10,6 @@ import {
 } from "@/lib/constants";
 import type { MapMarker } from "@/components/map/types";
 import type { ReviewItem } from "@/components/property/ReviewsSection";
-import { blockingBookingOverlap } from "@/lib/booking-overlap";
 
 /** Taille de page pour les listings (protection DoS + UX). */
 const PAGE_SIZE = 24;
@@ -603,11 +602,15 @@ export async function getSimilarListings(
 /**
  * Suggestions de relogement après une annulation À L'INITIATIVE DE L'HÔTE
  * (ANNULATION_HOTE_ROADMAP.md §AH3) : capacité suffisante, ville d'origine ou
- * une ville voisine (`nearbyCities`, 3 max — élargissement géographique pour
- * ne pas se limiter à une seule ville souvent pauvre en résultats), et
- * RÉELLEMENT disponible sur les mêmes dates (contrairement à
+ * une ville voisine (`nearbyCities`, 5 max — §AHC6, élargissement géographique
+ * pour ne pas se limiter à une seule ville souvent pauvre en résultats), et
+ * RÉELLEMENT disponible dans une FENÊTRE de ±2 jours autour des dates d'origine
+ * (§AHC6 : en annulation last-minute, les dates exactes sont souvent prises
+ * alors qu'un décalage de 1-2 jours reste libre ; le lien de réservation ne
+ * fige pas les dates — le voyageur les choisit sur le calendrier — donc on se
+ * contente d'élargir l'ensemble des annonces proposées). Contrairement à
  * getSimilarListings, qui ignore dates/capacité — pas adapté à un relogement
- * concret). Le prix n'est PAS un filtre dur (choix produit : plus de choix
+ * concret. Le prix n'est PAS un filtre dur (choix produit : plus de choix
  * plutôt qu'une bande ±20 % trop restrictive une fois la ville élargie) — il
  * ne sert qu'au tri, après la ville. L'annonce annulée elle-même n'apparaît
  * jamais : `activeListingWhere()` l'exclut déjà si elle est bloquée (§AH2),
@@ -625,8 +628,18 @@ export async function getRebookingSuggestions(
   },
   take = 10
 ): Promise<ListingWithPhoto[]> {
-  const nearby = nearbyCities(booking.city, 3).map((c) => c.name);
+  const nearby = nearbyCities(booking.city, 5).map((c) => c.name);
   const cityRank = [booking.city, ...nearby];
+
+  // Fenêtre ±2 jours (§AHC6) : une annonce qualifie si elle est libre pour un
+  // séjour de MÊME durée démarrant à n'importe quel décalage o ∈ [-2..+2]. On
+  // charge les réservations bloquantes dans l'enveloppe élargie puis on teste
+  // chaque décalage en mémoire (« exists un créneau libre » est trop lourd à
+  // exprimer en pur SQL relationnel).
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  const offsets = [0, -1, 1, -2, 2];
+  const envelopeStart = new Date(booking.checkIn.getTime() - 2 * DAY_MS);
+  const envelopeEnd = new Date(booking.checkOut.getTime() + 2 * DAY_MS);
 
   const candidates = await prisma.property.findMany({
     where: {
@@ -635,12 +648,46 @@ export async function getRebookingSuggestions(
       city: { in: cityRank },
       id: { not: booking.propertyId },
       stay: { maxGuests: { gte: booking.guests } },
-      bookings: { none: blockingBookingOverlap(booking.checkIn, booking.checkOut) },
     },
     include: listingCardInclude,
   });
+  if (candidates.length === 0) return [];
 
-  return candidates
+  // Réservations bloquantes (même sémantique que blockingBookingOverlap)
+  // chevauchant l'enveloppe ±2 j, chargées à part pour ne pas exposer les
+  // dates d'autres voyageurs sur les objets renvoyés au client (PropertyCard).
+  const blockers = await prisma.booking.findMany({
+    where: {
+      propertyId: { in: candidates.map((c) => c.id) },
+      checkIn: { lt: envelopeEnd },
+      checkOut: { gt: envelopeStart },
+      OR: [
+        { status: "CONFIRMEE" },
+        { status: "EN_ATTENTE", expiresAt: { gt: new Date() } },
+        { status: "EN_ATTENTE_ACCEPTATION", expiresAt: { gt: new Date() } },
+      ],
+    },
+    select: { propertyId: true, checkIn: true, checkOut: true },
+  });
+  const blockersByProperty = new Map<string, { checkIn: Date; checkOut: Date }[]>();
+  for (const b of blockers) {
+    const arr = blockersByProperty.get(b.propertyId) ?? [];
+    arr.push(b);
+    blockersByProperty.set(b.propertyId, arr);
+  }
+
+  const available = candidates.filter((p) => {
+    const propBlockers = blockersByProperty.get(p.id) ?? [];
+    return offsets.some((o) => {
+      const winIn = booking.checkIn.getTime() + o * DAY_MS;
+      const winOut = booking.checkOut.getTime() + o * DAY_MS;
+      return !propBlockers.some(
+        (b) => b.checkIn.getTime() < winOut && b.checkOut.getTime() > winIn
+      );
+    });
+  });
+
+  return available
     .sort((a, b) => {
       const rankDiff = cityRank.indexOf(a.city) - cityRank.indexOf(b.city);
       if (rankDiff !== 0) return rankDiff;

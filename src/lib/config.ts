@@ -58,7 +58,11 @@ export const HOST_INVOICE_DUE_DAYS = 14;
  * suspension progressive de compte (src/lib/suspension.ts).
  */
 export function hostCancelBlockDays(daysUntilCheckIn: number): number {
-  if (daysUntilCheckIn >= 30) return 3;
+  // §AHC6 — palier long recalibré 3j → 7j (décision produit du 2026-07-08) :
+  // 3 jours de blocage pour une annulation à ≥30j de préavis était négligeable
+  // (le barème ne mordait qu'en dessous de 7 jours). 7 jours reste mesuré pour
+  // ne pas surpunir un hôte de bonne foi sur une plateforme naissante.
+  if (daysUntilCheckIn >= 30) return 7;
   if (daysUntilCheckIn >= 7) return 15;
   return 30;
 }
