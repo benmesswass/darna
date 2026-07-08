@@ -16,9 +16,11 @@ import react from "@vitejs/plugin-react";
  * Cibles : `src/lib` ≥ 85 %, paiement/auth ~100 %, global ≥ 70 %. Les dicos i18n
  * (données pures) et les `.d.ts` sont exclus.
  *
- * Visibilité CI : sous GitHub Actions on ajoute le reporter `github-actions`
- * (annotations inline + récap tests dans le run) et `json` (résultat machine dans
- * l'artifact). La couverture est ajoutée au run par `scripts/ci-test-summary.mjs`.
+ * Visibilité CI : sous GitHub Actions on active le reporter `json`
+ * (`coverage/test-results.json`), consommé par `scripts/ci-test-summary.mjs` qui
+ * publie LE rapport détaillé (tous les tests, échecs, par fichier) + la
+ * couverture dans la page du run (`$GITHUB_STEP_SUMMARY`). On garde un seul
+ * rapport, clair et exhaustif, plutôt que plusieurs blocs concurrents.
  */
 const alias = { "@": fileURLToPath(new URL("./src", import.meta.url)) };
 const inCI = Boolean(process.env.GITHUB_ACTIONS);
@@ -26,7 +28,7 @@ const inCI = Boolean(process.env.GITHUB_ACTIONS);
 export default defineConfig({
   resolve: { alias },
   test: {
-    reporters: inCI ? ["default", "github-actions", "json"] : ["default"],
+    reporters: inCI ? ["default", "json"] : ["default"],
     outputFile: { json: "./coverage/test-results.json" },
     coverage: {
       provider: "v8",

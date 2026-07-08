@@ -65,9 +65,10 @@ jobs:
         # tests échoués directement dans la PR.
         run: npm run test:coverage
 
-      - name: Récap tests + couverture (page du run)
-        # Publie un tableau récap dans $GITHUB_STEP_SUMMARY, même si les tests
-        # ont échoué (visible sans déplier les logs).
+      - name: Rapport de tests détaillé (page du run)
+        # Publie LE rapport détaillé dans $GITHUB_STEP_SUMMARY (§7.3 de la
+        # roadmap) : tous les tests (par fichier + détail replié), échecs avec
+        # message, totaux et couverture. `if: always()` → visible même sur échec.
         if: always()
         run: node scripts/ci-test-summary.mjs
 

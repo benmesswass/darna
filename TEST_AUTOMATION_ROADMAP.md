@@ -313,6 +313,34 @@ ni SAST.
 **Règle de non-régression :** la couverture ne peut pas baisser ; un parcours
 `P0` sans test E2E/intégration bloque le merge.
 
+### 7.3 Visibilité du rapport de tests (obligatoire — règle permanente)
+
+> **Tout run CI doit publier, dans la page du run GitHub Actions, un rapport de
+> tests CLAIR, DÉTAILLÉ et EXHAUSTIF — pas seulement un statut vert/rouge ni des
+> logs à déplier.** Objectif : comprendre l'état des tests sans ouvrir la
+> console.
+
+Le rapport (publié dans `$GITHUB_STEP_SUMMARY` par `scripts/ci-test-summary.mjs`,
+step `if: always()` — donc visible **même en cas d'échec**) contient :
+
+- **Un bandeau de statut** (SUCCÈS / ÉCHEC) + un tableau de **totaux** (fichiers,
+  tests, réussis, échoués, ignorés, durée).
+- **La liste détaillée des tests échoués** en tête, avec le **message d'erreur**
+  (fichier : ligne) — pour diagnostiquer sans fouiller les logs.
+- **Une table de synthèse par fichier** (statut, nombre de tests, réussis/
+  échoués/ignorés, durée).
+- **Le détail de TOUS les tests** (nom complet + statut + durée), replié dans un
+  `<details>` pour rester navigable même à plusieurs centaines de tests.
+- **La couverture** du cœur backend (lignes / instructions / fonctions /
+  branches) et le rappel des seuils.
+- **Un artifact `coverage-report`** téléchargeable (rapport HTML complet).
+
+**Cette exigence est un invariant de CI** : toute évolution du pipeline doit la
+préserver. Un run qui n'exposerait plus le rapport détaillé est un régression à
+corriger au même titre qu'un test cassé. (Applicable dès qu'un nouveau type de
+test est ajouté — composant, E2E, sécurité… : il doit apparaître dans ce même
+rapport.)
+
 ---
 
 ## 8. Roadmap séquencée
@@ -340,6 +368,7 @@ ni SAST.
 - [x] Premier composant paiement **`KonnectPayButton`** (P0) : libellé, erreur serveur, redirection client `payUrl`. → `tests/components/konnect-pay-button.test.tsx`.
 - [x] Composant `Price` + formatage devise diaspora (TND/EUR). → `tests/components/price.test.tsx`.
 - [x] Gate front en CI. → le projet `jsdom` tourne dans `npm run test:coverage` (déjà appelé par la CI).
+- [x] **Rapport de tests détaillé & exhaustif dans le run CI** (§7.3) : tous les tests affichés (par fichier + détail replié), échecs avec message, totaux, couverture, artifact HTML. → `scripts/ci-test-summary.mjs`, `.github/workflows/ci.yml`.
 - [ ] Formulaires mutants restants : connexion, inscription, KYC, réservation/date-picker.
 - [ ] `PropertyCard`, carte (`PropertyMap`/`MapInner`), `HistoryNav`/`MessagesNotifier` (positionnement).
 
