@@ -299,6 +299,30 @@ default; real via `KONNECT_*`). Settlement lives in `src/lib/payments.ts`
 4. All money events audited (immutable trail, 90-day+ retention).
 5. EUR display is UI-only; the charged amount is always TND.
 
+### 6.1 HostInvoice test suite (Rail 2 — paiement sur place)
+
+Same bar as §6, applied to `HostInvoice` (commission owed by the HOST to
+Darna on a `SUR_PLACE` booking — the guest pays the host directly, nothing
+to Darna; the host settles the invoice via Konnect or the demo fallback).
+Settlement lives in `src/lib/host-invoicing.ts` (`settleHostInvoice`,
+intentionally **not** a `"use server"`, mirrors `settleKonnectBooking`).
+`PAIEMENT_SUR_PLACE_ROADMAP.md` PSP1-PSP8.
+
+| Scenario | Test to create | Expected guarantee | Status | Phase |
+|----------|----------------|---------------------|--------|-------|
+| Double settlement | Two `settleHostInvoice` calls, same ref | Only first mutates; second is a no-op | ✅ `host-invoicing.test.ts` | Demo |
+| Settlement race (webhook vs return page) | Concurrent settle, `updateMany` count 0 on the loser | Single `PAYEE`, single audit | ✅ `host-invoicing.test.ts` | Demo |
+| Amount tamper | `reachedAmount < expected` | Reject (`ERREUR`, no confirm) | ✅ `host-invoicing.test.ts` | Demo |
+| Unknown reference | Settle with an unrecognized `paymentRef`/`invoiceId` | `INTROUVABLE`, harmless no-op | ✅ `host-invoicing.test.ts` | Demo |
+| Payment IDOR | Host B initiates/confirms host A's invoice payment (`payHostInvoiceAction`, `confirmHostInvoiceAction`) | Rejected — `invoice.hostId !== user.id` | ✅ `host-invoice-payment.test.ts` | Demo |
+| Demo/real exclusivity | `confirmHostInvoiceAction` while Konnect is enabled | No-op, never settles | ✅ `host-invoice-payment.test.ts` | Demo |
+| **Webhook authenticity** | Forged/missing signature on `host-invoice-webhook` | Reject (401) without valid HMAC (`verifyKonnectWebhook`), same guard as the booking webhook | ✅ `host-invoice-webhook.test.ts` | Demo |
+| Webhook rate limiting | Hammering one `iid` | 429 beyond the per-invoice cap | ✅ `host-invoice-webhook.test.ts` | Demo |
+| Recovery lever non-bypass | `hasOverdueHostInvoice` toggles false→true→false around settlement, no field to resync | ✅ `host-invoicing.test.ts` (`hasOverdueHostInvoice` — proves instant reappearance) | Demo |
+| Cash-terms non-bypass | Host flips `cashPaymentEnabled` false→true without accepting CGU, or re-toggles an already-active mode | Rejected on first transition without acceptance; no re-acceptance forced when already active (`cashTermsAcceptedAt` untouched) | ✅ `cash-payment-terms-bypass.test.ts` | Demo |
+| View IDOR (`/dashboard/factures/[id]`) | Host B opens host A's invoice URL directly | `notFound()` — `invoice.hostId !== user.id` (`src/app/dashboard/factures/[id]/page.tsx:59`) | ⚠️ guarded in code, not unit-tested (no Server Component test harness in this suite — same gap as other page-level ownership checks) | Demo |
+| Reconciliation | Konnect status vs local `HostInvoice` mismatch | Detect & alert; never silent loss | ❌ | Production |
+
 ---
 
 ## 7. Auth test suite
