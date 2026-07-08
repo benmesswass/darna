@@ -30,6 +30,7 @@ import { ActiveSection } from "@/components/layout/ActiveSection";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { buildPropertyJsonLd } from "@/lib/structured-data";
 import { getSimilarListings } from "@/lib/listings";
+import { blendedRatingStats } from "@/lib/rating";
 import { favoritePropFor } from "@/lib/favorites";
 import { Caracteristique } from "@/modules/core/listing/Caracteristique";
 import type {
@@ -91,11 +92,14 @@ export async function ListingDetail({
   const isActive =
     property.status === "ACTIVE" && property.expiresAt.getTime() > Date.now();
   const amenities = property.amenities ? property.amenities.split("|") : [];
-  const avgRating =
-    property.reviews.length > 0
-      ? property.reviews.reduce((sum, r) => sum + r.rating, 0) /
-        property.reviews.length
-      : null;
+  // §AHC7 — la note affichée en tête de fiche intègre les annulations hôte
+  // récentes (note automatique 1/5, cf. src/lib/rating.ts) : même chiffre que
+  // celui recalculé dans ReviewsList, pour ne jamais afficher deux moyennes
+  // différentes sur la même page. Les données structurées SEO (JsonLd
+  // ci-dessous) restent volontairement sur les vrais avis uniquement.
+  const ratingStats = blendedRatingStats(property.reviews, property.hostCancellations.length);
+  const avgRating = ratingStats.total > 0 ? ratingStats.average : null;
+  const reviewCount = ratingStats.total;
   const similarListings = await getSimilarListings(property);
 
   return (
@@ -164,7 +168,7 @@ export async function ListingDetail({
               className="mt-2 flex items-center justify-end gap-2 text-sm font-semibold text-heading underline-offset-4 transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-darna/40"
             >
               <RatingStars rating={avgRating} size={22} />
-              {avgRating.toFixed(1)} · {fr.property.nbAvis(property.reviews.length)}
+              {avgRating.toFixed(1)} · {fr.property.nbAvis(reviewCount)}
             </a>
           ) : null}
         </div>
@@ -307,7 +311,7 @@ export async function ListingDetail({
                     longitude: property.longitude,
                     imageUrl: property.photos[0]?.url ?? null,
                     rating: avgRating,
-                    reviewCount: property.reviews.length,
+                    reviewCount,
                     city: property.city,
                   },
                 ]}
@@ -328,7 +332,8 @@ export async function ListingDetail({
               (ex. contact direct côté location / vente). */}
           {afterLocation}
 
-          {/* Avis — uniquement de voyageurs ayant réservé */}
+          {/* Avis — uniquement de voyageurs ayant réservé, + entrées système
+              « annulé par l'hôte » (§AHC7). */}
           <ReviewsSection
             propertyId={property.id}
             propertyType={property.type}
@@ -344,6 +349,7 @@ export async function ListingDetail({
               authorName: r.author.name,
               createdAt: r.createdAt.toISOString(),
             }))}
+            cancellations={property.hostCancellations}
           />
         </div>
 

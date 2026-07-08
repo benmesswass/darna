@@ -20,13 +20,28 @@ export type ReviewItem = {
   property?: { title: string; slug: string };
 };
 
+/**
+ * Entrée SYSTÈME « annulé par l'hôte » (§AHC7) : affichée comme un avis (note
+ * automatique de 1/5, comptée dans la moyenne/histogramme — décision produit
+ * du 2026-07-08), mais jamais attribuée à un voyageur — « auteur » = Darna,
+ * dates exactes du séjour annulé plutôt qu'un vague mois.
+ */
+export type HostCancellationEntry = {
+  id: string;
+  cancelledAt: string;
+  checkIn: string;
+  checkOut: string;
+};
+
 export async function ReviewsSection({
   reviews,
+  cancellations = [],
   eligibleBookingId,
 }: {
   propertyId: string;
   propertyType: string;
   reviews: ReviewItem[];
+  cancellations?: HostCancellationEntry[];
   /** Réservation terminée du visiteur, sans avis — ouvre le formulaire. */
   eligibleBookingId?: string | null;
 }) {
@@ -41,7 +56,7 @@ export async function ReviewsSection({
 
       {eligibleBookingId ? <ReviewForm bookingId={eligibleBookingId} /> : null}
 
-      <ReviewsList reviews={reviews} />
+      <ReviewsList reviews={reviews} cancellations={cancellations} />
     </section>
   );
 }

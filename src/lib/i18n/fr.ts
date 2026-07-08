@@ -243,6 +243,9 @@ export const fr = {
       "Chaque avis provient d'une réservation confirmée sur Darna — impossible d'en publier un sans avoir séjourné.",
     aucunAvis: "Aucun avis pour le moment — soyez le premier après votre séjour.",
     avisVerifie: "Séjour vérifié",
+    avisSystemeAnnulationHote: (checkIn: string, checkOut: string) =>
+      `Séjour du ${checkIn} au ${checkOut} annulé par l'hôte. Remboursement intégral effectué au voyageur.`,
+    avisSystemeLabel: "Note automatique",
     noteGlobale: "Note globale",
     surface: (m: number) => `${m} m²`,
     pieces: (n: number) => (n === 1 ? "1 pièce" : `${n} pièces`),

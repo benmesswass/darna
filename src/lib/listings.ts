@@ -8,6 +8,7 @@ import {
   parseStayKindParam,
   type SortKey,
 } from "@/lib/constants";
+import { HOST_CANCELLATION_SIGNAL_DAYS } from "@/lib/config";
 import type { MapMarker } from "@/components/map/types";
 import type { ReviewItem } from "@/components/property/ReviewsSection";
 
@@ -457,6 +458,34 @@ export async function searchImmobilier(params: ImmobilierSearchParams) {
   return { results, transaction, total, page, pageSize: PAGE_SIZE, sort };
 }
 
+/**
+ * Signal réputationnel « annulé par l'hôte » (§AHC7) : chaque annulation hôte
+ * sur CETTE annonce dans la fenêtre glissante (HOST_CANCELLATION_SIGNAL_DAYS)
+ * devient une entrée SYSTÈME dans les avis, avec une note automatique de
+ * 1/5 (décision produit du 2026-07-08 : pèse réellement dans le score affiché
+ * — cf. `blendedRatingStats`, src/lib/rating.ts) — dissuasif réel, sans
+ * sur-punir indéfiniment (elle sort d'elle-même de la fenêtre, filtre
+ * paresseux comme cancelBlockedUntil, pas de cron). Renvoie les dates du
+ * séjour annulé (déjà publiques via le calendrier de disponibilité) mais
+ * JAMAIS le voyageur concerné (vie privée), jamais le motif détaillé.
+ */
+export async function getHostCancellationSignals(propertyId: string): Promise<
+  { id: string; cancelledAt: string; checkIn: string; checkOut: string }[]
+> {
+  const cutoff = new Date(Date.now() - HOST_CANCELLATION_SIGNAL_DAYS * 24 * 60 * 60 * 1000);
+  const bookings = await prisma.booking.findMany({
+    where: { propertyId, cancelledByHostAt: { gte: cutoff } },
+    orderBy: { cancelledByHostAt: "desc" },
+    select: { id: true, cancelledByHostAt: true, checkIn: true, checkOut: true },
+  });
+  return bookings.map((b) => ({
+    id: b.id,
+    cancelledAt: b.cancelledByHostAt!.toISOString(),
+    checkIn: b.checkIn.toISOString(),
+    checkOut: b.checkOut.toISOString(),
+  }));
+}
+
 export async function getPropertyBySlug(slug: string) {
   const property = await prisma.property.findUnique({
     where: { slug },
@@ -492,14 +521,18 @@ export async function getPropertyBySlug(slug: string) {
   // getHostProfile(). Affichée même quand le nom est masqué (anonymizeOwner) :
   // la réputation n'est pas une donnée d'identité, rien ne justifie de la
   // cacher avant paiement.
-  const rating = await prisma.review.aggregate({
-    where: { property: { ownerId: property.owner.id } },
-    _avg: { rating: true },
-    _count: { rating: true },
-  });
+  const [rating, hostCancellations] = await Promise.all([
+    prisma.review.aggregate({
+      where: { property: { ownerId: property.owner.id } },
+      _avg: { rating: true },
+      _count: { rating: true },
+    }),
+    getHostCancellationSignals(property.id),
+  ]);
 
   return {
     ...property,
+    hostCancellations,
     owner: {
       ...property.owner,
       ratingAvg: rating._count.rating > 0 ? rating._avg.rating : null,

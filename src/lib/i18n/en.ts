@@ -242,6 +242,9 @@ export const en: Dictionary = {
       "Every review comes from a confirmed booking on Darna — it is impossible to post one without having stayed.",
     aucunAvis: "No reviews yet — be the first after your stay.",
     avisVerifie: "Verified stay",
+    avisSystemeAnnulationHote: (checkIn: string, checkOut: string) =>
+      `Stay from ${checkIn} to ${checkOut} cancelled by the host. Guest fully refunded.`,
+    avisSystemeLabel: "Automatic rating",
     noteGlobale: "Overall rating",
     surface: (m: number) => `${m} m²`,
     pieces: (n: number) => (n === 1 ? "1 room" : `${n} rooms`),
