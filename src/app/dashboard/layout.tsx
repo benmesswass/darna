@@ -9,6 +9,7 @@ import { buildDashboardLinks } from "@/lib/dashboard-nav";
 import { isSuspended, nextSuspensionDays } from "@/lib/suspension";
 import { formatDateFr } from "@/lib/format";
 import { countUnreadMessages } from "@/lib/messages";
+import { hasOverdueHostInvoice } from "@/lib/host-invoicing";
 import { CheckIcon } from "@/components/icons";
 
 /** Initiales (1 à 2 lettres) pour l'avatar par défaut de l'en-tête. */
@@ -65,6 +66,11 @@ export default async function DashboardLayout({
   const hostPendingInvoices = isLister
     ? await prisma.hostInvoice.count({ where: { hostId: user.id, status: "EN_ATTENTE" } })
     : 0;
+
+  // Levier de recouvrement (§PSP6) : bannière tant qu'une facture de
+  // commission dépasse son échéance — les annonces de l'hôte sont alors
+  // masquées de la recherche et non réservables (cf. activeListingWhere).
+  const hasOverdueInvoice = isLister ? await hasOverdueHostInvoice(user.id) : false;
 
   // Messages non lus (tous fils confondus) → pastille « Messagerie », pour tous.
   const unreadMessages = await countUnreadMessages(user.id);
@@ -172,6 +178,23 @@ export default async function DashboardLayout({
               </p>
             </div>
           </details>
+        </div>
+      ) : null}
+
+      {hasOverdueInvoice ? (
+        <div className="mt-4 rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-200">
+          <p className="text-sm font-bold text-amber-800">
+            {fr.dashboard.facturesEnRetardBanniereTitre}
+          </p>
+          <p className="mt-1 text-sm text-amber-800/80">
+            {fr.dashboard.facturesEnRetardBanniereDetail}
+          </p>
+          <Link
+            href="/dashboard/factures"
+            className="mt-2 inline-block text-sm font-bold text-amber-900 underline"
+          >
+            {fr.dashboard.facturesEnRetardBanniereCta}
+          </Link>
         </div>
       ) : null}
 

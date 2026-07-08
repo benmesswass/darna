@@ -10,6 +10,7 @@ vi.mock("@/lib/prisma", () => ({
     hostInvoice: {
       findFirst: vi.fn(),
       updateMany: vi.fn(),
+      count: vi.fn(),
     },
   },
 }));
@@ -22,13 +23,14 @@ vi.mock("@/lib/audit", () => ({
   logStructured: vi.fn(),
 }));
 
-import { settleHostInvoice } from "@/lib/host-invoicing";
+import { hasOverdueHostInvoice, settleHostInvoice } from "@/lib/host-invoicing";
 import { prisma } from "@/lib/prisma";
 import { getKonnectPayment, type KonnectPayment } from "@/lib/konnect";
 import { logAudit } from "@/lib/audit";
 
 const findFirst = prisma.hostInvoice.findFirst as unknown as Mock;
 const updateMany = prisma.hostInvoice.updateMany as unknown as Mock;
+const count = prisma.hostInvoice.count as unknown as Mock;
 const getPayment = getKonnectPayment as unknown as Mock;
 const audit = logAudit as unknown as Mock;
 
@@ -127,5 +129,33 @@ describe("settleHostInvoice", () => {
 
     expect(await settleHostInvoice({ paymentRef: "pay_1" })).toBe("PAYEE");
     expect(audit).not.toHaveBeenCalled(); // pas de re-log ni d'effet de bord
+  });
+});
+
+describe("hasOverdueHostInvoice (§PSP6 — levier de recouvrement)", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("détecte une facture EN_ATTENTE dont l'échéance est dépassée", async () => {
+    count.mockResolvedValue(1);
+    expect(await hasOverdueHostInvoice("host_1")).toBe(true);
+    expect(count).toHaveBeenCalledWith({
+      where: { hostId: "host_1", status: "EN_ATTENTE", dueAt: { lt: expect.any(Date) } },
+    });
+  });
+
+  it("redevient faux IMMÉDIATEMENT dès que la facture n'est plus en retard (réglée) — aucun champ à resynchroniser", async () => {
+    count.mockResolvedValueOnce(1);
+    expect(await hasOverdueHostInvoice("host_1")).toBe(true);
+
+    // Le règlement (settleHostInvoice) fait passer le statut à PAYEE : le
+    // COUNT filtré sur EN_ATTENTE ne la trouve plus, sans rien d'autre à
+    // mettre à jour (pas de champ dénormalisé sur Property/HostInvoice).
+    count.mockResolvedValueOnce(0);
+    expect(await hasOverdueHostInvoice("host_1")).toBe(false);
+  });
+
+  it("retourne faux quand aucune facture n'est en retard", async () => {
+    count.mockResolvedValue(0);
+    expect(await hasOverdueHostInvoice("host_1")).toBe(false);
   });
 });

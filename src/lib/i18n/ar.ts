@@ -486,6 +486,10 @@ export const ar: Dictionary = {
       "لغيت حجز كان مؤكّد — رجعنا للمسافر فلوسو كاملة، ولكن الإلغاء بعد التأكيد يبقى معرّض للعقاب.",
     suspenduPourquoiFactureImpayee:
       "فاتورة كوميسيون دارنا مازالت ما تخلصتش رغم التفكرة — خلّصها باش يترفع التعليق.",
+    facturesEnRetardBanniereTitre: "الأنونصات مخبّاة : فاتورة فاتها الأجل",
+    facturesEnRetardBanniereDetail:
+      "الوقت اللي تخلص فيه فاتورة الكوميسيون متاعك اللي فاتها الأجل، الأنونصات متاعك كلها ماهياش تبان للمسافرين وما تنجمش تُحجز.",
+    facturesEnRetardBanniereCta: "شوف الفواتير متاعي",
     suspenduConsequencesTitre: "العواقب :",
     suspenduProchaine: (jours: number) =>
       `كان تعاود، التعليق الجاي باش يدوم ${jours} أيّام.`,
@@ -1100,6 +1104,8 @@ export const ar: Dictionary = {
     datesInvalides: "التواريخ غالطة — تاريخ المغادرة لازم يجي بعد الوصول.",
     datesIndisponibles:
       "التواريخ هاذي ما عادتش متوفّرة. اختار غيرها من فضلك.",
+    hoteFactureImpayee:
+      "الدار هاذي ماهيش متاحة للحجز توّا (فاتورة الكوميسيون متاع المالك فاتها الأجل).",
     proprietaireImpossible: "ما تنجمش تحجز الدار متاعك.",
     proprietaireImpossibleAide:
       "هاذي إعلانك. باش تجرّبها كمسافر، ادخل بحساب آخر.",

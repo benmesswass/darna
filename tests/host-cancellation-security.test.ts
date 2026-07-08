@@ -18,6 +18,7 @@ vi.mock("@/lib/prisma", () => ({
   },
 }));
 vi.mock("@/lib/session", () => ({ requireUser: vi.fn(), getSessionUser: vi.fn() }));
+vi.mock("@/lib/host-invoicing", () => ({ hasOverdueHostInvoice: vi.fn(() => false) }));
 vi.mock("@/lib/audit", () => ({ logAudit: vi.fn(), logStructured: vi.fn() }));
 vi.mock("@/lib/suspension", () => ({
   isSuspended: vi.fn(() => false),
