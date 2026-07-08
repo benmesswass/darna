@@ -121,13 +121,12 @@ terminé). Statut des phases dans le tableau ci-dessus.**
 > économique de remboursement + des manques UX/robustesse, regroupés dans un
 > sous-chantier de correctifs distinct (`ANNULATION_HOTE_CORRECTIFS_ROADMAP.md`).
 >
-> **⏳ CONTINUATION EN ATTENTE : `ANNULATION_HOTE_CORRECTIFS_ROADMAP.md`** — le
-> chantier annulation hôte **n'est pas encore clos** (décision de Wassim). Tant
-> que ce pointeur reste ⏳, « suivant » / « enchaîne » **continue d'abord les
-> phases AH ci-dessus**. **Quand Wassim déclarera le chantier terminé**, passer
-> ce pointeur à **➡️ ACTIF** — « suivant » / « enchaîne » basculera alors
-> automatiquement sur les correctifs (AHC1, `P0`). Cf. règle « Chaînage
-> automatique des roadmaps » de `CLAUDE.md`.
+> **➡️ ACTIF — CONTINUATION : `ANNULATION_HOTE_CORRECTIFS_ROADMAP.md`,
+> elle-même close (AHC1→AHC8 tous `✅`, 2026-07-08) et pointant à son tour
+> vers `FEATURES_ROADMAP.md` / `QA_ROADMAP.md`.** Le chantier annulation
+> hôte (AH + AHC) est entièrement clos. « suivant » / « enchaîne » reprend
+> désormais la priorité la plus haute (`P0`/`P1`) des roadmaps produit/QA
+> générales. Cf. règle « Chaînage automatique des roadmaps » de `CLAUDE.md`.
 
 ## Exécution (prioritisée)
 

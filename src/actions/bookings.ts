@@ -1014,6 +1014,12 @@ export async function hostCancelBookingAction(
 
   revalidatePath("/dashboard/reservations");
   revalidatePath(`/annonce/${booking.property.slug}`);
+  // §AHC8(b) — l'annonce bloquée (cancelBlockedUntil) doit disparaître de la
+  // recherche SANS attendre un autre rendu : le filtre paresseux
+  // (activeListingWhere) corrige de toute façon au prochain accès, mais sans
+  // ce revalidate une page /sejours déjà en cache pourrait brièvement
+  // continuer à montrer l'annonce bloquée.
+  revalidatePath("/sejours");
   return { success: fr.booking.annulationHoteConfirmee };
 }
 

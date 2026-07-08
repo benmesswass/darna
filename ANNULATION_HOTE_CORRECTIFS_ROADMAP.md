@@ -39,7 +39,7 @@
 | AHC5 | **Réduction affichée = réduction appliquée** (plafond `subtotal` → bandeau parfois trompeur) | P1 | ✅ | `quoteBookingAction` (`src/actions/bookings.ts`) renvoie désormais `discount = fullTotal − total` (baisse RÉELLE après plancher) au lieu du brut `computeRebookingDiscount`. Le bandeau de `BookingPanel` s'aligne automatiquement. Test `tests/host-cancellation-security.test.ts` (cas plafonné : brut 50 → affiché 40 ; ici en direct : brut 114 → affiché 91). Vérifié en direct (récapitulatif réservation). |
 | AHC6 | **Recalibrer le barème + amortir le relogement last-minute** (≥30j → 3j négligeable ; mêmes dates rarement libres) | P2 | ✅ | Décisions produit du 2026-07-08 : barème `≥30j → 7j` (`hostCancelBlockDays`, `src/lib/config.ts`) ; suggestions élargies à **5 villes voisines** + **fenêtre de dates ±2 jours** (`getRebookingSuggestions`, `src/lib/listings.ts` — une annonce libre à ±2j est désormais proposée, le lien ne fige pas les dates). Tests `tests/rebooking-suggestions.test.ts` + barème màj dans `tests/host-cancellation-security.test.ts`. Vérifié en direct (modale « 7 jours » à 40j de préavis). |
 | AHC7 | **Avis/signal automatique « annulé par l'hôte »** (dissuasif réputationnel, emprunt Airbnb, aligné north-star) | P2 | ✅ | Décisions produit du 2026-07-08 (affinées après premier retour Wassim) : entrée insérée dans le flux d'avis **au même gabarit qu'un vrai avis** (auteur « Darna », étoiles rouges 1/5, dates EXACTES du séjour annulé — pas juste le mois), dès la 1re annulation, fenêtre glissante 90j (`HOST_CANCELLATION_SIGNAL_DAYS`, `src/lib/config.ts`). **Compte réellement dans la moyenne/l'histogramme affichés** (`blendedRatingStats`, `src/lib/rating.ts`, module pur partagé serveur/client) — dissuasif réel, pas cosmétique ; sous-notes (propreté…) restent calculées sur les vrais avis uniquement. Volontairement **exclue des données structurées SEO** (JSON-LD Google) et du score persisté `Property.ratingAvg` utilisé pour le tri des recherches (scope documenté, décision à reprendre séparément si souhaité). `getHostCancellationSignals` (`src/lib/listings.ts`) renvoie id + dates du séjour — jamais le voyageur (vie privée). Carte visuelle toujours teintée en rouge, même mélangée/triée parmi les vrais avis. i18n fr/en/ar. Tests `tests/rating.test.ts` (5), `tests/rebooking-suggestions.test.ts` (requête), `tests/components/reviews-list.test.tsx` (7 : présence, pondération réelle de la moyenne, apparition sous filtre 1★, non-pollution des sous-notes). Vérifié en direct (fiche annonce publique sans connexion : moyenne recalculée 3.8→3.6/14 avis, carte rouge avec dates exactes, filtre 1★). |
-| AHC8 | **Remboursement réel (Konnect)** + `revalidatePath("/sejours")` | P2 | ❌ | `src/lib/payments.ts`, `hostCancelBookingAction` |
+| AHC8 | **Remboursement réel (Konnect)** + `revalidatePath("/sejours")` | P2 | ✅ | (a) **Cadré, pas implémenté** : l'API Konnect (doc officielle + SDK PHP tiers) n'expose **aucun endpoint de remboursement** — seuls `init-payment`/`get-payment-details` existent. Documenté explicitement dans `CLAUDE.md` (§Paiement Konnect) : le remboursement reste un mock (écriture comptable + affichage) même avec Konnect actif, jusqu'à une vraie solution (prestataire dédié ou process manuel) avant toute prod payante — pas de faux appel API codé en attendant. (b) `revalidatePath("/sejours")` ajouté dans `hostCancelBookingAction` (`src/actions/bookings.ts`). Test `tests/host-cancellation-security.test.ts`. |
 
 **Ordre d'exécution recommandé :** AHC1 → AHC2 (P0, bugs courts et nets, livrables ensemble) → AHC3 → AHC4 → AHC5 (P1, UX) → AHC6 → AHC7 → AHC8 (P2, produit / cadrage).
 
@@ -196,8 +196,7 @@ attendre un autre rendu.
 
 ---
 
-> **⏳ CONTINUATION EN ATTENTE (à l'achèvement de AHC1→AHC8) : `FEATURES_ROADMAP.md` /
-> `QA_ROADMAP.md`** — une fois tous les correctifs `✅`, passer ce pointeur à
-> **➡️ ACTIF** ; « suivant » / « enchaîne » reprendra alors la priorité la plus
-> haute (`P0`/`P1`) des roadmaps produit/QA générales. Cf. règle « Chaînage
-> automatique des roadmaps » de `CLAUDE.md`.
+> **➡️ ACTIF — CONTINUATION : `FEATURES_ROADMAP.md` / `QA_ROADMAP.md`.**
+> AHC1→AHC8 sont tous `✅` (2026-07-08) : « suivant » / « enchaîne » reprend
+> désormais la priorité la plus haute (`P0`/`P1`) des roadmaps produit/QA
+> générales. Cf. règle « Chaînage automatique des roadmaps » de `CLAUDE.md`.
