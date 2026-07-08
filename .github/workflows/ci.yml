@@ -176,3 +176,83 @@ jobs:
           name: playwright-traces
           path: test-results/
           retention-days: 14
+
+  # Job isolé (§7.4), indépendant de `e2e` : tester les portes de
+  # /api/payments/konnect/webhook (400/401/429) exige PAYMENT_MODE=konnect
+  # actif sur ce serveur — incompatible avec `e2e` qui dépend du paiement
+  # démo (Konnect désactivé, cf. scénario 02). Un seul `next dev` ne peut pas
+  # avoir les deux valeurs en même temps, d'où un serveur/job dédié.
+  api:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: darna
+          POSTGRES_USER: darna
+          POSTGRES_PASSWORD: darna
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U darna"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://darna:darna@localhost:5432/darna
+      DIRECT_URL: postgresql://darna:darna@localhost:5432/darna
+      AUTH_SECRET: ci-only-dummy-secret-do-not-use-in-prod
+      SITE_URL: http://localhost:3000
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Prisma generate
+        run: npx prisma generate
+
+      - name: Apply migrations
+        run: npx prisma migrate deploy
+
+      - name: API (Playwright, sans navigateur)
+        # PAYMENT_MODE/KONNECT_* sont injectés par playwright.api.config.ts
+        # (webServer.env) — identifiants factices, jamais de vraie clé.
+        run: npm run test:api
+
+      - name: Générer le rapport Allure
+        if: always()
+        run: npx allure generate allure-results-api --single-file --clean -o allure-report-api
+
+      - name: Upload rapport Allure (artifact)
+        if: always()
+        id: allure-artifact-api
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report-api
+          path: allure-report-api/
+          retention-days: 14
+
+      - name: Lien direct vers le rapport Allure (résumé du run)
+        if: always()
+        run: |
+          {
+            echo "## 🧪 Rapport API (Allure)"
+            echo ""
+            echo "**[📊 Télécharger le rapport Allure](${{ steps.allure-artifact-api.outputs.artifact-url }})**"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload traces (artifact)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-test-traces
+          path: test-results/
+          retention-days: 14

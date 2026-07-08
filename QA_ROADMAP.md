@@ -73,7 +73,7 @@ exist. The roadmap below is therefore **gap-driven**, not a rewrite.
 
 - ⚠️ **No concurrency test** proving two overlapping bookings → exactly one wins.
 - ⚠️ **No IDOR/negative-authorization tests** (user A acting on user B's booking/property/profile).
-- ❌ **No webhook signature verification** on the Konnect endpoint (relies on `payment_ref` opacity + rate limiting).
+- ✅ **Webhook signature verification** implemented (`signKonnectWebhook`/`verifyKonnectWebhook`, HMAC-SHA256 constant-time, `src/lib/konnect.ts`) and tested (`tests/konnect.test.ts`, `tests/host-invoice-webhook.test.ts`, `tests/api/webhook-konnect.spec.ts` for the traveler webhook's HTTP-level gates). This bullet incorrectly said "missing" — corrected 2026-07-08.
 - ❌ **No E2E tests** (no browser-level journeys for signup → KYC → booking → payment).
 - ❌ **No session lifecycle tests** (expiration, invalidation on password change).
 - ❌ **No CSRF / SSRF / mass-assignment / open-redirect regression tests** (some controls exist in code, none asserted).
@@ -263,7 +263,7 @@ For each: **attack scenario** → **tests to create** → **protections to verif
 | **Brute-force login** (CWE-307) | Password spray | covered by rate-limit (✅) + lockout test | rate-limit per IP+action | ✅/⚠️ | Demo→Beta |
 | **Business-logic abuse** | Book→cancel→rebook to lock inventory; review without stay | expiry test, review-FK test | 15-min expiry, `Review.bookingId` FK | ⚠️ | Beta |
 | **Payment abuse** | Underpay, tamper amount, double-confirm | covered (✅) + see §6 | server amount recompute, idempotent settle | ✅ | Demo |
-| **Replay attacks** (CWE-294) | Replay Konnect webhook | webhook signature + idempotency-key test | idempotent `updateMany`, per-ref rate-limit; **signature missing** | ❌ | Beta |
+| **Replay attacks** (CWE-294) | Replay Konnect webhook | webhook signature + idempotency-key test | idempotent `updateMany`, per-ref rate-limit, HMAC signature (`verifyKonnectWebhook`) | ✅ `tests/konnect.test.ts`, `tests/api/webhook-konnect.spec.ts` | Demo |
 | **Race conditions** (CWE-362) | Concurrent booking / settlement | D1 + settlement-race test (⚠️ partial) | SERIALIZABLE tx, `updateMany` gate | ⚠️ | Demo |
 
 ---
@@ -514,7 +514,7 @@ checkout → setup-node 22 → npm ci → prisma generate → prisma migrate dep
 **Before Beta — quality gates + first integration/E2E + security regression:**
 1. Add coverage gate (≥70% lib+actions) + Playwright E2E smoke (5–8 journeys) to CI.
 2. Add SAST (CodeQL/Semgrep) + secret scan (gitleaks) + branch protection.
-3. **Konnect webhook signature/HMAC verification** + replay test.
+3. ✅ **Konnect webhook signature/HMAC verification** + replay test — done (`src/lib/konnect.ts`, `tests/konnect.test.ts`, `tests/api/webhook-konnect.spec.ts`).
 4. Session lifecycle tests (expiry, invalidation on pw change, cookie flags).
 5. Mass-assignment, open-redirect, CSRF/SameSite, SSRF allowlist, XSS output-encoding regression tests.
 6. Integration tests per server action (happy + authz-fail) against ephemeral Postgres.
