@@ -21,12 +21,17 @@ export type ReviewItem = {
 };
 
 /**
- * Entrée SYSTÈME « annulé par l'hôte » (§AHC7) — jamais un avis noté : pas de
- * rating/sous-notes/auteur, jamais comptée dans la moyenne/histogramme. Sert
- * uniquement à interrompre le flux chronologique des avis avec un signal
- * dissuasif discret.
+ * Entrée SYSTÈME « annulé par l'hôte » (§AHC7) : affichée comme un avis (note
+ * automatique de 1/5, comptée dans la moyenne/histogramme — décision produit
+ * du 2026-07-08), mais jamais attribuée à un voyageur — « auteur » = Darna,
+ * dates exactes du séjour annulé plutôt qu'un vague mois.
  */
-export type HostCancellationEntry = { id: string; cancelledAt: string };
+export type HostCancellationEntry = {
+  id: string;
+  cancelledAt: string;
+  checkIn: string;
+  checkOut: string;
+};
 
 export async function ReviewsSection({
   reviews,

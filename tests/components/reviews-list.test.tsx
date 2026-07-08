@@ -1,11 +1,11 @@
 /**
  * AHC7 (ANNULATION_HOTE_CORRECTIFS_ROADMAP.md) — signal réputationnel
- * « annulé par l'hôte » mélangé au flux d'avis.
- *
- * Prouve : l'entrée système apparaît dans le flux chronologique (tri
- * recent/old), n'apparaît PAS sous un filtre par note ni un tri par note
- * (elle n'a pas de note), et ne fausse jamais la moyenne/l'histogramme/les
- * sous-notes affichés (calculés uniquement sur les vrais avis).
+ * « annulé par l'hôte » (décisions produit du 2026-07-08 puis affinées) :
+ * affiché comme un avis (note automatique de 1/5, style carte d'avis) mais
+ * jamais attribué à un voyageur (« auteur » = Darna), avec les dates EXACTES
+ * du séjour annulé. Compte RÉELLEMENT dans la moyenne/l'histogramme affichés
+ * (dissuasif réel, pas cosmétique) mais jamais dans les sous-notes (propreté,
+ * communication…), qui n'ont pas de sens pour une annulation.
  */
 import { describe, expect, it } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
@@ -31,42 +31,61 @@ function review(overrides: Partial<ReviewItem> = {}): ReviewItem {
 const cancellation: HostCancellationEntry = {
   id: "bk-cancelled",
   cancelledAt: "2026-05-15T00:00:00.000Z",
+  checkIn: "2026-05-20T00:00:00.000Z",
+  checkOut: "2026-05-23T00:00:00.000Z",
 };
 
 describe("ReviewsList — entrée système « annulé par l'hôte » (§AHC7)", () => {
-  it("apparaît dans le flux chronologique (tri par défaut)", () => {
+  it("apparaît dans le flux, attribuée à « Darna » (pas un voyageur), avec les dates EXACTES du séjour", () => {
     renderWithProviders(
       <ReviewsList reviews={[review()]} cancellations={[cancellation]} />
     );
-    expect(screen.getByText(/annulée par l'hôte/i)).toBeInTheDocument();
+    expect(screen.getByText("Darna")).toBeInTheDocument();
+    expect(screen.getByText("Note automatique")).toBeInTheDocument();
+    // Dates exactes (jour précis), pas seulement le mois.
+    expect(screen.getByText(/20 mai 2026/)).toBeInTheDocument();
+    expect(screen.getByText(/23 mai 2026/)).toBeInTheDocument();
   });
 
-  it("n'est jamais comptée dans la moyenne / l'histogramme / les sous-notes", () => {
+  it("compte RÉELLEMENT dans la moyenne et le total affichés (1/5 pèse dans le score)", () => {
     renderWithProviders(
       <ReviewsList
-        reviews={[review({ id: "r1", rating: 4 }), review({ id: "r2", rating: 4 })]}
-        cancellations={[cancellation, { ...cancellation, id: "bk-2" }]}
-      />
-    );
-    // Moyenne = 4.0 (moyenne des 2 vrais avis), pas influencée par les 2
-    // entrées système.
-    expect(screen.getByText("4.0")).toBeInTheDocument();
-    // "2 avis" — le compteur ne compte QUE les vrais avis.
-    expect(screen.getByText("2 avis")).toBeInTheDocument();
-  });
-
-  it("disparaît sous un filtre par note (elle n'a pas de note)", () => {
-    renderWithProviders(
-      <ReviewsList
-        reviews={[review({ rating: 5 })]}
+        reviews={[review({ id: "r1", rating: 5 }), review({ id: "r2", rating: 5 })]}
         cancellations={[cancellation]}
       />
     );
-    // Clique le filtre "5 étoiles" dans l'histogramme.
-    const filterBtn = screen.getByRole("button", { name: /5 étoile/i });
+    // (5 + 5 + 1) / 3 = 3.666… → 3.7
+    expect(screen.getByText("3.7")).toBeInTheDocument();
+    // Total = 2 vrais avis + 1 entrée système = 3.
+    expect(screen.getByText("3 avis")).toBeInTheDocument();
+  });
+
+  it("apparaît sous le filtre « 1 étoile » (elle compte comme une note de 1/5)", () => {
+    renderWithProviders(
+      <ReviewsList reviews={[review({ rating: 5 })]} cancellations={[cancellation]} />
+    );
+    const filterBtn = screen.getByRole("button", { name: /1 étoile/i });
     fireEvent.click(filterBtn);
 
-    expect(screen.queryByText(/annulée par l'hôte/i)).not.toBeInTheDocument();
+    expect(screen.getByText("Darna")).toBeInTheDocument();
+    // Le vrai avis 5 étoiles ne matche plus le filtre 1 étoile.
+    expect(screen.queryByText("Excellent séjour")).not.toBeInTheDocument();
+  });
+
+  it("ne fausse jamais les sous-notes (propreté, communication…) — calculées sur les vrais avis uniquement", () => {
+    renderWithProviders(
+      <ReviewsList
+        reviews={[review({ proprete: 4, communication: 4, conformite: 4, qualitePrix: 4 })]}
+        cancellations={[cancellation]}
+      />
+    );
+    // Sous-note propreté = 4.0 (moyenne du seul vrai avis, pas diluée par
+    // l'entrée système qui n'a pas de sous-notes). `{ selector: "p" }` cible
+    // le récap (un <p> dédié) et exclut la ligne inline de la carte d'avis
+    // ("Propreté 4/5" dans un <span>, où seul le texte AVANT le <b> compte
+    // pour le matcher texte par défaut de testing-library).
+    const proprete = screen.getByText("Propreté", { selector: "p" }).nextElementSibling;
+    expect(proprete).toHaveTextContent("4.0");
   });
 
   it("le vrai avis reste affiché normalement même avec une entrée système présente", () => {
@@ -76,9 +95,11 @@ describe("ReviewsList — entrée système « annulé par l'hôte » (§AHC7)", 
     expect(screen.getByText("Séjour parfait")).toBeInTheDocument();
   });
 
-  it("sans aucun vrai avis mais avec une annulation : affiche l'entrée système, pas le message « aucun avis »", () => {
+  it("sans aucun vrai avis mais avec une annulation : affiche l'entrée système (1.0/5 · 1 avis), pas le message « aucun avis »", () => {
     renderWithProviders(<ReviewsList reviews={[]} cancellations={[cancellation]} />);
-    expect(screen.getByText(/annulée par l'hôte/i)).toBeInTheDocument();
+    expect(screen.getByText("Darna")).toBeInTheDocument();
+    expect(screen.getByText("1.0")).toBeInTheDocument();
+    expect(screen.getByText("1 avis")).toBeInTheDocument();
     expect(screen.queryByText(/soyez le premier/i)).not.toBeInTheDocument();
   });
 

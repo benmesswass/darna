@@ -4,19 +4,20 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { AlertTriangleIcon, CloseIcon, StarIcon } from "@/components/icons";
 import { useLocale, useT } from "@/components/i18n/LocaleProvider";
+import { blendedRatingStats, HOST_CANCELLATION_RATING } from "@/lib/rating";
 import type { HostCancellationEntry, ReviewItem } from "./ReviewsSection";
 
 type SortKey = "recent" | "old" | "high" | "low";
 
 /**
  * Item unifié du flux d'avis : un vrai avis noté, ou une entrée SYSTÈME
- * « annulé par l'hôte » (§AHC7). Les entrées système n'ont pas de note — donc
- * exclues du tri/filtre par note (elles n'apparaissent que triées par date,
- * jamais sous un filtre « X étoiles » ni un tri « meilleures/moins bonnes »).
+ * « annulé par l'hôte » (§AHC7) — traitée comme un avis à 1/5 de partout
+ * (moyenne, histogramme, filtre par note, tri) mais jamais attribuée à un
+ * voyageur : « auteur » = Darna, dates exactes du séjour annulé.
  */
 type FeedItem =
-  | { kind: "avis"; createdAt: string; review: ReviewItem }
-  | { kind: "annulation"; createdAt: string; entry: HostCancellationEntry };
+  | { kind: "avis"; createdAt: string; rating: number; review: ReviewItem }
+  | { kind: "annulation"; createdAt: string; rating: number; entry: HostCancellationEntry };
 
 /** Nombre d'avis affichés par défaut avant « Afficher plus » (partout dans Darna). */
 const PAGE_SIZE = 3;
@@ -28,9 +29,17 @@ const LOCALE_TAG: Record<string, string> = {
   ar: "ar-TN",
 };
 
-function Stars({ rating, size = 14 }: { rating: number; size?: number }) {
+function Stars({
+  rating,
+  size = 14,
+  tone = "text-sand",
+}: {
+  rating: number;
+  size?: number;
+  tone?: string;
+}) {
   return (
-    <span className="flex gap-0.5 text-sand" aria-hidden>
+    <span className={`flex gap-0.5 ${tone}`} aria-hidden>
       {[1, 2, 3, 4, 5].map((n) => (
         <StarIcon
           key={n}
@@ -62,59 +71,54 @@ export function ReviewsList({
   const [ratingFilter, setRatingFilter] = useState<number | null>(null);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
-  // Stats (moyenne, histogramme, sous-notes) TOUJOURS calculées sur les vrais
-  // avis uniquement (§AHC7) : une entrée système « annulé par l'hôte » n'a pas
-  // de note et ne doit jamais fausser la moyenne affichée/le rating serveur.
-  const total = reviews.length;
-
-  const { average, counts, subAverages } = useMemo(() => {
-    const counts = [0, 0, 0, 0, 0]; // index 0 → 1 étoile, index 4 → 5 étoiles
-    let sum = 0;
+  // §AHC7 (décision produit du 2026-07-08) : chaque annulation hôte compte
+  // comme une note automatique de 1/5 dans la moyenne/l'histogramme AFFICHÉS
+  // — dissuasif réel, pas cosmétique. Les sous-notes (propreté, communication…)
+  // restent calculées sur les VRAIS avis uniquement : une annulation n'a pas
+  // de sous-critères à noter.
+  const { average, counts, total } = useMemo(
+    () => blendedRatingStats(reviews, cancellations.length),
+    [reviews, cancellations.length]
+  );
+  const realCount = reviews.length;
+  const subAverages = useMemo(() => {
+    if (realCount === 0) return null;
     let proprete = 0;
     let communication = 0;
     let conformite = 0;
     let qualitePrix = 0;
     for (const r of reviews) {
-      counts[r.rating - 1]++;
-      sum += r.rating;
       proprete += r.proprete;
       communication += r.communication;
       conformite += r.conformite;
       qualitePrix += r.qualitePrix;
     }
     return {
-      average: total ? sum / total : 0,
-      counts,
-      subAverages: total
-        ? {
-            proprete: proprete / total,
-            communication: communication / total,
-            conformite: conformite / total,
-            qualitePrix: qualitePrix / total,
-          }
-        : null,
+      proprete: proprete / realCount,
+      communication: communication / realCount,
+      conformite: conformite / realCount,
+      qualitePrix: qualitePrix / realCount,
     };
-  }, [reviews, total]);
+  }, [reviews, realCount]);
 
   const visible = useMemo<FeedItem[]>(() => {
-    const filteredReviews = ratingFilter
-      ? reviews.filter((r) => r.rating === ratingFilter)
-      : reviews.slice();
-    const reviewItems: FeedItem[] = filteredReviews.map((review) => ({
+    const reviewItems: FeedItem[] = reviews.map((review) => ({
       kind: "avis",
       createdAt: review.createdAt,
+      rating: review.rating,
       review,
     }));
+    const cancellationItems: FeedItem[] = cancellations.map((entry) => ({
+      kind: "annulation",
+      createdAt: entry.cancelledAt,
+      rating: HOST_CANCELLATION_RATING,
+      entry,
+    }));
 
-    // Les entrées système n'ont pas de note : elles n'apparaissent QUE dans le
-    // flux chronologique non filtré (jamais sous un filtre « X étoiles » ni un
-    // tri par note, où leur absence de note n'aurait pas de sens).
-    const includeCancellations = !ratingFilter && (sort === "recent" || sort === "old");
-    const cancellationItems: FeedItem[] = includeCancellations
-      ? cancellations.map((entry) => ({ kind: "annulation", createdAt: entry.cancelledAt, entry }))
-      : [];
+    const merged = ratingFilter
+      ? [...reviewItems, ...cancellationItems].filter((i) => i.rating === ratingFilter)
+      : [...reviewItems, ...cancellationItems];
 
-    const merged = [...reviewItems, ...cancellationItems];
     const byDate = (a: FeedItem, b: FeedItem) =>
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     merged.sort((a, b) => {
@@ -122,15 +126,9 @@ export function ReviewsList({
         case "old":
           return -byDate(a, b);
         case "high":
-          return (
-            (b.kind === "avis" ? b.review.rating : 0) -
-              (a.kind === "avis" ? a.review.rating : 0) || byDate(a, b)
-          );
+          return b.rating - a.rating || byDate(a, b);
         case "low":
-          return (
-            (a.kind === "avis" ? a.review.rating : 0) -
-              (b.kind === "avis" ? b.review.rating : 0) || byDate(a, b)
-          );
+          return a.rating - b.rating || byDate(a, b);
         default:
           return byDate(a, b);
       }
@@ -147,7 +145,7 @@ export function ReviewsList({
   const shown = visible.slice(0, visibleCount);
   const remaining = visible.length - shown.length;
 
-  if (total === 0 && cancellations.length === 0) {
+  if (total === 0) {
     return (
       <p className="mt-4 rounded-2xl bg-surface p-5 text-sm text-body/60 ring-1 ring-darna/10">
         {fr.property.aucunAvis}
@@ -159,12 +157,18 @@ export function ReviewsList({
     month: "long",
     year: "numeric",
   });
+  // Dates EXACTES du séjour annulé (pas juste le mois) — §AHC7, sur demande.
+  const dayFmt = new Intl.DateTimeFormat(LOCALE_TAG[locale] ?? "fr-FR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
   return (
     <div className="mt-4">
-      {/* Récap : note moyenne + histogramme cliquable (filtre par note).
-          Masqué si zéro vrai avis (une entrée système seule n'a pas de note
-          à récapituler) — §AHC7. */}
+      {/* Récap : note moyenne + histogramme cliquable (filtre par note). Les
+          annulations hôte (§AHC7) sont incluses dans `total`, donc toujours
+          affiché dès qu'il y a au moins une entrée (avis réel ou système). */}
       {total > 0 ? (
         <div className="rounded-2xl bg-surface p-5 ring-1 ring-darna/10">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-8">
@@ -281,27 +285,39 @@ export function ReviewsList({
         <ul className="mt-4 space-y-4">
           {shown.map((item) =>
             item.kind === "annulation" ? (
-              // §AHC7 — entrée SYSTÈME, jamais une carte d'avis noté : pas
-              // d'auteur, pas d'étoiles, ton neutre/factuel (pas un jugement).
+              // §AHC7 — même gabarit qu'un avis réel (auteur/date/étoiles/
+              // commentaire), pour peser dans le flux comme un vrai 1/5, mais
+              // « auteur » = Darna (jamais attribué à un voyageur) et carte
+              // teintée en rouge en permanence — ne se fond jamais dans les
+              // vrais avis, même triée/mélangée parmi eux.
               <li
                 key={`annulation-${item.entry.id}`}
-                className="flex items-start gap-3 rounded-2xl bg-red-50 p-5 ring-1 ring-red-100"
+                className="rounded-2xl bg-red-50 p-5 ring-1 ring-red-200"
               >
-                <AlertTriangleIcon
-                  width={18}
-                  height={18}
-                  className="mt-0.5 shrink-0 text-red-600"
-                />
-                <div>
-                  <p className="text-sm font-semibold text-red-800">
-                    {fr.property.avisSystemeAnnulationHote(
-                      dateFmt.format(new Date(item.entry.cancelledAt))
-                    )}
-                  </p>
-                  <p className="mt-1 text-xs text-red-700/70">
-                    {fr.property.avisSystemeLabel}
-                  </p>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-red-600 text-white">
+                      <AlertTriangleIcon width={16} height={16} />
+                    </span>
+                    <div>
+                      <p className="text-sm font-semibold text-red-800">Darna</p>
+                      <p className="text-xs text-red-700/70">
+                        {dateFmt.format(new Date(item.entry.cancelledAt))}
+                        {" · "}
+                        <span className="font-medium text-red-800">
+                          {fr.property.avisSystemeLabel}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                  <Stars rating={HOST_CANCELLATION_RATING} tone="text-red-600" />
                 </div>
+                <p className="mt-3 text-sm leading-relaxed text-red-800/90">
+                  {fr.property.avisSystemeAnnulationHote(
+                    dayFmt.format(new Date(item.entry.checkIn)),
+                    dayFmt.format(new Date(item.entry.checkOut))
+                  )}
+                </p>
               </li>
             ) : (
               <li

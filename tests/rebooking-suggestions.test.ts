@@ -100,16 +100,33 @@ describe("getHostCancellationSignals — signal réputationnel §AHC7", () => {
     expect(Math.abs(cutoff.getTime() - expected)).toBeLessThan(5000);
   });
 
-  it("ne renvoie QUE l'id et la date — jamais le voyageur concerné (vie privée)", async () => {
+  it("renvoie id + dates du séjour — jamais le voyageur concerné (vie privée)", async () => {
     bookingFindMany2.mockResolvedValue([
-      { id: "bk1", cancelledByHostAt: new Date("2026-06-01T00:00:00.000Z") },
+      {
+        id: "bk1",
+        cancelledByHostAt: new Date("2026-06-01T00:00:00.000Z"),
+        checkIn: new Date("2026-06-10T00:00:00.000Z"),
+        checkOut: new Date("2026-06-13T00:00:00.000Z"),
+      },
     ]);
 
     const result = await getHostCancellationSignals("prop-1");
 
-    expect(result).toEqual([{ id: "bk1", cancelledAt: "2026-06-01T00:00:00.000Z" }]);
-    // select ne demande que id + cancelledByHostAt.
+    expect(result).toEqual([
+      {
+        id: "bk1",
+        cancelledAt: "2026-06-01T00:00:00.000Z",
+        checkIn: "2026-06-10T00:00:00.000Z",
+        checkOut: "2026-06-13T00:00:00.000Z",
+      },
+    ]);
+    // select ne demande que id + dates — jamais guestId/guest.
     const selectArg = bookingFindMany2.mock.calls[0][0].select;
-    expect(selectArg).toEqual({ id: true, cancelledByHostAt: true });
+    expect(selectArg).toEqual({
+      id: true,
+      cancelledByHostAt: true,
+      checkIn: true,
+      checkOut: true,
+    });
   });
 });
