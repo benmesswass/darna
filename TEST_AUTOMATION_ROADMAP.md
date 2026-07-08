@@ -55,7 +55,7 @@ bas :
 | Unit / domaine (lib, helpers) | ✅ Bon | Solide, à compléter sur la couverture mesurée |
 | Intégration Server Actions | ✅ Bon | Nombreux tests ; **concurrence booking désormais prouvée sur vraie DB** (Phase 1), reste à étendre l'intégration DB réelle aux autres actions |
 | Contrat API / webhooks | ⚠️ Partiel | Webhook Konnect testé en logique, **pas de test HTTP de la route** ni de signature |
-| **Composant / front (React)** | 🚧 **Amorcé (Phase 2)** | Harness jsdom + Testing Library en place ; premiers tests (`KonnectPayButton` P0, `Price`, i18n) — reste à étendre aux autres formulaires/carte |
+| **Composant / front (React)** | ✅ **P0 couvert (Phase 2)** | Harness jsdom + Testing Library ; `KonnectPayButton`, `LoginForm`, `RegisterForm`, `PropertyCard`, `Price`, i18n — reste KYC/date-picker/carte en P1 |
 | **E2E navigateur** | ❌ **Absent** | **Aucun Playwright**, aucun parcours signup→KYC→booking→paiement automatisé |
 | **Couverture mesurée** | ✅ **En place (Phase 1)** | `@vitest/coverage-v8` + seuils ratchet bloquants en CI (`src/lib`+`src/actions`) |
 | Sécurité automatisée | ⚠️ Partiel | Invariants testés en Vitest, mais **pas de SAST/DAST/dep-scan structuré** hors `npm audit` |
@@ -88,10 +88,10 @@ Domaines déjà couverts : `auth-register`, `bookings`, `booking-conflict`,
 
 ### 2.2 Les trous structurels (cibles de cette roadmap)
 
-- 🚧 **Tests rendu React : amorcés (Phase 2)** → harness jsdom + Testing Library
-  en place ; `KonnectPayButton` (P0) et `Price` désormais montés en test. Restent
-  à couvrir : `PropertyMap`, `PropertyCard`, formulaire de réservation, sélecteur
-  de dates, `HistoryNav`, formulaires auth/KYC.
+- ✅ **Tests rendu React — périmètre P0 couvert (Phase 2)** → harness jsdom +
+  Testing Library ; `KonnectPayButton`, `LoginForm`, `RegisterForm`,
+  `PropertyCard`, `Price` montés en test. Restent (P1) : `PropertyMap`,
+  sélecteur de dates de réservation, formulaire KYC, `HistoryNav`.
 - ❌ **Aucun E2E** → les parcours de bout en bout (inscription → connexion →
   recherche → réservation → paiement → avis) ne sont jamais rejoués dans un
   navigateur réel.
@@ -362,15 +362,26 @@ rapport.)
 > `P2034`). L'invariant métier (jamais deux résas actives qui se chevauchent)
 > est lui **prouvé et tenu**.
 
-### Phase 2 — Tests composant / front *(P0, ~4-5 j)* — 🚧 **EN COURS**
+### Phase 2 — Tests composant / front *(P0, ~4-5 j)* — ✅ **LIVRÉE (périmètre P0)**
 - [x] Projet Vitest `jsdom` + Testing Library + user-event. → `vitest.config.ts` (projets `node`/`jsdom`), `tests/components/setup.ts`, `tests/components/helpers.tsx`.
 - [x] Test i18n/RTL (fr/en/ar) : `dir` + **parité des clés des 3 dicos**. → `tests/i18n-parity.test.ts`.
 - [x] Premier composant paiement **`KonnectPayButton`** (P0) : libellé, erreur serveur, redirection client `payUrl`. → `tests/components/konnect-pay-button.test.tsx`.
 - [x] Composant `Price` + formatage devise diaspora (TND/EUR). → `tests/components/price.test.tsx`.
+- [x] **`LoginForm`** (P0 auth) : validation, message générique anti-énumération, `callbackUrl`, bannière post-inscription. → `tests/components/login-form.test.tsx`.
+- [x] **`RegisterForm`** (P0 auth) : garde-fou client mismatch mot de passe, exception assumée « compte déjà existant », redirection post-succès vers `/connexion`. → `tests/components/register-form.test.tsx`.
+- [x] **`PropertyCard`** (J9 recherche) : prix + suffixe nuit/mois, total séjour tout compris, badge Vérifié, lien + query string. → `tests/components/property-card.test.tsx`.
 - [x] Gate front en CI. → le projet `jsdom` tourne dans `npm run test:coverage` (déjà appelé par la CI).
 - [x] **Rapport de tests détaillé & exhaustif dans le run CI** (§7.3) : tous les tests affichés (par fichier + détail replié), échecs avec message, totaux, couverture, artifact HTML. → `scripts/ci-test-summary.mjs`, `.github/workflows/ci.yml`.
-- [ ] Formulaires mutants restants : connexion, inscription, KYC, réservation/date-picker.
-- [ ] `PropertyCard`, carte (`PropertyMap`/`MapInner`), `HistoryNav`/`MessagesNotifier` (positionnement).
+- [ ] Reste hors périmètre P0 (à reprendre en P1) : formulaire KYC, sélecteur de dates de réservation, carte (`PropertyMap`/`MapInner`), `HistoryNav`/`MessagesNotifier` (positionnement).
+
+> **Note technique Phase 2 :** les Server Components async (badges, `PropertyCard`
+> lui-même) ne peuvent pas être rendus en JSX imbriqué par le renderer client de
+> Testing Library sans streaming RSC — on les résout en `await Composant(props)`
+> avant `render()`, et on mocke leurs propres enfants async (`Badges`) par des
+> équivalents synchrones. `getByLabelText` échoue aussi sur les champs mot de
+> passe de `RegisterForm` : leur `<label>` embarque en permanence un indice live
+> qui pollue son `textContent` (comportement voulu, pas un bug) — ces champs sont
+> ciblés par `input[name=...]`, comme le ferait `label.control` du navigateur.
 
 ### Phase 3 — E2E Playwright *(P0, ~5-6 j)*
 - [ ] Setup Playwright (Chromium préinstallé), `storageState` multi-rôles, seed.
