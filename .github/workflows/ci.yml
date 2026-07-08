@@ -256,3 +256,30 @@ jobs:
           name: api-test-traces
           path: test-results/
           retention-days: 14
+
+  # Job isolé (léger — analyse statique, pas de Postgres). Rulesets Semgrep
+  # Registry publics (p/...) : gratuits, pas de compte requis. Bloquant
+  # (`--error`) : tout nouveau finding fait échouer le job.
+  semgrep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Installer Semgrep
+        run: pip install semgrep
+
+      - name: Semgrep (SAST)
+        run: |
+          semgrep \
+            --config=p/security-audit \
+            --config=p/secrets \
+            --config=p/typescript \
+            --config=p/react \
+            --config=p/nextjs \
+            --exclude=node_modules --exclude=.next --exclude=tests --exclude="*.test.ts" \
+            --error --metrics=off \
+            src/

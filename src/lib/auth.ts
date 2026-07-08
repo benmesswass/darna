@@ -47,7 +47,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           // l'utilisateur n'existe pas (évite l'énumération par timing).
           // Hash bcrypt VALIDE (60 car., coût 12) : un hash mal formé serait
           // rejeté instantanément par bcrypt et la défense serait inopérante.
-          await bcrypt.compare(parsed.data.password, "$2b$12$f/0oq4Vt.wjtcqw76TM1DONwSQqoVa/lcI0H/3sTvjhBSBTJBjYHG");
+          // Faux positif Semgrep assumé : hash factice de leurre, jamais un vrai secret.
+          await bcrypt.compare(parsed.data.password, "$2b$12$f/0oq4Vt.wjtcqw76TM1DONwSQqoVa/lcI0H/3sTvjhBSBTJBjYHG"); // nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
           logStructured("warn", "auth.login_failure", {
             reason: "user_not_found",
             email: parsed.data.email,

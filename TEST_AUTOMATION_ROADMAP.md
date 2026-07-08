@@ -441,7 +441,13 @@ satisfont via leur rapport Allure.
       (`src/lib/konnect.ts`) et testée unitairement (`tests/konnect.test.ts`) ;
       `QA_ROADMAP.md` affirmait à tort que c'était manquant (corrigé). Désormais
       aussi exercée en HTTP réel (`tests/api/webhook-konnect.spec.ts`).
-- [ ] Semgrep en CI + Dependabot/Renovate.
+- [x] Semgrep en CI + Dependabot/Renovate — job `semgrep` isolé (§7.4, rulesets
+      Registry publics `p/security-audit`/`p/secrets`/`p/typescript`/`p/react`/`p/nextjs`,
+      bloquant), `.github/dependabot.yml` (npm hebdo groupé minor/patch +
+      github-actions). Scan initial : 2 findings — un vrai (GCM sans
+      `authTagLength` explicite dans `src/lib/crypto.ts`, corrigé) et un faux
+      positif (hash bcrypt factice anti-énumération, `src/lib/auth.ts`,
+      marqué `nosemgrep` avec justification).
 - [~] Régressions sécurité figées (`tests/api/security-regressions.spec.ts`) :
       open-redirect (`safeCallbackUrl`) ✅, CSRF (same-origin natif Next.js) ✅,
       SSRF geocode (hôte de sortie figé) ✅. **Énumération non couverte ici**
