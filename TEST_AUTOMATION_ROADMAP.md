@@ -55,7 +55,7 @@ bas :
 | Unit / domaine (lib, helpers) | ✅ Bon | Solide, à compléter sur la couverture mesurée |
 | Intégration Server Actions | ✅ Bon | Nombreux tests ; **concurrence booking désormais prouvée sur vraie DB** (Phase 1), reste à étendre l'intégration DB réelle aux autres actions |
 | Contrat API / webhooks | ⚠️ Partiel | Webhook Konnect testé en logique, **pas de test HTTP de la route** ni de signature |
-| **Composant / front (React)** | ❌ **Absent** | **0 test `.tsx`**, aucun `@testing-library`, aucun `jsdom` |
+| **Composant / front (React)** | 🚧 **Amorcé (Phase 2)** | Harness jsdom + Testing Library en place ; premiers tests (`KonnectPayButton` P0, `Price`, i18n) — reste à étendre aux autres formulaires/carte |
 | **E2E navigateur** | ❌ **Absent** | **Aucun Playwright**, aucun parcours signup→KYC→booking→paiement automatisé |
 | **Couverture mesurée** | ✅ **En place (Phase 1)** | `@vitest/coverage-v8` + seuils ratchet bloquants en CI (`src/lib`+`src/actions`) |
 | Sécurité automatisée | ⚠️ Partiel | Invariants testés en Vitest, mais **pas de SAST/DAST/dep-scan structuré** hors `npm audit` |
@@ -88,9 +88,10 @@ Domaines déjà couverts : `auth-register`, `bookings`, `booking-conflict`,
 
 ### 2.2 Les trous structurels (cibles de cette roadmap)
 
-- ❌ **Aucun test rendu React** → les composants clés (`PropertyMap`,
-  `PropertyCard`, formulaire de réservation, sélecteur de dates, `HistoryNav`,
-  sélecteur de locale, `KonnectPayButton`) ne sont jamais montés en test.
+- 🚧 **Tests rendu React : amorcés (Phase 2)** → harness jsdom + Testing Library
+  en place ; `KonnectPayButton` (P0) et `Price` désormais montés en test. Restent
+  à couvrir : `PropertyMap`, `PropertyCard`, formulaire de réservation, sélecteur
+  de dates, `HistoryNav`, formulaires auth/KYC.
 - ❌ **Aucun E2E** → les parcours de bout en bout (inscription → connexion →
   recherche → réservation → paiement → avis) ne sont jamais rejoués dans un
   navigateur réel.
@@ -333,12 +334,14 @@ ni SAST.
 > `P2034`). L'invariant métier (jamais deux résas actives qui se chevauchent)
 > est lui **prouvé et tenu**.
 
-### Phase 2 — Tests composant / front *(P0, ~4-5 j)*
-- [ ] Projet Vitest `jsdom` + Testing Library + user-event.
-- [ ] Tests des formulaires mutants (réservation, connexion, inscription, KYC).
-- [ ] `KonnectPayButton`, `PropertyCard`, carte, `HistoryNav`.
-- [ ] Test i18n/RTL (fr/en/ar) : `dir`, clés présentes dans les 3 dicos.
-- [ ] Gate front en CI.
+### Phase 2 — Tests composant / front *(P0, ~4-5 j)* — 🚧 **EN COURS**
+- [x] Projet Vitest `jsdom` + Testing Library + user-event. → `vitest.config.ts` (projets `node`/`jsdom`), `tests/components/setup.ts`, `tests/components/helpers.tsx`.
+- [x] Test i18n/RTL (fr/en/ar) : `dir` + **parité des clés des 3 dicos**. → `tests/i18n-parity.test.ts`.
+- [x] Premier composant paiement **`KonnectPayButton`** (P0) : libellé, erreur serveur, redirection client `payUrl`. → `tests/components/konnect-pay-button.test.tsx`.
+- [x] Composant `Price` + formatage devise diaspora (TND/EUR). → `tests/components/price.test.tsx`.
+- [x] Gate front en CI. → le projet `jsdom` tourne dans `npm run test:coverage` (déjà appelé par la CI).
+- [ ] Formulaires mutants restants : connexion, inscription, KYC, réservation/date-picker.
+- [ ] `PropertyCard`, carte (`PropertyMap`/`MapInner`), `HistoryNav`/`MessagesNotifier` (positionnement).
 
 ### Phase 3 — E2E Playwright *(P0, ~5-6 j)*
 - [ ] Setup Playwright (Chromium préinstallé), `storageState` multi-rôles, seed.
