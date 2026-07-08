@@ -364,8 +364,10 @@ rapport.)
 
 **Statut** : `e2e` ✅ livré (Phase 3 — job isolé sans `needs: build`, rapport
 Allure en artifact GitHub téléchargeable ; pas de GitHub Pages, le repo étant
-privé). `front`/`backend` restent groupés dans `build` (périmètre §7.1 actuel,
-hors scope Phase 3).
+privé). Le lien de téléchargement est aussi publié dans `$GITHUB_STEP_SUMMARY`
+(visible en haut de la page du run, pas enfoui dans l'onglet Artifacts).
+`front`/`backend` restent groupés dans `build` (périmètre §7.1 actuel, hors
+scope Phase 3).
 
 **Invariant** : tout nouveau type de test lourd ⇒ job isolé + rapport Allure. La
 règle §7.3 reste l'exigence pour les tests regroupés ; les tests isolés la

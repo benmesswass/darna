@@ -145,11 +145,30 @@ jobs:
 
       - name: Upload rapport Allure (artifact)
         if: always()
+        id: allure-artifact
         uses: actions/upload-artifact@v4
         with:
           name: allure-report
           path: allure-report/
           retention-days: 14
+
+      - name: Lien direct vers le rapport Allure (résumé du run)
+        # Publié dans $GITHUB_STEP_SUMMARY (même esprit que §7.3) : le lien de
+        # téléchargement apparaît en haut de la page du run, pas enfoui dans
+        # l'onglet Artifacts.
+        if: always()
+        run: |
+          {
+            echo "## 🧪 Rapport E2E (Allure)"
+            echo ""
+            echo "**[📊 Télécharger le rapport Allure](${{ steps.allure-artifact.outputs.artifact-url }})**"
+            echo ""
+            echo "Après téléchargement (zip) :"
+            echo '```bash'
+            echo "unzip allure-report.zip -d allure-report"
+            echo "npx allure open allure-report"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload traces/vidéos Playwright (artifact)
         if: always()
