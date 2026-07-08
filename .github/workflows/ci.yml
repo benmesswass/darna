@@ -57,8 +57,27 @@ jobs:
       - name: Typecheck
         run: npx tsc --noEmit
 
-      - name: Tests (chemins critiques — paiement, booking, rate limiting)
-        run: npm test
+      - name: Tests + couverture (chemins critiques — paiement, booking, concurrence)
+        # `test:coverage` applique le gate de couverture (seuils vitest.config.ts)
+        # ET exécute les tests d'intégration sur la vraie base (DATABASE_URL du
+        # service Postgres ci-dessus) — dont la concurrence anti double-réservation.
+        # Le reporter `github-actions` (activé via GITHUB_ACTIONS) annote les
+        # tests échoués directement dans la PR.
+        run: npm run test:coverage
+
+      - name: Récap tests + couverture (page du run)
+        # Publie un tableau récap dans $GITHUB_STEP_SUMMARY, même si les tests
+        # ont échoué (visible sans déplier les logs).
+        if: always()
+        run: node scripts/ci-test-summary.mjs
+
+      - name: Upload rapport de couverture (artifact)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 14
 
       - name: Build
         run: npm run build
