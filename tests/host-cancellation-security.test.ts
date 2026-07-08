@@ -43,7 +43,10 @@ vi.mock("@/lib/konnect", () => ({
   initKonnectPayment: vi.fn(),
   signKonnectWebhook: vi.fn(),
 }));
-vi.mock("@/lib/notifications", () => ({ sendBookingConfirmationEmail: vi.fn() }));
+vi.mock("@/lib/notifications", () => ({
+  sendBookingConfirmationEmail: vi.fn(),
+  sendBookingCancelledByHostEmail: vi.fn(),
+}));
 vi.mock("@/lib/listings", () => ({ recomputePropertyRating: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
