@@ -75,3 +75,13 @@
 - [ ] **RGPD**: data export + right-to-erasure flows + tests.
 - [ ] Cookie consent + privacy policy + ToS versioning.
 - [ ] Audit-trail integrity (tamper-evidence) for regulated events.
+
+## Accessibility (design system)
+- [ ] **Color-contrast (WCAG 2 AA)**: `text-body/*` and `text-white/50` opacity
+      variants fall short of the 4.5:1 minimum on several backgrounds (found
+      by `tests/e2e/10-a11y.spec.ts`, e.g. `text-body/60` → 4.05:1 on `#faf7f1`,
+      4.15:1 on white; `text-white/50` → 4.16:1 on the dark footer). Systemic
+      across dozens of components (design-token level, not a one-off patch) —
+      needs a deliberate pass on `--color-body`/opacity scale in
+      `src/app/globals.css`, then re-enable `color-contrast` in the axe test's
+      blocking gate (currently excluded, see comment in that file).
