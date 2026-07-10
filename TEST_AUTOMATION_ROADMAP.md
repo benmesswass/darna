@@ -455,7 +455,17 @@ satisfont via leur rapport Allure.
       la main — déjà couverte au niveau UI par `tests/e2e/01-auth.spec.ts`).
 
 ### Phase 5 — Perf, a11y, DAST, visuel *(P2/P3, ~4-5 j)*
-- [ ] k6 : recherche + course booking, seuils p95.
+- [x] k6 : recherche + course booking, seuils p95 — `tests/perf/search.js`
+      (p95<2s, mesuré 1.31s sur `next dev`/40 annonces) et
+      `tests/perf/booking-load.js` (20 VUs sur le même créneau, exactement 1
+      gagnant, p95<1.5s). Job séparé `.github/workflows/perf.yml`, schedule
+      hebdo + déclenchement manuel — jamais sur PR (charge non stable sur
+      runner partagé). **Vrai gap corrigé en cours de route** : sous charge
+      réelle, un abandon de transaction Postgres (P2034, perdant de la
+      course) remontait en 500 brut au lieu du message générique
+      "dates indisponibles" — `catch` étendu dans `createBookingAction`
+      (`src/actions/bookings.ts`), le commentaire du code annonçait ce retry
+      comme prévu ("→ Phase 2") mais jamais implémenté.
 - [x] axe sur pages clés × 3 langues — `tests/e2e/10-a11y.spec.ts` (5 pages ×
       fr/en/ar, 15 tests, job `e2e` existant). Zéro violation serious/critical
       **hors `color-contrast`**, exclu du gate après un vrai finding
