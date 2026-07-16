@@ -1373,7 +1373,9 @@ export const ar: Dictionary = {
     statutActif: (date: string) => `نشيط حتى ${date}`,
     statutInactif: "ما فماش اشتراك نشيط",
     quotaActuel: (utilisees: number, limite: number) =>
-      `${utilisees} / ${limite} إعلان نشيط مستعمل`,
+      utilisees === 1
+        ? `إعلان نشيط واحد من الحدّ الأقصى ${limite}`
+        : `${utilisees} إعلان نشيط من الحدّ الأقصى ${limite}`,
     quotaGratuitInfo: (limite: number) =>
       `الباقة المجانية: حتى ${limite} إعلان نشيط. اشترك باش تفكّ هالحدّ.`,
     quotaAtteintAlerte:

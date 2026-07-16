@@ -1379,7 +1379,9 @@ export const fr = {
     statutActif: (date: string) => `Actif jusqu'au ${date}`,
     statutInactif: "Aucun abonnement actif",
     quotaActuel: (utilisees: number, limite: number) =>
-      `${utilisees} / ${limite} annonces actives utilisées`,
+      utilisees === 1
+        ? `1 annonce active sur une limite de ${limite}`
+        : `${utilisees} annonces actives sur une limite de ${limite}`,
     quotaGratuitInfo: (limite: number) =>
       `Palier gratuit : jusqu'à ${limite} annonces actives. Souscrivez pour lever cette limite.`,
     quotaAtteintAlerte:

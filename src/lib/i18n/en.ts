@@ -1358,7 +1358,9 @@ export const en: Dictionary = {
     statutActif: (date: string) => `Active until ${date}`,
     statutInactif: "No active subscription",
     quotaActuel: (utilisees: number, limite: number) =>
-      `${utilisees} / ${limite} active listings used`,
+      utilisees === 1
+        ? `1 active listing out of a limit of ${limite}`
+        : `${utilisees} active listings out of a limit of ${limite}`,
     quotaGratuitInfo: (limite: number) =>
       `Free tier: up to ${limite} active listings. Subscribe to lift this limit.`,
     quotaAtteintAlerte:
