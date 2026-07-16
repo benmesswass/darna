@@ -6,7 +6,12 @@
  * dépassée ne compte plus comme actif.
  */
 import { describe, expect, it } from "vitest";
-import { activeListingsLimit, isSubscriptionActive, listingUnitCost } from "@/lib/subscriptions";
+import {
+  activeListingsLimit,
+  cheapestPlanForQuota,
+  isSubscriptionActive,
+  listingUnitCost,
+} from "@/lib/subscriptions";
 import { FREE_TIER_LISTINGS_LIMIT } from "@/lib/config";
 import { AGENCY_PLANS } from "@/lib/constants";
 
@@ -79,5 +84,24 @@ describe("listingUnitCost", () => {
 
   it("arrondit à une décimale", () => {
     expect(listingUnitCost({ priceTND: 100, listingsIncluded: 3 })).toBe(33.3);
+  });
+});
+
+describe("cheapestPlanForQuota", () => {
+  const sorted = [...AGENCY_PLANS].sort((a, b) => a.listingsIncluded - b.listingsIncluded);
+
+  it("retourne le palier le moins cher qui couvre exactement le besoin", () => {
+    expect(cheapestPlanForQuota(sorted[0].listingsIncluded).key).toBe(sorted[0].key);
+  });
+
+  it("ne recommande jamais un palier insuffisant pour le besoin réel", () => {
+    const needed = sorted[0].listingsIncluded + 1;
+    const result = cheapestPlanForQuota(needed);
+    expect(result.listingsIncluded).toBeGreaterThanOrEqual(needed);
+  });
+
+  it("retourne le plus grand palier disponible si aucun ne couvre le besoin", () => {
+    const huge = sorted[sorted.length - 1].listingsIncluded + 1000;
+    expect(cheapestPlanForQuota(huge).key).toBe(sorted[sorted.length - 1].key);
   });
 });

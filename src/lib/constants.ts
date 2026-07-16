@@ -162,15 +162,17 @@ export const SUBSCRIPTION_STATUSES = ["EN_ATTENTE", "ACTIF"] as const;
 export type SubscriptionStatus = (typeof SUBSCRIPTION_STATUSES)[number];
 
 /**
- * Paliers d'abonnement agence (MONETISATION_IMMO_ROADMAP.md §MI1). Un seul
- * palier "STANDARD" pour l'instant — prix et quota d'annonces PROVISOIRES,
- * volontairement pas confrontés à une vraie agence tunisienne (cf. roadmap
- * §Chiffrage : ~250 TND/mois est une hypothèse de projection, pas un prix
- * validé). À réviser dès que Wassim aura testé un vrai tarif ; en attendant,
- * `Subscription.plan` référence la clé `key` d'un palier ci-dessous.
+ * Paliers d'abonnement agence (MONETISATION_IMMO_ROADMAP.md §MI1/MI2). Trois
+ * paliers — tarif de lancement décidé par Wassim le 2026-07-16 (revu à la
+ * baisse par rapport à l'hypothèse initiale de §Chiffrage, jugée trop chère
+ * pour le marché tunisien tant que Darna construit sa confiance) : toujours
+ * PROVISOIRE, à réviser après un vrai test terrain. `Subscription.plan`
+ * référence la clé `key` d'un palier ci-dessous.
  */
 export const AGENCY_PLANS = [
-  { key: "STANDARD", label: "Agence", listingsIncluded: 20, priceTND: 250 },
+  { key: "STARTER", label: "Starter", listingsIncluded: 3, priceTND: 50 },
+  { key: "STANDARD", label: "Standard", listingsIncluded: 10, priceTND: 100 },
+  { key: "PRO", label: "Pro", listingsIncluded: 30, priceTND: 200 },
 ] as const;
 export type AgencyPlanKey = (typeof AGENCY_PLANS)[number]["key"];
 

@@ -89,7 +89,7 @@ describe("startSubscriptionPaymentAction — non-bypass", () => {
       })
     );
     expect(initKonnectMock).toHaveBeenCalledWith(
-      expect.objectContaining({ amountTND: 250, orderId: "sub_1" })
+      expect.objectContaining({ amountTND: 100, orderId: "sub_1" })
     );
     expect(subUpdate).toHaveBeenCalledWith({
       where: { id: "sub_1" },

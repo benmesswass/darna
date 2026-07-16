@@ -20,8 +20,7 @@ import { Price } from "@/components/currency/Price";
 import { StarIcon } from "@/components/icons";
 import { SuccessCheck } from "@/components/ui/SuccessCheck";
 import { QuotaReachedModal } from "@/components/dashboard/QuotaReachedModal";
-import { AGENCY_PLANS } from "@/lib/constants";
-import { activeListingsLimit, countActiveListings, listingUnitCost } from "@/lib/subscriptions";
+import { activeListingsLimit, cheapestPlanForQuota, countActiveListings } from "@/lib/subscriptions";
 
 export default async function MesAnnoncesPage({
   searchParams,
@@ -48,7 +47,13 @@ export default async function MesAnnoncesPage({
   // Modale de quota (MONETISATION_IMMO_ROADMAP.md §MI2) : recalculée ICI,
   // fraîche, plutôt que reçue via l'URL (le signal `quotaAtteint=1` ne
   // transporte qu'un booléen, jamais les chiffres eux-mêmes).
-  let quotaModal: { utilisees: number; limite: number; coutUnitaire: number } | null = null;
+  let quotaModal: {
+    utilisees: number;
+    limite: number;
+    recommendedLabel: string;
+    recommendedListings: number;
+    recommendedPrice: number;
+  } | null = null;
   if (quotaAtteint === "1" && user.role === "AGENCE") {
     const subscription = await prisma.subscription.findUnique({
       where: { userId: user.id },
@@ -56,7 +61,16 @@ export default async function MesAnnoncesPage({
     });
     const limite = activeListingsLimit(user.role, subscription);
     const utilisees = await countActiveListings(user.id);
-    quotaModal = { utilisees, limite, coutUnitaire: listingUnitCost(AGENCY_PLANS[0]) };
+    // Le palier recommandé doit couvrir les annonces déjà actives + celle
+    // qui vient d'être bloquée — jamais un palier trop petit pour être utile.
+    const recommended = cheapestPlanForQuota(utilisees + 1);
+    quotaModal = {
+      utilisees,
+      limite,
+      recommendedLabel: recommended.label,
+      recommendedListings: recommended.listingsIncluded,
+      recommendedPrice: recommended.priceTND,
+    };
   }
 
   return (
@@ -65,7 +79,9 @@ export default async function MesAnnoncesPage({
         <QuotaReachedModal
           utilisees={quotaModal.utilisees}
           limite={quotaModal.limite}
-          coutUnitaire={quotaModal.coutUnitaire}
+          recommendedLabel={quotaModal.recommendedLabel}
+          recommendedListings={quotaModal.recommendedListings}
+          recommendedPrice={quotaModal.recommendedPrice}
         />
       ) : null}
 
