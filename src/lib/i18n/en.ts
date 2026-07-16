@@ -1330,6 +1330,12 @@ export const en: Dictionary = {
     mockInfo:
       "Konnect / Flouci payment coming soon. Demo mode: no real charge.",
     payer: "Pay and feature (simulation)",
+    payerKonnect: "Pay and feature",
+    redirectionKonnect: "Redirecting to payment…",
+    paiementEnVerification: "Payment being verified…",
+    actualiser: "Refresh",
+    paiementEchoue: "Payment failed. Please try again.",
+    paiementErreur: "Error initializing the payment.",
     prolongerInfo: (date: string) =>
       `This listing is already featured until ${date}. A new purchase extends the boost by one week.`,
     retour: "Back to my listings",

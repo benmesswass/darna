@@ -8,37 +8,55 @@ import { getSessionUser } from "@/lib/session";
 import { featureListingAction } from "@/actions/properties";
 import { FEATURED_DURATION_DAYS, FEATURED_PRICE_TND } from "@/lib/config";
 import { isListingFeatured } from "@/lib/listings";
+import { isKonnectEnabled } from "@/lib/konnect";
+import { settleFeaturedOrder } from "@/lib/featured-payments";
+import { FeaturedPayButton } from "@/components/dashboard/FeaturedPayButton";
 import { formatDateFr } from "@/lib/format";
 import { Price } from "@/components/currency/Price";
 import { ArrowRightIcon, CheckIcon, CoinsIcon, StarIcon } from "@/components/icons";
 
 export const metadata: Metadata = { title: frMeta.alaUne.titre };
 
+const propertySelect = {
+  id: true,
+  slug: true,
+  title: true,
+  city: true,
+  status: true,
+  expiresAt: true,
+  featuredUntil: true,
+  ownerId: true,
+} as const;
+
 export default async function AlaUnePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ konnect?: string; fid?: string }>;
 }) {
   const fr = await getT();
   const { id } = await params;
+  const { konnect, fid } = await searchParams;
   const user = await getSessionUser();
   if (!user) redirect("/connexion");
 
-  const property = await prisma.property.findUnique({
-    where: { id },
-    select: {
-      id: true,
-      slug: true,
-      title: true,
-      city: true,
-      status: true,
-      expiresAt: true,
-      featuredUntil: true,
-      ownerId: true,
-    },
-  });
+  const konnectEnabled = isKonnectEnabled();
+
+  let property = await prisma.property.findUnique({ where: { id }, select: propertySelect });
   // Autorisation : la page n'est accessible qu'au propriétaire de l'annonce.
   if (!property || property.ownerId !== user.id) notFound();
+
+  // Retour de la passerelle Konnect : on règle (idempotent) avant l'affichage,
+  // filet de sécurité si le webhook n'a pas (encore) abouti — indispensable en
+  // dev local où Konnect ne joint pas localhost (même patron que
+  // /dashboard/factures/[id]). `fid` = id du FeaturedOrder, propagé dans
+  // successUrl/failUrl par startFeaturedOrderPaymentAction.
+  if (konnectEnabled && konnect === "success" && fid) {
+    await settleFeaturedOrder({ orderId: fid });
+    property = await prisma.property.findUnique({ where: { id }, select: propertySelect });
+    if (!property) notFound();
+  }
 
   const eligible =
     property.status === "ACTIVE" && property.expiresAt.getTime() > Date.now();
@@ -121,21 +139,44 @@ export default async function AlaUnePage({
               </div>
             </dl>
 
-            <p className="mt-5 flex items-start gap-2 rounded-xl bg-sand-light/50 px-4 py-3 text-xs font-medium text-darna-dark">
-              <CoinsIcon width={16} height={16} className="mt-0.5 shrink-0" />
-              {fr.alaUne.mockInfo}
-            </p>
-
-            <form action={featureListingAction} className="mt-5">
-              <input type="hidden" name="propertyId" value={property.id} />
-              <button
-                type="submit"
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-amber-400 px-6 py-3.5 text-base font-bold text-darna-dark transition hover:bg-amber-300"
+            {!konnectEnabled ? (
+              <p className="mt-5 flex items-start gap-2 rounded-xl bg-sand-light/50 px-4 py-3 text-xs font-medium text-darna-dark">
+                <CoinsIcon width={16} height={16} className="mt-0.5 shrink-0" />
+                {fr.alaUne.mockInfo}
+              </p>
+            ) : konnect === "fail" ? (
+              <p
+                role="alert"
+                className="mt-5 rounded-xl bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700"
               >
-                <StarIcon width={18} height={18} className="fill-current" />
-                {alreadyFeatured ? fr.dashboard.prolongerALaUne : fr.alaUne.payer}
-              </button>
-            </form>
+                {fr.alaUne.paiementEchoue}
+              </p>
+            ) : konnect === "success" ? (
+              <p className="mt-5 flex items-center justify-between gap-3 rounded-xl bg-sand-light/50 px-4 py-2.5 text-sm font-medium text-darna-dark">
+                {fr.alaUne.paiementEnVerification}
+                <Link
+                  href={`/dashboard/annonces/${property.id}/a-la-une`}
+                  className="shrink-0 font-bold underline"
+                >
+                  {fr.alaUne.actualiser}
+                </Link>
+              </p>
+            ) : null}
+
+            {konnectEnabled ? (
+              <FeaturedPayButton propertyId={property.id} />
+            ) : (
+              <form action={featureListingAction} className="mt-5">
+                <input type="hidden" name="propertyId" value={property.id} />
+                <button
+                  type="submit"
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-amber-400 px-6 py-3.5 text-base font-bold text-darna-dark transition hover:bg-amber-300"
+                >
+                  <StarIcon width={18} height={18} className="fill-current" />
+                  {alreadyFeatured ? fr.dashboard.prolongerALaUne : fr.alaUne.payer}
+                </button>
+              </form>
+            )}
 
             <p className="mt-4 text-center text-xs text-body/50">{fr.alaUne.garantie}</p>
           </>

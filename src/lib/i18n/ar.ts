@@ -1345,6 +1345,12 @@ export const ar: Dictionary = {
     mockInfo:
       "الخلاص عبر Konnect / Flouci قريبًا. وضع تجريبي: حتى خصم حقيقي ما يصير.",
     payer: "اخلص وحطّ في الواجهة (تجربة)",
+    payerKonnect: "اخلص وحطّ في الواجهة",
+    redirectionKonnect: "تحويل للخلاص…",
+    paiementEnVerification: "الخلاص في طور التأكيد…",
+    actualiser: "عاود حمّل",
+    paiementEchoue: "الخلاص ما نجحش. عاود حاول.",
+    paiementErreur: "خطأ في بداية الخلاص.",
     prolongerInfo: (date: string) =>
       `الإعلان هذا موجود في الواجهة حتى ${date}. شراء جديد يطوّل الإبراز جمعة أخرى.`,
     retour: "ارجع لإعلاناتي",

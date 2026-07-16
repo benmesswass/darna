@@ -1351,6 +1351,12 @@ export const fr = {
     mockInfo:
       "Paiement Konnect / Flouci bientôt disponible. Mode démonstration : aucun débit réel.",
     payer: "Payer et passer à la une (simulation)",
+    payerKonnect: "Payer et passer à la une",
+    redirectionKonnect: "Redirection vers le paiement…",
+    paiementEnVerification: "Paiement en cours de vérification…",
+    actualiser: "Actualiser",
+    paiementEchoue: "Le paiement a échoué. Merci de réessayer.",
+    paiementErreur: "Erreur lors de l'initialisation du paiement.",
     prolongerInfo: (date: string) =>
       `Cette annonce est déjà à la une jusqu'au ${date}. Un nouvel achat prolonge le boost d'une semaine.`,
     retour: "Retour à mes annonces",
