@@ -10,6 +10,7 @@ import { notifyMatchingSavedSearches } from "@/lib/saved-search";
 import { applySuspension } from "@/lib/suspension";
 import { notifyHostInvoiceReminder } from "@/lib/notification-center";
 import { sendHostInvoiceReminderEmail } from "@/lib/notifications";
+import { activeListingsLimit, countActiveListings } from "@/lib/subscriptions";
 
 export type AdminActionState = { error?: string; success?: string } | undefined;
 
@@ -48,7 +49,7 @@ export async function verifyPropertyAction(
       id: true,
       verified: true,
       ownerId: true,
-      owner: { select: { kycStatus: true } },
+      owner: { select: { kycStatus: true, role: true } },
     },
   });
 
@@ -59,6 +60,25 @@ export async function verifyPropertyAction(
   const ownerKyc = property.owner.kycStatus;
   if (ownerKyc !== "VERIFIE" && ownerKyc !== "DEMO_VERIFIE") {
     return { error: fr.admin.proprietaireNonVerifie };
+  }
+
+  // Limite d'annonces actives selon abonnement (MONETISATION_IMMO_ROADMAP.md
+  // §MI2) : ne concerne que les comptes AGENCE. C'est ICI, au moment précis
+  // où l'annonce devient ACTIVE, que l'invariant doit être vérifié — jamais à
+  // la création (une annonce EN_ATTENTE_VALIDATION ne compte pas encore dans
+  // le quota, cf. src/lib/subscriptions.ts).
+  if (property.owner.role === "AGENCE") {
+    const [subscription, activeCount] = await Promise.all([
+      prisma.subscription.findUnique({
+        where: { userId: property.ownerId },
+        select: { status: true, plan: true, currentPeriodEnd: true },
+      }),
+      countActiveListings(property.ownerId),
+    ]);
+    const limit = activeListingsLimit(property.owner.role, subscription);
+    if (activeCount >= limit) {
+      return { error: fr.admin.limiteAbonnementAtteinte(limit) };
+    }
   }
 
   await prisma.property.update({

@@ -104,6 +104,17 @@ export const FEATURED_DURATION_DAYS = 30;
 /** Prix en TND du boost « à la une » pour un mois (tarif de lancement). */
 export const FEATURED_PRICE_TND = 29;
 
+/** Durée d'un cycle d'abonnement agence (MONETISATION_IMMO_ROADMAP.md §MI2). */
+export const SUBSCRIPTION_DURATION_DAYS = 30;
+/**
+ * Palier gratuit (sans abonnement ACTIF) : nombre d'annonces actives
+ * autorisées pour un compte AGENCE avant que la souscription (§MI1/MI2) ne
+ * soit requise. Ne s'applique jamais aux comptes HOTE (cf.
+ * src/lib/subscriptions.ts) — hypothèse provisoire, à réviser comme le prix
+ * du palier STANDARD (cf. roadmap §Chiffrage).
+ */
+export const FREE_TIER_LISTINGS_LIMIT = 3;
+
 /** Occupation estivale estimée pour le Yield Advisor. */
 export const SUMMER_OCCUPANCY_RATE = 0.6;
 

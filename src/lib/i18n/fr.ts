@@ -726,6 +726,8 @@ export const fr = {
     annonceMiseANonVerifiee: "Badge de vérification retiré.",
     proprietaireNonVerifie:
       "Le propriétaire doit être vérifié (KYC) pour que l'annonce reçoive le badge.",
+    limiteAbonnementAtteinte: (limite: number) =>
+      `Ce compte agence a atteint sa limite d'annonces actives (${limite}). Invitez-le à souscrire ou renouveler son abonnement (/dashboard/abonnement) avant de valider une annonce supplémentaire.`,
     aucuneAnnonce: "Aucune annonce active pour le moment.",
     annoncesDejVerifiees: "Annonces déjà vérifiées",
     candidaturesWakil: "Candidatures Wakil",
@@ -1364,6 +1366,38 @@ export const fr = {
       "Cette annonce ne peut pas être mise à la une : elle doit être active et en ligne.",
     garantie:
       "Vous gardez le contrôle : à la fin du mois, votre annonce revient simplement à son affichage normal. Aucun renouvellement automatique.",
+  },
+  abonnement: {
+    titre: "Abonnement agence",
+    sousTitre:
+      "Levez la limite d'annonces actives et donnez à vos biens la visibilité qu'ils méritent.",
+    planLabel: (label: string) => `Palier ${label}`,
+    annoncesIncluses: (n: number) => `${n} annonces actives incluses`,
+    prixMensuel: "Prix mensuel",
+    statutActif: (date: string) => `Actif jusqu'au ${date}`,
+    statutInactif: "Aucun abonnement actif",
+    quotaActuel: (utilisees: number, limite: number) =>
+      `${utilisees} / ${limite} annonces actives utilisées`,
+    quotaGratuitInfo: (limite: number) =>
+      `Palier gratuit : jusqu'à ${limite} annonces actives. Souscrivez pour lever cette limite.`,
+    quotaAtteintAlerte:
+      "Vous avez atteint votre limite d'annonces actives — une nouvelle annonce ne pourra pas être validée tant qu'une place ne se libère pas ou que vous n'aurez pas souscrit/renouvelé.",
+    souscrire: "Souscrire",
+    renouveler: "Renouveler un mois",
+    payer: "Souscrire (simulation)",
+    payerKonnect: "Souscrire",
+    redirectionKonnect: "Redirection vers le paiement…",
+    mockInfo:
+      "Paiement Konnect bientôt disponible. Mode démonstration : aucun débit réel.",
+    paiementEnVerification: "Paiement en cours de vérification…",
+    actualiser: "Actualiser",
+    paiementEchoue: "Le paiement a échoué. Merci de réessayer.",
+    paiementErreur: "Erreur lors de l'initialisation du paiement.",
+    prolongerInfo: (date: string) =>
+      `Votre abonnement est déjà actif jusqu'au ${date}. Un nouveau paiement prolonge la période d'un mois.`,
+    garantie:
+      "Aucun renouvellement automatique : Konnect ne prélève jamais seul, vous choisissez quand renouveler.",
+    reserveAgence: "Cette page est réservée aux comptes agence.",
   },
   contact: {
     titre: "Contacter l'annonceur",

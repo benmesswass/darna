@@ -24,6 +24,11 @@ export function buildDashboardLinks(user: SessionUser, fr: Dictionary): NavItem[
       { href: "/dashboard/factures", label: fr.factures.listeTitre, icon: "ShieldIcon" },
       { href: "/dashboard/yield", label: fr.dashboard.yieldAdvisor, icon: "SparklesIcon" }
     );
+    // Abonnement (MONETISATION_IMMO_ROADMAP.md §MI2) : ne concerne que les
+    // comptes agence, le mécanisme ne cible pas les hôtes individuels.
+    if (user.role === "AGENCE") {
+      links.push({ href: "/dashboard/abonnement", label: fr.abonnement.titre, icon: "CoinsIcon" });
+    }
   } else {
     links.push({
       href: "/dashboard/reservations",

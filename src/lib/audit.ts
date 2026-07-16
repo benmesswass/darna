@@ -63,7 +63,11 @@ export type AuditAction =
   | "HOST_INVOICE_MANUAL_SUSPENSION"
   // Paiement réel du boost « à la une » (MONETISATION_IMMO_ROADMAP.md §MI0).
   | "PROPERTY_FEATURED_PAYMENT_INITIATED"
-  | "PROPERTY_FEATURED_PAYMENT_FAILED";
+  | "PROPERTY_FEATURED_PAYMENT_FAILED"
+  // Abonnement agence (MONETISATION_IMMO_ROADMAP.md §MI2).
+  | "AGENCY_SUBSCRIPTION_PAYMENT_INITIATED"
+  | "AGENCY_SUBSCRIPTION_PAYMENT_FAILED"
+  | "AGENCY_SUBSCRIPTION_PAID";
 
 /**
  * Audit trail — chaque événement sensible est enregistré avec userId, IP et
