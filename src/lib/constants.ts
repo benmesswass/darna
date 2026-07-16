@@ -152,6 +152,28 @@ export type HostInvoiceStatus = (typeof HOST_INVOICE_STATUSES)[number];
 export const FEATURED_ORDER_STATUSES = ["EN_ATTENTE", "PAYEE"] as const;
 export type FeaturedOrderStatus = (typeof FEATURED_ORDER_STATUSES)[number];
 
+/**
+ * Statuts d'un abonnement agence (MONETISATION_IMMO_ROADMAP.md §MI1) — même
+ * esprit que FEATURED_ORDER_STATUSES : aucun statut "EXPIRE" stocké,
+ * l'expiration est un DÉRIVÉ (ACTIF + currentPeriodEnd < now), jamais écrit
+ * en base (l'application de cette dérivation arrive avec MI2).
+ */
+export const SUBSCRIPTION_STATUSES = ["EN_ATTENTE", "ACTIF"] as const;
+export type SubscriptionStatus = (typeof SUBSCRIPTION_STATUSES)[number];
+
+/**
+ * Paliers d'abonnement agence (MONETISATION_IMMO_ROADMAP.md §MI1). Un seul
+ * palier "STANDARD" pour l'instant — prix et quota d'annonces PROVISOIRES,
+ * volontairement pas confrontés à une vraie agence tunisienne (cf. roadmap
+ * §Chiffrage : ~250 TND/mois est une hypothèse de projection, pas un prix
+ * validé). À réviser dès que Wassim aura testé un vrai tarif ; en attendant,
+ * `Subscription.plan` référence la clé `key` d'un palier ci-dessous.
+ */
+export const AGENCY_PLANS = [
+  { key: "STANDARD", label: "Agence", listingsIncluded: 20, priceTND: 250 },
+] as const;
+export type AgencyPlanKey = (typeof AGENCY_PLANS)[number]["key"];
+
 export const CANCEL_POLICIES = ["FLEXIBLE", "MODEREE", "FERME", "STRICTE"] as const;
 export type CancelPolicy = (typeof CANCEL_POLICIES)[number];
 

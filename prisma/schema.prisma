@@ -103,6 +103,8 @@ model User {
   hostInvoices HostInvoice[]
   // Achats de mise en avant (« à la une », MONETISATION_IMMO_ROADMAP.md §MI0).
   featuredOrders FeaturedOrder[]
+  // Abonnement agence (MONETISATION_IMMO_ROADMAP.md §MI1) — au plus un par compte.
+  subscription Subscription?
 }
 
 // Défi OTP de vérification KYC ou email : code haché (jamais en clair) + TTL +
@@ -392,6 +394,28 @@ model HostInvoice {
 
   @@index([hostId, status])
   @@index([status, dueAt])
+}
+
+// Abonnement agence (MONETISATION_IMMO_ROADMAP.md §MI1) : palier souscrit par
+// un compte AGENCE (clé `plan` → AGENCY_PLANS, src/lib/constants.ts) qui lève
+// la limite d'annonces actives (MI2, pas encore appliquée — cette table est
+// UNIQUEMENT le modèle de données, sans paiement ni page de souscription).
+// Une ligne PAR UTILISATEUR (userId unique) : contrairement à FeaturedOrder,
+// on ne garde pas un historique par renouvellement ici, seul l'état COURANT
+// compte — un renouvellement (MI2) mettra à jour ce même enregistrement.
+// `EXPIRE` n'est volontairement pas un statut stocké : comme HOST_INVOICE_STATUSES,
+// c'est un dérivé (ACTIF + currentPeriodEnd < now), jamais écrit en base.
+model Subscription {
+  id               String    @id @default(cuid())
+  plan             String // clé de AGENCY_PLANS (src/lib/constants.ts) — tarif PROVISOIRE, cf. roadmap §MI1
+  status           String    @default("EN_ATTENTE") // EN_ATTENTE | ACTIF
+  currentPeriodEnd DateTime?
+  createdAt        DateTime  @default(now())
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status, currentPeriodEnd])
 }
 
 // Achat de mise en avant (« à la une ») via Konnect — MONETISATION_IMMO_ROADMAP.md

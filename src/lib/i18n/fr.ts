@@ -445,7 +445,7 @@ export const fr = {
       `Annonce temporairement masquée des recherches suite à une annulation de votre part — elle réapparaît le ${date}.`,
     promoAlaUneTitre: "Passez vos annonces à la une",
     promoAlaUneDesc:
-      "En tête des résultats et sur l'accueil pendant 7 jours, avec un badge doré qui attire l'œil. Les annonces mises en avant sont vues bien plus souvent.",
+      "En tête des résultats et sur l'accueil pendant un mois, avec un badge doré qui attire l'œil. Les annonces mises en avant sont vues bien plus souvent.",
     aucuneReservation: "Aucune réservation pour le moment.",
     aucuneReservationCta: "Trouvez votre prochain séjour parmi nos annonces vérifiées.",
     aucuneReservationHote: "Aucun voyageur n'a encore réservé vos annonces.",
