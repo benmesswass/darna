@@ -444,7 +444,7 @@ export const en: Dictionary = {
       `Listing temporarily hidden from search following a cancellation on your part — it reappears on ${date}.`,
     promoAlaUneTitre: "Feature your listings",
     promoAlaUneDesc:
-      "Top of results and on the homepage for 7 days, with an eye-catching gold badge. Featured listings get seen far more often.",
+      "Top of results and on the homepage for a month, with an eye-catching gold badge. Featured listings get seen far more often.",
     aucuneReservation: "No bookings yet.",
     aucuneReservationCta: "Find your next stay among our verified listings.",
     aucuneReservationHote: "No guest has booked your listings yet.",
