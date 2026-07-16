@@ -56,10 +56,22 @@ export async function countActiveListings(ownerId: string): Promise<number> {
 }
 
 /**
- * Prix ramené à l'annonce active incluse (ex. 250 TND / 20 = 12.5 TND) —
+ * Prix ramené à l'annonce active incluse (ex. 100 TND / 10 = 10 TND) —
  * cadrage honnête utilisé dans le pitch d'abonnement (page /dashboard/
- * abonnement + modale de quota atteint), jamais un chiffre inventé.
+ * abonnement), jamais un chiffre inventé.
  */
 export function listingUnitCost(plan: { priceTND: number; listingsIncluded: number }): number {
   return Math.round((plan.priceTND / plan.listingsIncluded) * 10) / 10;
+}
+
+/**
+ * Palier le MOINS CHER qui couvrirait réellement ce nombre d'annonces actives
+ * — recommandation concrète utilisée par la modale de quota atteint : jamais
+ * un palier insuffisant pour le besoin réel (ex. recommander Starter à une
+ * agence qui a déjà 11 annonces actives ne l'aiderait pas). Si aucun palier
+ * n'est assez grand, retourne le plus grand disponible (meilleur possible).
+ */
+export function cheapestPlanForQuota(neededListings: number) {
+  const sorted = [...AGENCY_PLANS].sort((a, b) => a.listingsIncluded - b.listingsIncluded);
+  return sorted.find((p) => p.listingsIncluded >= neededListings) ?? sorted[sorted.length - 1];
 }

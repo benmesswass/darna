@@ -9,7 +9,9 @@ import { CloseIcon, CoinsIcon } from "@/components/icons";
 type Props = {
   utilisees: number;
   limite: number;
-  coutUnitaire: number;
+  recommendedLabel: string;
+  recommendedListings: number;
+  recommendedPrice: number;
 };
 
 /**
@@ -26,7 +28,13 @@ type Props = {
  * rend que lorsque le paramètre `quotaAtteint=1` est présent dans l'URL de
  * retour de création — jamais reconstruite sans ce signal serveur.
  */
-export function QuotaReachedModal({ utilisees, limite, coutUnitaire }: Props) {
+export function QuotaReachedModal({
+  utilisees,
+  limite,
+  recommendedLabel,
+  recommendedListings,
+  recommendedPrice,
+}: Props) {
   const fr = useT();
   const [open, setOpen] = useState(true);
   const [mounted, setMounted] = useState(false);
@@ -73,7 +81,7 @@ export function QuotaReachedModal({ utilisees, limite, coutUnitaire }: Props) {
           {fr.abonnement.modalTexte(utilisees, limite)}
         </p>
         <p className="mt-3 text-xs font-medium text-body/50">
-          {fr.abonnement.coutParAnnonce(coutUnitaire)}
+          {fr.abonnement.modalRecommandation(recommendedLabel, recommendedListings, recommendedPrice)}
         </p>
 
         <div className="mt-6 flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-end">

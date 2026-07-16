@@ -1385,9 +1385,12 @@ export const ar: Dictionary = {
         ? "إعلان واحد راهو في الانتظار وباش يتنشر كي يتفكّ مكان ولا تشترك."
         : `${n} إعلانات في الانتظار وباش يتنشرو كي يتفكّ مكان ولا تشترك.`,
     coutParAnnonce: (prixTND: number) => `يعني تقريبًا ${prixTND} دينار لكل إعلان نشيط مشمول.`,
+    palierActuelBadge: "الباقة الحالية",
     modalTitre: "هالإعلان باش يستنى دوره",
     modalTexte: (utilisees: number, limite: number) =>
       `الإعلان متاعك تزاد وباش يتفحّص بصفة عادية. لكن عندك بالفعل ${utilisees} إعلان نشيط من ${limite} مشمولين : ما ينجمش يتنشر حتى تتفكّ مكان ولا تشترك في باقة الوكالة.`,
+    modalRecommandation: (label: string, listingsIncluded: number, prixTND: number) =>
+      `باقة ${label} (${listingsIncluded} إعلان مشمولين، ${prixTND} دينار بالشهر) تخليك تنشرها دغري.`,
     modalCta: "شوف خيارات الاشتراك",
     modalPlusTard: "من بعد",
     souscrire: "اشترك",

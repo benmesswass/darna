@@ -11,6 +11,7 @@ import { AGENCY_PLANS } from "@/lib/constants";
 import { isKonnectEnabled } from "@/lib/konnect";
 import {
   activeListingsLimit,
+  agencyPlan,
   countActiveListings,
   isSubscriptionActive,
   listingUnitCost,
@@ -18,13 +19,9 @@ import {
 import { SubscriptionPayButton } from "@/components/dashboard/SubscriptionPayButton";
 import { formatDateFr } from "@/lib/format";
 import { Price } from "@/components/currency/Price";
-import { CheckIcon, CoinsIcon } from "@/components/icons";
+import { CoinsIcon } from "@/components/icons";
 
 export const metadata: Metadata = { title: frMeta.abonnement.titre };
-
-// Palier unique pour l'instant (cf. MONETISATION_IMMO_ROADMAP.md §MI1) : pas
-// de sélecteur de palier tant qu'un second palier n'existe pas.
-const plan = AGENCY_PLANS[0];
 
 export default async function AbonnementPage({
   searchParams,
@@ -52,24 +49,19 @@ export default async function AbonnementPage({
 
   const activeCount = await countActiveListings(user.id);
   const isActive = isSubscriptionActive(subscription);
+  const currentPlan = subscription ? agencyPlan(subscription.plan) : undefined;
   const limit = activeListingsLimit(user.role, subscription);
   const quotaAtteint = activeCount >= limit;
   // Pitch honnête (pas d'incitation agressive) : nombre concret d'annonces
-  // que ce quota empêche de publier, et prix ramené à l'annonce incluse.
+  // que ce quota empêche de publier.
   const pendingCount = quotaAtteint
     ? await prisma.property.count({
         where: { ownerId: user.id, status: "EN_ATTENTE_VALIDATION" },
       })
     : 0;
-  const unitCost = listingUnitCost(plan);
-
-  const advantages = [
-    fr.abonnement.annoncesIncluses(plan.listingsIncluded),
-    fr.abonnement.quotaActuel(activeCount, limit),
-  ];
 
   return (
-    <div className="mx-auto max-w-xl">
+    <div className="mx-auto max-w-3xl">
       <Link
         href="/dashboard/annonces"
         className="inline-flex items-center gap-1 text-sm font-medium text-body/60 hover:text-heading"
@@ -85,29 +77,26 @@ export default async function AbonnementPage({
         <p className="mt-2 text-sm text-body/70">{fr.abonnement.sousTitre}</p>
 
         <div className="mt-4 rounded-2xl bg-cream p-4 text-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-body/50">
-            {fr.abonnement.planLabel(plan.label)}
-          </p>
-          <p className="mt-0.5 font-semibold text-body">
-            {isActive && subscription?.currentPeriodEnd
-              ? fr.abonnement.statutActif(formatDateFr(subscription.currentPeriodEnd))
-              : fr.abonnement.statutInactif}
-          </p>
+          {isActive && currentPlan && subscription?.currentPeriodEnd ? (
+            <>
+              <p className="text-xs font-semibold uppercase tracking-wide text-body/50">
+                {fr.abonnement.planLabel(currentPlan.label)}
+              </p>
+              <p className="mt-0.5 font-semibold text-body">
+                {fr.abonnement.statutActif(formatDateFr(subscription.currentPeriodEnd))}
+              </p>
+            </>
+          ) : (
+            <p className="font-semibold text-body">{fr.abonnement.statutInactif}</p>
+          )}
         </div>
 
-        <ul className="mt-5 space-y-3">
-          {advantages.map((a) => (
-            <li key={a} className="flex items-start gap-3">
-              <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-400 text-darna-dark">
-                <CheckIcon width={13} height={13} strokeWidth={3} />
-              </span>
-              <span className="text-sm font-semibold text-body">{a}</span>
-            </li>
-          ))}
-        </ul>
+        <p className="mt-3 text-sm font-semibold text-body">
+          {fr.abonnement.quotaActuel(activeCount, limit)}
+        </p>
 
         {!isActive ? (
-          <p className="mt-5 rounded-xl bg-cream px-4 py-3 text-xs font-medium text-body/70">
+          <p className="mt-3 rounded-xl bg-cream px-4 py-3 text-xs font-medium text-body/70">
             {fr.abonnement.quotaGratuitInfo(limit)}
           </p>
         ) : null}
@@ -134,18 +123,6 @@ export default async function AbonnementPage({
           </p>
         ) : null}
 
-        <dl className="mt-5 space-y-2.5 border-t border-darna/10 pt-5 text-sm">
-          <div className="flex justify-between border-t border-darna/10 pt-3 first:border-t-0 first:pt-0">
-            <dt className="text-base font-bold text-heading">{fr.abonnement.prixMensuel}</dt>
-            <dd>
-              <Price amount={plan.priceTND} className="text-xl font-bold text-heading" />
-            </dd>
-          </div>
-        </dl>
-        <p className="mt-1.5 text-end text-xs text-body/50">
-          {fr.abonnement.coutParAnnonce(unitCost)}
-        </p>
-
         {!konnectEnabled ? (
           <p className="mt-5 flex items-start gap-2 rounded-xl bg-sand-light/50 px-4 py-3 text-xs font-medium text-darna-dark">
             <CoinsIcon width={16} height={16} className="mt-0.5 shrink-0" />
@@ -167,23 +144,51 @@ export default async function AbonnementPage({
           </p>
         ) : null}
 
-        {konnectEnabled ? (
-          <SubscriptionPayButton
-            plan={plan.key}
-            label={isActive ? fr.abonnement.renouveler : fr.abonnement.souscrire}
-          />
-        ) : (
-          <form action={subscribeAgencyPlanAction} className="mt-5">
-            <input type="hidden" name="plan" value={plan.key} />
-            <button
-              type="submit"
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-amber-400 px-6 py-3.5 text-base font-bold text-darna-dark transition hover:bg-amber-300"
-            >
-              <CoinsIcon width={18} height={18} />
-              {isActive ? fr.abonnement.renouveler : fr.abonnement.payer}
-            </button>
-          </form>
-        )}
+        <div className="mt-6 grid gap-4 sm:grid-cols-3">
+          {AGENCY_PLANS.map((plan) => {
+            const isCurrent = isActive && currentPlan?.key === plan.key;
+            const label = isCurrent ? fr.abonnement.renouveler : fr.abonnement.souscrire;
+            return (
+              <div
+                key={plan.key}
+                className={`relative rounded-2xl border p-5 ${
+                  isCurrent ? "border-darna ring-2 ring-darna/30" : "border-darna/15"
+                }`}
+              >
+                {isCurrent ? (
+                  <span className="absolute -top-2.5 start-4 rounded-full bg-darna px-2.5 py-0.5 text-[11px] font-bold text-white">
+                    {fr.abonnement.palierActuelBadge}
+                  </span>
+                ) : null}
+                <p className="font-bold text-heading">{plan.label}</p>
+                <p className="mt-1 text-sm text-body/60">
+                  {fr.abonnement.annoncesIncluses(plan.listingsIncluded)}
+                </p>
+                <div className="mt-3">
+                  <Price amount={plan.priceTND} className="text-2xl font-bold text-heading" />
+                </div>
+                <p className="mt-1 text-xs text-body/50">
+                  {fr.abonnement.coutParAnnonce(listingUnitCost(plan))}
+                </p>
+
+                {konnectEnabled ? (
+                  <SubscriptionPayButton plan={plan.key} label={label} />
+                ) : (
+                  <form action={subscribeAgencyPlanAction} className="mt-5">
+                    <input type="hidden" name="plan" value={plan.key} />
+                    <button
+                      type="submit"
+                      className="flex w-full items-center justify-center gap-2 rounded-2xl bg-amber-400 px-4 py-3 text-sm font-bold text-darna-dark transition hover:bg-amber-300"
+                    >
+                      <CoinsIcon width={16} height={16} />
+                      {isCurrent ? fr.abonnement.renouveler : fr.abonnement.payer}
+                    </button>
+                  </form>
+                )}
+              </div>
+            );
+          })}
+        </div>
 
         <p className="mt-4 text-center text-xs text-body/50">{fr.abonnement.garantie}</p>
       </div>

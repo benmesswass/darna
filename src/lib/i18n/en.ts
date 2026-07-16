@@ -1371,9 +1371,12 @@ export const en: Dictionary = {
         : `${n} listings are awaiting approval and will be published as soon as you have room or subscribe.`,
     coutParAnnonce: (prixTND: number) =>
       `That's about ${prixTND} TND per active listing included.`,
+    palierActuelBadge: "Current plan",
     modalTitre: "This listing will wait its turn",
     modalTexte: (utilisees: number, limite: number) =>
       `Your listing was created and will be reviewed as usual. But you already have ${utilisees} active listing(s) out of ${limite} included: it won't be published until a slot frees up or you subscribe to the Agency plan.`,
+    modalRecommandation: (label: string, listingsIncluded: number, prixTND: number) =>
+      `The ${label} plan (${listingsIncluded} listings included, ${prixTND} TND/month) would let you publish it right away.`,
     modalCta: "See subscription options",
     modalPlusTard: "Later",
     souscrire: "Subscribe",

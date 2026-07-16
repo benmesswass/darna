@@ -1392,9 +1392,12 @@ export const fr = {
         : `${n} annonces sont en attente de validation et seront publiées dès que vous aurez de la place ou aurez souscrit.`,
     coutParAnnonce: (prixTND: number) =>
       `Soit environ ${prixTND} TND par annonce active incluse.`,
+    palierActuelBadge: "Palier actuel",
     modalTitre: "Cette annonce attendra son tour",
     modalTexte: (utilisees: number, limite: number) =>
       `Votre annonce a bien été créée et sera examinée normalement. Mais vous avez déjà ${utilisees} annonce(s) active(s) sur ${limite} incluse(s) : elle ne pourra pas être publiée tant qu'une place ne se libère pas ou que vous n'aurez pas souscrit à l'abonnement Agence.`,
+    modalRecommandation: (label: string, listingsIncluded: number, prixTND: number) =>
+      `Le palier ${label} (${listingsIncluded} annonces incluses, ${prixTND} TND/mois) vous permettrait de la publier dès maintenant.`,
     modalCta: "Voir les options d'abonnement",
     modalPlusTard: "Plus tard",
     souscrire: "Souscrire",

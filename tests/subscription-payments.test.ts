@@ -62,8 +62,8 @@ function payment(over: Partial<KonnectPayment> = {}): KonnectPayment {
   return {
     id: "pay_1",
     status: "completed",
-    amount: 250_000,
-    reachedAmount: 250_000, // = 250 TND attendus (AGENCY_PLANS.STANDARD)
+    amount: 100_000,
+    reachedAmount: 100_000, // = 100 TND attendus (AGENCY_PLANS.STANDARD)
     token: "TND",
     ...over,
   };
@@ -102,7 +102,7 @@ describe("settleSubscriptionPayment", () => {
 
   it("REFUSE de régler si le montant reçu est inférieur au prix du palier", async () => {
     findFirst.mockResolvedValue(row());
-    getPayment.mockResolvedValue(payment({ reachedAmount: 100_000 })); // < 250 000
+    getPayment.mockResolvedValue(payment({ reachedAmount: 50_000 })); // < 100 000
     expect(await settleSubscriptionPayment({ paymentRef: "pay_1" })).toBe("ERREUR");
     expect(updateMany).not.toHaveBeenCalled();
     expect(audit).not.toHaveBeenCalled();

@@ -53,7 +53,7 @@
 | # | Tâche | Prio | Statut | Détail |
 |---|-------|------|--------|--------|
 | **MI0** | **Brancher un paiement Konnect réel sur le boost « à la une » existant** (remplacer le mock de `featureListingAction`), pour les deux verticales | **P0** | ✅ | Nouveau modèle `FeaturedOrder` (migration `20260716105454_add_featured_order`), `settleFeaturedOrder` (`src/lib/featured-payments.ts`, miroir de `settleHostInvoice`), `startFeaturedOrderPaymentAction` (`src/actions/properties.ts`), webhook dédié `src/app/api/payments/konnect/featured-webhook/route.ts`, `FeaturedPayButton` (`src/components/dashboard/FeaturedPayButton.tsx`), page `/dashboard/annonces/[id]/a-la-une` branchée sur les deux modes (réel si Konnect actif, mock sinon — `featureListingAction` gardée en fallback démo, désormais gatée `!isKonnectEnabled()`). i18n (3 dictionnaires). Tests : `featured-payments.test.ts`, `featured-payment-idor.test.ts`, `featured-webhook.test.ts` (23 tests). `QA_ROADMAP.md` §6.2 ajouté. Vérifié en Playwright (démo + branche erreur Konnect avec clé factice, cf. rapport de test). |
-| MI1 | Modèle de données abonnement pro : `Subscription` (userId, plan, status, currentPeriodEnd) + paliers `AGENCY_PLANS` dans `constants.ts` (nb d'annonces actives incluses, prix) | P0 | ✅ | Modèle `Subscription` (migration `20260716120524_add_subscription`, une ligne par utilisateur, `EXPIRE` dérivé jamais stocké — même principe que `HostInvoice`/`FeaturedOrder`). Palier unique `AGENCY_PLANS.STANDARD` (20 annonces, 250 TND/mois) dans `src/lib/constants.ts` — **prix PROVISOIRE, non confronté à une vraie agence**, à réviser dès validation business (cf. §Chiffrage) avant MI2. Tests : `agency-plans.test.ts`. **Décision explicite de Wassim (2026-07-16) : démarrer avec ce tarif provisoire plutôt que d'attendre la validation terrain**, pour ne pas bloquer MI2. |
+| MI1 | Modèle de données abonnement pro : `Subscription` (userId, plan, status, currentPeriodEnd) + paliers `AGENCY_PLANS` dans `constants.ts` (nb d'annonces actives incluses, prix) | P0 | ✅ | Modèle `Subscription` (migration `20260716120524_add_subscription`, une ligne par utilisateur, `EXPIRE` dérivé jamais stocké — même principe que `HostInvoice`/`FeaturedOrder`). Trois paliers dans `src/lib/constants.ts` — **Starter** (3 annonces, 50 TND/mois), **Standard** (10 annonces, 100 TND/mois), **Pro** (30 annonces, 200 TND/mois) — **prix PROVISOIRES, non confrontés à une vraie agence**, revus à la baisse le 2026-07-16 par rapport à l'hypothèse initiale (palier unique à 250 TND, jugée trop chère pour une plateforme encore en construction de confiance sur le marché tunisien). Page `/dashboard/abonnement` affiche les 3 paliers en cartes sélectionnables ; la modale/notification de quota atteint (§MI2) recommande le palier le moins cher qui couvrirait réellement le besoin (`cheapestPlanForQuota`, `src/lib/subscriptions.ts`), jamais un palier insuffisant. Tests : `agency-plans.test.ts`, cas `cheapestPlanForQuota` dans `subscriptions.test.ts`. |
 | MI2 | Limite du nombre d'annonces actives selon abonnement (ou absence d'abonnement = palier gratuit limité) + page dashboard de souscription/renouvellement (lien de paiement Konnect ponctuel, même patron que `HostInvoice`/PSP4-PSP5 : pas d'abonnement récurrent auto-débité, Konnect ne le supporte pas nativement) | P0 | ✅ | `Subscription.paymentRef` (migration `20260716140000_add_subscription_payment_ref` — ligne UNIQUE réutilisée à chaque cycle, contrairement à `FeaturedOrder`/`HostInvoice` : l'idempotence webhook/retour repose donc sur `paymentRef` remis à `null` au règlement, pas sur `status`, cf. `src/lib/subscription-payments.ts`). Limite dérivée (jamais stockée) dans `src/lib/subscriptions.ts` (`activeListingsLimit`, `FREE_TIER_LISTINGS_LIMIT = 3` — provisoire) — appliquée au SEUL point où une annonce devient `ACTIVE` : `verifyPropertyAction` (`src/actions/admin.ts`), pas à la création (une annonce `EN_ATTENTE_VALIDATION` ne compte pas encore dans le quota). Page `/dashboard/abonnement` (nav réservée aux comptes `AGENCE`) branchée sur les deux modes (réel/mock comme MI0), avec pitch honnête (coût ramené à l'annonce incluse, nombre d'annonces en attente débloquées par la souscription — jamais d'urgence artificielle). **Double signal à l'agence quand le quota est atteint** : (a) modale informative (PAS un blocage) juste après la création d'une annonce si le quota est déjà dépassé (`QuotaReachedModal`, `src/components/dashboard/QuotaReachedModal.tsx`, déclenchée par `createPropertyAction`) ; (b) notification in-app (`ANNONCE_LIMITE_ABONNEMENT`, `notifyAgencyQuotaReached`) quand un admin/wakil tente ensuite — et échoue — à vérifier cette annonce (l'agence n'a sinon aucun autre moyen de le savoir, seul l'admin voyait l'erreur auparavant). Tests : `subscriptions.test.ts`, `subscription-payments.test.ts`, `subscription-payment-access.test.ts`, `subscription-webhook.test.ts`, `notification-quota.test.ts`, + cas ajoutés à `admin.test.ts` (517 tests suite complète). `QA_ROADMAP.md` §6.3 ajouté. Vérifié en Playwright bout en bout (Postgres local) : création d'annonce au-delà du quota → modale immédiate avec les bons chiffres → refus admin → notification reçue (cloche) → pitch complet sur `/dashboard/abonnement`, cf. rapport de test. |
 | MI3 | Vérification Wakil payante pour les comptes `AGENCE` (garder la 1ère vérification gratuite pour particuliers ; payante en volume/renouvellement pour les pros) | P1 | ⏸️ | Dépend de la capacité réelle du réseau Wakil à absorber du volume payant sans dégrader le délai — à confirmer avec Wassim avant de coder un prix. |
 | MI4 | Pack visibilité inclus dans le palier « Agence+ » (X boosts « à la une » offerts/mois, réutilise MI0) | P2 | ❌ | Dépend de MI0 + MI1. |
@@ -91,10 +91,20 @@ en prod côté mock) et d'hypothèses de volume **explicites, modifiables,
 et à valider** — notamment via les objectifs business déjà posés par les
 investisseurs (`.agents/product-marketing.md` : 100 annonces vérifiées
 réelles court terme, 500 annonces vérifiées actives = north-star). Le taux
-d'attachement au boost (15 %) et le prix moyen d'abonnement agence (250
-TND/mois) sont des ordres de grandeur inspirés des portails classifieds
-comparables (Mubawab/Tayara) — **pas des chiffres sourcés**, à confirmer par
-un vrai test commercial avant de les considérer acquis.
+d'attachement au boost (15 %) est un ordre de grandeur inspiré des portails
+classifieds comparables (Mubawab/Tayara) — **pas un chiffre sourcé**, à
+confirmer par un vrai test commercial avant de le considérer acquis.
+
+**Tarifs revus à la baisse le 2026-07-16** (décision de Wassim, après
+première mise en ligne de MI2) : les 250 TND/mois du palier unique initial
+ont été jugés trop chers pour le marché tunisien tant que Darna construit
+encore sa confiance/son réseau — mieux vaut un ticket d'entrée accessible
+pour les toutes premières agences que d'anchorer haut sans donnée réelle.
+Trois paliers de lancement (`AGENCY_PLANS`, `src/lib/constants.ts`) :
+**Starter** 50 TND/mois (3 annonces), **Standard** 100 TND/mois
+(10 annonces), **Pro** 200 TND/mois (30 annonces) — toujours
+**provisoires**, à confirmer avec de vraies agences à Hammamet/Nabeul/
+Sousse avant de les considérer acquis.
 
 ### Hypothèses de volume (3 horizons)
 
@@ -109,11 +119,11 @@ un vrai test commercial avant de les considérer acquis.
 | Flux | Prix unitaire | Pilote (M+3) | Ramp (M+12) | Scale (M+24) |
 |---|---|---|---|---|
 | Boost « à la une » (MI0), attachement 15 %/mois | 29 TND | 100 × 15 % × 29 = **435** | 200 × 15 % × 29 = **870** | 600 × 15 % × 29 = **2 610** |
-| Abonnement agence (MI1/MI2), palier moyen pondéré | ~250 TND/mois | 10 × 250 = **2 500** | 30 × 250 = **7 500** | 90 × 250 = **22 500** |
+| Abonnement agence (MI1/MI2), palier moyen pondéré (Standard) | ~100 TND/mois | 10 × 100 = **1 000** | 30 × 100 = **3 000** | 90 × 100 = **9 000** |
 | Vérification Wakil payante pro (MI3) | 40 TND | 5 × 40 = **200** | 20 × 40 = **800** | 60 × 40 = **2 400** |
 | Apport d'affaires financement (MI5) | 300 TND/dossier | 1 × 300 = **300** | 4 × 300 = **1 200** | 12 × 300 = **3 600** |
-| **Total mensuel** | | **3 435 TND** (~1 010 EUR) | **10 370 TND** (~3 050 EUR) | **31 110 TND** (~9 150 EUR) |
-| **Total annualisé** | | **~44 800 TND/an** | **~131 600 TND/an** | **~394 900 TND/an** |
+| **Total mensuel** | | **1 935 TND** (~570 EUR) | **5 870 TND** (~1 725 EUR) | **17 610 TND** (~5 180 EUR) |
+| **Total annualisé** | | **~23 200 TND/an** | **~70 400 TND/an** | **~211 300 TND/an** |
 
 *(Conversion EUR indicative au taux `EUR_TO_TND = 3.4` déjà utilisé dans le
 code, `src/lib/config.ts` — c'est un affichage, jamais le montant réellement
@@ -121,22 +131,25 @@ encaissé, qui reste en TND comme le reste de Darna.)*
 
 ### Lecture de ces chiffres
 
-- **Le flux le plus rapide à activer (MI0) est aussi le plus petit** (735 à
-  4 410 TND/mois) — logique, c'est un achat d'impulsion à ticket unitaire
+- **Le flux le plus rapide à activer (MI0) est aussi le plus petit** (435 à
+  2 610 TND/mois) — logique, c'est un achat d'impulsion à ticket unitaire
   faible. Son intérêt est ailleurs : zéro coût de développement additionnel,
   premier euro réel encaissé sur l'immobilier, et il **valide en vrai**
   l'appétit à payer avant d'investir sur l'abonnement pro (MI1/MI2), qui
-  porte 65-70 % du total à tous les horizons.
-- **L'abonnement agence est le flux dominant et le plus incertain** — sa
-  fourchette de prix (60-800 TND/mois selon palier, cf. réponse précédente)
-  n'a jamais été confrontée à une vraie agence tunisienne. C'est le chiffre
-  à valider en premier, avant d'écrire une ligne de MI1 : quelques appels à
-  des agences à Hammamet/Nabeul/Sousse pour tester 3 prix (100/250/500
-  TND/mois) donneraient un signal réel en une semaine, sans code.
+  porte ~50 % du total à tous les horizons (contre 65-70 % avec l'ancien
+  tarif unique à 250 TND — le prix d'entrée plus accessible réduit
+  mécaniquement le poids de ce flux, en échange d'une adoption espérée plus
+  large côté agences).
+- **L'abonnement agence reste le flux dominant et le plus incertain** — les
+  trois paliers de lancement (Starter 50 TND/3 annonces, Standard
+  100 TND/10 annonces, Pro 200 TND/30 annonces) n'ont toujours **pas** été
+  confrontés à une vraie agence tunisienne. C'est le chiffre à valider en
+  premier : quelques appels à des agences à Hammamet/Nabeul/Sousse pour
+  tester ces trois prix donneraient un signal réel en une semaine, sans code.
 - **MI5 (financement) dépend d'un partenariat externe non encore signé** —
   son chiffre (300-3 600 TND/mois) est donc conditionnel, pas un acquis de
   roadmap produit.
-- À l'échelle Scale (M+24), ~373 000 TND/an reste **un complément**, pas un
+- À l'échelle Scale (M+24), ~211 300 TND/an reste **un complément**, pas un
   pivot de modèle : à comparer à la commission `SERVICE_FEE_RATE = 8 %` déjà
   en place sur `stay` (revenu par réservation, pas par annonce) pour juger
   l'ordre de grandeur relatif une fois que le volume de réservations séjour
