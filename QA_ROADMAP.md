@@ -323,6 +323,29 @@ intentionally **not** a `"use server"`, mirrors `settleKonnectBooking`).
 | View IDOR (`/dashboard/factures/[id]`) | Host B opens host A's invoice URL directly | `notFound()` — `invoice.hostId !== user.id` (`src/app/dashboard/factures/[id]/page.tsx:59`) | ⚠️ guarded in code, not unit-tested (no Server Component test harness in this suite — same gap as other page-level ownership checks) | Demo |
 | Reconciliation | Konnect status vs local `HostInvoice` mismatch | Detect & alert; never silent loss | ❌ | Production |
 
+### 6.2 FeaturedOrder test suite (mise en avant « à la une », MONETISATION_IMMO_ROADMAP.md §MI0)
+
+Same bar as §6, applied to `FeaturedOrder` (achat/prolongation du boost
+« à la une » — `Property.featuredUntil`). Settlement lives in
+`src/lib/featured-payments.ts` (`settleFeaturedOrder`, intentionally **not**
+a `"use server"`, mirrors `settleHostInvoice`/`settleKonnectBooking`). Le
+mock démo (`featureListingAction`) reste le fallback quand Konnect est
+désactivé — jamais les deux à la fois (garde d'exclusivité, comme AH/PSP).
+
+| Scenario | Test to create | Expected guarantee | Status | Phase |
+|----------|----------------|---------------------|--------|-------|
+| Double settlement | Two `settleFeaturedOrder` calls, same ref | Only first mutates/extends `featuredUntil`; second is a no-op | ✅ `featured-payments.test.ts` | Demo |
+| Settlement race (webhook vs return page) | Concurrent settle, `updateMany` count 0 on the loser | Single `PAYEE`, single boost extension, single audit | ✅ `featured-payments.test.ts` | Demo |
+| Amount tamper | `reachedAmount < expected` | Reject (`ERREUR`, no confirm, no extension) | ✅ `featured-payments.test.ts` | Demo |
+| Unknown reference | Settle with an unrecognized `paymentRef`/`orderId` | `INTROUVABLE`, harmless no-op | ✅ `featured-payments.test.ts` | Demo |
+| Cumulative extension | Settle while a previous boost is still active | Extends from the remaining `featuredUntil`, not from now | ✅ `featured-payments.test.ts` | Demo |
+| Payment IDOR | Host B initiates the boost payment for host A's listing (`startFeaturedOrderPaymentAction`) | Rejected — `property.ownerId !== user.id` | ✅ `featured-payment-idor.test.ts` | Demo |
+| Ineligible listing | Boost a non-`ACTIVE`/expired listing | Rejected before any `FeaturedOrder`/Konnect call | ✅ `featured-payment-idor.test.ts` | Demo |
+| Demo/real exclusivity | `featureListingAction` while Konnect is enabled | No-op, never applies the mock effect | ✅ `featured-payment-idor.test.ts` | Demo |
+| **Webhook authenticity** | Forged/missing signature on `featured-webhook` | Reject (401) without valid HMAC (`verifyKonnectWebhook`), same guard as the booking/host-invoice webhooks | ✅ `featured-webhook.test.ts` | Demo |
+| Webhook rate limiting | Hammering one `fid` | 429 beyond the per-order cap | ✅ `featured-webhook.test.ts` | Demo |
+| Reconciliation | Konnect status vs local `FeaturedOrder` mismatch | Detect & alert; never silent loss | ❌ | Production |
+
 ---
 
 ## 7. Auth test suite

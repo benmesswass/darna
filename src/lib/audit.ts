@@ -60,7 +60,10 @@ export type AuditAction =
   | "HOST_INVOICE_PAID"
   // Dashboard admin factures (PAIEMENT_SUR_PLACE_ROADMAP.md §PSP8).
   | "HOST_INVOICE_REMINDER_SENT"
-  | "HOST_INVOICE_MANUAL_SUSPENSION";
+  | "HOST_INVOICE_MANUAL_SUSPENSION"
+  // Paiement réel du boost « à la une » (MONETISATION_IMMO_ROADMAP.md §MI0).
+  | "PROPERTY_FEATURED_PAYMENT_INITIATED"
+  | "PROPERTY_FEATURED_PAYMENT_FAILED";
 
 /**
  * Audit trail — chaque événement sensible est enregistré avec userId, IP et

@@ -143,6 +143,15 @@ export type PaymentMode = (typeof PAYMENT_MODES)[number];
 export const HOST_INVOICE_STATUSES = ["EN_ATTENTE", "PAYEE"] as const;
 export type HostInvoiceStatus = (typeof HOST_INVOICE_STATUSES)[number];
 
+/**
+ * Statuts d'un achat de mise en avant (« à la une », MONETISATION_IMMO_ROADMAP.md
+ * §MI0) — même esprit que HOST_INVOICE_STATUSES, aucun statut "ANNULEE" stocké :
+ * une commande jamais réglée reste simplement EN_ATTENTE indéfiniment (aucun
+ * effet métier tant qu'elle n'est pas payée).
+ */
+export const FEATURED_ORDER_STATUSES = ["EN_ATTENTE", "PAYEE"] as const;
+export type FeaturedOrderStatus = (typeof FEATURED_ORDER_STATUSES)[number];
+
 export const CANCEL_POLICIES = ["FLEXIBLE", "MODEREE", "FERME", "STRICTE"] as const;
 export type CancelPolicy = (typeof CANCEL_POLICIES)[number];
 

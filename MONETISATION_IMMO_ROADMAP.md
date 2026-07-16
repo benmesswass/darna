@@ -22,7 +22,7 @@
 > "agence".
 >
 > **Ce qui existe déjà et qu'il ne faut pas réinventer :** le boost « à la
-> une » (`Property.featuredUntil`, `FEATURED_PRICE_TND = 49` TND/semaine,
+> une » (`Property.featuredUntil`, `FEATURED_PRICE_TND = 29` TND/mois,
 > `src/lib/config.ts`) est **déjà entièrement construit** — modèle de
 > données, UI (`src/app/dashboard/annonces/[id]/a-la-une/page.tsx`), action
 > serveur (`featureListingAction`, `src/actions/properties.ts`) — mais le
@@ -52,7 +52,7 @@
 
 | # | Tâche | Prio | Statut | Détail |
 |---|-------|------|--------|--------|
-| **MI0** | **Brancher un paiement Konnect réel sur le boost « à la une » existant** (remplacer le mock de `featureListingAction`), pour les deux verticales | **P0** | ❌ | Premier revenu réel possible sans aucun nouveau modèle de données ni nouvelle UI. Voir prompt détaillé ci-dessous. |
+| **MI0** | **Brancher un paiement Konnect réel sur le boost « à la une » existant** (remplacer le mock de `featureListingAction`), pour les deux verticales | **P0** | ✅ | Nouveau modèle `FeaturedOrder` (migration `20260716105454_add_featured_order`), `settleFeaturedOrder` (`src/lib/featured-payments.ts`, miroir de `settleHostInvoice`), `startFeaturedOrderPaymentAction` (`src/actions/properties.ts`), webhook dédié `src/app/api/payments/konnect/featured-webhook/route.ts`, `FeaturedPayButton` (`src/components/dashboard/FeaturedPayButton.tsx`), page `/dashboard/annonces/[id]/a-la-une` branchée sur les deux modes (réel si Konnect actif, mock sinon — `featureListingAction` gardée en fallback démo, désormais gatée `!isKonnectEnabled()`). i18n (3 dictionnaires). Tests : `featured-payments.test.ts`, `featured-payment-idor.test.ts`, `featured-webhook.test.ts` (23 tests). `QA_ROADMAP.md` §6.2 ajouté. Vérifié en Playwright (démo + branche erreur Konnect avec clé factice, cf. rapport de test). |
 | MI1 | Modèle de données abonnement pro : `Subscription` (userId, plan, status, currentPeriodEnd) + paliers `AGENCY_PLANS` dans `constants.ts` (nb d'annonces actives incluses, prix) | P0 | ⏸️ | **Bloqué tant que Wassim n'a pas validé les paliers/prix réels** (cf. §Chiffrage — hypothèses à confirmer par quelques appels à des agences Hammamet/Nabeul/Sousse avant de coder les montants en dur). |
 | MI2 | Limite du nombre d'annonces actives selon abonnement (ou absence d'abonnement = palier gratuit limité) + page dashboard de souscription/renouvellement (lien de paiement Konnect ponctuel, même patron que `HostInvoice`/PSP4-PSP5 : pas d'abonnement récurrent auto-débité, Konnect ne le supporte pas nativement) | P0 | ⏸️ | Dépend de MI1. |
 | MI3 | Vérification Wakil payante pour les comptes `AGENCE` (garder la 1ère vérification gratuite pour particuliers ; payante en volume/renouvellement pour les pros) | P1 | ⏸️ | Dépend de la capacité réelle du réseau Wakil à absorber du volume payant sans dégrader le délai — à confirmer avec Wassim avant de coder un prix. |
@@ -63,7 +63,7 @@
 ## Exécution (prioritisée)
 
 **Quick win (avant tout le reste, zéro prérequis externe) :**
-1. ❌ MI0 — paiement réel sur le boost existant.
+1. ✅ MI0 — paiement réel sur le boost existant.
 
 **Fondations abonnement pro (bloquées sur une décision business Wassim) :**
 2. ⏸️ MI1 — modèle de données + paliers.
@@ -77,7 +77,7 @@
 6. ⏸️ MI5 — apport d'affaires financement.
 
 **Transverse :**
-7. ❌ MI6 — QA/sécurité, à chaque phase.
+7. 🔧 MI6 — QA/sécurité, à chaque phase. Portion MI0 livrée (`QA_ROADMAP.md` §6.2) ; reste à couvrir au fur et à mesure de MI1-MI5.
 
 ---
 
@@ -86,7 +86,7 @@
 **Méthode et limite assumée.** Ce ne sont **pas** des chiffres mesurés — Darna
 n'a aujourd'hui aucun revenu immobilier, donc il n'y a rien à extrapoler
 depuis un historique réel. Ce sont des **projections construites à partir
-d'une donnée réelle du code** (`FEATURED_PRICE_TND = 49` TND/semaine, déjà
+d'une donnée réelle du code** (`FEATURED_PRICE_TND = 29` TND/mois, déjà
 en prod côté mock) et d'hypothèses de volume **explicites, modifiables,
 et à valider** — notamment via les objectifs business déjà posés par les
 investisseurs (`.agents/product-marketing.md` : 100 annonces vérifiées
@@ -108,11 +108,11 @@ un vrai test commercial avant de les considérer acquis.
 
 | Flux | Prix unitaire | Pilote (M+3) | Ramp (M+12) | Scale (M+24) |
 |---|---|---|---|---|
-| Boost « à la une » (MI0), attachement 15 %/mois | 49 TND | 100 × 15 % × 49 = **735** | 200 × 15 % × 49 = **1 470** | 600 × 15 % × 49 = **4 410** |
+| Boost « à la une » (MI0), attachement 15 %/mois | 29 TND | 100 × 15 % × 29 = **435** | 200 × 15 % × 29 = **870** | 600 × 15 % × 29 = **2 610** |
 | Abonnement agence (MI1/MI2), palier moyen pondéré | ~250 TND/mois | 10 × 250 = **2 500** | 30 × 250 = **7 500** | 90 × 250 = **22 500** |
 | Vérification Wakil payante pro (MI3) | 40 TND | 5 × 40 = **200** | 20 × 40 = **800** | 60 × 40 = **2 400** |
 | Apport d'affaires financement (MI5) | 300 TND/dossier | 1 × 300 = **300** | 4 × 300 = **1 200** | 12 × 300 = **3 600** |
-| **Total mensuel** | | **3 735 TND** (~1 100 EUR) | **10 970 TND** (~3 225 EUR) | **32 910 TND** (~9 680 EUR) |
+| **Total mensuel** | | **3 435 TND** (~1 010 EUR) | **10 370 TND** (~3 050 EUR) | **31 110 TND** (~9 150 EUR) |
 | **Total annualisé** | | **~44 800 TND/an** | **~131 600 TND/an** | **~394 900 TND/an** |
 
 *(Conversion EUR indicative au taux `EUR_TO_TND = 3.4` déjà utilisé dans le
@@ -136,7 +136,7 @@ encaissé, qui reste en TND comme le reste de Darna.)*
 - **MI5 (financement) dépend d'un partenariat externe non encore signé** —
   son chiffre (300-3 600 TND/mois) est donc conditionnel, pas un acquis de
   roadmap produit.
-- À l'échelle Scale (M+24), ~395 000 TND/an reste **un complément**, pas un
+- À l'échelle Scale (M+24), ~373 000 TND/an reste **un complément**, pas un
   pivot de modèle : à comparer à la commission `SERVICE_FEE_RATE = 8 %` déjà
   en place sur `stay` (revenu par réservation, pas par annonce) pour juger
   l'ordre de grandeur relatif une fois que le volume de réservations séjour
@@ -158,7 +158,7 @@ Contexte : MONETISATION_IMMO_ROADMAP.md, ligne MI0. Lis d'abord ce fichier
 en entier, puis src/actions/properties.ts (featureListingAction, autour de
 la ligne 407) et src/app/dashboard/annonces/[id]/a-la-une/page.tsx —
 aujourd'hui le boost "à la une" (Property.featuredUntil, FEATURED_PRICE_TND
-= 49 TND/semaine) est un paiement 100% mock : featureListingAction applique
+= 29 TND/mois) est un paiement 100% mock : featureListingAction applique
 l'effet métier immédiatement, sans passer par Konnect.
 
 Objectif : brancher un vrai paiement Konnect, en miroir de l'existant pour

@@ -1311,7 +1311,7 @@ export const en: Dictionary = {
   alaUne: {
     titre: "Feature your listing",
     sousTitre:
-      "Boost your visibility for a week: your listing moves to the top of results and appears on the Darna homepage.",
+      "Boost your visibility for a month: your listing moves to the top of results and appears on the Darna homepage.",
     avantage1Titre: "Top of results",
     avantage1Desc:
       "Your listing shows above all others in stays and real-estate searches.",
@@ -1325,18 +1325,24 @@ export const en: Dictionary = {
     annonce: "Listing",
     duree: "Featuring duration",
     dureeValeur: (j: number) => (j === 1 ? "1 day" : `${j} days`),
-    prix: "Featuring (1 week)",
+    prix: "Featuring (1 month)",
     total: "Total to pay",
     mockInfo:
       "Konnect / Flouci payment coming soon. Demo mode: no real charge.",
     payer: "Pay and feature (simulation)",
+    payerKonnect: "Pay and feature",
+    redirectionKonnect: "Redirecting to payment…",
+    paiementEnVerification: "Payment being verified…",
+    actualiser: "Refresh",
+    paiementEchoue: "Payment failed. Please try again.",
+    paiementErreur: "Error initializing the payment.",
     prolongerInfo: (date: string) =>
-      `This listing is already featured until ${date}. A new purchase extends the boost by one week.`,
+      `This listing is already featured until ${date}. A new purchase extends the boost by one month.`,
     retour: "Back to my listings",
     indisponible:
       "This listing can't be featured: it must be active and online.",
     garantie:
-      "You stay in control: at the end of the week your listing simply returns to its normal display. No auto-renewal.",
+      "You stay in control: at the end of the month your listing simply returns to its normal display. No auto-renewal.",
   },
   contact: {
     titre: "Contact the advertiser",

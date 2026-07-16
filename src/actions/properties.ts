@@ -17,8 +17,9 @@ import {
   verticalOfType,
 } from "@/lib/constants";
 import { verticalEnabled, kycGatingEnabled } from "@/lib/modes";
-import { FEATURED_DURATION_DAYS, LISTING_LIFETIME_DAYS } from "@/lib/config";
-import { logAudit } from "@/lib/audit";
+import { FEATURED_DURATION_DAYS, FEATURED_PRICE_TND, LISTING_LIFETIME_DAYS, SITE_URL } from "@/lib/config";
+import { logAudit, logStructured } from "@/lib/audit";
+import { initKonnectPayment, isKonnectEnabled, signKonnectWebhook } from "@/lib/konnect";
 import {
   MAX_PHOTOS_PER_PROPERTY,
   deleteUploadedImage,
@@ -396,15 +397,21 @@ export async function republishPropertyAction(formData: FormData): Promise<void>
 }
 
 /**
- * Mise à la une (paiement simulé) : le boost « à la une » est activé pour
- * FEATURED_DURATION_DAYS jours. Un nouvel achat alors qu'un boost est encore
- * actif le PROLONGE (cumul à partir de la date de fin restante).
+ * Mise à la une — RÈGLEMENT DÉMO uniquement (séquestre simulé, aucun argent
+ * réel) : le boost « à la une » est activé pour FEATURED_DURATION_DAYS jours.
+ * Un nouvel achat alors qu'un boost est encore actif le PROLONGE (cumul à
+ * partir de la date de fin restante).
  *
- * Le paiement est un mock assumé (même esprit que le séquestre des séjours) :
- * aucune intégration de paiement réel, mais l'autorisation et l'effet métier
- * sont, eux, bien réels et vérifiés côté serveur.
+ * Ne s'exécute JAMAIS quand Konnect est actif (même garde d'exclusivité que
+ * confirmHostInvoiceAction/confirmPaymentAction : anti-confusion démo/réel).
+ * En mode Konnect réel, c'est startFeaturedOrderPaymentAction +
+ * settleFeaturedOrder (src/lib/featured-payments.ts) qui appliquent l'effet,
+ * uniquement après paiement effectivement reçu — cf. MONETISATION_IMMO_ROADMAP.md
+ * §MI0.
  */
 export async function featureListingAction(formData: FormData): Promise<void> {
+  if (isKonnectEnabled()) return;
+
   const user = await requireLister();
 
   const parsed = idSchema.safeParse(formData.get("propertyId"));
@@ -447,6 +454,108 @@ export async function featureListingAction(formData: FormData): Promise<void> {
   revalidatePath(`/annonce/${property.slug}`);
   revalidatePath("/");
   redirect("/dashboard/annonces?alaune=1");
+}
+
+export type FeaturedOrderPaymentState = { error?: string; payUrl?: string } | undefined;
+
+/**
+ * Démarre un paiement Konnect RÉEL pour la mise à la une
+ * (MONETISATION_IMMO_ROADMAP.md §MI0). Miroir de payHostInvoiceAction
+ * (src/actions/host-invoices.ts) : crée un FeaturedOrder EN_ATTENTE,
+ * initialise le paiement, stocke le paymentRef, renvoie payUrl (redirection
+ * CÔTÉ CLIENT, cf. FeaturedPayButton — compat CSP form-action 'self').
+ * L'extension de `featuredUntil` n'a lieu qu'au règlement effectif
+ * (settleFeaturedOrder), JAMAIS ici — l'argent n'est pas encore reçu.
+ */
+export async function startFeaturedOrderPaymentAction(
+  _prev: FeaturedOrderPaymentState,
+  formData: FormData
+): Promise<FeaturedOrderPaymentState> {
+  const fr = await getT();
+  const user = await requireLister();
+
+  if (!isKonnectEnabled()) return { error: fr.common.erreurInconnue };
+
+  const parsed = idSchema.safeParse(formData.get("propertyId"));
+  if (!parsed.success) return { error: fr.common.erreurInconnue };
+
+  const property = await prisma.property.findUnique({
+    where: { id: parsed.data },
+    select: { id: true, ownerId: true, title: true, status: true, expiresAt: true },
+  });
+
+  // Autorisation stricte (IDOR) : seul le propriétaire de l'annonce peut la
+  // mettre à la une — jamais confiance au client.
+  if (!property || property.ownerId !== user.id) return { error: fr.common.erreurInconnue };
+  if (property.status !== "ACTIVE" || property.expiresAt.getTime() < Date.now()) {
+    return { error: fr.alaUne.indisponible };
+  }
+
+  const order = await prisma.featuredOrder.create({
+    data: { propertyId: property.id, ownerId: user.id, amount: FEATURED_PRICE_TND },
+  });
+
+  const [firstName, ...rest] = user.name.trim().split(/\s+/);
+
+  let payUrl: string;
+  let paymentRef: string;
+  try {
+    const result = await initKonnectPayment({
+      amountTND: FEATURED_PRICE_TND,
+      orderId: order.id,
+      description: `Darna — mise à la une : ${property.title}`,
+      // URL de webhook SIGNÉE : signKonnectWebhook signe une string générique
+      // (pas spécifiquement un bookingId) — réutilisable telle quelle pour un
+      // FeaturedOrder.id (même principe que le webhook HostInvoice).
+      webhook: `${SITE_URL}/api/payments/konnect/featured-webhook?fid=${order.id}&sig=${signKonnectWebhook(order.id)}`,
+      // `fid` propagé dans le retour : contrairement à HostInvoice (id de
+      // facture = paramètre de route), la route /a-la-une est identifiée par
+      // le propertyId — il faut donc l'id de commande pour savoir QUEL
+      // FeaturedOrder régler côté page de retour (filet ?konnect=success).
+      successUrl: `${SITE_URL}/dashboard/annonces/${property.id}/a-la-une?konnect=success&fid=${order.id}`,
+      failUrl: `${SITE_URL}/dashboard/annonces/${property.id}/a-la-une?konnect=fail&fid=${order.id}`,
+      // Pas de hold à expiration courte (contrairement au hold de réservation
+      // voyageur) : durée de vie généreuse et fixe du lien de paiement.
+      lifespanMinutes: 60,
+      firstName: firstName || user.name,
+      lastName: rest.join(" ") || undefined,
+      email: user.email,
+      phoneNumber: user.phone ?? undefined,
+    });
+    payUrl = result.payUrl;
+    paymentRef = result.paymentRef;
+  } catch (err) {
+    logStructured("error", "konnect.featured_init_failed", {
+      propertyId: property.id,
+      orderId: order.id,
+      userId: user.id,
+      error: (err as Error).message,
+    });
+    await logAudit({
+      action: "PROPERTY_FEATURED_PAYMENT_FAILED",
+      userId: user.id,
+      success: false,
+      metadata: { propertyId: property.id, orderId: order.id, stage: "init" },
+    });
+    return { error: fr.alaUne.paiementErreur };
+  }
+
+  await prisma.featuredOrder.update({ where: { id: order.id }, data: { paymentRef } });
+
+  await logAudit({
+    action: "PROPERTY_FEATURED_PAYMENT_INITIATED",
+    userId: user.id,
+    success: true,
+    metadata: {
+      propertyId: property.id,
+      orderId: order.id,
+      paymentRef,
+      amount: FEATURED_PRICE_TND,
+      provider: "konnect",
+    },
+  });
+
+  return { payUrl };
 }
 
 export type PhotoFormState = { error?: string; success?: string } | undefined;
