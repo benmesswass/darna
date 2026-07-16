@@ -100,10 +100,10 @@ describe("startFeaturedOrderPaymentAction — IDOR", () => {
 
     expect(result).toEqual({ payUrl: "https://konnect.test/pay" });
     expect(orderCreate).toHaveBeenCalledWith({
-      data: { propertyId: PROP_ID, ownerId: OWNER.id, amount: 49 },
+      data: { propertyId: PROP_ID, ownerId: OWNER.id, amount: 29 },
     });
     expect(initKonnectMock).toHaveBeenCalledWith(
-      expect.objectContaining({ amountTND: 49, orderId: "order_1" })
+      expect.objectContaining({ amountTND: 29, orderId: "order_1" })
     );
     expect(orderUpdate).toHaveBeenCalledWith({
       where: { id: "order_1" },

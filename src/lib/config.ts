@@ -100,9 +100,9 @@ export const LISTING_EXPIRE_SOON_DAYS = 5;
 export const HOST_INVOICE_DUE_SOON_DAYS = 3;
 
 /** Mise en avant payante (« à la une ») : durée du boost et prix unique. */
-export const FEATURED_DURATION_DAYS = 7;
-/** Prix en TND du boost « à la une » pour une semaine (paiement mock). */
-export const FEATURED_PRICE_TND = 49;
+export const FEATURED_DURATION_DAYS = 30;
+/** Prix en TND du boost « à la une » pour un mois (tarif de lancement). */
+export const FEATURED_PRICE_TND = 29;
 
 /** Occupation estivale estimée pour le Yield Advisor. */
 export const SUMMER_OCCUPANCY_RATE = 0.6;

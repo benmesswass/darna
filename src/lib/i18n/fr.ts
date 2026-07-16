@@ -1332,7 +1332,7 @@ export const fr = {
   alaUne: {
     titre: "Mettez votre annonce à la une",
     sousTitre:
-      "Boostez votre visibilité pendant une semaine : votre annonce passe en tête des résultats et s'affiche sur l'accueil de Darna.",
+      "Boostez votre visibilité pendant un mois : votre annonce passe en tête des résultats et s'affiche sur l'accueil de Darna.",
     avantage1Titre: "En tête des résultats",
     avantage1Desc:
       "Votre annonce s'affiche avant toutes les autres dans les recherches séjours et immobilier.",
@@ -1346,7 +1346,7 @@ export const fr = {
     annonce: "Annonce",
     duree: "Durée de la mise en avant",
     dureeValeur: (j: number) => (j === 1 ? "1 jour" : `${j} jours`),
-    prix: "Mise à la une (1 semaine)",
+    prix: "Mise à la une (1 mois)",
     total: "Total à payer",
     mockInfo:
       "Paiement Konnect / Flouci bientôt disponible. Mode démonstration : aucun débit réel.",
@@ -1358,12 +1358,12 @@ export const fr = {
     paiementEchoue: "Le paiement a échoué. Merci de réessayer.",
     paiementErreur: "Erreur lors de l'initialisation du paiement.",
     prolongerInfo: (date: string) =>
-      `Cette annonce est déjà à la une jusqu'au ${date}. Un nouvel achat prolonge le boost d'une semaine.`,
+      `Cette annonce est déjà à la une jusqu'au ${date}. Un nouvel achat prolonge le boost d'un mois.`,
     retour: "Retour à mes annonces",
     indisponible:
       "Cette annonce ne peut pas être mise à la une : elle doit être active et en ligne.",
     garantie:
-      "Vous gardez le contrôle : à la fin de la semaine, votre annonce revient simplement à son affichage normal. Aucun renouvellement automatique.",
+      "Vous gardez le contrôle : à la fin du mois, votre annonce revient simplement à son affichage normal. Aucun renouvellement automatique.",
   },
   contact: {
     titre: "Contacter l'annonceur",

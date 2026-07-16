@@ -56,7 +56,7 @@ function row(over: Partial<OrderRow> = {}): OrderRow {
     propertyId: "prop_1",
     ownerId: "host_1",
     status: "EN_ATTENTE",
-    amount: 49,
+    amount: 29,
     paymentRef: "pay_1",
     ...over,
   };
@@ -66,8 +66,8 @@ function payment(over: Partial<KonnectPayment> = {}): KonnectPayment {
   return {
     id: "pay_1",
     status: "completed",
-    amount: 49_000,
-    reachedAmount: 49_000, // = 49 TND attendus
+    amount: 29_000,
+    reachedAmount: 29_000, // = 29 TND attendus
     token: "TND",
     ...over,
   };
@@ -110,8 +110,8 @@ describe("settleFeaturedOrder", () => {
   });
 
   it("REFUSE de régler si le montant reçu est inférieur au dû", async () => {
-    findFirst.mockResolvedValue(row({ amount: 49 }));
-    getPayment.mockResolvedValue(payment({ reachedAmount: 30_000 })); // < 49 000
+    findFirst.mockResolvedValue(row({ amount: 29 }));
+    getPayment.mockResolvedValue(payment({ reachedAmount: 15_000 })); // < 29 000
     expect(await settleFeaturedOrder({ paymentRef: "pay_1" })).toBe("ERREUR");
     expect(updateMany).not.toHaveBeenCalled();
     expect(propertyUpdate).not.toHaveBeenCalled();

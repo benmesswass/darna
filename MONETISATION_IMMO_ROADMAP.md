@@ -22,7 +22,7 @@
 > "agence".
 >
 > **Ce qui existe déjà et qu'il ne faut pas réinventer :** le boost « à la
-> une » (`Property.featuredUntil`, `FEATURED_PRICE_TND = 49` TND/semaine,
+> une » (`Property.featuredUntil`, `FEATURED_PRICE_TND = 29` TND/mois,
 > `src/lib/config.ts`) est **déjà entièrement construit** — modèle de
 > données, UI (`src/app/dashboard/annonces/[id]/a-la-une/page.tsx`), action
 > serveur (`featureListingAction`, `src/actions/properties.ts`) — mais le
@@ -86,7 +86,7 @@
 **Méthode et limite assumée.** Ce ne sont **pas** des chiffres mesurés — Darna
 n'a aujourd'hui aucun revenu immobilier, donc il n'y a rien à extrapoler
 depuis un historique réel. Ce sont des **projections construites à partir
-d'une donnée réelle du code** (`FEATURED_PRICE_TND = 49` TND/semaine, déjà
+d'une donnée réelle du code** (`FEATURED_PRICE_TND = 29` TND/mois, déjà
 en prod côté mock) et d'hypothèses de volume **explicites, modifiables,
 et à valider** — notamment via les objectifs business déjà posés par les
 investisseurs (`.agents/product-marketing.md` : 100 annonces vérifiées
@@ -108,11 +108,11 @@ un vrai test commercial avant de les considérer acquis.
 
 | Flux | Prix unitaire | Pilote (M+3) | Ramp (M+12) | Scale (M+24) |
 |---|---|---|---|---|
-| Boost « à la une » (MI0), attachement 15 %/mois | 49 TND | 100 × 15 % × 49 = **735** | 200 × 15 % × 49 = **1 470** | 600 × 15 % × 49 = **4 410** |
+| Boost « à la une » (MI0), attachement 15 %/mois | 29 TND | 100 × 15 % × 29 = **435** | 200 × 15 % × 29 = **870** | 600 × 15 % × 29 = **2 610** |
 | Abonnement agence (MI1/MI2), palier moyen pondéré | ~250 TND/mois | 10 × 250 = **2 500** | 30 × 250 = **7 500** | 90 × 250 = **22 500** |
 | Vérification Wakil payante pro (MI3) | 40 TND | 5 × 40 = **200** | 20 × 40 = **800** | 60 × 40 = **2 400** |
 | Apport d'affaires financement (MI5) | 300 TND/dossier | 1 × 300 = **300** | 4 × 300 = **1 200** | 12 × 300 = **3 600** |
-| **Total mensuel** | | **3 735 TND** (~1 100 EUR) | **10 970 TND** (~3 225 EUR) | **32 910 TND** (~9 680 EUR) |
+| **Total mensuel** | | **3 435 TND** (~1 010 EUR) | **10 370 TND** (~3 050 EUR) | **31 110 TND** (~9 150 EUR) |
 | **Total annualisé** | | **~44 800 TND/an** | **~131 600 TND/an** | **~394 900 TND/an** |
 
 *(Conversion EUR indicative au taux `EUR_TO_TND = 3.4` déjà utilisé dans le
@@ -136,7 +136,7 @@ encaissé, qui reste en TND comme le reste de Darna.)*
 - **MI5 (financement) dépend d'un partenariat externe non encore signé** —
   son chiffre (300-3 600 TND/mois) est donc conditionnel, pas un acquis de
   roadmap produit.
-- À l'échelle Scale (M+24), ~395 000 TND/an reste **un complément**, pas un
+- À l'échelle Scale (M+24), ~373 000 TND/an reste **un complément**, pas un
   pivot de modèle : à comparer à la commission `SERVICE_FEE_RATE = 8 %` déjà
   en place sur `stay` (revenu par réservation, pas par annonce) pour juger
   l'ordre de grandeur relatif une fois que le volume de réservations séjour
@@ -158,7 +158,7 @@ Contexte : MONETISATION_IMMO_ROADMAP.md, ligne MI0. Lis d'abord ce fichier
 en entier, puis src/actions/properties.ts (featureListingAction, autour de
 la ligne 407) et src/app/dashboard/annonces/[id]/a-la-une/page.tsx —
 aujourd'hui le boost "à la une" (Property.featuredUntil, FEATURED_PRICE_TND
-= 49 TND/semaine) est un paiement 100% mock : featureListingAction applique
+= 29 TND/mois) est un paiement 100% mock : featureListingAction applique
 l'effet métier immédiatement, sans passer par Konnect.
 
 Objectif : brancher un vrai paiement Konnect, en miroir de l'existant pour
