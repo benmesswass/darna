@@ -53,7 +53,7 @@
 | # | Tâche | Prio | Statut | Détail |
 |---|-------|------|--------|--------|
 | **MI0** | **Brancher un paiement Konnect réel sur le boost « à la une » existant** (remplacer le mock de `featureListingAction`), pour les deux verticales | **P0** | ✅ | Nouveau modèle `FeaturedOrder` (migration `20260716105454_add_featured_order`), `settleFeaturedOrder` (`src/lib/featured-payments.ts`, miroir de `settleHostInvoice`), `startFeaturedOrderPaymentAction` (`src/actions/properties.ts`), webhook dédié `src/app/api/payments/konnect/featured-webhook/route.ts`, `FeaturedPayButton` (`src/components/dashboard/FeaturedPayButton.tsx`), page `/dashboard/annonces/[id]/a-la-une` branchée sur les deux modes (réel si Konnect actif, mock sinon — `featureListingAction` gardée en fallback démo, désormais gatée `!isKonnectEnabled()`). i18n (3 dictionnaires). Tests : `featured-payments.test.ts`, `featured-payment-idor.test.ts`, `featured-webhook.test.ts` (23 tests). `QA_ROADMAP.md` §6.2 ajouté. Vérifié en Playwright (démo + branche erreur Konnect avec clé factice, cf. rapport de test). |
-| MI1 | Modèle de données abonnement pro : `Subscription` (userId, plan, status, currentPeriodEnd) + paliers `AGENCY_PLANS` dans `constants.ts` (nb d'annonces actives incluses, prix) | P0 | ⏸️ | **Bloqué tant que Wassim n'a pas validé les paliers/prix réels** (cf. §Chiffrage — hypothèses à confirmer par quelques appels à des agences Hammamet/Nabeul/Sousse avant de coder les montants en dur). |
+| MI1 | Modèle de données abonnement pro : `Subscription` (userId, plan, status, currentPeriodEnd) + paliers `AGENCY_PLANS` dans `constants.ts` (nb d'annonces actives incluses, prix) | P0 | ✅ | Modèle `Subscription` (migration `20260716120524_add_subscription`, une ligne par utilisateur, `EXPIRE` dérivé jamais stocké — même principe que `HostInvoice`/`FeaturedOrder`). Palier unique `AGENCY_PLANS.STANDARD` (20 annonces, 250 TND/mois) dans `src/lib/constants.ts` — **prix PROVISOIRE, non confronté à une vraie agence**, à réviser dès validation business (cf. §Chiffrage) avant MI2. Tests : `agency-plans.test.ts`. **Décision explicite de Wassim (2026-07-16) : démarrer avec ce tarif provisoire plutôt que d'attendre la validation terrain**, pour ne pas bloquer MI2. |
 | MI2 | Limite du nombre d'annonces actives selon abonnement (ou absence d'abonnement = palier gratuit limité) + page dashboard de souscription/renouvellement (lien de paiement Konnect ponctuel, même patron que `HostInvoice`/PSP4-PSP5 : pas d'abonnement récurrent auto-débité, Konnect ne le supporte pas nativement) | P0 | ⏸️ | Dépend de MI1. |
 | MI3 | Vérification Wakil payante pour les comptes `AGENCE` (garder la 1ère vérification gratuite pour particuliers ; payante en volume/renouvellement pour les pros) | P1 | ⏸️ | Dépend de la capacité réelle du réseau Wakil à absorber du volume payant sans dégrader le délai — à confirmer avec Wassim avant de coder un prix. |
 | MI4 | Pack visibilité inclus dans le palier « Agence+ » (X boosts « à la une » offerts/mois, réutilise MI0) | P2 | ❌ | Dépend de MI0 + MI1. |
@@ -65,9 +65,9 @@
 **Quick win (avant tout le reste, zéro prérequis externe) :**
 1. ✅ MI0 — paiement réel sur le boost existant.
 
-**Fondations abonnement pro (bloquées sur une décision business Wassim) :**
-2. ⏸️ MI1 — modèle de données + paliers.
-3. ⏸️ MI2 — limite + page de souscription.
+**Fondations abonnement pro :**
+2. ✅ MI1 — modèle de données + paliers (tarif provisoire).
+3. ⏸️ MI2 — limite + page de souscription. Peut démarrer sur le tarif provisoire de MI1 ; le prix (`AGENCY_PLANS.STANDARD.priceTND`) reste à réviser sans changement d'architecture.
 
 **Extensions (après fondations) :**
 4. ⏸️ MI3 — vérification Wakil payante.
@@ -147,9 +147,9 @@ encaissé, qui reste en TND comme le reste de Darna.)*
 ## Prompts Claude Code
 
 > Un seul prompt prêt à l'emploi pour l'instant (MI0, zéro prérequis
-> externe). Les prompts MI1+ seront rédigés une fois les prix agence validés
-> par Wassim (cf. §Chiffrage) — inutile de coder des montants en dur non
-> confirmés.
+> externe). MI1 est fait (tarif provisoire, cf. tableau ci-dessus). Le
+> prompt MI2 reste à rédiger — il pourra référencer `AGENCY_PLANS` /
+> `Subscription` tels quels, le prix provisoire n'impacte pas son archi.
 
 ### Prompt MI0 — Paiement réel sur le boost « à la une »
 
