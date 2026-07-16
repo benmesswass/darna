@@ -39,6 +39,11 @@ vi.mock("@/lib/audit", () => ({
   clientIp: vi.fn().mockResolvedValue("127.0.0.1"),
 }));
 
+vi.mock("@/lib/notification-center", () => ({
+  notifyHostInvoiceReminder: vi.fn(),
+  notifyAgencyQuotaReached: vi.fn(),
+}));
+
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
@@ -62,6 +67,7 @@ vi.mock("@/lib/i18n/server", () => ({
 import { verifyPropertyAction, unverifyPropertyAction, reviewWakilApplicationAction } from "@/actions/admin";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin, requireWakilOrAdmin } from "@/lib/session";
+import { notifyAgencyQuotaReached } from "@/lib/notification-center";
 
 const propertyFindUnique = prisma.property.findUnique as unknown as Mock;
 const propertyUpdate = prisma.property.update as unknown as Mock;
@@ -148,10 +154,11 @@ describe("verifyPropertyAction", () => {
     expect(propertyUpdate).not.toHaveBeenCalled();
   });
 
-  it("refuse si le compte agence a atteint sa limite d'annonces actives (palier gratuit, MONETISATION_IMMO_ROADMAP.md §MI2)", async () => {
+  it("refuse si le compte agence a atteint sa limite d'annonces actives (palier gratuit, MONETISATION_IMMO_ROADMAP.md §MI2) et notifie l'agence", async () => {
     (requireWakilOrAdmin as unknown as Mock).mockResolvedValue(mockAdmin);
     propertyFindUnique.mockResolvedValue({
       id: PROP_ID,
+      title: "Appartement S+2 vue mer",
       verified: false,
       ownerId: "clowner00000000000000000004",
       owner: { kycStatus: "VERIFIE", role: "AGENCE" },
@@ -166,6 +173,11 @@ describe("verifyPropertyAction", () => {
 
     expect(result?.error).toBeDefined();
     expect(propertyUpdate).not.toHaveBeenCalled();
+    // L'agence n'a aucun autre moyen de le découvrir que cette notification.
+    expect(notifyAgencyQuotaReached).toHaveBeenCalledWith(
+      "clowner00000000000000000004",
+      "Appartement S+2 vue mer"
+    );
   });
 
   it("autorise un compte agence qui n'a pas encore atteint sa limite d'annonces actives", async () => {
@@ -186,6 +198,7 @@ describe("verifyPropertyAction", () => {
 
     expect(result?.success).toBeDefined();
     expect(propertyUpdate).toHaveBeenCalled();
+    expect(notifyAgencyQuotaReached).not.toHaveBeenCalled();
   });
 
   it("ignore la limite d'abonnement pour un compte HOTE (le mécanisme ne cible que les agences)", async () => {
@@ -205,6 +218,7 @@ describe("verifyPropertyAction", () => {
     expect(result?.success).toBeDefined();
     expect(propertyCount).not.toHaveBeenCalled();
     expect(subscriptionFindUnique).not.toHaveBeenCalled();
+    expect(notifyAgencyQuotaReached).not.toHaveBeenCalled();
   });
 
   it("refuse si le propertyId est invalide (non-cuid)", async () => {

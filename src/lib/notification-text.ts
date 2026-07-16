@@ -46,6 +46,8 @@ export function notificationMessage(
       return fr.notifications.factureBientotDue(n.propertyTitle ?? "");
     case "FACTURE_EN_RETARD":
       return fr.notifications.factureEnRetard(n.propertyTitle ?? "");
+    case "ANNONCE_LIMITE_ABONNEMENT":
+      return fr.notifications.annonceLimiteAbonnement(n.propertyTitle ?? "");
     default:
       return "";
   }

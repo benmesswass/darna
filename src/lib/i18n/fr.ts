@@ -1330,6 +1330,8 @@ export const fr = {
       `Votre facture de commission pour « ${titre} » arrive bientôt à échéance.`,
     factureEnRetard: (titre: string) =>
       `Votre facture de commission pour « ${titre} » a dépassé son échéance.`,
+    annonceLimiteAbonnement: (titre: string) =>
+      `Votre annonce « ${titre} » ne peut pas encore être publiée — vous avez atteint votre limite d'annonces actives. Voir les options d'abonnement.`,
   },
   alaUne: {
     titre: "Mettez votre annonce à la une",
@@ -1382,6 +1384,17 @@ export const fr = {
       `Palier gratuit : jusqu'à ${limite} annonces actives. Souscrivez pour lever cette limite.`,
     quotaAtteintAlerte:
       "Vous avez atteint votre limite d'annonces actives — une nouvelle annonce ne pourra pas être validée tant qu'une place ne se libère pas ou que vous n'aurez pas souscrit/renouvelé.",
+    annoncesEnAttenteBloquees: (n: number) =>
+      n === 1
+        ? "1 annonce est en attente de validation et sera publiée dès que vous aurez de la place ou aurez souscrit."
+        : `${n} annonces sont en attente de validation et seront publiées dès que vous aurez de la place ou aurez souscrit.`,
+    coutParAnnonce: (prixTND: number) =>
+      `Soit environ ${prixTND} TND par annonce active incluse.`,
+    modalTitre: "Cette annonce attendra son tour",
+    modalTexte: (utilisees: number, limite: number) =>
+      `Votre annonce a bien été créée et sera examinée normalement. Mais vous avez déjà ${utilisees} annonce(s) active(s) sur ${limite} incluse(s) : elle ne pourra pas être publiée tant qu'une place ne se libère pas ou que vous n'aurez pas souscrit à l'abonnement Agence.`,
+    modalCta: "Voir les options d'abonnement",
+    modalPlusTard: "Plus tard",
     souscrire: "Souscrire",
     renouveler: "Renouveler un mois",
     payer: "Souscrire (simulation)",

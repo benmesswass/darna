@@ -29,7 +29,9 @@ export type NotificationType =
   | "HOST_INVOICE_RELANCE"
   // Rappels automatiques HostInvoice (PAIEMENT_SUR_PLACE_ROADMAP.md §PSP5).
   | "FACTURE_BIENTOT_DUE"
-  | "FACTURE_EN_RETARD";
+  | "FACTURE_EN_RETARD"
+  // Limite d'annonces actives (MONETISATION_IMMO_ROADMAP.md §MI2).
+  | "ANNONCE_LIMITE_ABONNEMENT";
 
 async function createNotification(
   userId: string,
@@ -182,6 +184,25 @@ export async function notifyHostInvoiceReminder(invoiceId: string): Promise<void
   await createNotification(invoice.hostId, "HOST_INVOICE_RELANCE", {
     propertyTitle: invoice.booking.property.title,
     href: `/dashboard/factures/${invoiceId}`,
+  });
+}
+
+/**
+ * Notifie l'AGENCE qu'une de ses annonces n'a pas pu être activée (transition
+ * refusée dans verifyPropertyAction, MONETISATION_IMMO_ROADMAP.md §MI2) faute
+ * de quota d'annonces actives disponible. Déclenchée par une action ADMIN
+ * explicite (pas un sondage) — même patron que notifyHostInvoiceReminder
+ * (pas de dédoublonnage : un admin peut retenter la vérification plusieurs
+ * fois, chaque tentative refusée redonne un signal légitime à l'agence).
+ * Pointe vers /dashboard/abonnement, où le palier disponible est présenté.
+ */
+export async function notifyAgencyQuotaReached(
+  ownerId: string,
+  propertyTitle: string
+): Promise<void> {
+  await createNotification(ownerId, "ANNONCE_LIMITE_ABONNEMENT", {
+    propertyTitle,
+    href: "/dashboard/abonnement",
   });
 }
 

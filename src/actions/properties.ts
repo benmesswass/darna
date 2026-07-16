@@ -26,6 +26,7 @@ import {
   saveUploadedImage,
 } from "@/lib/uploads";
 import { notifyAdmins } from "@/lib/admin-notify";
+import { activeListingsLimit, countActiveListings } from "@/lib/subscriptions";
 
 export type PropertyFormState = { error?: string } | undefined;
 
@@ -222,8 +223,25 @@ export async function createPropertyAction(
     ownerEmail: user.email,
   });
 
+  // Avertissement précoce (MONETISATION_IMMO_ROADMAP.md §MI2) : si ce compte
+  // AGENCE a déjà atteint son quota d'annonces actives, prévenir tout de suite
+  // plutôt que de laisser l'agence découvrir le blocage seulement quand un
+  // admin/wakil tentera (et échouera) à vérifier cette annonce plus tard. Ne
+  // bloque JAMAIS la création elle-même — voir verifyPropertyAction pour le
+  // seul vrai gate (le quota peut changer d'ici la vérification).
+  let quotaAtteint = false;
+  if (user.role === "AGENCE") {
+    const subscription = await prisma.subscription.findUnique({
+      where: { userId: user.id },
+      select: { status: true, plan: true, currentPeriodEnd: true },
+    });
+    const limit = activeListingsLimit(user.role, subscription);
+    const activeCount = await countActiveListings(user.id);
+    quotaAtteint = activeCount >= limit;
+  }
+
   revalidatePath("/dashboard/annonces");
-  redirect("/dashboard/annonces?creee=1");
+  redirect(`/dashboard/annonces?creee=1${quotaAtteint ? "&quotaAtteint=1" : ""}`);
 }
 
 /** Vérifie que l'annonce appartient bien à l'utilisateur connecté. */

@@ -6,7 +6,7 @@
  * dépassée ne compte plus comme actif.
  */
 import { describe, expect, it } from "vitest";
-import { activeListingsLimit, isSubscriptionActive } from "@/lib/subscriptions";
+import { activeListingsLimit, isSubscriptionActive, listingUnitCost } from "@/lib/subscriptions";
 import { FREE_TIER_LISTINGS_LIMIT } from "@/lib/config";
 import { AGENCY_PLANS } from "@/lib/constants";
 
@@ -69,5 +69,15 @@ describe("activeListingsLimit", () => {
     expect(
       activeListingsLimit("AGENCE", { status: "ACTIF", plan: "INEXISTANT", currentPeriodEnd: future })
     ).toBe(FREE_TIER_LISTINGS_LIMIT);
+  });
+});
+
+describe("listingUnitCost", () => {
+  it("ramène le prix du palier au coût par annonce active incluse", () => {
+    expect(listingUnitCost({ priceTND: 250, listingsIncluded: 20 })).toBe(12.5);
+  });
+
+  it("arrondit à une décimale", () => {
+    expect(listingUnitCost({ priceTND: 100, listingsIncluded: 3 })).toBe(33.3);
   });
 });

@@ -372,6 +372,7 @@ désactivé — jamais les deux à la fois (garde d'exclusivité, comme AH/PSP/M
 | **Webhook authenticity** | Forged/missing signature on `subscription-webhook` | Reject (401) without valid HMAC (`verifyKonnectWebhook`), same guard as the booking/host-invoice/featured webhooks | ✅ `subscription-webhook.test.ts` | Demo |
 | Webhook rate limiting | Hammering one `sid` | 429 beyond the per-subscription cap | ✅ `subscription-webhook.test.ts` | Demo |
 | Active-listings limit non-bypass | `verifyPropertyAction` on an `AGENCE` owner already at quota (free tier or paid plan) | Rejected before the listing becomes `ACTIVE` — quota re-derived server-side (`activeListingsLimit`), never a stored/trusted count | ✅ `admin.test.ts` | Demo |
+| Quota-reached notification | `verifyPropertyAction` refusal for a quota-blocked listing | Agency is notified in-app (`ANNONCE_LIMITE_ABONNEMENT`, `notifyAgencyQuotaReached`) pointing to `/dashboard/abonnement` — the admin seeing the error is not enough, the agency has no other way to find out | ✅ `notification-quota.test.ts`, `admin.test.ts` | Demo |
 | Reconciliation | Konnect status vs local `Subscription` mismatch | Detect & alert; never silent loss | ❌ | Production |
 
 ---

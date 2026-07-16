@@ -1309,6 +1309,8 @@ export const en: Dictionary = {
       `Your commission invoice for “${titre}” is due soon.`,
     factureEnRetard: (titre: string) =>
       `Your commission invoice for “${titre}” is now overdue.`,
+    annonceLimiteAbonnement: (titre: string) =>
+      `Your listing “${titre}” can't be published yet — you've reached your active-listings limit. See subscription options.`,
   },
   alaUne: {
     titre: "Feature your listing",
@@ -1361,6 +1363,17 @@ export const en: Dictionary = {
       `Free tier: up to ${limite} active listings. Subscribe to lift this limit.`,
     quotaAtteintAlerte:
       "You've reached your active-listings limit — a new listing can't be approved until a slot frees up or you subscribe/renew.",
+    annoncesEnAttenteBloquees: (n: number) =>
+      n === 1
+        ? "1 listing is awaiting approval and will be published as soon as you have room or subscribe."
+        : `${n} listings are awaiting approval and will be published as soon as you have room or subscribe.`,
+    coutParAnnonce: (prixTND: number) =>
+      `That's about ${prixTND} TND per active listing included.`,
+    modalTitre: "This listing will wait its turn",
+    modalTexte: (utilisees: number, limite: number) =>
+      `Your listing was created and will be reviewed as usual. But you already have ${utilisees} active listing(s) out of ${limite} included: it won't be published until a slot frees up or you subscribe to the Agency plan.`,
+    modalCta: "See subscription options",
+    modalPlusTard: "Later",
     souscrire: "Subscribe",
     renouveler: "Renew for a month",
     payer: "Subscribe (simulation)",

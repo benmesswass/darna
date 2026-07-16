@@ -13,6 +13,7 @@ import {
   activeListingsLimit,
   countActiveListings,
   isSubscriptionActive,
+  listingUnitCost,
 } from "@/lib/subscriptions";
 import { SubscriptionPayButton } from "@/components/dashboard/SubscriptionPayButton";
 import { formatDateFr } from "@/lib/format";
@@ -53,6 +54,14 @@ export default async function AbonnementPage({
   const isActive = isSubscriptionActive(subscription);
   const limit = activeListingsLimit(user.role, subscription);
   const quotaAtteint = activeCount >= limit;
+  // Pitch honnête (pas d'incitation agressive) : nombre concret d'annonces
+  // que ce quota empêche de publier, et prix ramené à l'annonce incluse.
+  const pendingCount = quotaAtteint
+    ? await prisma.property.count({
+        where: { ownerId: user.id, status: "EN_ATTENTE_VALIDATION" },
+      })
+    : 0;
+  const unitCost = listingUnitCost(plan);
 
   const advantages = [
     fr.abonnement.annoncesIncluses(plan.listingsIncluded),
@@ -104,12 +113,19 @@ export default async function AbonnementPage({
         ) : null}
 
         {quotaAtteint ? (
-          <p
-            role="alert"
-            className="mt-3 rounded-xl bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700"
-          >
-            {fr.abonnement.quotaAtteintAlerte}
-          </p>
+          <>
+            <p
+              role="alert"
+              className="mt-3 rounded-xl bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700"
+            >
+              {fr.abonnement.quotaAtteintAlerte}
+            </p>
+            {pendingCount > 0 ? (
+              <p className="mt-2 rounded-xl bg-cream px-4 py-2.5 text-xs font-medium text-body/70">
+                {fr.abonnement.annoncesEnAttenteBloquees(pendingCount)}
+              </p>
+            ) : null}
+          </>
         ) : null}
 
         {isActive && subscription?.currentPeriodEnd ? (
@@ -126,6 +142,9 @@ export default async function AbonnementPage({
             </dd>
           </div>
         </dl>
+        <p className="mt-1.5 text-end text-xs text-body/50">
+          {fr.abonnement.coutParAnnonce(unitCost)}
+        </p>
 
         {!konnectEnabled ? (
           <p className="mt-5 flex items-start gap-2 rounded-xl bg-sand-light/50 px-4 py-3 text-xs font-medium text-darna-dark">

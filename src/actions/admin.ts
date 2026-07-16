@@ -8,7 +8,7 @@ import { requireAdmin, requireWakilOrAdmin } from "@/lib/session";
 import { logAudit } from "@/lib/audit";
 import { notifyMatchingSavedSearches } from "@/lib/saved-search";
 import { applySuspension } from "@/lib/suspension";
-import { notifyHostInvoiceReminder } from "@/lib/notification-center";
+import { notifyHostInvoiceReminder, notifyAgencyQuotaReached } from "@/lib/notification-center";
 import { sendHostInvoiceReminderEmail } from "@/lib/notifications";
 import { activeListingsLimit, countActiveListings } from "@/lib/subscriptions";
 
@@ -47,6 +47,7 @@ export async function verifyPropertyAction(
     where: { id: parsed.data.propertyId },
     select: {
       id: true,
+      title: true,
       verified: true,
       ownerId: true,
       owner: { select: { kycStatus: true, role: true } },
@@ -77,6 +78,9 @@ export async function verifyPropertyAction(
     ]);
     const limit = activeListingsLimit(property.owner.role, subscription);
     if (activeCount >= limit) {
+      // L'agence n'a aucune autre façon de le découvrir (l'admin voit l'erreur,
+      // pas elle) — notification pointant vers la page d'abonnement.
+      await notifyAgencyQuotaReached(property.ownerId, property.title);
       return { error: fr.admin.limiteAbonnementAtteinte(limit) };
     }
   }

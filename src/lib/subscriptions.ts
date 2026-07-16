@@ -54,3 +54,12 @@ export function activeListingsLimit(role: string, subscription: SubscriptionLike
 export async function countActiveListings(ownerId: string): Promise<number> {
   return prisma.property.count({ where: { ownerId, status: "ACTIVE" } });
 }
+
+/**
+ * Prix ramené à l'annonce active incluse (ex. 250 TND / 20 = 12.5 TND) —
+ * cadrage honnête utilisé dans le pitch d'abonnement (page /dashboard/
+ * abonnement + modale de quota atteint), jamais un chiffre inventé.
+ */
+export function listingUnitCost(plan: { priceTND: number; listingsIncluded: number }): number {
+  return Math.round((plan.priceTND / plan.listingsIncluded) * 10) / 10;
+}
