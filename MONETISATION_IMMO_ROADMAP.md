@@ -53,7 +53,7 @@
 | # | Tâche | Prio | Statut | Détail |
 |---|-------|------|--------|--------|
 | **MI0** | **Brancher un paiement Konnect réel sur le boost « à la une » existant** (remplacer le mock de `featureListingAction`), pour les deux verticales | **P0** | ✅ | Nouveau modèle `FeaturedOrder` (migration `20260716105454_add_featured_order`), `settleFeaturedOrder` (`src/lib/featured-payments.ts`, miroir de `settleHostInvoice`), `startFeaturedOrderPaymentAction` (`src/actions/properties.ts`), webhook dédié `src/app/api/payments/konnect/featured-webhook/route.ts`, `FeaturedPayButton` (`src/components/dashboard/FeaturedPayButton.tsx`), page `/dashboard/annonces/[id]/a-la-une` branchée sur les deux modes (réel si Konnect actif, mock sinon — `featureListingAction` gardée en fallback démo, désormais gatée `!isKonnectEnabled()`). i18n (3 dictionnaires). Tests : `featured-payments.test.ts`, `featured-payment-idor.test.ts`, `featured-webhook.test.ts` (23 tests). `QA_ROADMAP.md` §6.2 ajouté. Vérifié en Playwright (démo + branche erreur Konnect avec clé factice, cf. rapport de test). |
-| MI1 | Modèle de données abonnement pro : `Subscription` (userId, plan, status, currentPeriodEnd) + paliers `AGENCY_PLANS` dans `constants.ts` (nb d'annonces actives incluses, prix) | P0 | ❌ | **Prix décidés par Wassim (session du 2026-07-16) : Starter 29 TND/mois.** Pro (79 TND/mois) et Agence+ (149 TND/mois) proposés par Claude et validés comme point de départ ajustable — cf. §Chiffrage pour le détail des paliers/caps. Prêt à coder. |
+| MI1 | Modèle de données abonnement pro : `User.subscriptionPlan`/`subscriptionUntil` (dérivé, même esprit que `Property.featuredUntil` — pas de statut stocké séparément, pas de table `Subscription` dédiée) + paliers `AGENCY_PLANS` dans `constants.ts` (nb d'annonces actives incluses, prix) | P0 | ✅ | Migration `20260716135242_add_agency_subscription`. `AGENCY_PLANS` (`src/lib/constants.ts` : Starter 29 TND/5 annonces, Pro 79 TND/20, Agence+ 149 TND/illimité). Prix Starter décidé par Wassim (session du 2026-07-16) ; Pro/Agence+ proposés par Claude, ajustables. Volontairement **sans logique ni UI** (pas de helper de lecture, pas d'enforcement, pas de paiement) — posés ensemble en MI2 pour éviter du code mort entre les deux phases. |
 | MI2 | Limite du nombre d'annonces actives selon abonnement (ou absence d'abonnement = palier gratuit limité) + page dashboard de souscription/renouvellement (lien de paiement Konnect ponctuel, même patron que `HostInvoice`/PSP4-PSP5 : pas d'abonnement récurrent auto-débité, Konnect ne le supporte pas nativement) | P0 | ❌ | Dépend de MI1. |
 | MI3 | Vérification Wakil payante pour les comptes `AGENCE` (garder la 1ère vérification gratuite pour particuliers ; payante en volume/renouvellement pour les pros) | P1 | ⏸️ | Dépend de la capacité réelle du réseau Wakil à absorber du volume payant sans dégrader le délai — à confirmer avec Wassim avant de coder un prix. |
 | MI4 | Pack visibilité inclus dans le palier « Agence+ » (X boosts « à la une » offerts/mois, réutilise MI0) | P2 | ❌ | Dépend de MI0 + MI1. |
@@ -65,8 +65,8 @@
 **Quick win (avant tout le reste, zéro prérequis externe) :**
 1. ✅ MI0 — paiement réel sur le boost existant.
 
-**Fondations abonnement pro (prix décidés, prêt à coder) :**
-2. ❌ MI1 — modèle de données + paliers.
+**Fondations abonnement pro (prix décidés) :**
+2. ✅ MI1 — modèle de données + paliers.
 3. ❌ MI2 — limite + page de souscription.
 
 **Extensions (après fondations) :**

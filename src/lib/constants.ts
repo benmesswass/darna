@@ -152,6 +152,24 @@ export type HostInvoiceStatus = (typeof HOST_INVOICE_STATUSES)[number];
 export const FEATURED_ORDER_STATUSES = ["EN_ATTENTE", "PAYEE"] as const;
 export type FeaturedOrderStatus = (typeof FEATURED_ORDER_STATUSES)[number];
 
+/**
+ * Grille des paliers d'abonnement professionnel (MONETISATION_IMMO_ROADMAP.md
+ * §MI1). `maxActiveListings: null` = illimité. Prix Starter tranché par
+ * Wassim (29 TND/mois, session du 2026-07-16) ; Pro et Agence+ proposés en
+ * complément et encore ajustables — ce sont de simples constantes, triviales
+ * à corriger sans migration.
+ */
+export const AGENCY_PLANS = [
+  { id: "STARTER", priceTND: 29, maxActiveListings: 5 },
+  { id: "PRO", priceTND: 79, maxActiveListings: 20 },
+  { id: "AGENCE_PLUS", priceTND: 149, maxActiveListings: null },
+] as const satisfies ReadonlyArray<{
+  id: string;
+  priceTND: number;
+  maxActiveListings: number | null;
+}>;
+export type AgencyPlanId = (typeof AGENCY_PLANS)[number]["id"];
+
 export const CANCEL_POLICIES = ["FLEXIBLE", "MODEREE", "FERME", "STRICTE"] as const;
 export type CancelPolicy = (typeof CANCEL_POLICIES)[number];
 

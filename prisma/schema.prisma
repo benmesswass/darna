@@ -73,6 +73,15 @@ model User {
   // que non renseigné (comptes historiques ou inscription sans choix).
   country       String?
   createdAt     DateTime @default(now())
+  // Abonnement professionnel (MONETISATION_IMMO_ROADMAP.md §MI1/MI2) : palier
+  // ACTIF tant que subscriptionUntil > now — même esprit que
+  // Property.featuredUntil, AUCUN statut stocké séparément (dérivé d'une
+  // date, cf. isSubscriptionActive dans src/lib/subscriptions.ts). Un nouvel
+  // achat PROLONGE (cumul depuis la fin restante si future) ; le paiement
+  // lui-même (SubscriptionOrder, miroir de FeaturedOrder) est posé en MI2 —
+  // MI1 ne pose que ce modèle + la grille AGENCY_PLANS (constants.ts).
+  subscriptionPlan  String?   // null | "STARTER" | "PRO" | "AGENCE_PLUS" (cf. AGENCY_PLANS)
+  subscriptionUntil DateTime?
 
   properties           Property[]
   bookings             Booking[]
