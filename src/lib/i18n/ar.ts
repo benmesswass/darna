@@ -733,6 +733,8 @@ export const ar: Dictionary = {
     annonceMiseANonVerifiee: "تمّ حذف شارة التوثيق.",
     proprietaireNonVerifie:
       "يلزم يكون المالك موثّق (KYC) باش يتوثّق الإعلان.",
+    limiteAbonnementAtteinte: (limite: number) =>
+      `هالحساب وكالة وصل للحدّ الأقصى متاع الإعلانات النشيطة (${limite}). عاوضو يشترك ولا يجدّد الاشتراك (/dashboard/abonnement) قبل ما توثّق إعلان آخر.`,
     aucuneAnnonce: "حتى إعلان نشط في الوقت الحالي.",
     annoncesDejVerifiees: "الإعلانات الموثّقة مسبقاً",
     candidaturesWakil: "طلبات الوكلاء",
@@ -1322,6 +1324,8 @@ export const ar: Dictionary = {
       `فاتورة الكوميسيون متاعك لـ « ${titre} » قريب توصل لأجل خلاصها.`,
     factureEnRetard: (titre: string) =>
       `فاتورة الكوميسيون متاعك لـ « ${titre} » فاتها أجل الخلاص.`,
+    annonceLimiteAbonnement: (titre: string) =>
+      `الإعلان متاعك « ${titre} » ما ينجمش يتنشر توّة — وصلت للحدّ الأقصى متاع الإعلانات النشيطة. شوف خيارات الاشتراك.`,
   },
   alaUne: {
     titre: "حطّ إعلانك في الواجهة",
@@ -1358,6 +1362,48 @@ export const ar: Dictionary = {
       "الإعلان هذا ما ينجمش يتحطّ في الواجهة: لازمو يكون نشيط وعلى الخطّ.",
     garantie:
       "إنت اللي تحكم: كي يكمّل الشهر، إعلانك يرجع للعرض العادي. ما فمّاش تجديد تلقائي.",
+  },
+  abonnement: {
+    titre: "اشتراك الوكالة",
+    sousTitre: "فكّ الحدّ متاع الإعلانات النشيطة وعطي لعقاراتك الظهور اللي يستاهلوه.",
+    planLabel: (label: string) => `الباقة ${label}`,
+    annoncesIncluses: (n: number) =>
+      n === 1 ? "إعلان نشيط واحد مشمول" : `${n} إعلانات نشيطة مشمولة`,
+    prixMensuel: "الثمن الشهري",
+    statutActif: (date: string) => `نشيط حتى ${date}`,
+    statutInactif: "ما فماش اشتراك نشيط",
+    quotaActuel: (utilisees: number, limite: number) =>
+      utilisees === 1
+        ? `إعلان نشيط واحد من الحدّ الأقصى ${limite}`
+        : `${utilisees} إعلان نشيط من الحدّ الأقصى ${limite}`,
+    quotaGratuitInfo: (limite: number) =>
+      `الباقة المجانية: حتى ${limite} إعلان نشيط. اشترك باش تفكّ هالحدّ.`,
+    quotaAtteintAlerte:
+      "وصلت للحدّ الأقصى متاع الإعلانات النشيطة — ما ينجمش يتوثّق إعلان جديد حتى تتفكّ مكان ولا تشترك/تجدّد.",
+    annoncesEnAttenteBloquees: (n: number) =>
+      n === 1
+        ? "إعلان واحد راهو في الانتظار وباش يتنشر كي يتفكّ مكان ولا تشترك."
+        : `${n} إعلانات في الانتظار وباش يتنشرو كي يتفكّ مكان ولا تشترك.`,
+    coutParAnnonce: (prixTND: number) => `يعني تقريبًا ${prixTND} دينار لكل إعلان نشيط مشمول.`,
+    modalTitre: "هالإعلان باش يستنى دوره",
+    modalTexte: (utilisees: number, limite: number) =>
+      `الإعلان متاعك تزاد وباش يتفحّص بصفة عادية. لكن عندك بالفعل ${utilisees} إعلان نشيط من ${limite} مشمولين : ما ينجمش يتنشر حتى تتفكّ مكان ولا تشترك في باقة الوكالة.`,
+    modalCta: "شوف خيارات الاشتراك",
+    modalPlusTard: "من بعد",
+    souscrire: "اشترك",
+    renouveler: "جدّد شهر",
+    payer: "اشترك (تجربة)",
+    payerKonnect: "اشترك",
+    redirectionKonnect: "تحويل للخلاص…",
+    mockInfo: "الخلاص عبر Konnect قريبًا. وضع تجريبي: حتى خصم حقيقي ما يصير.",
+    paiementEnVerification: "الخلاص في طور التأكيد…",
+    actualiser: "عاود حمّل",
+    paiementEchoue: "الخلاص ما نجحش. عاود حاول.",
+    paiementErreur: "خطأ في بداية الخلاص.",
+    prolongerInfo: (date: string) =>
+      `الاشتراك متاعك موجود نشيط حتى ${date}. خلاص جديد يطوّل المدّة شهر آخر.`,
+    garantie: "إنت اللي تحكم: Konnect ما يخصمش وحدو، إنت اللي تختار وقتاش تجدّد.",
+    reserveAgence: "الصفحة هذي مخصّصة لحسابات الوكالات.",
   },
   contact: {
     titre: "اتصل بصاحب الإعلان",

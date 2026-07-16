@@ -715,6 +715,8 @@ export const en: Dictionary = {
     annonceMiseANonVerifiee: "Verification badge removed.",
     proprietaireNonVerifie:
       "The owner must be KYC-verified for the listing to receive the badge.",
+    limiteAbonnementAtteinte: (limite: number) =>
+      `This agency account has reached its active-listings limit (${limite}). Invite it to subscribe or renew its plan (/dashboard/abonnement) before approving another listing.`,
     aucuneAnnonce: "No active listings at the moment.",
     annoncesDejVerifiees: "Already verified listings",
     candidaturesWakil: "Wakil applications",
@@ -1307,6 +1309,8 @@ export const en: Dictionary = {
       `Your commission invoice for “${titre}” is due soon.`,
     factureEnRetard: (titre: string) =>
       `Your commission invoice for “${titre}” is now overdue.`,
+    annonceLimiteAbonnement: (titre: string) =>
+      `Your listing “${titre}” can't be published yet — you've reached your active-listings limit. See subscription options.`,
   },
   alaUne: {
     titre: "Feature your listing",
@@ -1343,6 +1347,50 @@ export const en: Dictionary = {
       "This listing can't be featured: it must be active and online.",
     garantie:
       "You stay in control: at the end of the month your listing simply returns to its normal display. No auto-renewal.",
+  },
+  abonnement: {
+    titre: "Agency subscription",
+    sousTitre:
+      "Lift the active-listings limit and give your properties the visibility they deserve.",
+    planLabel: (label: string) => `${label} plan`,
+    annoncesIncluses: (n: number) => `${n} active listings included`,
+    prixMensuel: "Monthly price",
+    statutActif: (date: string) => `Active until ${date}`,
+    statutInactif: "No active subscription",
+    quotaActuel: (utilisees: number, limite: number) =>
+      utilisees === 1
+        ? `1 active listing out of a limit of ${limite}`
+        : `${utilisees} active listings out of a limit of ${limite}`,
+    quotaGratuitInfo: (limite: number) =>
+      `Free tier: up to ${limite} active listings. Subscribe to lift this limit.`,
+    quotaAtteintAlerte:
+      "You've reached your active-listings limit — a new listing can't be approved until a slot frees up or you subscribe/renew.",
+    annoncesEnAttenteBloquees: (n: number) =>
+      n === 1
+        ? "1 listing is awaiting approval and will be published as soon as you have room or subscribe."
+        : `${n} listings are awaiting approval and will be published as soon as you have room or subscribe.`,
+    coutParAnnonce: (prixTND: number) =>
+      `That's about ${prixTND} TND per active listing included.`,
+    modalTitre: "This listing will wait its turn",
+    modalTexte: (utilisees: number, limite: number) =>
+      `Your listing was created and will be reviewed as usual. But you already have ${utilisees} active listing(s) out of ${limite} included: it won't be published until a slot frees up or you subscribe to the Agency plan.`,
+    modalCta: "See subscription options",
+    modalPlusTard: "Later",
+    souscrire: "Subscribe",
+    renouveler: "Renew for a month",
+    payer: "Subscribe (simulation)",
+    payerKonnect: "Subscribe",
+    redirectionKonnect: "Redirecting to payment…",
+    mockInfo: "Konnect payment coming soon. Demo mode: no real charge.",
+    paiementEnVerification: "Payment being verified…",
+    actualiser: "Refresh",
+    paiementEchoue: "Payment failed. Please try again.",
+    paiementErreur: "Error initializing the payment.",
+    prolongerInfo: (date: string) =>
+      `Your subscription is already active until ${date}. A new payment extends the period by one month.`,
+    garantie:
+      "No auto-renewal: Konnect never charges you on its own, you choose when to renew.",
+    reserveAgence: "This page is reserved for agency accounts.",
   },
   contact: {
     titre: "Contact the advertiser",

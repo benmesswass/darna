@@ -346,6 +346,35 @@ désactivé — jamais les deux à la fois (garde d'exclusivité, comme AH/PSP).
 | Webhook rate limiting | Hammering one `fid` | 429 beyond the per-order cap | ✅ `featured-webhook.test.ts` | Demo |
 | Reconciliation | Konnect status vs local `FeaturedOrder` mismatch | Detect & alert; never silent loss | ❌ | Production |
 
+### 6.3 Subscription test suite (abonnement agence, MONETISATION_IMMO_ROADMAP.md §MI2)
+
+Same bar as §6, applied to `Subscription` (souscription/renouvellement de
+l'abonnement agence — quota d'annonces actives). Settlement lives in
+`src/lib/subscription-payments.ts` (`settleSubscriptionPayment`,
+intentionally **not** a `"use server"`). Différence structurelle testée
+explicitement : `Subscription` est une ligne UNIQUE réutilisée à chaque cycle
+(pas une ligne par paiement comme `FeaturedOrder`/`HostInvoice`) — l'idempotence
+repose donc sur `paymentRef` (remis à `null` au règlement), pas sur `status`,
+pour que le renouvellement d'un abonnement déjà `ACTIF` reste réglable. Le mock
+démo (`subscribeAgencyPlanAction`) reste le fallback quand Konnect est
+désactivé — jamais les deux à la fois (garde d'exclusivité, comme AH/PSP/MI0).
+
+| Scenario | Test to create | Expected guarantee | Status | Phase |
+|----------|----------------|---------------------|--------|-------|
+| Double settlement | Two `settleSubscriptionPayment` calls, same ref | Only first mutates; second is a no-op | ✅ `subscription-payments.test.ts` | Demo |
+| Settlement race (webhook vs return page) | Concurrent settle, `updateMany` count 0 on the loser | Single `ACTIF`, single audit | ✅ `subscription-payments.test.ts` | Demo |
+| Amount tamper | `reachedAmount < expected` (recomputed from `AGENCY_PLANS`, never client-supplied) | Reject (`ERREUR`, no activation) | ✅ `subscription-payments.test.ts` | Demo |
+| Unknown reference | Settle with an unrecognized `paymentRef`/`subscriptionId` | `INTROUVABLE`, harmless no-op | ✅ `subscription-payments.test.ts` | Demo |
+| Renewal on an already-`ACTIF` subscription | Settle a second payment while `status: "ACTIF"` | Extends from the remaining `currentPeriodEnd`, not blocked by `status` (unlike a naive `EN_ATTENTE`-gated `updateMany`) | ✅ `subscription-payments.test.ts` | Demo |
+| Stale `paymentRef` replay | Replay an old ref after a new cycle changed it | `INTROUVABLE`, harmless no-op | ✅ `subscription-payments.test.ts` | Demo |
+| Role non-bypass | `startSubscriptionPaymentAction`/`subscribeAgencyPlanAction` called by a `HOTE` account | Rejected — the subscription mechanism only targets `AGENCE` | ✅ `subscription-payment-access.test.ts` | Demo |
+| Demo/real exclusivity | `subscribeAgencyPlanAction` while Konnect is enabled | No-op, never applies the mock effect | ✅ `subscription-payment-access.test.ts` | Demo |
+| **Webhook authenticity** | Forged/missing signature on `subscription-webhook` | Reject (401) without valid HMAC (`verifyKonnectWebhook`), same guard as the booking/host-invoice/featured webhooks | ✅ `subscription-webhook.test.ts` | Demo |
+| Webhook rate limiting | Hammering one `sid` | 429 beyond the per-subscription cap | ✅ `subscription-webhook.test.ts` | Demo |
+| Active-listings limit non-bypass | `verifyPropertyAction` on an `AGENCE` owner already at quota (free tier or paid plan) | Rejected before the listing becomes `ACTIVE` — quota re-derived server-side (`activeListingsLimit`), never a stored/trusted count | ✅ `admin.test.ts` | Demo |
+| Quota-reached notification | `verifyPropertyAction` refusal for a quota-blocked listing | Agency is notified in-app (`ANNONCE_LIMITE_ABONNEMENT`, `notifyAgencyQuotaReached`) pointing to `/dashboard/abonnement` — the admin seeing the error is not enough, the agency has no other way to find out | ✅ `notification-quota.test.ts`, `admin.test.ts` | Demo |
+| Reconciliation | Konnect status vs local `Subscription` mismatch | Detect & alert; never silent loss | ❌ | Production |
+
 ---
 
 ## 7. Auth test suite

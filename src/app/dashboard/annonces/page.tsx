@@ -19,11 +19,14 @@ import { formatDateFr } from "@/lib/format";
 import { Price } from "@/components/currency/Price";
 import { StarIcon } from "@/components/icons";
 import { SuccessCheck } from "@/components/ui/SuccessCheck";
+import { QuotaReachedModal } from "@/components/dashboard/QuotaReachedModal";
+import { AGENCY_PLANS } from "@/lib/constants";
+import { activeListingsLimit, countActiveListings, listingUnitCost } from "@/lib/subscriptions";
 
 export default async function MesAnnoncesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ creee?: string; modifiee?: string; alaune?: string }>;
+  searchParams: Promise<{ creee?: string; modifiee?: string; alaune?: string; quotaAtteint?: string }>;
 }) {
   const fr = await getT();
   const user = await getSessionUser();
@@ -32,7 +35,7 @@ export default async function MesAnnoncesPage({
     redirect("/dashboard/reservations");
   }
 
-  const { creee, modifiee, alaune } = await searchParams;
+  const { creee, modifiee, alaune, quotaAtteint } = await searchParams;
 
   const properties = await prisma.property.findMany({
     where: { ownerId: user.id },
@@ -42,8 +45,30 @@ export default async function MesAnnoncesPage({
 
   const nowMs = Date.now();
 
+  // Modale de quota (MONETISATION_IMMO_ROADMAP.md §MI2) : recalculée ICI,
+  // fraîche, plutôt que reçue via l'URL (le signal `quotaAtteint=1` ne
+  // transporte qu'un booléen, jamais les chiffres eux-mêmes).
+  let quotaModal: { utilisees: number; limite: number; coutUnitaire: number } | null = null;
+  if (quotaAtteint === "1" && user.role === "AGENCE") {
+    const subscription = await prisma.subscription.findUnique({
+      where: { userId: user.id },
+      select: { status: true, plan: true, currentPeriodEnd: true },
+    });
+    const limite = activeListingsLimit(user.role, subscription);
+    const utilisees = await countActiveListings(user.id);
+    quotaModal = { utilisees, limite, coutUnitaire: listingUnitCost(AGENCY_PLANS[0]) };
+  }
+
   return (
     <div>
+      {quotaModal ? (
+        <QuotaReachedModal
+          utilisees={quotaModal.utilisees}
+          limite={quotaModal.limite}
+          coutUnitaire={quotaModal.coutUnitaire}
+        />
+      ) : null}
+
       <h2 className="text-xl font-bold text-heading">{fr.dashboard.mesAnnonces}</h2>
 
       {creee ? (

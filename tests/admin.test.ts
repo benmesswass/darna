@@ -11,6 +11,10 @@ vi.mock("@/lib/prisma", () => ({
     property: {
       findUnique: vi.fn(),
       update: vi.fn(),
+      count: vi.fn(),
+    },
+    subscription: {
+      findUnique: vi.fn(),
     },
     wakilApplication: {
       findUnique: vi.fn(),
@@ -35,6 +39,11 @@ vi.mock("@/lib/audit", () => ({
   clientIp: vi.fn().mockResolvedValue("127.0.0.1"),
 }));
 
+vi.mock("@/lib/notification-center", () => ({
+  notifyHostInvoiceReminder: vi.fn(),
+  notifyAgencyQuotaReached: vi.fn(),
+}));
+
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
@@ -46,6 +55,7 @@ vi.mock("@/lib/i18n/server", () => ({
       annonceMiseANonVerifiee: "Badge retiré.",
       proprietaireNonVerifie: "Propriétaire non vérifié.",
       candidatureRevue: "Candidature revue.",
+      limiteAbonnementAtteinte: (limite: number) => `Limite atteinte (${limite}).`,
     },
     common: {
       champsRequis: "Champs requis.",
@@ -57,9 +67,12 @@ vi.mock("@/lib/i18n/server", () => ({
 import { verifyPropertyAction, unverifyPropertyAction, reviewWakilApplicationAction } from "@/actions/admin";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin, requireWakilOrAdmin } from "@/lib/session";
+import { notifyAgencyQuotaReached } from "@/lib/notification-center";
 
 const propertyFindUnique = prisma.property.findUnique as unknown as Mock;
 const propertyUpdate = prisma.property.update as unknown as Mock;
+const propertyCount = prisma.property.count as unknown as Mock;
+const subscriptionFindUnique = prisma.subscription.findUnique as unknown as Mock;
 const wakilFindUnique = prisma.wakilApplication.findUnique as unknown as Mock;
 const wakilUpdate = prisma.wakilApplication.update as unknown as Mock;
 const userUpdate = prisma.user.update as unknown as Mock;
@@ -139,6 +152,73 @@ describe("verifyPropertyAction", () => {
 
     expect(result?.error).toBeDefined();
     expect(propertyUpdate).not.toHaveBeenCalled();
+  });
+
+  it("refuse si le compte agence a atteint sa limite d'annonces actives (palier gratuit, MONETISATION_IMMO_ROADMAP.md §MI2) et notifie l'agence", async () => {
+    (requireWakilOrAdmin as unknown as Mock).mockResolvedValue(mockAdmin);
+    propertyFindUnique.mockResolvedValue({
+      id: PROP_ID,
+      title: "Appartement S+2 vue mer",
+      verified: false,
+      ownerId: "clowner00000000000000000004",
+      owner: { kycStatus: "VERIFIE", role: "AGENCE" },
+    });
+    subscriptionFindUnique.mockResolvedValue(null); // pas d'abonnement → palier gratuit (3)
+    propertyCount.mockResolvedValue(3); // déjà à la limite
+
+    const fd = new FormData();
+    fd.set("propertyId", PROP_ID);
+    fd.set("verificationLevel", "REMOTE");
+    const result = await verifyPropertyAction(undefined, fd);
+
+    expect(result?.error).toBeDefined();
+    expect(propertyUpdate).not.toHaveBeenCalled();
+    // L'agence n'a aucun autre moyen de le découvrir que cette notification.
+    expect(notifyAgencyQuotaReached).toHaveBeenCalledWith(
+      "clowner00000000000000000004",
+      "Appartement S+2 vue mer"
+    );
+  });
+
+  it("autorise un compte agence qui n'a pas encore atteint sa limite d'annonces actives", async () => {
+    (requireWakilOrAdmin as unknown as Mock).mockResolvedValue(mockAdmin);
+    propertyFindUnique.mockResolvedValue({
+      id: PROP_ID,
+      verified: false,
+      ownerId: "clowner00000000000000000005",
+      owner: { kycStatus: "VERIFIE", role: "AGENCE" },
+    });
+    subscriptionFindUnique.mockResolvedValue(null);
+    propertyCount.mockResolvedValue(1); // sous la limite gratuite (3)
+
+    const fd = new FormData();
+    fd.set("propertyId", PROP_ID);
+    fd.set("verificationLevel", "REMOTE");
+    const result = await verifyPropertyAction(undefined, fd);
+
+    expect(result?.success).toBeDefined();
+    expect(propertyUpdate).toHaveBeenCalled();
+    expect(notifyAgencyQuotaReached).not.toHaveBeenCalled();
+  });
+
+  it("ignore la limite d'abonnement pour un compte HOTE (le mécanisme ne cible que les agences)", async () => {
+    (requireWakilOrAdmin as unknown as Mock).mockResolvedValue(mockAdmin);
+    propertyFindUnique.mockResolvedValue({
+      id: PROP_ID,
+      verified: false,
+      ownerId: "clowner00000000000000000006",
+      owner: { kycStatus: "VERIFIE", role: "HOTE" },
+    });
+
+    const fd = new FormData();
+    fd.set("propertyId", PROP_ID);
+    fd.set("verificationLevel", "REMOTE");
+    const result = await verifyPropertyAction(undefined, fd);
+
+    expect(result?.success).toBeDefined();
+    expect(propertyCount).not.toHaveBeenCalled();
+    expect(subscriptionFindUnique).not.toHaveBeenCalled();
+    expect(notifyAgencyQuotaReached).not.toHaveBeenCalled();
   });
 
   it("refuse si le propertyId est invalide (non-cuid)", async () => {

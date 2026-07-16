@@ -398,11 +398,11 @@ model HostInvoice {
 
 // Abonnement agence (MONETISATION_IMMO_ROADMAP.md §MI1) : palier souscrit par
 // un compte AGENCE (clé `plan` → AGENCY_PLANS, src/lib/constants.ts) qui lève
-// la limite d'annonces actives (MI2, pas encore appliquée — cette table est
-// UNIQUEMENT le modèle de données, sans paiement ni page de souscription).
-// Une ligne PAR UTILISATEUR (userId unique) : contrairement à FeaturedOrder,
-// on ne garde pas un historique par renouvellement ici, seul l'état COURANT
-// compte — un renouvellement (MI2) mettra à jour ce même enregistrement.
+// la limite d'annonces actives (MI2 : cf. src/lib/subscriptions.ts, gate dans
+// verifyPropertyAction). Une ligne PAR UTILISATEUR (userId unique) :
+// contrairement à FeaturedOrder, on ne garde pas un historique par
+// renouvellement ici, seul l'état COURANT compte — un renouvellement (MI2)
+// met à jour ce même enregistrement.
 // `EXPIRE` n'est volontairement pas un statut stocké : comme HOST_INVOICE_STATUSES,
 // c'est un dérivé (ACTIF + currentPeriodEnd < now), jamais écrit en base.
 model Subscription {
@@ -410,6 +410,13 @@ model Subscription {
   plan             String // clé de AGENCY_PLANS (src/lib/constants.ts) — tarif PROVISOIRE, cf. roadmap §MI1
   status           String    @default("EN_ATTENTE") // EN_ATTENTE | ACTIF
   currentPeriodEnd DateTime?
+  // Référence du paiement Konnect EN COURS de vérification (MI2) — remise à
+  // null dès le règlement (settleSubscriptionPayment), souscription initiale
+  // comme renouvellement. Contrairement à HostInvoice/FeaturedOrder (une
+  // ligne par paiement), Subscription est une ligne UNIQUE réutilisée à
+  // chaque cycle : c'est donc `paymentRef`, pas `status`, qui sert de clé
+  // d'idempotence contre la course webhook/retour.
+  paymentRef       String?   @unique
   createdAt        DateTime  @default(now())
 
   userId String @unique
