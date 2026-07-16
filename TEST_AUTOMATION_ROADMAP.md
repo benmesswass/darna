@@ -394,7 +394,7 @@ satisfont via leur rapport Allure.
 > `P2034`). L'invariant métier (jamais deux résas actives qui se chevauchent)
 > est lui **prouvé et tenu**.
 
-### Phase 2 — Tests composant / front *(P0, ~4-5 j)* — ✅ **LIVRÉE (périmètre P0)**
+### Phase 2 — Tests composant / front *(P0, ~4-5 j)* — ✅ **LIVRÉE (P0 + reliquat P1)**
 - [x] Projet Vitest `jsdom` + Testing Library + user-event. → `vitest.config.ts` (projets `node`/`jsdom`), `tests/components/setup.ts`, `tests/components/helpers.tsx`.
 - [x] Test i18n/RTL (fr/en/ar) : `dir` + **parité des clés des 3 dicos**. → `tests/i18n-parity.test.ts`.
 - [x] Premier composant paiement **`KonnectPayButton`** (P0) : libellé, erreur serveur, redirection client `payUrl`. → `tests/components/konnect-pay-button.test.tsx`.
@@ -404,7 +404,7 @@ satisfont via leur rapport Allure.
 - [x] **`PropertyCard`** (J9 recherche) : prix + suffixe nuit/mois, total séjour tout compris, badge Vérifié, lien + query string. → `tests/components/property-card.test.tsx`.
 - [x] Gate front en CI. → le projet `jsdom` tourne dans `npm run test:coverage` (déjà appelé par la CI).
 - [x] **Rapport de tests détaillé & exhaustif dans le run CI** (§7.3) : tous les tests affichés (par fichier + détail replié), échecs avec message, totaux, couverture, artifact HTML. → `scripts/ci-test-summary.mjs`, `.github/workflows/ci.yml`.
-- [ ] Reste hors périmètre P0 (à reprendre en P1) : formulaire KYC, sélecteur de dates de réservation, carte (`PropertyMap`/`MapInner`), `HistoryNav`/`MessagesNotifier` (positionnement).
+- [x] Reliquat P1 : formulaire KYC (`CinVerifyFlow` — erreur unicité CIN, bascule état vérifié réel vs démo, `onVerified`) → `tests/components/kyc-cin-form.test.tsx`. Sélecteur de dates de réservation (`BookingDatePicker`, composant contrôlé pur — sélection arrivée/départ, jour indisponible/passé désactivé, reset, navigation mois) → `tests/components/booking-date-picker.test.tsx`. Carte (`PropertyMap` — bouton agrandir, modale, filtre prix ; `MapInner`/Leaflet mocké, APIs géométriques réelles hors de portée de jsdom, même patron que les Server Components async de Phase 2 P0) → `tests/components/property-map.test.tsx`. `HistoryNav`/`MessagesNotifier` (positionnement — ancrage `bottom-4 start-4` vs `bottom-4 end-4`, garde de non-recouvrement CLAUDE.md) → `tests/components/history-nav.test.tsx`, `tests/components/messages-notifier.test.tsx`.
 
 > **Note technique Phase 2 :** les Server Components async (badges, `PropertyCard`
 > lui-même) ne peuvent pas être rendus en JSX imbriqué par le renderer client de
