@@ -435,6 +435,13 @@ model Subscription {
   // Starter — ce flag empêche de le recréditer à chaque renouvellement
   // mensuel (cf. src/lib/subscription-payments.ts, src/actions/subscriptions.ts).
   starterBonusGranted Boolean   @default(false)
+  // Boost « à la une » offert par cycle pour les paliers avec
+  // AGENCY_PLANS[].freeBoostPerCycle (MI4, décision Wassim du 2026-07-20 :
+  // palier Pro, 1/mois, NON cumulable). null = pas encore consommé ce
+  // cycle. Remis à null à CHAQUE règlement réussi (settleSubscriptionPayment
+  // / subscribeAgencyPlanAction), souscription initiale comme renouvellement
+  // — même mécanique de "reset au cycle" que currentPeriodEnd, jamais un job.
+  freeBoostUsedAt     DateTime?
 
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)

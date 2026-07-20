@@ -95,7 +95,11 @@ export async function settleSubscriptionPayment(
 
   const updated = await prisma.subscription.updateMany({
     where: { id: subscription.id, paymentRef: subscription.paymentRef },
-    data: { status: "ACTIF", currentPeriodEnd, paymentRef: null },
+    // freeBoostUsedAt reset à null : chaque règlement (souscription ET
+    // renouvellement) démarre un nouveau cycle, donc un nouveau boost offert
+    // disponible pour les paliers concernés (MI4) — même mécanique que
+    // currentPeriodEnd ci-dessus.
+    data: { status: "ACTIF", currentPeriodEnd, paymentRef: null, freeBoostUsedAt: null },
   });
   if (updated.count === 0) return "ACTIF";
 

@@ -64,6 +64,28 @@ export function listingUnitCost(plan: { priceTND: number; listingsIncluded: numb
   return Math.round((plan.priceTND / plan.listingsIncluded) * 10) / 10;
 }
 
+type SubscriptionWithBoostLike =
+  | {
+      status: string;
+      plan: string;
+      currentPeriodEnd: Date | null;
+      freeBoostUsedAt: Date | null;
+    }
+  | null;
+
+/**
+ * Le palier de cet abonnement inclut-il un boost « à la une » offert par
+ * cycle (MI4, décision Wassim du 2026-07-20 : palier Pro, 1/mois, NON
+ * cumulable) — et n'a-t-il pas déjà été consommé pour le cycle en cours ?
+ * Remis à zéro à chaque règlement (souscription ET renouvellement, cf.
+ * settleSubscriptionPayment / subscribeAgencyPlanAction), jamais par un job.
+ */
+export function hasUnclaimedFreeBoost(subscription: SubscriptionWithBoostLike): boolean {
+  if (!isSubscriptionActive(subscription)) return false;
+  const plan = agencyPlan(subscription!.plan);
+  return Boolean(plan?.freeBoostPerCycle) && !subscription!.freeBoostUsedAt;
+}
+
 /**
  * Palier le MOINS CHER qui couvrirait réellement ce nombre d'annonces actives
  * — recommandation concrète utilisée par la modale de quota atteint : jamais

@@ -1385,6 +1385,12 @@ export const fr = {
       "Cette annonce ne peut pas être mise à la une : elle doit être active et en ligne.",
     garantie:
       "Vous gardez le contrôle : à la fin du mois, votre annonce revient simplement à son affichage normal. Aucun renouvellement automatique.",
+    boostOffertTitre: "Boost offert avec votre abonnement Pro",
+    boostOffertDesc:
+      "Votre palier inclut 1 boost « à la une » offert par mois, non cumulable. Utilisez-le sur cette annonce sans rien payer.",
+    boostOffertBouton: "Utiliser mon boost offert",
+    boostOffertDejaUtilise:
+      "Boost offert déjà utilisé pour ce cycle d'abonnement — de nouveau disponible à votre prochain renouvellement.",
   },
   abonnement: {
     titre: "Abonnement agence",

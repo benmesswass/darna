@@ -26,7 +26,7 @@ import {
   saveUploadedImage,
 } from "@/lib/uploads";
 import { notifyAdmins } from "@/lib/admin-notify";
-import { activeListingsLimit, countActiveListings } from "@/lib/subscriptions";
+import { activeListingsLimit, countActiveListings, hasUnclaimedFreeBoost } from "@/lib/subscriptions";
 
 export type PropertyFormState = { error?: string } | undefined;
 
@@ -466,6 +466,79 @@ export async function featureListingAction(formData: FormData): Promise<void> {
     userId: user.id,
     success: true,
     metadata: { propertyId: property.id, featuredUntil: featuredUntil.toISOString() },
+  });
+
+  revalidatePath("/dashboard/annonces");
+  revalidatePath(`/annonce/${property.slug}`);
+  revalidatePath("/");
+  redirect("/dashboard/annonces?alaune=1");
+}
+
+/**
+ * Mise à la une — BOOST OFFERT PAR ABONNEMENT (MONETISATION_IMMO_ROADMAP.md
+ * §MI4, décision Wassim du 2026-07-20) : les comptes AGENCE dont le palier
+ * inclut `freeBoostPerCycle` (Pro aujourd'hui) peuvent activer 1 boost
+ * gratuit par cycle d'abonnement, NON cumulable. Rail totalement indépendant
+ * de Konnect (démo ou réel) : disponible même quand isKonnectEnabled() est
+ * vrai, puisqu'aucun argent ne transite ici — jamais de FeaturedOrder.
+ */
+export async function claimFreeFeaturedBoostAction(formData: FormData): Promise<void> {
+  const user = await requireLister();
+  if (user.role !== "AGENCE") return;
+
+  const parsed = idSchema.safeParse(formData.get("propertyId"));
+  if (!parsed.success) return;
+
+  // Autorisation : l'annonce doit appartenir à l'agence connectée.
+  await requireOwnProperty(parsed.data);
+
+  const subscription = await prisma.subscription.findUnique({
+    where: { userId: user.id },
+    select: { status: true, plan: true, currentPeriodEnd: true, freeBoostUsedAt: true },
+  });
+  if (!hasUnclaimedFreeBoost(subscription)) return;
+
+  // On relit le statut/expiration en base (jamais confiance au client) —
+  // même garde que featureListingAction/startFeaturedOrderPaymentAction.
+  const property = await prisma.property.findUnique({
+    where: { id: parsed.data },
+    select: { id: true, slug: true, status: true, expiresAt: true, featuredUntil: true },
+  });
+  if (!property || property.status !== "ACTIVE" || property.expiresAt.getTime() < Date.now()) {
+    return;
+  }
+
+  // Consommation atomique du boost offert : ne mute que si encore non
+  // consommé ce cycle — sûr contre une course (double clic/double onglet),
+  // même patron `updateMany` conditionné que partout ailleurs dans Darna.
+  const claimed = await prisma.subscription.updateMany({
+    where: { userId: user.id, freeBoostUsedAt: null },
+    data: { freeBoostUsedAt: new Date() },
+  });
+  if (claimed.count === 0) return;
+
+  const boostMs = FEATURED_DURATION_DAYS * 24 * 60 * 60 * 1000;
+  // Prolongation : on part de la fin de boost restante si elle est future.
+  const base =
+    property.featuredUntil && property.featuredUntil.getTime() > Date.now()
+      ? property.featuredUntil.getTime()
+      : Date.now();
+  const featuredUntil = new Date(base + boostMs);
+
+  await prisma.property.update({
+    where: { id: property.id },
+    data: { featuredUntil },
+  });
+
+  await logAudit({
+    action: "PROPERTY_FEATURED",
+    userId: user.id,
+    success: true,
+    metadata: {
+      propertyId: property.id,
+      featuredUntil: featuredUntil.toISOString(),
+      provider: "subscription_perk",
+    },
   });
 
   revalidatePath("/dashboard/annonces");

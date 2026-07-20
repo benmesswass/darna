@@ -19,6 +19,11 @@ describe("AGENCY_PLANS", () => {
       expect(plan.listingsIncluded).toBeGreaterThan(0);
     }
   });
+
+  it("seul le palier Pro inclut un boost « à la une » offert par cycle (MI4)", () => {
+    const withBoost = AGENCY_PLANS.filter((p) => p.freeBoostPerCycle).map((p) => p.key);
+    expect(withBoost).toEqual(["PRO"]);
+  });
 });
 
 describe("SUBSCRIPTION_STATUSES", () => {

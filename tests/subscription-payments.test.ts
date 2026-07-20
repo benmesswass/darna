@@ -203,4 +203,17 @@ describe("settleSubscriptionPayment", () => {
     expect(await settleSubscriptionPayment({ paymentRef: "pay_1" })).toBe("ACTIF");
     expect(walletUpsert).not.toHaveBeenCalled();
   });
+
+  // ── MI4 (décision Wassim du 2026-07-20) : boost offert par cycle ───────────
+
+  it("remet freeBoostUsedAt à null à chaque règlement réel (nouveau cycle, MI4)", async () => {
+    findFirst.mockResolvedValue(row({ plan: "PRO" }));
+    getPayment.mockResolvedValue(payment({ reachedAmount: 200_000 })); // = 200 TND (Pro)
+
+    expect(await settleSubscriptionPayment({ paymentRef: "pay_1" })).toBe("ACTIF");
+    expect(updateMany).toHaveBeenCalledWith({
+      where: { id: "sub_1", paymentRef: "pay_1" },
+      data: expect.objectContaining({ freeBoostUsedAt: null }),
+    });
+  });
 });

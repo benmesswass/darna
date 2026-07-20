@@ -421,6 +421,39 @@ regimes (generic, role-agnostic).
 | **Webhook authenticity** | Forged/missing signature on `verification-credit-webhook` | Reject (401) without valid HMAC, same guard as the other payment webhooks | ✅ `verification-credit-webhook.test.ts` (404 disabled, 400 no ref, 401 missing/bad signature, 429 rate-limit, 200 nominal — same 6-case pattern as `featured-webhook.test.ts`) | Demo |
 | Reconciliation | Konnect status vs local `VerificationCreditOrder` mismatch | Detect & alert; never silent loss | ❌ | Production |
 
+### 6.5 Free featured-boost claim test suite (MONETISATION_IMMO_ROADMAP.md §MI4)
+
+Applied to `claimFreeFeaturedBoostAction` (`src/actions/properties.ts`) — the
+Pro-plan subscription perk (decision 2026-07-20: existing Pro tier, 1 free
+« à la une » boost per billing cycle, non-cumulative). Unlike §6.1-6.4 this
+is **not a payment rail**: no `FeaturedOrder`, no Konnect call, no webhook —
+the only sensitive surface is authorization (IDOR, role, plan/cycle
+eligibility) and the atomic claim guard, so the bar here is the ownership/
+non-bypass pattern (`D2`/`D3`/`D8`-style) rather than the payment-idempotency
+pattern of §6.1-6.4.
+
+`Subscription.freeBoostUsedAt` (`DateTime?`, migration
+`20260720120305_add_subscription_free_boost`) tracks per-cycle consumption —
+reset to `null` on EVERY successful settlement (`settleSubscriptionPayment`
+and `subscribeAgencyPlanAction`, initial subscribe and renewal alike), so a
+new cycle always starts with a fresh, unclaimed boost. `hasUnclaimedFreeBoost()`
+(`src/lib/subscriptions.ts`) is the single source of truth for eligibility,
+shared by the server action and the `/dashboard/annonces/[id]/a-la-une` UI.
+
+| Scenario | Test to create | Expected guarantee | Status | Phase |
+|----------|----------------|---------------------|--------|-------|
+| IDOR | Agency B calls `claimFreeFeaturedBoostAction` on agency A's property | Rejected (`ACCES_REFUSE` via `requireOwnProperty`), no wallet/property mutation | ✅ `free-boost-claim.test.ts` | Demo |
+| Role non-bypass | A `HOTE` account calls the action | Rejected before any DB read beyond the role check — the perk only targets `AGENCE` | ✅ `free-boost-claim.test.ts` | Demo |
+| Plan non-bypass | An `AGENCE` on Starter/Standard (`freeBoostPerCycle: false`) calls the action | Rejected — `hasUnclaimedFreeBoost` false, no mutation | ✅ `free-boost-claim.test.ts` | Demo |
+| Cycle non-bypass (no double-dip) | Called again after `freeBoostUsedAt` is already set this cycle | Rejected — non-cumulable, no `featuredUntil` extension | ✅ `free-boost-claim.test.ts` | Demo |
+| Subscription-state non-bypass | Called with an expired (`currentPeriodEnd` past) or `EN_ATTENTE` subscription | Rejected — `isSubscriptionActive` gate, same derived-`EXPIRE` pattern as `activeListingsLimit` | ✅ `free-boost-claim.test.ts` | Demo |
+| Listing eligibility | Called on a non-`ACTIVE`/expired property | Rejected — same eligibility re-check as `featureListingAction`/`startFeaturedOrderPaymentAction` | ✅ `free-boost-claim.test.ts` | Demo |
+| Claim race (double click / double tab) | Concurrent claim, `updateMany` count 0 on the loser (`where: {userId, freeBoostUsedAt: null}`) | Only the winner extends `featuredUntil`; no double extension | ✅ `free-boost-claim.test.ts` | Demo |
+| Reset on settlement (real) | `settleSubscriptionPayment` on any plan/cycle | `freeBoostUsedAt` included as `null` in the winning `updateMany` — new cycle, fresh boost | ✅ `subscription-payments.test.ts` | Demo |
+| Reset on settlement (demo) | `subscribeAgencyPlanAction` (Konnect off) | `freeBoostUsedAt: null` in both `create`/`update` of the upsert | ✅ `subscription-payment-access.test.ts` | Demo |
+| Plan shape | Exactly one plan (`PRO`) has `freeBoostPerCycle: true` | Locks the current business decision; a future plan change must touch this test | ✅ `agency-plans.test.ts` | Demo |
+| Happy path | Eligible Pro agency claims on an eligible active listing | `featuredUntil` extended by `FEATURED_DURATION_DAYS` (cumulative if already featured), `PROPERTY_FEATURED` audit with `provider: "subscription_perk"`, redirect to `/dashboard/annonces?alaune=1` | ✅ `free-boost-claim.test.ts` + live Playwright proof (before/after screenshots: no banner → green claim banner → redirect with extended boost visible on `/dashboard/annonces` → banner replaced by "already used this cycle" note on revisit) | Demo |
+
 ---
 
 ## 7. Auth test suite
