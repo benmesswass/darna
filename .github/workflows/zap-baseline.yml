@@ -77,35 +77,57 @@ jobs:
           exit 1
 
       - name: ZAP baseline scan
+        # continue-on-error : le 1er run réel (2026-07-20) a montré que le
+        # SCAN lui-même aboutit et écrit ses rapports (report_html.html/
+        # report_json.json/report_md.md à la racine — noms désormais
+        # confirmés, plus une supposition) sans AUCUN souci — 387 URLs,
+        # 0 FAIL, 59 PASS, 8 catégories WARN — mais que l'étape échoue quand
+        # même à cause de l'upload d'artifact INTERNE à l'action ("Create
+        # Artifact Container failed... is not valid"), qui cible l'ancienne
+        # API Actions Artifacts (v1/v2, api-version=6.0-preview) que GitHub a
+        # dépréciée côté serveur — indépendant de fail_action (qui ne gouverne
+        # que les findings WARN/FAIL, pas cette erreur d'upload). On ne
+        # dépend plus de son upload interne : on récupère les fichiers
+        # nous-mêmes juste après, avec actions/upload-artifact@v4 (l'API
+        # actuelle, déjà éprouvée dans k6-load.yml).
+        continue-on-error: true
         uses: zaproxy/action-baseline@v0.12.0
         with:
           target: "http://localhost:3000"
           # Scan PASSIF uniquement (aucune attaque active) — cf. roadmap
-          # "DAST (Beta+) : scan passif". fail_action=false : premier run
-          # jamais exécuté avant sur ce site, seuils/faux positifs pas encore
-          # calibrés — un rapport à examiner, pas un gate bloquant (le job
-          # entier ne tourne de toute façon jamais sur PR, cf. `on:` ci-dessus).
+          # "DAST (Beta+) : scan passif". fail_action=false : seuils/faux
+          # positifs pas encore calibrés sur un vrai résultat — un rapport à
+          # examiner, pas un gate bloquant (le job entier ne tourne de toute
+          # façon jamais sur PR, cf. `on:` ci-dessus).
           fail_action: false
           allow_issue_writing: false
-          artifact_name: zap-report
 
       - name: Rapport ZAP (page du run)
-        # Défensif sur le nom exact du fichier Markdown généré par l'action
-        # (non vérifié en amont — cf. TEST_AUTOMATION_ROADMAP.md §6.6, limite
-        # de validation documentée) : essaie les noms usuels, sinon renvoie
-        # vers l'artifact/les logs plutôt que d'échouer.
         if: always()
         run: |
           {
             echo "## 🛡️ Rapport ZAP baseline (DAST)"
             echo ""
-            report=$(ls report_md.md zap_scan/report_md.md 2>/dev/null | head -1)
-            if [ -n "$report" ]; then
-              cat "$report"
+            if [ -f report_md.md ]; then
+              cat report_md.md
             else
-              echo "Rapport Markdown non trouvé au chemin attendu — voir l'artifact \`zap-report\` (HTML/JSON complets) ou les logs du step \`ZAP baseline scan\` ci-dessus."
+              echo "Rapport Markdown introuvable à la racine — voir l'artifact \`zap-report\` (HTML/JSON complets) ou les logs du step \`ZAP baseline scan\` ci-dessus."
             fi
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload rapport ZAP (artifact)
+        # Upload par nous-mêmes (API actuelle) plutôt que de dépendre de
+        # l'upload interne cassé de l'action — cf. commentaire ci-dessus.
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-report
+          path: |
+            report_html.html
+            report_json.json
+            report_md.md
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Arrêter le serveur
         if: always()

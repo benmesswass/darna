@@ -274,16 +274,34 @@ dépendre de l'ordre du seed.
   PASSIF uniquement (aucune attaque active), contre un build de production
   (`next start`). Job isolé, **jamais sur PR** (workflow séparé de `ci.yml`,
   même choix que `k6-load.yml`) : nightly/hebdo + `workflow_dispatch`.
-  `fail_action: false` volontaire — premier run jamais exécuté sur ce site,
-  seuils/faux positifs pas encore calibrés sur un vrai résultat, donc un
-  rapport à examiner plutôt qu'un gate bloquant pour l'instant (à durcir une
-  fois le bruit de fond connu). **Limite de validation assumée** : ni le nom
-  exact de version de l'action (`@v0.12.0`) ni le nom de fichier du rapport
-  Markdown généré n'ont pu être vérifiés avant le premier run réel — Docker
-  n'existe pas du tout dans l'environnement où ce chantier a été écrit
-  (contrairement aux runners GitHub Actions, qui l'ont). Le step de rapport
-  est donc défensif (fallback vers l'artifact si le nom de fichier attendu
-  est introuvable) plutôt que de supposer un format garanti.
+  `fail_action: false` volontaire — seuils/faux positifs pas encore calibrés
+  sur un vrai résultat, donc un rapport à examiner plutôt qu'un gate bloquant
+  pour l'instant (à durcir une fois le bruit de fond connu).
+  **Validé en réel le 2026-07-20** (1er `workflow_dispatch` sur `main`,
+  run #1) : le tag d'action (`@v0.12.0`) était correct et les noms de
+  fichiers de rapport supposés l'étaient aussi (`report_html.html`/
+  `report_json.json`/`report_md.md` à la racine). Un souci différent et
+  imprévu a été trouvé et corrigé au 1er essai : l'upload d'artifact
+  **interne à l'action** cible l'ancienne API Actions Artifacts (v1/v2,
+  `api-version=6.0-preview`) que GitHub a dépréciée côté serveur — la
+  sous-étape échoue (`Create Artifact Container failed`) **indépendamment**
+  de `fail_action` (qui ne gouverne que les findings, pas cette erreur
+  d'upload), alors que le scan lui-même aboutit sans aucun problème.
+  Correctif : `continue-on-error: true` sur l'étape ZAP + upload des rapports
+  par nous-mêmes via `actions/upload-artifact@v4` (API actuelle, déjà
+  éprouvée dans `k6-load.yml`) au lieu de dépendre du mécanisme interne cassé
+  de l'action.
+  **Premiers résultats réels** (387 URLs scannées) : **0 `FAIL-NEW`**, 59
+  règles passées, 8 catégories `WARN-NEW` (aucune bloquante) — CSP
+  `style-src unsafe-inline` (attendu, Tailwind), absence de jetons
+  anti-CSRF perçue par ZAP (faux positif connu : Next.js protège les Server
+  Actions par vérification d'origine same-origin, pas par jeton — déjà
+  couvert par `tests/api/security-regressions.spec.ts`, Phase 4), en-tête
+  Cross-Origin-Embedder-Policy absent, et 4 autres catégories purement
+  informationnelles (redirection `/dashboard`, contenu non cacheable,
+  détection SPA/formulaires d'auth). Rien nécessitant une action immédiate ;
+  triage complet à faire par Wassim au calme, pas dans l'urgence de ce
+  chantier.
 - Régressions à figer en test : anti-énumération connexion (erreur générique),
   exception assumée inscription (« compte existe déjà ») + rate-limit + CAPTCHA
   dual-mode (`turnstile`), open-redirect (`redirect-landing` déjà), CSRF sur
