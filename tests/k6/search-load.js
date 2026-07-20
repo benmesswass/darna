@@ -58,7 +58,7 @@ function pick(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-export default function () {
+export default function searchLoad() {
   const query = pick(SEARCH_QUERIES);
   const searchRes = http.get(`${BASE_URL}/sejours${query}`, {
     tags: { name: "sejours_search" },

@@ -58,7 +58,7 @@ bas :
 | **Composant / front (React)** | ✅ **P0 couvert (Phase 2)** | Harness jsdom + Testing Library ; `KonnectPayButton`, `LoginForm`, `RegisterForm`, `PropertyCard`, `Price`, i18n — reste KYC/date-picker/carte en P1 |
 | **E2E navigateur** | ❌ **Absent** | **Aucun Playwright**, aucun parcours signup→KYC→booking→paiement automatisé |
 | **Couverture mesurée** | ✅ **En place (Phase 1)** | `@vitest/coverage-v8` + seuils ratchet bloquants en CI (`src/lib`+`src/actions`) |
-| Sécurité automatisée | ⚠️ Partiel | Invariants testés en Vitest, mais **pas de SAST/DAST/dep-scan structuré** hors `npm audit` |
+| Sécurité automatisée | ⚠️ Partiel | Semgrep (SAST) + ZAP baseline (DAST, nightly) désormais en place ; reste **dep-scan structuré** au-delà de `npm audit` (Dependabot déjà actif) |
 | Performance / charge | ⚠️ Partiel | k6 sur `/sejours` (recherche), nightly/hebdo — **charge sur la fenêtre de course booking non couverte** (cf. §6.7) |
 | Accessibilité | ❌ Absent | Aucun `axe`, site trilingue + RTL non testé |
 
@@ -196,7 +196,7 @@ dépendre de l'ordre du seed.
 | Perf / charge | **k6** (ou Artillery) | Charge recherche + course booking, seuils p95 | ⚠️ P2 (recherche livrée, course booking non couverte) |
 | SAST | **Semgrep** (règles Next/React/OWASP) | Détecte `dangerouslySetInnerHTML`, injections, secrets | ❌ P1 |
 | Dépendances | **npm audit (déjà) + Dependabot/Renovate** | Veille CVE continue, pas seulement au build | ⚠️ P2 |
-| DAST (Beta+) | **OWASP ZAP baseline** (scan passif en CI nightly) | Headers, CSP, cookies, redirections | ❌ P2 |
+| DAST (Beta+) | **OWASP ZAP baseline** (scan passif en CI nightly) | Headers, CSP, cookies, redirections | ✅ P2 |
 | Visuel (option) | **Playwright screenshots / toMatchSnapshot** | Régression visuelle carte/annonce/RTL | ❌ P3 |
 
 > **Contrainte projet respectée :** aucun service payant obligatoire. Playwright,
@@ -268,8 +268,22 @@ dépendre de l'ordre du seed.
 ### 6.6 Sécurité automatisée (P1)
 - **SAST Semgrep** en CI : interdiction `dangerouslySetInnerHTML` hors
   `JsonLd.tsx`, détection secrets, patterns injection/SSRF.
-- **DAST ZAP baseline** nightly (Beta+) : CSP par nonce présente, HSTS,
-  `X-Frame-Options DENY`, nosniff, cookies `HttpOnly/Secure/SameSite`.
+- [x] **DAST ZAP baseline** nightly (Beta+) : CSP par nonce présente, HSTS,
+  `X-Frame-Options DENY`, nosniff, cookies `HttpOnly/Secure/SameSite`. →
+  `zaproxy/action-baseline` (`.github/workflows/zap-baseline.yml`), scan
+  PASSIF uniquement (aucune attaque active), contre un build de production
+  (`next start`). Job isolé, **jamais sur PR** (workflow séparé de `ci.yml`,
+  même choix que `k6-load.yml`) : nightly/hebdo + `workflow_dispatch`.
+  `fail_action: false` volontaire — premier run jamais exécuté sur ce site,
+  seuils/faux positifs pas encore calibrés sur un vrai résultat, donc un
+  rapport à examiner plutôt qu'un gate bloquant pour l'instant (à durcir une
+  fois le bruit de fond connu). **Limite de validation assumée** : ni le nom
+  exact de version de l'action (`@v0.12.0`) ni le nom de fichier du rapport
+  Markdown généré n'ont pu être vérifiés avant le premier run réel — Docker
+  n'existe pas du tout dans l'environnement où ce chantier a été écrit
+  (contrairement aux runners GitHub Actions, qui l'ont). Le step de rapport
+  est donc défensif (fallback vers l'artifact si le nom de fichier attendu
+  est introuvable) plutôt que de supposer un format garanti.
 - Régressions à figer en test : anti-énumération connexion (erreur générique),
   exception assumée inscription (« compte existe déjà ») + rate-limit + CAPTCHA
   dual-mode (`turnstile`), open-redirect (`redirect-landing` déjà), CSRF sur
@@ -481,8 +495,15 @@ satisfont via leur rapport Allure.
       **hors `color-contrast`**, exclu du gate après un vrai finding
       systémique (design tokens `text-body/*`, tracké en tant que chantier
       dédié dans `TODO-PRODUCTION.md`, pas masqué).
-- [ ] ZAP baseline nightly (headers/CSP/cookies).
+- [x] ZAP baseline nightly (headers/CSP/cookies) — ✅ livré, cf. §6.6 pour le
+      détail et la limite de validation assumée (premier run jamais exécuté
+      avant la mise en prod du job, Docker indisponible dans l'environnement
+      d'écriture de ce chantier).
 - [ ] (Option) snapshots visuels carte/annonce/RTL.
+
+**Phase 5 : seuls les snapshots visuels (option P3, jamais engagée comme
+prioritaire) restent non livrés.** k6, axe et ZAP sont tous les trois en
+place.
 
 ---
 
