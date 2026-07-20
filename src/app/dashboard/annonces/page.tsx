@@ -20,12 +20,27 @@ import { Price } from "@/components/currency/Price";
 import { StarIcon } from "@/components/icons";
 import { SuccessCheck } from "@/components/ui/SuccessCheck";
 import { QuotaReachedModal } from "@/components/dashboard/QuotaReachedModal";
+import { HostVerificationPayButton } from "@/components/dashboard/HostVerificationPayButton";
 import { activeListingsLimit, cheapestPlanForQuota, countActiveListings } from "@/lib/subscriptions";
+import { verificationCreditsRemaining } from "@/lib/verification-credits";
+import { settleVerificationCreditOrder } from "@/lib/verification-credit-payments";
+import {
+  payHostVerificationDemoAction,
+} from "@/actions/host-verification-payments";
+import { isKonnectEnabled } from "@/lib/konnect";
+import { HOST_VERIFICATION_PRICE_TND } from "@/lib/config";
 
 export default async function MesAnnoncesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ creee?: string; modifiee?: string; alaune?: string; quotaAtteint?: string }>;
+  searchParams: Promise<{
+    creee?: string;
+    modifiee?: string;
+    alaune?: string;
+    quotaAtteint?: string;
+    konnect?: string;
+    vid?: string;
+  }>;
 }) {
   const fr = await getT();
   const user = await getSessionUser();
@@ -34,7 +49,17 @@ export default async function MesAnnoncesPage({
     redirect("/dashboard/reservations");
   }
 
-  const { creee, modifiee, alaune, quotaAtteint } = await searchParams;
+  const { creee, modifiee, alaune, quotaAtteint, konnect, vid } = await searchParams;
+  const konnectEnabled = isKonnectEnabled();
+
+  // Vérification Wakil payante pour les particuliers (MONETISATION_IMMO_ROADMAP.md
+  // §MI3, décision Wassim du 2026-07-20) : régime à l'unité, distinct de
+  // l'agence — filet de retour Konnect (idempotent), comme /dashboard/abonnement.
+  if (user.role === "HOTE" && konnectEnabled && konnect === "success" && vid) {
+    await settleVerificationCreditOrder({ orderId: vid });
+  }
+  const hostVerificationCredits =
+    user.role === "HOTE" ? await verificationCreditsRemaining(user.id, user.role) : null;
 
   const properties = await prisma.property.findMany({
     where: { ownerId: user.id },
@@ -102,6 +127,30 @@ export default async function MesAnnoncesPage({
         <p className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-700">
           {fr.dashboard.alaUneSucces}
         </p>
+      ) : null}
+
+      {/* Vérification Wakil payante (§MI3, HOTE uniquement) : solde + retour Konnect. */}
+      {user.role === "HOTE" && properties.length > 0 ? (
+        <>
+          <p className="mt-4 rounded-xl bg-cream px-4 py-3 text-xs font-medium text-body/70">
+            {fr.dashboard.verifWakilSolde(hostVerificationCredits ?? 0)}
+          </p>
+          {konnectEnabled && konnect === "fail" && vid ? (
+            <p
+              role="alert"
+              className="mt-2 rounded-xl bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700"
+            >
+              {fr.abonnement.paiementEchoue}
+            </p>
+          ) : konnectEnabled && konnect === "success" && vid ? (
+            <p className="mt-2 flex items-center justify-between gap-3 rounded-xl bg-sand-light/50 px-4 py-2.5 text-sm font-medium text-darna-dark">
+              {fr.abonnement.paiementEnVerification}
+              <Link href="/dashboard/annonces" className="shrink-0 font-bold underline">
+                {fr.abonnement.actualiser}
+              </Link>
+            </p>
+          ) : null}
+        </>
       ) : null}
 
       {/* Publicité : pousser l'hôte à mettre ses annonces à la une */}
@@ -224,6 +273,27 @@ export default async function MesAnnoncesPage({
                       <StarIcon width={13} height={13} className="fill-current" />
                       {featured ? fr.dashboard.prolongerALaUne : fr.dashboard.mettreALaUne}
                     </Link>
+                  ) : null}
+                  {/* Vérification Wakil payante (§MI3, HOTE uniquement) : à
+                      l'unité, jamais gratuite — cf. src/actions/host-verification-payments.ts. */}
+                  {user.role === "HOTE" && !p.verified ? (
+                    <div className="w-full">
+                      <p className="mb-1 text-center text-[11px] text-body/50">
+                        {fr.dashboard.verifWakilPrix} : <Price amount={HOST_VERIFICATION_PRICE_TND} />
+                      </p>
+                      {konnectEnabled ? (
+                        <HostVerificationPayButton label={fr.dashboard.verifWakilPayer} />
+                      ) : (
+                        <form action={payHostVerificationDemoAction}>
+                          <button
+                            type="submit"
+                            className="w-full rounded-xl bg-amber-400 px-3.5 py-2 text-xs font-bold text-darna-dark hover:bg-amber-300"
+                          >
+                            {fr.dashboard.verifWakilPayerSimulation}
+                          </button>
+                        </form>
+                      )}
+                    </div>
                   ) : null}
                   {canClose ? (
                     <form action={markPropertyClosedAction}>

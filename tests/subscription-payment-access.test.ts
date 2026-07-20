@@ -12,6 +12,7 @@ import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     subscription: { upsert: vi.fn(), update: vi.fn(), findUnique: vi.fn() },
+    verificationWallet: { upsert: vi.fn() },
   },
 }));
 vi.mock("@/lib/session", () => ({ requireUser: vi.fn() }));
@@ -41,6 +42,7 @@ import { logAudit } from "@/lib/audit";
 const subUpsert = prisma.subscription.upsert as unknown as Mock;
 const subUpdate = prisma.subscription.update as unknown as Mock;
 const subFindUnique = prisma.subscription.findUnique as unknown as Mock;
+const walletUpsert = prisma.verificationWallet.upsert as unknown as Mock;
 const requireUserMock = requireUser as unknown as Mock;
 const isKonnectEnabledMock = isKonnectEnabled as unknown as Mock;
 const initKonnectMock = initKonnectPayment as unknown as Mock;
@@ -49,9 +51,9 @@ const logAuditMock = logAudit as unknown as Mock;
 const AGENCE = { id: "agence-A", name: "Agence Test", email: "a@test.tn", phone: null, role: "AGENCE" };
 const HOTE = { id: "hote-B", name: "Hôte Test", email: "h@test.tn", phone: null, role: "HOTE" };
 
-function planForm(): FormData {
+function planForm(plan = "STANDARD"): FormData {
   const fd = new FormData();
-  fd.set("plan", "STANDARD");
+  fd.set("plan", plan);
   return fd;
 }
 
@@ -60,6 +62,7 @@ beforeEach(() => {
   subUpsert.mockResolvedValue({ id: "sub_1" });
   subUpdate.mockResolvedValue({});
   subFindUnique.mockResolvedValue(null);
+  walletUpsert.mockResolvedValue({});
 });
 
 describe("startSubscriptionPaymentAction — non-bypass", () => {
@@ -157,5 +160,49 @@ describe("subscribeAgencyPlanAction (démo) — garde d'exclusivité et rôle", 
     expect(logAuditMock).toHaveBeenCalledWith(
       expect.objectContaining({ action: "AGENCY_SUBSCRIPTION_PAID", userId: AGENCE.id })
     );
+  });
+
+  // ── MI3bis (décision Wassim du 2026-07-20) : bonus de crédits Starter ──────
+
+  it("accorde le bonus de 3 crédits de vérification à la 1re souscription Starter", async () => {
+    isKonnectEnabledMock.mockReturnValue(false);
+    requireUserMock.mockResolvedValue(AGENCE);
+    subFindUnique.mockResolvedValue({ currentPeriodEnd: null, starterBonusGranted: false });
+
+    await subscribeAgencyPlanAction(planForm("STARTER"));
+
+    expect(walletUpsert).toHaveBeenCalledWith({
+      where: { userId: AGENCE.id },
+      create: { userId: AGENCE.id, balance: 1 + 3 }, // FREE_VERIFICATION_CREDITS + bonus Starter
+      update: { balance: { increment: 3 } },
+    });
+    expect(subUpdate).toHaveBeenCalledWith({
+      where: { userId: AGENCE.id },
+      data: { starterBonusGranted: true },
+    });
+  });
+
+  it("NE reconduit PAS le bonus Starter à un renouvellement (déjà accordé une fois)", async () => {
+    isKonnectEnabledMock.mockReturnValue(false);
+    requireUserMock.mockResolvedValue(AGENCE);
+    const future = new Date(Date.now() + 5 * 864e5);
+    subFindUnique.mockResolvedValue({ currentPeriodEnd: future, starterBonusGranted: true });
+
+    await subscribeAgencyPlanAction(planForm("STARTER"));
+
+    expect(walletUpsert).not.toHaveBeenCalled();
+    // subUpdate n'est PAS rappelé pour starterBonusGranted (déjà true) — seul
+    // subUpsert (souscription elle-même) est invoqué.
+    expect(subUpdate).not.toHaveBeenCalled();
+  });
+
+  it("n'accorde aucun bonus pour Standard/Pro (verificationCreditsBonus = 0)", async () => {
+    isKonnectEnabledMock.mockReturnValue(false);
+    requireUserMock.mockResolvedValue(AGENCE);
+    subFindUnique.mockResolvedValue({ currentPeriodEnd: null, starterBonusGranted: false });
+
+    await subscribeAgencyPlanAction(planForm("STANDARD"));
+
+    expect(walletUpsert).not.toHaveBeenCalled();
   });
 });

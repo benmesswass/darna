@@ -467,6 +467,15 @@ export const ar: Dictionary = {
     promoAlaUneTitre: "حطّ إعلاناتك في الواجهة",
     promoAlaUneDesc:
       "في قمة النتائج وفي صفحة الاستقبال مدّة شهر، مع شارة ذهبية تجبد العين. الإعلانات اللي في الواجهة تتشاف أكثر برشة.",
+    verifWakilSolde: (n: number) =>
+      n === 1
+        ? "عندك كريدي توثيق وكيل واحد."
+        : n === 0
+          ? "ما عندكش كريدي توثيق — خلّص بالوحدة باش توثّق إعلان."
+          : `عندك ${n} كريدي توثيق وكيل.`,
+    verifWakilPrix: "ثمن التوثيق",
+    verifWakilPayer: "خلّص التوثيق",
+    verifWakilPayerSimulation: "خلّص التوثيق (تجربة)",
     aucuneReservation: "حتى حجز للتوّ.",
     aucuneReservationCta: "لوّج على إقامتك الجاية في إعلاناتنا الموثّقة.",
     aucuneReservationHote: "حتى مسافر ما حجز إعلاناتك للتوّ.",
@@ -735,6 +744,10 @@ export const ar: Dictionary = {
       "يلزم يكون المالك موثّق (KYC) باش يتوثّق الإعلان.",
     limiteAbonnementAtteinte: (limite: number) =>
       `هالحساب وكالة وصل للحدّ الأقصى متاع الإعلانات النشيطة (${limite}). عاوضو يشترك ولا يجدّد الاشتراك (/dashboard/abonnement) قبل ما توثّق إعلان آخر.`,
+    creditsVerificationEpuises:
+      "هالحساب وكالة ما عندوش كريدي توثيق باقي. عاوضو يشري باقة (/dashboard/abonnement) قبل ما توثّق إعلان آخر.",
+    hostVerificationPaiementRequis:
+      "هالشخص ما خلّصش توثيق الوكيل متاع الإعلان هذا (20 دينار). عاوضو يخلّص من /dashboard/annonces قبل ما توثّقو.",
     aucuneAnnonce: "حتى إعلان نشط في الوقت الحالي.",
     annoncesDejVerifiees: "الإعلانات الموثّقة مسبقاً",
     candidaturesWakil: "طلبات الوكلاء",
@@ -1326,6 +1339,10 @@ export const ar: Dictionary = {
       `فاتورة الكوميسيون متاعك لـ « ${titre} » فاتها أجل الخلاص.`,
     annonceLimiteAbonnement: (titre: string) =>
       `الإعلان متاعك « ${titre} » ما ينجمش يتنشر توّة — وصلت للحدّ الأقصى متاع الإعلانات النشيطة. شوف خيارات الاشتراك.`,
+    annonceCreditsVerifEpuises: (titre: string) =>
+      `الإعلان متاعك « ${titre} » ما تحقّقش — ما عندكش كريدي توثيق باقي. اشري باقة باش تكمّل.`,
+    annonceVerifPaiementRequis: (titre: string) =>
+      `الإعلان متاعك « ${titre} » ما تحقّقش — خلّص التوثيق متاع الوكيل (20 دينار) باش يلزمو وكيل يعالجو.`,
   },
   alaUne: {
     titre: "حطّ إعلانك في الواجهة",
@@ -1407,6 +1424,18 @@ export const ar: Dictionary = {
       `الاشتراك متاعك موجود نشيط حتى ${date}. خلاص جديد يطوّل المدّة شهر آخر.`,
     garantie: "إنت اللي تحكم: Konnect ما يخصمش وحدو، إنت اللي تختار وقتاش تجدّد.",
     reserveAgence: "الصفحة هذي مخصّصة لحسابات الوكالات.",
+    creditsVerifTitre: "كريدي توثيق الوكلاء",
+    creditsVerifSousTitre: (n: number) =>
+      n === 1
+        ? "كل توثيق من وكيل يخصم كريدي واحد. أول وحدة مجانية، للأبد."
+        : `كل توثيق من وكيل يخصم كريدي واحد. أول ${n} مجانيين، للأبد.`,
+    creditsVerifSolde: (n: number) =>
+      n === 1 ? "باقيلك كريدي توثيق واحد" : `باقيلك ${n} كريدي توثيق`,
+    creditsVerifEpuiseAlerte:
+      "ما باقيلكش كريدي توثيق — الإعلانات المعلّقة متاعك ما يتوثّقوش حتى تشري باقة.",
+    creditsVerifPackLabel: (n: number) => `${n} توثيقات`,
+    creditsVerifAcheter: "اشري",
+    creditsVerifAcheterSimulation: "اشري (تجربة)",
   },
   contact: {
     titre: "اتصل بصاحب الإعلان",
