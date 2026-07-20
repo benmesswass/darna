@@ -418,7 +418,7 @@ regimes (generic, role-agnostic).
 | Role non-bypass (agency packs) | `startVerificationCreditPaymentAction` called by a `HOTE` account | Rejected — packs only exist for agencies | ✅ `verification-credit-payment-action.test.ts` | Demo |
 | Role non-bypass (host per-unit) | `startHostVerificationPaymentAction` called by an `AGENCE` account | Rejected — per-unit payment only exists for individuals | ✅ `host-verification-payments.test.ts` | Demo |
 | Demo/real exclusivity | `buyVerificationCreditPackDemoAction`/`payHostVerificationDemoAction` while Konnect is enabled | No-op, never grants a free credit | ✅ `verification-credit-payment-action.test.ts`, `host-verification-payments.test.ts` | Demo |
-| **Webhook authenticity** | Forged/missing signature on `verification-credit-webhook` | Reject (401) without valid HMAC, same guard as the other payment webhooks | ⚠️ same shared guard as featured-webhook (covered code, no dedicated test file for this webhook yet) | Demo |
+| **Webhook authenticity** | Forged/missing signature on `verification-credit-webhook` | Reject (401) without valid HMAC, same guard as the other payment webhooks | ✅ `verification-credit-webhook.test.ts` (404 disabled, 400 no ref, 401 missing/bad signature, 429 rate-limit, 200 nominal — same 6-case pattern as `featured-webhook.test.ts`) | Demo |
 | Reconciliation | Konnect status vs local `VerificationCreditOrder` mismatch | Detect & alert; never silent loss | ❌ | Production |
 
 ---
