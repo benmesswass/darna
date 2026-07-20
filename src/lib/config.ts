@@ -115,6 +115,34 @@ export const SUBSCRIPTION_DURATION_DAYS = 30;
  */
 export const FREE_TIER_LISTINGS_LIMIT = 3;
 
+/**
+ * Vérifications Wakil gratuites À VIE pour un compte AGENCE
+ * (MONETISATION_IMMO_ROADMAP.md §MI3) — décision Wassim du 2026-07-20 (revu à
+ * la baisse depuis 3, cf. `git log` de ce fichier) : gagner la confiance
+ * gratuitement au début, puis imposer un abonnement. Contrairement à
+ * FREE_TIER_LISTINGS_LIMIT (un plafond, jamais consommé), ce nombre est un
+ * SOLDE qui se consomme et ne se réinitialise jamais — cf.
+ * src/lib/verification-credits.ts. Au-delà : le palier Starter accorde un
+ * bonus ponctuel (`AGENCY_PLANS[].verificationCreditsBonus`), sinon achat
+ * d'un lot prépayé (VERIFICATION_CREDIT_PACKS, src/lib/constants.ts) — jamais
+ * de paiement à l'unité POUR UNE AGENCE (cf. HOST_VERIFICATION_PRICE_TND
+ * ci-dessous pour le régime, différent, des particuliers).
+ */
+export const FREE_VERIFICATION_CREDITS = 1;
+
+/**
+ * Vérification Wakil pour un compte HOTE (particulier) — décision Wassim du
+ * 2026-07-20 : RÉGIME DIFFÉRENT de l'agence, volontairement. Aucune
+ * vérification gratuite, paiement À L'UNITÉ (pas de lot), et le paiement doit
+ * être réglé AVANT que le Wakil ne puisse vérifier l'annonce — cf.
+ * src/actions/host-verification-payments.ts, gate dans verifyPropertyAction
+ * (src/actions/admin.ts). Réutilise le même mécanisme de solde
+ * (VerificationWallet) qu'une agence : payer crédite +1, une vérification en
+ * consomme 1 — seule la façon d'obtenir un crédit diffère (jamais gratuit,
+ * jamais en lot).
+ */
+export const HOST_VERIFICATION_PRICE_TND = 20;
+
 /** Occupation estivale estimée pour le Yield Advisor. */
 export const SUMMER_OCCUPANCY_RATE = 0.6;
 

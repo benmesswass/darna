@@ -446,6 +446,15 @@ export const fr = {
     promoAlaUneTitre: "Passez vos annonces à la une",
     promoAlaUneDesc:
       "En tête des résultats et sur l'accueil pendant un mois, avec un badge doré qui attire l'œil. Les annonces mises en avant sont vues bien plus souvent.",
+    verifWakilSolde: (n: number) =>
+      n === 1
+        ? "1 crédit de vérification Wakil disponible."
+        : n === 0
+          ? "Aucun crédit de vérification Wakil — payez à l'unité pour faire vérifier une annonce."
+          : `${n} crédits de vérification Wakil disponibles.`,
+    verifWakilPrix: "Prix de la vérification",
+    verifWakilPayer: "Payer la vérification",
+    verifWakilPayerSimulation: "Payer la vérification (simulation)",
     aucuneReservation: "Aucune réservation pour le moment.",
     aucuneReservationCta: "Trouvez votre prochain séjour parmi nos annonces vérifiées.",
     aucuneReservationHote: "Aucun voyageur n'a encore réservé vos annonces.",
@@ -728,6 +737,10 @@ export const fr = {
       "Le propriétaire doit être vérifié (KYC) pour que l'annonce reçoive le badge.",
     limiteAbonnementAtteinte: (limite: number) =>
       `Ce compte agence a atteint sa limite d'annonces actives (${limite}). Invitez-le à souscrire ou renouveler son abonnement (/dashboard/abonnement) avant de valider une annonce supplémentaire.`,
+    creditsVerificationEpuises:
+      "Ce compte agence n'a plus de crédit de vérification Wakil. Invitez-le à acheter un lot (/dashboard/abonnement) avant de vérifier une annonce supplémentaire.",
+    hostVerificationPaiementRequis:
+      "Ce particulier n'a pas encore payé la vérification Wakil de cette annonce (20 TND). Invitez-le à régler le paiement depuis /dashboard/annonces avant de la vérifier.",
     aucuneAnnonce: "Aucune annonce active pour le moment.",
     annoncesDejVerifiees: "Annonces déjà vérifiées",
     candidaturesWakil: "Candidatures Wakil",
@@ -1332,6 +1345,10 @@ export const fr = {
       `Votre facture de commission pour « ${titre} » a dépassé son échéance.`,
     annonceLimiteAbonnement: (titre: string) =>
       `Votre annonce « ${titre} » ne peut pas encore être publiée — vous avez atteint votre limite d'annonces actives. Voir les options d'abonnement.`,
+    annonceCreditsVerifEpuises: (titre: string) =>
+      `Votre annonce « ${titre} » n'a pas pu être vérifiée — vous n'avez plus de crédit de vérification. Achetez un lot pour continuer.`,
+    annonceVerifPaiementRequis: (titre: string) =>
+      `Votre annonce « ${titre} » n'a pas pu être vérifiée — payez la vérification Wakil (20 TND) pour qu'un agent puisse la traiter.`,
   },
   alaUne: {
     titre: "Mettez votre annonce à la une",
@@ -1416,6 +1433,18 @@ export const fr = {
     garantie:
       "Aucun renouvellement automatique : Konnect ne prélève jamais seul, vous choisissez quand renouveler.",
     reserveAgence: "Cette page est réservée aux comptes agence.",
+    creditsVerifTitre: "Crédits de vérification Wakil",
+    creditsVerifSousTitre: (n: number) =>
+      n === 1
+        ? "Chaque vérification par un Wakil consomme un crédit. La première est gratuite, à vie."
+        : `Chaque vérification par un Wakil consomme un crédit. Les ${n} premières sont gratuites, à vie.`,
+    creditsVerifSolde: (n: number) =>
+      n === 1 ? "1 crédit de vérification restant" : `${n} crédits de vérification restants`,
+    creditsVerifEpuiseAlerte:
+      "Vous n'avez plus de crédit de vérification — vos annonces en attente ne pourront pas être vérifiées tant que vous n'aurez pas acheté un lot.",
+    creditsVerifPackLabel: (n: number) => `${n} vérifications`,
+    creditsVerifAcheter: "Acheter",
+    creditsVerifAcheterSimulation: "Acheter (simulation)",
   },
   contact: {
     titre: "Contacter l'annonceur",

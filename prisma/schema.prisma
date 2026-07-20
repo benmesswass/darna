@@ -16,7 +16,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
   // url : connexion applicative. En prod elle peut pointer un pooler
   //   (PgBouncer / Prisma Accelerate / pooler Supabase) via des paramètres
   //   d'URL : ?pgbouncer=true&connection_limit=10&pool_timeout=20 (cf. .env.example).
@@ -28,40 +28,40 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  passwordHash  String
-  name          String
-  phone         String?
-  image         String?  // Photo de profil — URL locale /uploads (cf. src/lib/uploads.ts)
-  role          String   @default("VOYAGEUR") // VOYAGEUR | HOTE | AGENCE | ADMIN
-  phoneVerified Boolean  @default(false)
+  id               String    @id @default(cuid())
+  email            String    @unique
+  passwordHash     String
+  name             String
+  phone            String?
+  image            String? // Photo de profil — URL locale /uploads (cf. src/lib/uploads.ts)
+  role             String    @default("VOYAGEUR") // VOYAGEUR | HOTE | AGENCE | ADMIN
+  phoneVerified    Boolean   @default(false)
   // PR5 — vérification e-mail distincte du KYC téléphonique.
-  emailVerified Boolean  @default(false)
-  kycStatus     String   @default("NON_VERIFIE") // NON_VERIFIE | EN_ATTENTE | VERIFIE | DEMO_VERIFIE
+  emailVerified    Boolean   @default(false)
+  kycStatus        String    @default("NON_VERIFIE") // NON_VERIFIE | EN_ATTENTE | VERIFIE | DEMO_VERIFIE
   // CIN saisie au KYC. Chiffrée au repos (AES-256-GCM) dès KYC_ENC_KEY défini ;
   // OBLIGATOIRE en KYC_MODE=production (boot fail-fast). Cf. src/lib/crypto.ts.
-  cin           String?
+  cin              String?
   // Empreinte déterministe de la CIN (hashCin) — index UNIQUE : interdit deux
   // comptes avec la même CIN, sans exposer le numéro. Cf. src/lib/crypto.ts.
-  cinHash       String?  @unique
+  cinHash          String?   @unique
   // PR2 — Wakil : agent vérifié sur le terrain.
-  isWakil       Boolean  @default(false)
+  isWakil          Boolean   @default(false)
   // Incrémenté à chaque changement de mot de passe : invalide les JWT précédents.
-  tokenVersion  Int      @default(0)
+  tokenVersion     Int       @default(0)
   // Suspension anti-bypass : posée quand l'utilisateur dépasse le seuil de
   // tentatives de partage de coordonnées hors plateforme (cf. messages). Un
   // compte suspendu ne peut plus réserver ni envoyer de messages ; un admin
   // peut le réactiver. Cf. MESSAGE_FLAG_SUSPENSION_THRESHOLD.
-  suspended     Boolean  @default(false)
-  suspendedAt   DateTime?
+  suspended        Boolean   @default(false)
+  suspendedAt      DateTime?
   // Suspension PROGRESSIVE : `suspendedUntil` = fin de la suspension temporaire
   // (null + suspended=true = suspension indéfinie, levée par un admin).
   // `suspensionCount` = nombre de suspensions subies → palier de durée croissant
   // (cf. SUSPENSION_DURATIONS_DAYS). Une suspension est ACTIVE si suspended ET
   // (suspendedUntil null OU suspendedUntil > now) — cf. src/lib/suspension.ts.
-  suspendedUntil  DateTime?
-  suspensionCount Int       @default(0)
+  suspendedUntil   DateTime?
+  suspensionCount  Int       @default(0)
   // Motif de la DERNIÈRE suspension (MESSAGE_BYPASS | BOOKING_NO_SHOW |
   // HOST_CANCELLED_BOOKING, cf. SuspensionReason dans src/lib/suspension.ts) —
   // permet au bandeau « Pourquoi ? » (dashboard/layout.tsx) d'expliquer la
@@ -71,40 +71,44 @@ model User {
   // Pays de résidence déclaré à l'inscription (libellé FR, cf. PHONE_COUNTRIES) —
   // clé du pilotage diaspora (north-star marketing : cible France). Null tant
   // que non renseigné (comptes historiques ou inscription sans choix).
-  country       String?
-  createdAt     DateTime @default(now())
+  country          String?
+  createdAt        DateTime  @default(now())
 
-  properties           Property[]
-  bookings             Booking[]
-  messages             Message[]
-  reviews              Review[]
+  properties               Property[]
+  bookings                 Booking[]
+  messages                 Message[]
+  reviews                  Review[]
   // Avis « hôte → voyageur » (F1) : reçus par ce voyageur / rédigés par cet hôte.
-  guestReviewsReceived GuestReview[] @relation("GuestReviewTarget")
-  guestReviewsAuthored GuestReview[] @relation("GuestReviewAuthor")
-  contactRequests      ContactRequest[]
-  favorites          Favorite[]
-  favoriteFolders    FavoriteFolder[]
-  auditLogs          AuditLog[]
-  otpChallenges      OtpChallenge[]
-  passwordResetTokens PasswordResetToken[]
+  guestReviewsReceived     GuestReview[]             @relation("GuestReviewTarget")
+  guestReviewsAuthored     GuestReview[]             @relation("GuestReviewAuthor")
+  contactRequests          ContactRequest[]
+  favorites                Favorite[]
+  favoriteFolders          FavoriteFolder[]
+  auditLogs                AuditLog[]
+  otpChallenges            OtpChallenge[]
+  passwordResetTokens      PasswordResetToken[]
   // Centre de notifications in-app (F9) : réservation confirmée/annulée, avis
   // reçu, annonce bientôt expirée.
-  notifications      Notification[]
+  notifications            Notification[]
   // Alertes de recherche sauvegardée (F7) : ville + budget.
-  savedSearches      SavedSearch[]
+  savedSearches            SavedSearch[]
   // PR1 — back-relation : annonces vérifiées par cet utilisateur (admin/wakil).
-  verifiedProperties   Property[]          @relation("PropertyVerifiedBy")
+  verifiedProperties       Property[]                @relation("PropertyVerifiedBy")
   // PR2 — candidatures Wakil liées à ce compte.
-  wakilApplications    WakilApplication[]
+  wakilApplications        WakilApplication[]
   // PR2 — candidatures Wakil revues par cet admin.
-  reviewedApplications WakilApplication[]  @relation("WakilApplicationReviewer")
+  reviewedApplications     WakilApplication[]        @relation("WakilApplicationReviewer")
   // Rail 2 (PAIEMENT_SUR_PLACE_ROADMAP.md) : factures de commission dues par
   // cet utilisateur en tant qu'hôte de réservations SUR_PLACE.
-  hostInvoices HostInvoice[]
+  hostInvoices             HostInvoice[]
   // Achats de mise en avant (« à la une », MONETISATION_IMMO_ROADMAP.md §MI0).
-  featuredOrders FeaturedOrder[]
+  featuredOrders           FeaturedOrder[]
   // Abonnement agence (MONETISATION_IMMO_ROADMAP.md §MI1) — au plus un par compte.
-  subscription Subscription?
+  subscription             Subscription?
+  // Solde de crédits de vérification Wakil (MONETISATION_IMMO_ROADMAP.md §MI3)
+  // — au plus un par compte.
+  verificationWallet       VerificationWallet?
+  verificationCreditOrders VerificationCreditOrder[]
 }
 
 // Défi OTP de vérification KYC ou email : code haché (jamais en clair) + TTL +
@@ -144,60 +148,68 @@ model PasswordResetToken {
 }
 
 model Property {
-  id          String   @id @default(cuid())
-  slug        String   @unique
-  title       String
-  description String
-  type        String // SEJOUR | LOCATION | VENTE
+  id                        String    @id @default(cuid())
+  slug                      String    @unique
+  title                     String
+  description               String
+  type                      String // SEJOUR | LOCATION | VENTE
   // Verticale du produit (frontière de module + feature-flag). DÉRIVÉE de `type`
   // (SEJOUR→STAY ; LOCATION/VENTE→IMMO) et toujours renseignée à la création.
   // Distincte de `type` : permet le gating par verticale et un futur split
   // physique. Cf. src/lib/constants.ts (verticalOfType) et src/lib/modes.ts.
-  vertical    String // STAY | IMMO
-  status      String   @default("EN_ATTENTE_VALIDATION") // EN_ATTENTE_VALIDATION | ACTIVE | LOUE | VENDU | EXPIREE
-  verified    Boolean  @default(false)
-  verificationLevel String? // null | "REMOTE" | "ON_SITE"
+  vertical                  String // STAY | IMMO
+  status                    String    @default("EN_ATTENTE_VALIDATION") // EN_ATTENTE_VALIDATION | ACTIVE | LOUE | VENDU | EXPIREE
+  verified                  Boolean   @default(false)
+  verificationLevel         String? // null | "REMOTE" | "ON_SITE"
   // PR1 — vérification admin/wakil : date et auteur de la vérification.
-  verifiedAt   DateTime?
-  verifiedById String?
-  verifiedBy   User?     @relation("PropertyVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
+  verifiedAt                DateTime?
+  verifiedById              String?
+  verifiedBy                User?     @relation("PropertyVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
+  // Crédit de vérification Wakil consommé pour CETTE annonce
+  // (MONETISATION_IMMO_ROADMAP.md §MI3, décision Wassim du 2026-07-20) : un
+  // crédit couvre l'annonce À VIE, jamais réinitialisé — ni par
+  // unverifyPropertyAction (retrait de badge), ni par republishPropertyAction
+  // (republication après expiration à LISTING_LIFETIME_DAYS). Une fois posé,
+  // verifyPropertyAction ne consomme plus jamais de crédit pour cette même
+  // annonce, quel que soit le nombre de cycles vérifié/retiré/republié.
+  verificationCreditSpentAt DateTime?
   // Prix en TND : nuitée (SEJOUR), loyer mensuel (LOCATION), prix total (VENTE)
-  price       Int
+  price                     Int
   // Agrégats d'avis DÉNORMALISÉS (maintenus à chaque avis, cf. submitReviewAction
   // + seed). Servent le tri « mieux/moins notés » : Prisma ne sait pas trier par
   // moyenne d'une relation (et le projet s'interdit le SQL brut), d'où ce cache.
   // ratingAvg null = aucun avis → relégué en fin de tri (nulls: "last").
-  ratingAvg   Float?
-  ratingCount Int      @default(0)
-  surface     Int?
-  rooms       Int?
-  maxGuests   Int?
-  city        String
-  gouvernorat String
-  address     String?
-  latitude    Float
-  longitude   Float
-  amenities   String   @default("") // libellés séparés par « | »
-  publishedAt DateTime @default(now())
-  expiresAt   DateTime
+  ratingAvg                 Float?
+  ratingCount               Int       @default(0)
+  surface                   Int?
+  rooms                     Int?
+  maxGuests                 Int?
+  city                      String
+  gouvernorat               String
+  address                   String?
+  latitude                  Float
+  longitude                 Float
+  amenities                 String    @default("") // libellés séparés par « | »
+  publishedAt               DateTime  @default(now())
+  expiresAt                 DateTime
   // Mise en avant payante (« à la une ») : date de fin du boost, ou null.
   // L'annonce est à la une tant que featuredUntil > now ; le champ est remis
   // à null paresseusement une fois expiré (cf. clearExpiredFeatured()).
-  featuredUntil DateTime?
-  cancelPolicy  String   @default("MODEREE") // FLEXIBLE | MODEREE | STRICTE
+  featuredUntil             DateTime?
+  cancelPolicy              String    @default("MODEREE") // FLEXIBLE | MODEREE | STRICTE
   // Paiement sur place (Rail 2, PAIEMENT_SUR_PLACE_ROADMAP.md) : opt-in HÔTE,
   // annonce SEJOUR uniquement. `cashTermsAcceptedAt` = horodatage d'acceptation
   // des CGU hôte dédiées, posé SERVEUR uniquement à l'activation (jamais confiance
   // au client) — null tant que jamais activé.
-  cashPaymentEnabled   Boolean   @default(false)
-  cashTermsAcceptedAt  DateTime?
+  cashPaymentEnabled        Boolean   @default(false)
+  cashTermsAcceptedAt       DateTime?
   // Annulation hôte (ANNULATION_HOTE_ROADMAP.md) : date de fin du blocage
   // temporaire de l'annonce suite à une annulation par l'hôte (null = pas
   // bloquée). Même esprit que `expiresAt` : filtre paresseux sur une date,
   // jamais de statut à faire basculer par un job.
-  cancelBlockedUntil   DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  cancelBlockedUntil        DateTime?
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime  @updatedAt
 
   ownerId String
   owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
@@ -291,58 +303,58 @@ model Availability {
 }
 
 model Booking {
-  id           String    @id @default(cuid())
-  checkIn      DateTime
-  checkOut     DateTime
-  guests       Int       @default(1)
-  nightlyPrice Int  // TND, figé à la réservation
-  serviceFee   Int  // TND, affiché au récapitulatif — zéro frais caché
-  totalPrice   Int  // TND
+  id                       String    @id @default(cuid())
+  checkIn                  DateTime
+  checkOut                 DateTime
+  guests                   Int       @default(1)
+  nightlyPrice             Int // TND, figé à la réservation
+  serviceFee               Int // TND, affiché au récapitulatif — zéro frais caché
+  totalPrice               Int // TND
   // Gating acompte (anti-bypass) : acompte MINIMUM dû en ligne, figé à la
   // création = max(10 % du total, commission Darna) et ≤ total. La commission
   // Darna y est entièrement contenue (revenu garanti). Cf. computeDepositAmount.
-  depositAmount Int      @default(0)
+  depositAmount            Int       @default(0)
   // Montant RÉELLEMENT choisi par le voyageur puis encaissé (entre depositAmount
   // et totalPrice). Posé à l'init du paiement → source de vérité serveur pour la
   // vérif du montant reçu (settleKonnectBooking). Solde dû en cash à l'arrivée =
   // totalPrice - amountPaid (jamais stocké, toujours recalculé).
-  amountPaid    Int      @default(0)
-  status       String    @default("EN_ATTENTE") // EN_ATTENTE | CONFIRMEE | ANNULEE | TERMINEE
-  escrow       String    @default("AUCUN")      // AUCUN | EN_SEQUESTRE | LIBERE
+  amountPaid               Int       @default(0)
+  status                   String    @default("EN_ATTENTE") // EN_ATTENTE | CONFIRMEE | ANNULEE | TERMINEE
+  escrow                   String    @default("AUCUN") // AUCUN | EN_SEQUESTRE | LIBERE
   // Rail de paiement (PAIEMENT_SUR_PLACE_ROADMAP.md) : ESCROW (défaut, séquestre
   // Konnect, comportement actuel inchangé) | SUR_PLACE (Rail 2 — zéro paiement en
   // ligne, acceptation hôte requise, commission facturée après coup via HostInvoice).
-  paymentMode  String    @default("ESCROW")
+  paymentMode              String    @default("ESCROW")
   // true = confirmée via paiement SIMULÉ (PAYMENT_MODE=demo) : aucun argent réel
   // n'a transité. Permet de distinguer sans ambiguïté les réservations de démo.
-  demo         Boolean   @default(false)
+  demo                     Boolean   @default(false)
   // Référence du paiement Konnect (null tant que le paiement n'est pas initié).
   // Unique : sert de clé de réconciliation côté webhook. Null en mode mock.
-  paymentRef   String?   @unique
+  paymentRef               String?   @unique
   // Expiration des réservations EN_ATTENTE (15 min après création)
   // Null une fois la réservation CONFIRMEE.
-  expiresAt    DateTime?
+  expiresAt                DateTime?
   // Date de règlement : posée quand le paiement est confirmé (fonds sous
   // séquestre). Null tant que la réservation n'est pas payée.
-  paidAt        DateTime?
+  paidAt                   DateTime?
   // Annulation : date + montant remboursable figé au moment de l'annulation.
-  cancelledAt   DateTime?
-  refundAmount  Int?      // TND ; null si non annulée ou politique 0 %
+  cancelledAt              DateTime?
+  refundAmount             Int? // TND ; null si non annulée ou politique 0 %
   // Annulation À L'INITIATIVE DE L'HÔTE (ANNULATION_HOTE_ROADMAP.md), distincte
   // d'une annulation voyageur (cancelBookingAction) : posée UNIQUEMENT par
   // hostCancelBookingAction, jamais par le voyageur. Remboursement TOUJOURS
   // intégral dans ce cas (cf. refundAmount = totalPrice), et hostCancelBlockDays
   // trace le palier de blocage d'annonce appliqué (indépendant d'un futur
   // changement du barème).
-  cancelledByHostAt   DateTime?
-  hostCancelBlockDays Int?
+  cancelledByHostAt        DateTime?
+  hostCancelBlockDays      Int?
   // Geste commercial (ANNULATION_HOTE_ROADMAP.md §AH4) : id de la NOUVELLE
   // réservation pour laquelle le voyageur a consommé la réduction ponctuelle
   // liée à CETTE annulation (token signé, cf. src/lib/rebooking-discount.ts).
   // Null tant que non utilisée. Posée UNE SEULE FOIS (condition d'unicité
   // appliquée par l'updateMany qui la consomme) — usage unique garanti.
   rebookingDiscountUsedFor String?
-  createdAt    DateTime  @default(now())
+  createdAt                DateTime  @default(now())
 
   propertyId String
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
@@ -372,16 +384,16 @@ model Booking {
 // bascule un statut à l'expiration. Cf. PSP6 (masquage d'annonces) et PSP5
 // (rappels), tous deux calculés à la lecture, pas de cron.
 model HostInvoice {
-  id        String    @id @default(cuid())
-  amount    Int       // TND — copié de Booking.serviceFee à la génération
-  status    String    @default("EN_ATTENTE") // EN_ATTENTE | PAYEE
+  id             String    @id @default(cuid())
+  amount         Int // TND — copié de Booking.serviceFee à la génération
+  status         String    @default("EN_ATTENTE") // EN_ATTENTE | PAYEE
   // Référence du paiement Konnect réglant CETTE facture (distincte du
   // paymentRef de la réservation elle-même, qui reste toujours null en mode
   // SUR_PLACE). Unique : clé de réconciliation du webhook dédié.
-  paymentRef String?  @unique
-  dueAt      DateTime
-  paidAt     DateTime?
-  createdAt  DateTime  @default(now())
+  paymentRef     String?   @unique
+  dueAt          DateTime
+  paidAt         DateTime?
+  createdAt      DateTime  @default(now())
   // Dernière relance MANUELLE envoyée par un admin (dashboard §PSP8) — permet
   // d'afficher "Relancé le X" plutôt qu'un clic sans retour visible. Distinct
   // des futures relances automatiques (§PSP5), pas encore implémentées.
@@ -406,23 +418,68 @@ model HostInvoice {
 // `EXPIRE` n'est volontairement pas un statut stocké : comme HOST_INVOICE_STATUSES,
 // c'est un dérivé (ACTIF + currentPeriodEnd < now), jamais écrit en base.
 model Subscription {
-  id               String    @id @default(cuid())
-  plan             String // clé de AGENCY_PLANS (src/lib/constants.ts) — tarif PROVISOIRE, cf. roadmap §MI1
-  status           String    @default("EN_ATTENTE") // EN_ATTENTE | ACTIF
-  currentPeriodEnd DateTime?
+  id                  String    @id @default(cuid())
+  plan                String // clé de AGENCY_PLANS (src/lib/constants.ts) — tarif PROVISOIRE, cf. roadmap §MI1
+  status              String    @default("EN_ATTENTE") // EN_ATTENTE | ACTIF
+  currentPeriodEnd    DateTime?
   // Référence du paiement Konnect EN COURS de vérification (MI2) — remise à
   // null dès le règlement (settleSubscriptionPayment), souscription initiale
   // comme renouvellement. Contrairement à HostInvoice/FeaturedOrder (une
   // ligne par paiement), Subscription est une ligne UNIQUE réutilisée à
   // chaque cycle : c'est donc `paymentRef`, pas `status`, qui sert de clé
   // d'idempotence contre la course webhook/retour.
-  paymentRef       String?   @unique
-  createdAt        DateTime  @default(now())
+  paymentRef          String?   @unique
+  createdAt           DateTime  @default(now())
+  // Bonus de crédits de vérification Wakil du palier Starter (MI3, décision
+  // Wassim du 2026-07-20) : accordé UNE SEULE FOIS, à la 1re activation en
+  // Starter — ce flag empêche de le recréditer à chaque renouvellement
+  // mensuel (cf. src/lib/subscription-payments.ts, src/actions/subscriptions.ts).
+  starterBonusGranted Boolean   @default(false)
 
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([status, currentPeriodEnd])
+}
+
+// Solde de crédits de vérification Wakil (MONETISATION_IMMO_ROADMAP.md §MI3) :
+// chaque compte AGENCE dispose de FREE_VERIFICATION_CREDITS (src/lib/config.ts)
+// vérifications gratuites À VIE (jamais réinitialisées — décision Wassim du
+// 2026-07-16, gagner la confiance au début), puis doit acheter un lot prépayé
+// (VERIFICATION_CREDIT_PACKS, src/lib/constants.ts) qui ne périme jamais. Une
+// ligne PAR UTILISATEUR (userId unique), créée PARESSEUSEMENT : l'ABSENCE de
+// ligne vaut solde initial FREE_VERIFICATION_CREDITS (cf.
+// src/lib/verification-credits.ts) — même esprit que Subscription (MI1),
+// seul l'état COURANT compte, pas un historique de consommation.
+model VerificationWallet {
+  id        String   @id @default(cuid())
+  balance   Int      @default(3)
+  updatedAt DateTime @updatedAt
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Achat d'un lot de crédits de vérification Wakil via Konnect
+// (MONETISATION_IMMO_ROADMAP.md §MI3). Une ligne PAR ACHAT — comme
+// FeaturedOrder, PAS comme Subscription : pas de paiement à l'unité, mais
+// une agence peut relancer un achat pendant qu'un précédent est encore
+// EN_ATTENTE de règlement. Le paiement RÉGLÉ crédite
+// VerificationWallet.balance (cf. settleVerificationCreditOrder,
+// src/lib/verification-credit-payments.ts) — jamais l'inverse.
+model VerificationCreditOrder {
+  id         String    @id @default(cuid())
+  credits    Int // 10 ou 25 — copié de VERIFICATION_CREDIT_PACKS à l'achat (figé)
+  amount     Int // TND — copié du prix du lot à l'achat (figé)
+  status     String    @default("EN_ATTENTE") // EN_ATTENTE | PAYEE
+  paymentRef String?   @unique
+  createdAt  DateTime  @default(now())
+  paidAt     DateTime?
+
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId, status])
 }
 
 // Achat de mise en avant (« à la une ») via Konnect — MONETISATION_IMMO_ROADMAP.md
@@ -433,7 +490,7 @@ model Subscription {
 // même principe que HostInvoice ci-dessus.
 model FeaturedOrder {
   id         String    @id @default(cuid())
-  amount     Int       // TND — copié de FEATURED_PRICE_TND à l'achat (figé)
+  amount     Int // TND — copié de FEATURED_PRICE_TND à l'achat (figé)
   status     String    @default("EN_ATTENTE") // EN_ATTENTE | PAYEE
   // Référence du paiement Konnect réglant CET achat — clé de réconciliation du
   // webhook dédié (mêmes principes que HostInvoice.paymentRef).
@@ -456,15 +513,15 @@ model FeaturedOrder {
 // les numéros/e-mails sont masqués à l'écriture (cf. src/lib/message-scan.ts).
 // `flagged` = true quand des coordonnées ont été détectées et masquées.
 model Message {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   body      String
-  flagged   Boolean  @default(false)
+  flagged   Boolean   @default(false)
   // Lu/non lu : posé quand le DESTINATAIRE (l'autre participant de la
   // réservation, jamais l'auteur) ouvre le fil. Null = non lu → alimente le
   // compteur de la pastille « Messagerie » et la notification. Le fil n'a que
   // deux parties, donc un seul horodatage par message suffit.
   readAt    DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
   bookingId String
   booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
@@ -541,9 +598,6 @@ model Notification {
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, readAt])
-  @@index([userId, createdAt])
   // NB : des index UNIQUES PARTIELS supplémentaires existent en base — chacun
   // (userId, href) WHERE type = '<un type précis>' — pour dédoublonner les
   // alertes sous requêtes concurrentes. Non représentables dans le DSL Prisma
@@ -553,6 +607,9 @@ model Notification {
   //    20260707170000_add_host_invoice_reminder_notif (§PSP5)
   // Ne PAS les supprimer via `migrate dev` sans les recréer manuellement
   // (cf. src/lib/notification-center.ts).
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
 }
 
 // Alerte de recherche sauvegardée (F7) : ville + fourchette de prix. Un
@@ -597,9 +654,9 @@ model Favorite {
   createdAt DateTime @default(now())
 
   userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   propertyId String
-  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  property   Property        @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   // Dossier de classement (null = « Sans dossier »). Supprimer un dossier
   // déclasse ses favoris sans les supprimer (onDelete: SetNull).
   folderId   String?
@@ -626,23 +683,23 @@ model FavoriteFolder {
 }
 
 model WakilApplication {
-  id         String   @id @default(cuid())
-  name       String
-  email      String
-  phone      String
-  city       String
-  motivation String
-  status     String   @default("RECUE") // RECUE | ENTRETIEN | ACCEPTEE | REFUSEE
-  createdAt  DateTime @default(now())
+  id           String    @id @default(cuid())
+  name         String
+  email        String
+  phone        String
+  city         String
+  motivation   String
+  status       String    @default("RECUE") // RECUE | ENTRETIEN | ACCEPTEE | REFUSEE
+  createdAt    DateTime  @default(now())
   // PR2 — lien vers le compte utilisateur (null si candidature anonyme).
-  userId        String?
-  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId       String?
+  user         User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
   // PR2 — revue par un admin.
-  reviewedAt    DateTime?
-  reviewedById  String?
-  reviewedBy    User?    @relation("WakilApplicationReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
-  interviewAt   DateTime?
-  deletedAt     DateTime?
+  reviewedAt   DateTime?
+  reviewedById String?
+  reviewedBy   User?     @relation("WakilApplicationReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  interviewAt  DateTime?
+  deletedAt    DateTime?
 
   @@index([userId])
   @@index([deletedAt])
@@ -655,7 +712,7 @@ model WakilApplication {
  */
 model AuditLog {
   id        String   @id @default(cuid())
-  action    String   // voir AuditAction dans src/lib/audit.ts
+  action    String // voir AuditAction dans src/lib/audit.ts
   userId    String?
   user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   ip        String?

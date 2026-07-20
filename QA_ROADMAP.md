@@ -375,6 +375,52 @@ désactivé — jamais les deux à la fois (garde d'exclusivité, comme AH/PSP/M
 | Quota-reached notification | `verifyPropertyAction` refusal for a quota-blocked listing | Agency is notified in-app (`ANNONCE_LIMITE_ABONNEMENT`, `notifyAgencyQuotaReached`) pointing to `/dashboard/abonnement` — the admin seeing the error is not enough, the agency has no other way to find out | ✅ `notification-quota.test.ts`, `admin.test.ts` | Demo |
 | Reconciliation | Konnect status vs local `Subscription` mismatch | Detect & alert; never silent loss | ❌ | Production |
 
+### 6.4 Wakil verification credits test suite (MONETISATION_IMMO_ROADMAP.md §MI3)
+
+Same bar as §6, applied to `VerificationWallet`/`VerificationCreditOrder`
+(payment gate on Wakil verification, `verifyPropertyAction` in
+`src/actions/admin.ts`). **Two DIFFERENT regimes by role** (decision
+2026-07-20) sharing the SAME balance and settlement code:
+- `AGENCE`: `FREE_VERIFICATION_CREDITS = 1` free for life + a one-time Starter
+  plan bonus (`AGENCY_PLANS[].verificationCreditsBonus`, generic — non-zero
+  only for Starter today), then prepaid packs only (`VERIFICATION_CREDIT_PACKS`)
+  — never a per-unit charge.
+- `HOTE`: 0 free credits ever, strictly per-unit (`HOST_VERIFICATION_PRICE_TND`),
+  never a pack — must pay BEFORE a Wakil can verify.
+
+**A consumed credit pays for the listing for its entire lifetime**, never per
+verification event (correction 2026-07-20). `Property.verificationCreditSpentAt`
+(`DateTime?`, migration `20260720084214_add_property_verification_credit_spent`)
+marks consumption permanently per listing — `verifyPropertyAction` never
+re-consumes for that same listing again, including across
+`unverifyPropertyAction` (badge removal) or `republishPropertyAction`
+(republication after `LISTING_LIFETIME_DAYS` expiry).
+
+Settlement lives in `src/lib/verification-credit-payments.ts`
+(`settleVerificationCreditOrder`, intentionally **not** a `"use server"`,
+mirrors `settleFeaturedOrder` — one row per purchase, unlike `Subscription`).
+The demo mocks (`buyVerificationCreditPackDemoAction`,
+`payHostVerificationDemoAction`) are the fallback when Konnect is off — never
+both at once. The webhook (`verification-credit-webhook`) is shared by both
+regimes (generic, role-agnostic).
+
+| Scenario | Test to create | Expected guarantee | Status | Phase |
+|----------|----------------|---------------------|--------|-------|
+| Role-aware free baseline | `verificationCreditsRemaining`/`consumeVerificationCredit` for `AGENCE` vs `HOTE` with no wallet row | `AGENCE` → `FREE_VERIFICATION_CREDITS` (1); `HOTE` → 0 (must pay first) | ✅ `verification-credits.test.ts` | Demo |
+| Credit consumption non-bypass | `verifyPropertyAction` when balance is 0, for either role | Rejected before the listing is verified/activated — atomic `updateMany` guarded by `balance: {gt: 0}`, never a stored/trusted balance | ✅ `admin.test.ts`, `verification-credits.test.ts` | Demo |
+| **Lifetime credit coverage** | Re-verify a listing whose `verificationCreditSpentAt` is already set (after `unverifyPropertyAction` or a `republishPropertyAction` post-`LISTING_LIFETIME_DAYS` cycle), balance at 0, for `AGENCE` and `HOTE` | Succeeds without touching the wallet — a credit is consumed AT MOST ONCE per listing, ever | ✅ `admin.test.ts` (2 dedicated regressions) + live preview proof (DB + browser: pay → expire → republish → re-verify, zero re-debit) | Demo |
+| Role-differentiated notification | Credit-blocked verification for `AGENCE` vs `HOTE` | Agency → `ANNONCE_CREDITS_VERIF_EPUISES`/`notifyAgencyOutOfVerificationCredits` → `/dashboard/abonnement`; Host → `ANNONCE_VERIF_PAIEMENT_REQUIS`/`notifyHostVerificationPaymentRequired` → `/dashboard/annonces` — never the wrong one for the wrong role | ✅ `admin.test.ts` | Demo |
+| Starter bonus granted once | Subscribe/renew Starter twice (demo and real settlement) | +3 credits ONLY on the first activation (`Subscription.starterBonusGranted`); a renewal never re-grants | ✅ `subscription-payments.test.ts`, `subscription-payment-access.test.ts` | Demo |
+| No bonus for other plans | Subscribe/renew Standard or Pro (`verificationCreditsBonus = 0`) | Wallet never touched | ✅ `subscription-payments.test.ts`, `subscription-payment-access.test.ts` | Demo |
+| Double settlement | Two `settleVerificationCreditOrder` calls, same ref (agency pack or host single-credit order) | Only first credits the wallet; second is a no-op | ✅ `verification-credit-payments.test.ts` | Demo |
+| Settlement race (webhook vs return page) | Concurrent settle, `updateMany` count 0 on the loser | Single credit applied, single audit | ✅ `verification-credit-payments.test.ts` | Demo |
+| Amount tamper | `reachedAmount < expected` (pack price or `HOST_VERIFICATION_PRICE_TND`, recomputed server-side) | Reject (`ERREUR`, no credit) | ✅ `verification-credit-payments.test.ts` | Demo |
+| Role non-bypass (agency packs) | `startVerificationCreditPaymentAction` called by a `HOTE` account | Rejected — packs only exist for agencies | ✅ `verification-credit-payment-action.test.ts` | Demo |
+| Role non-bypass (host per-unit) | `startHostVerificationPaymentAction` called by an `AGENCE` account | Rejected — per-unit payment only exists for individuals | ✅ `host-verification-payments.test.ts` | Demo |
+| Demo/real exclusivity | `buyVerificationCreditPackDemoAction`/`payHostVerificationDemoAction` while Konnect is enabled | No-op, never grants a free credit | ✅ `verification-credit-payment-action.test.ts`, `host-verification-payments.test.ts` | Demo |
+| **Webhook authenticity** | Forged/missing signature on `verification-credit-webhook` | Reject (401) without valid HMAC, same guard as the other payment webhooks | ⚠️ same shared guard as featured-webhook (covered code, no dedicated test file for this webhook yet) | Demo |
+| Reconciliation | Konnect status vs local `VerificationCreditOrder` mismatch | Detect & alert; never silent loss | ❌ | Production |
+
 ---
 
 ## 7. Auth test suite

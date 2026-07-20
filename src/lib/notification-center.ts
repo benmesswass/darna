@@ -31,7 +31,12 @@ export type NotificationType =
   | "FACTURE_BIENTOT_DUE"
   | "FACTURE_EN_RETARD"
   // Limite d'annonces actives (MONETISATION_IMMO_ROADMAP.md §MI2).
-  | "ANNONCE_LIMITE_ABONNEMENT";
+  | "ANNONCE_LIMITE_ABONNEMENT"
+  // Crédits de vérification Wakil épuisés (MONETISATION_IMMO_ROADMAP.md §MI3).
+  | "ANNONCE_CREDITS_VERIF_EPUISES"
+  // Vérification Wakil HOTE non payée (MONETISATION_IMMO_ROADMAP.md §MI3,
+  // décision Wassim du 2026-07-20 : régime à l'unité, distinct de l'agence).
+  | "ANNONCE_VERIF_PAIEMENT_REQUIS";
 
 async function createNotification(
   userId: string,
@@ -203,6 +208,41 @@ export async function notifyAgencyQuotaReached(
   await createNotification(ownerId, "ANNONCE_LIMITE_ABONNEMENT", {
     propertyTitle,
     href: "/dashboard/abonnement",
+  });
+}
+
+/**
+ * Notifie l'AGENCE qu'une de ses annonces n'a pas pu être vérifiée
+ * (MONETISATION_IMMO_ROADMAP.md §MI3) faute de crédit de vérification Wakil
+ * disponible — même patron que notifyAgencyQuotaReached (déclenchée par une
+ * action ADMIN explicite, pas de dédoublonnage : chaque tentative refusée
+ * redonne un signal légitime). Pointe vers /dashboard/abonnement, où l'achat
+ * d'un lot de crédits est proposé.
+ */
+export async function notifyAgencyOutOfVerificationCredits(
+  ownerId: string,
+  propertyTitle: string
+): Promise<void> {
+  await createNotification(ownerId, "ANNONCE_CREDITS_VERIF_EPUISES", {
+    propertyTitle,
+    href: "/dashboard/abonnement",
+  });
+}
+
+/**
+ * Notifie un HOTE (particulier) qu'une de ses annonces n'a pas pu être
+ * vérifiée (MONETISATION_IMMO_ROADMAP.md §MI3) faute d'avoir payé la
+ * vérification Wakil — régime À L'UNITÉ, distinct de l'agence (décision
+ * Wassim du 2026-07-20). Pointe vers /dashboard/annonces, où le paiement de
+ * 20 TND est proposé directement sur l'annonce concernée.
+ */
+export async function notifyHostVerificationPaymentRequired(
+  ownerId: string,
+  propertyTitle: string
+): Promise<void> {
+  await createNotification(ownerId, "ANNONCE_VERIF_PAIEMENT_REQUIS", {
+    propertyTitle,
+    href: "/dashboard/annonces",
   });
 }
 

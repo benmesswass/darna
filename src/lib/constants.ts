@@ -169,12 +169,33 @@ export type SubscriptionStatus = (typeof SUBSCRIPTION_STATUSES)[number];
  * PROVISOIRE, à réviser après un vrai test terrain. `Subscription.plan`
  * référence la clé `key` d'un palier ci-dessous.
  */
+// `verificationCreditsBonus` (MI3, décision Wassim du 2026-07-20) : crédits de
+// vérification Wakil offerts UNE SEULE FOIS à la 1re activation de ce palier
+// (jamais reconduit aux renouvellements — cf. Subscription.starterBonusGranted,
+// src/lib/subscription-payments.ts + src/actions/subscriptions.ts). Seul
+// Starter en a un ; 0 pour les autres paliers ("le reste ne change pas").
 export const AGENCY_PLANS = [
-  { key: "STARTER", label: "Starter", listingsIncluded: 3, priceTND: 50 },
-  { key: "STANDARD", label: "Standard", listingsIncluded: 10, priceTND: 100 },
-  { key: "PRO", label: "Pro", listingsIncluded: 30, priceTND: 200 },
+  { key: "STARTER", label: "Starter", listingsIncluded: 3, priceTND: 50, verificationCreditsBonus: 3 },
+  { key: "STANDARD", label: "Standard", listingsIncluded: 10, priceTND: 100, verificationCreditsBonus: 0 },
+  { key: "PRO", label: "Pro", listingsIncluded: 30, priceTND: 200, verificationCreditsBonus: 0 },
 ] as const;
 export type AgencyPlanKey = (typeof AGENCY_PLANS)[number]["key"];
+
+/**
+ * Lots de crédits de vérification Wakil pour un compte AGENCE
+ * (MONETISATION_IMMO_ROADMAP.md §MI3) — décision Wassim du 2026-07-16 :
+ * FREE_VERIFICATION_CREDITS (src/lib/config.ts) gratuites À VIE + le bonus
+ * Starter ci-dessus, puis UNIQUEMENT ces deux lots prépayés (jamais de
+ * paiement à l'unité pour une agence — cf. HOST_VERIFICATION_PRICE_TND pour
+ * le régime différent des particuliers). Prix PROVISOIRE — non confronté à
+ * une vraie agence, à réviser comme AGENCY_PLANS.
+ * `VerificationCreditOrder.credits`/`.amount` référencent un lot ci-dessous.
+ */
+export const VERIFICATION_CREDIT_PACKS = [
+  { key: "PACK10", credits: 10, priceTND: 40 },
+  { key: "PACK25", credits: 25, priceTND: 90 },
+] as const;
+export type VerificationCreditPackKey = (typeof VERIFICATION_CREDIT_PACKS)[number]["key"];
 
 export const CANCEL_POLICIES = ["FLEXIBLE", "MODEREE", "FERME", "STRICTE"] as const;
 export type CancelPolicy = (typeof CANCEL_POLICIES)[number];

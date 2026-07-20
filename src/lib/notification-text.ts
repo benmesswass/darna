@@ -48,6 +48,10 @@ export function notificationMessage(
       return fr.notifications.factureEnRetard(n.propertyTitle ?? "");
     case "ANNONCE_LIMITE_ABONNEMENT":
       return fr.notifications.annonceLimiteAbonnement(n.propertyTitle ?? "");
+    case "ANNONCE_CREDITS_VERIF_EPUISES":
+      return fr.notifications.annonceCreditsVerifEpuises(n.propertyTitle ?? "");
+    case "ANNONCE_VERIF_PAIEMENT_REQUIS":
+      return fr.notifications.annonceVerifPaiementRequis(n.propertyTitle ?? "");
     default:
       return "";
   }

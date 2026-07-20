@@ -17,7 +17,7 @@ import { z } from "zod";
 import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
-import { SITE_URL, SUBSCRIPTION_DURATION_DAYS } from "@/lib/config";
+import { SITE_URL, SUBSCRIPTION_DURATION_DAYS, FREE_VERIFICATION_CREDITS } from "@/lib/config";
 import { agencyPlan } from "@/lib/subscriptions";
 import { logAudit, logStructured } from "@/lib/audit";
 import { initKonnectPayment, isKonnectEnabled, signKonnectWebhook } from "@/lib/konnect";
@@ -42,7 +42,7 @@ export async function subscribeAgencyPlanAction(formData: FormData): Promise<voi
 
   const existing = await prisma.subscription.findUnique({
     where: { userId: user.id },
-    select: { currentPeriodEnd: true },
+    select: { currentPeriodEnd: true, starterBonusGranted: true },
   });
   // Prolongation : on part de la fin de période restante si elle est future
   // (même logique que le boost « à la une »), sinon d'aujourd'hui.
@@ -57,6 +57,24 @@ export async function subscribeAgencyPlanAction(formData: FormData): Promise<voi
     create: { userId: user.id, plan: plan.key, status: "ACTIF", currentPeriodEnd },
     update: { plan: plan.key, status: "ACTIF", currentPeriodEnd },
   });
+
+  // Bonus de crédits de vérification du palier (MI3, décision Wassim du
+  // 2026-07-20) : accordé UNE SEULE FOIS par compte — jamais reconduit aux
+  // renouvellements. Générique (ne dépend pas d'un nom de palier en dur).
+  if (plan.verificationCreditsBonus > 0 && !existing?.starterBonusGranted) {
+    await prisma.verificationWallet.upsert({
+      where: { userId: user.id },
+      create: {
+        userId: user.id,
+        balance: FREE_VERIFICATION_CREDITS + plan.verificationCreditsBonus,
+      },
+      update: { balance: { increment: plan.verificationCreditsBonus } },
+    });
+    await prisma.subscription.update({
+      where: { userId: user.id },
+      data: { starterBonusGranted: true },
+    });
+  }
 
   await logAudit({
     action: "AGENCY_SUBSCRIPTION_PAID",

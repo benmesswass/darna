@@ -445,6 +445,15 @@ export const en: Dictionary = {
     promoAlaUneTitre: "Feature your listings",
     promoAlaUneDesc:
       "Top of results and on the homepage for a month, with an eye-catching gold badge. Featured listings get seen far more often.",
+    verifWakilSolde: (n: number) =>
+      n === 1
+        ? "1 Wakil verification credit available."
+        : n === 0
+          ? "No verification credit — pay per listing to get a Wakil verification."
+          : `${n} Wakil verification credits available.`,
+    verifWakilPrix: "Verification price",
+    verifWakilPayer: "Pay for verification",
+    verifWakilPayerSimulation: "Pay for verification (simulation)",
     aucuneReservation: "No bookings yet.",
     aucuneReservationCta: "Find your next stay among our verified listings.",
     aucuneReservationHote: "No guest has booked your listings yet.",
@@ -717,6 +726,10 @@ export const en: Dictionary = {
       "The owner must be KYC-verified for the listing to receive the badge.",
     limiteAbonnementAtteinte: (limite: number) =>
       `This agency account has reached its active-listings limit (${limite}). Invite it to subscribe or renew its plan (/dashboard/abonnement) before approving another listing.`,
+    creditsVerificationEpuises:
+      "This agency account has no verification credits left. Invite it to buy a pack (/dashboard/abonnement) before verifying another listing.",
+    hostVerificationPaiementRequis:
+      "This individual has not yet paid for the Wakil verification of this listing (20 TND). Invite them to pay from /dashboard/annonces before verifying it.",
     aucuneAnnonce: "No active listings at the moment.",
     annoncesDejVerifiees: "Already verified listings",
     candidaturesWakil: "Wakil applications",
@@ -1311,6 +1324,10 @@ export const en: Dictionary = {
       `Your commission invoice for “${titre}” is now overdue.`,
     annonceLimiteAbonnement: (titre: string) =>
       `Your listing “${titre}” can't be published yet — you've reached your active-listings limit. See subscription options.`,
+    annonceCreditsVerifEpuises: (titre: string) =>
+      `Your listing “${titre}” could not be verified — you have no verification credits left. Buy a pack to continue.`,
+    annonceVerifPaiementRequis: (titre: string) =>
+      `Your listing “${titre}” could not be verified — pay for the Wakil verification (20 TND) so an agent can process it.`,
   },
   alaUne: {
     titre: "Feature your listing",
@@ -1394,6 +1411,18 @@ export const en: Dictionary = {
     garantie:
       "No auto-renewal: Konnect never charges you on its own, you choose when to renew.",
     reserveAgence: "This page is reserved for agency accounts.",
+    creditsVerifTitre: "Wakil verification credits",
+    creditsVerifSousTitre: (n: number) =>
+      n === 1
+        ? "Each Wakil verification uses one credit. The first one is free, for life."
+        : `Each Wakil verification uses one credit. The first ${n} are free, for life.`,
+    creditsVerifSolde: (n: number) =>
+      n === 1 ? "1 verification credit left" : `${n} verification credits left`,
+    creditsVerifEpuiseAlerte:
+      "You have no verification credits left — your pending listings won't be verified until you buy a pack.",
+    creditsVerifPackLabel: (n: number) => `${n} verifications`,
+    creditsVerifAcheter: "Buy",
+    creditsVerifAcheterSimulation: "Buy (simulation)",
   },
   contact: {
     titre: "Contact the advertiser",

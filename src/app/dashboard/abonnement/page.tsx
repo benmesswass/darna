@@ -6,8 +6,10 @@ import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { subscribeAgencyPlanAction } from "@/actions/subscriptions";
+import { buyVerificationCreditPackDemoAction } from "@/actions/verification-credits";
 import { settleSubscriptionPayment } from "@/lib/subscription-payments";
-import { AGENCY_PLANS } from "@/lib/constants";
+import { settleVerificationCreditOrder } from "@/lib/verification-credit-payments";
+import { AGENCY_PLANS, VERIFICATION_CREDIT_PACKS } from "@/lib/constants";
 import { isKonnectEnabled } from "@/lib/konnect";
 import {
   activeListingsLimit,
@@ -16,20 +18,23 @@ import {
   isSubscriptionActive,
   listingUnitCost,
 } from "@/lib/subscriptions";
+import { verificationCreditsRemaining } from "@/lib/verification-credits";
+import { FREE_VERIFICATION_CREDITS } from "@/lib/config";
 import { SubscriptionPayButton } from "@/components/dashboard/SubscriptionPayButton";
+import { VerificationCreditPayButton } from "@/components/dashboard/VerificationCreditPayButton";
 import { formatDateFr } from "@/lib/format";
 import { Price } from "@/components/currency/Price";
-import { CoinsIcon } from "@/components/icons";
+import { CoinsIcon, ShieldIcon } from "@/components/icons";
 
 export const metadata: Metadata = { title: frMeta.abonnement.titre };
 
 export default async function AbonnementPage({
   searchParams,
 }: {
-  searchParams: Promise<{ konnect?: string }>;
+  searchParams: Promise<{ konnect?: string; vid?: string }>;
 }) {
   const fr = await getT();
-  const { konnect } = await searchParams;
+  const { konnect, vid } = await searchParams;
   const user = await getSessionUser();
   if (!user) redirect("/connexion");
   if (user.role !== "AGENCE") redirect("/dashboard/annonces");
@@ -46,6 +51,13 @@ export default async function AbonnementPage({
     await settleSubscriptionPayment({ subscriptionId: subscription.id });
     subscription = await prisma.subscription.findUnique({ where: { userId: user.id } });
   }
+
+  // Idem pour un achat de lot de crédits de vérification (MI3) — identifié par
+  // `vid` (une ligne PAR ACHAT, contrairement à Subscription).
+  if (konnectEnabled && konnect === "success" && vid) {
+    await settleVerificationCreditOrder({ orderId: vid });
+  }
+  const verificationCredits = await verificationCreditsRemaining(user.id, user.role);
 
   const activeCount = await countActiveListings(user.id);
   const isActive = isSubscriptionActive(subscription);
@@ -191,6 +203,78 @@ export default async function AbonnementPage({
         </div>
 
         <p className="mt-4 text-center text-xs text-body/50">{fr.abonnement.garantie}</p>
+      </div>
+
+      <div className="mt-6 rounded-3xl bg-surface p-8 ring-1 ring-darna/10">
+        <h2 className="flex items-center gap-2 text-xl font-bold text-heading">
+          <ShieldIcon width={20} height={20} className="text-amber-500" />
+          {fr.abonnement.creditsVerifTitre}
+        </h2>
+        <p className="mt-2 text-sm text-body/70">
+          {fr.abonnement.creditsVerifSousTitre(FREE_VERIFICATION_CREDITS)}
+        </p>
+
+        <p className="mt-4 text-sm font-semibold text-body">
+          {fr.abonnement.creditsVerifSolde(verificationCredits)}
+        </p>
+
+        {verificationCredits <= 0 ? (
+          <p
+            role="alert"
+            className="mt-3 rounded-xl bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700"
+          >
+            {fr.abonnement.creditsVerifEpuiseAlerte}
+          </p>
+        ) : null}
+
+        {!konnectEnabled ? (
+          <p className="mt-5 flex items-start gap-2 rounded-xl bg-sand-light/50 px-4 py-3 text-xs font-medium text-darna-dark">
+            <CoinsIcon width={16} height={16} className="mt-0.5 shrink-0" />
+            {fr.abonnement.mockInfo}
+          </p>
+        ) : konnect === "fail" && vid ? (
+          <p
+            role="alert"
+            className="mt-5 rounded-xl bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700"
+          >
+            {fr.abonnement.paiementEchoue}
+          </p>
+        ) : konnect === "success" && vid ? (
+          <p className="mt-5 flex items-center justify-between gap-3 rounded-xl bg-sand-light/50 px-4 py-2.5 text-sm font-medium text-darna-dark">
+            {fr.abonnement.paiementEnVerification}
+            <Link href="/dashboard/abonnement" className="shrink-0 font-bold underline">
+              {fr.abonnement.actualiser}
+            </Link>
+          </p>
+        ) : null}
+
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          {VERIFICATION_CREDIT_PACKS.map((pack) => (
+            <div key={pack.key} className="rounded-2xl border border-darna/15 p-5">
+              <p className="font-bold text-heading">
+                {fr.abonnement.creditsVerifPackLabel(pack.credits)}
+              </p>
+              <div className="mt-3">
+                <Price amount={pack.priceTND} className="text-2xl font-bold text-heading" />
+              </div>
+
+              {konnectEnabled ? (
+                <VerificationCreditPayButton pack={pack.key} label={fr.abonnement.creditsVerifAcheter} />
+              ) : (
+                <form action={buyVerificationCreditPackDemoAction} className="mt-4">
+                  <input type="hidden" name="pack" value={pack.key} />
+                  <button
+                    type="submit"
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-amber-400 px-4 py-3 text-sm font-bold text-darna-dark transition hover:bg-amber-300"
+                  >
+                    <CoinsIcon width={16} height={16} />
+                    {fr.abonnement.creditsVerifAcheterSimulation}
+                  </button>
+                </form>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

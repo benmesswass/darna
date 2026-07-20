@@ -15,6 +15,10 @@ vi.mock("@/lib/prisma", () => ({
     subscription: {
       findFirst: vi.fn(),
       updateMany: vi.fn(),
+      update: vi.fn(),
+    },
+    verificationWallet: {
+      upsert: vi.fn(),
     },
   },
 }));
@@ -34,6 +38,8 @@ import { logAudit } from "@/lib/audit";
 
 const findFirst = prisma.subscription.findFirst as unknown as Mock;
 const updateMany = prisma.subscription.updateMany as unknown as Mock;
+const subUpdate = prisma.subscription.update as unknown as Mock;
+const walletUpsert = prisma.verificationWallet.upsert as unknown as Mock;
 const getPayment = getKonnectPayment as unknown as Mock;
 const audit = logAudit as unknown as Mock;
 
@@ -44,6 +50,7 @@ type SubRow = {
   status: string;
   currentPeriodEnd: Date | null;
   paymentRef: string | null;
+  starterBonusGranted: boolean;
 };
 
 function row(over: Partial<SubRow> = {}): SubRow {
@@ -54,6 +61,7 @@ function row(over: Partial<SubRow> = {}): SubRow {
     status: "EN_ATTENTE",
     currentPeriodEnd: null,
     paymentRef: "pay_1",
+    starterBonusGranted: false,
     ...over,
   };
 }
@@ -73,6 +81,8 @@ describe("settleSubscriptionPayment", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     updateMany.mockResolvedValue({ count: 1 });
+    subUpdate.mockResolvedValue({});
+    walletUpsert.mockResolvedValue({});
   });
 
   it("retourne INTROUVABLE pour une référence inconnue (inoffensif)", async () => {
@@ -153,5 +163,44 @@ describe("settleSubscriptionPayment", () => {
     // Le nouveau cycle a déjà changé paymentRef → findFirst({ paymentRef: "old" }) ne trouve rien.
     findFirst.mockResolvedValue(null);
     expect(await settleSubscriptionPayment({ paymentRef: "old" })).toBe("INTROUVABLE");
+  });
+
+  // ── MI3bis (décision Wassim du 2026-07-20) : bonus de crédits Starter ──────
+
+  it("accorde le bonus de 3 crédits de vérification au règlement réel d'une 1re souscription Starter", async () => {
+    findFirst.mockResolvedValue(
+      row({ plan: "STARTER", starterBonusGranted: false })
+    );
+    getPayment.mockResolvedValue(payment({ reachedAmount: 50_000 })); // = 50 TND (Starter)
+
+    expect(await settleSubscriptionPayment({ paymentRef: "pay_1" })).toBe("ACTIF");
+    expect(walletUpsert).toHaveBeenCalledWith({
+      where: { userId: "agence_1" },
+      create: { userId: "agence_1", balance: 1 + 3 }, // FREE_VERIFICATION_CREDITS + bonus
+      update: { balance: { increment: 3 } },
+    });
+    expect(subUpdate).toHaveBeenCalledWith({
+      where: { id: "sub_1" },
+      data: { starterBonusGranted: true },
+    });
+  });
+
+  it("NE reconduit PAS le bonus Starter à un renouvellement réel (déjà accordé)", async () => {
+    findFirst.mockResolvedValue(
+      row({ plan: "STARTER", starterBonusGranted: true })
+    );
+    getPayment.mockResolvedValue(payment({ reachedAmount: 50_000 }));
+
+    expect(await settleSubscriptionPayment({ paymentRef: "pay_1" })).toBe("ACTIF");
+    expect(walletUpsert).not.toHaveBeenCalled();
+    expect(subUpdate).not.toHaveBeenCalled();
+  });
+
+  it("n'accorde aucun bonus pour un règlement Standard/Pro (verificationCreditsBonus = 0)", async () => {
+    findFirst.mockResolvedValue(row({ plan: "STANDARD", starterBonusGranted: false }));
+    getPayment.mockResolvedValue(payment());
+
+    expect(await settleSubscriptionPayment({ paymentRef: "pay_1" })).toBe("ACTIF");
+    expect(walletUpsert).not.toHaveBeenCalled();
   });
 });

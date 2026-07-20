@@ -17,7 +17,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { getKonnectPayment, tndToMillimes } from "@/lib/konnect";
-import { SUBSCRIPTION_DURATION_DAYS } from "@/lib/config";
+import { SUBSCRIPTION_DURATION_DAYS, FREE_VERIFICATION_CREDITS } from "@/lib/config";
 import { agencyPlan } from "@/lib/subscriptions";
 import { logAudit, logStructured } from "@/lib/audit";
 
@@ -39,6 +39,7 @@ export async function settleSubscriptionPayment(
       status: true,
       currentPeriodEnd: true,
       paymentRef: true,
+      starterBonusGranted: true,
     },
   });
 
@@ -97,6 +98,26 @@ export async function settleSubscriptionPayment(
     data: { status: "ACTIF", currentPeriodEnd, paymentRef: null },
   });
   if (updated.count === 0) return "ACTIF";
+
+  // Bonus de crédits de vérification du palier (MI3, décision Wassim du
+  // 2026-07-20) : accordé UNE SEULE FOIS par compte, jamais reconduit aux
+  // renouvellements (cf. Subscription.starterBonusGranted). Générique — ne
+  // dépend pas d'un nom de palier en dur, seulement de `verificationCreditsBonus`
+  // (aujourd'hui non nul uniquement pour Starter).
+  if (plan.verificationCreditsBonus > 0 && !subscription.starterBonusGranted) {
+    await prisma.verificationWallet.upsert({
+      where: { userId: subscription.userId },
+      create: {
+        userId: subscription.userId,
+        balance: FREE_VERIFICATION_CREDITS + plan.verificationCreditsBonus,
+      },
+      update: { balance: { increment: plan.verificationCreditsBonus } },
+    });
+    await prisma.subscription.update({
+      where: { id: subscription.id },
+      data: { starterBonusGranted: true },
+    });
+  }
 
   await logAudit({
     action: "AGENCY_SUBSCRIPTION_PAID",

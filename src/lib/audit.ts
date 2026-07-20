@@ -67,7 +67,11 @@ export type AuditAction =
   // Abonnement agence (MONETISATION_IMMO_ROADMAP.md §MI2).
   | "AGENCY_SUBSCRIPTION_PAYMENT_INITIATED"
   | "AGENCY_SUBSCRIPTION_PAYMENT_FAILED"
-  | "AGENCY_SUBSCRIPTION_PAID";
+  | "AGENCY_SUBSCRIPTION_PAID"
+  // Crédits de vérification Wakil (MONETISATION_IMMO_ROADMAP.md §MI3).
+  | "VERIFICATION_CREDIT_PAYMENT_INITIATED"
+  | "VERIFICATION_CREDIT_PAYMENT_FAILED"
+  | "VERIFICATION_CREDIT_PURCHASED";
 
 /**
  * Audit trail — chaque événement sensible est enregistré avec userId, IP et
