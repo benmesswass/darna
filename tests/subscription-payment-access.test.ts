@@ -205,4 +205,21 @@ describe("subscribeAgencyPlanAction (démo) — garde d'exclusivité et rôle", 
 
     expect(walletUpsert).not.toHaveBeenCalled();
   });
+
+  // ── MI4 (décision Wassim du 2026-07-20) : boost offert par cycle ───────────
+
+  it("remet freeBoostUsedAt à null à chaque règlement démo (nouveau cycle, MI4)", async () => {
+    isKonnectEnabledMock.mockReturnValue(false);
+    requireUserMock.mockResolvedValue(AGENCE);
+    subFindUnique.mockResolvedValue(null);
+
+    await subscribeAgencyPlanAction(planForm("PRO"));
+
+    expect(subUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        create: expect.objectContaining({ freeBoostUsedAt: null }),
+        update: expect.objectContaining({ freeBoostUsedAt: null }),
+      })
+    );
+  });
 });

@@ -9,6 +9,7 @@ import { describe, expect, it } from "vitest";
 import {
   activeListingsLimit,
   cheapestPlanForQuota,
+  hasUnclaimedFreeBoost,
   isSubscriptionActive,
   listingUnitCost,
 } from "@/lib/subscriptions";
@@ -74,6 +75,70 @@ describe("activeListingsLimit", () => {
     expect(
       activeListingsLimit("AGENCE", { status: "ACTIF", plan: "INEXISTANT", currentPeriodEnd: future })
     ).toBe(FREE_TIER_LISTINGS_LIMIT);
+  });
+});
+
+describe("hasUnclaimedFreeBoost", () => {
+  const PRO = AGENCY_PLANS.find((p) => p.key === "PRO")!;
+  const NON_BOOST_PLAN = AGENCY_PLANS.find((p) => !p.freeBoostPerCycle)!;
+
+  it("false pour null (aucun abonnement)", () => {
+    expect(hasUnclaimedFreeBoost(null)).toBe(false);
+  });
+
+  it("false pour un abonnement EN_ATTENTE (pas encore actif)", () => {
+    expect(
+      hasUnclaimedFreeBoost({
+        status: "EN_ATTENTE",
+        plan: PRO.key,
+        currentPeriodEnd: future,
+        freeBoostUsedAt: null,
+      })
+    ).toBe(false);
+  });
+
+  it("false pour un abonnement ACTIF mais expiré (EXPIRE dérivé)", () => {
+    expect(
+      hasUnclaimedFreeBoost({
+        status: "ACTIF",
+        plan: PRO.key,
+        currentPeriodEnd: past,
+        freeBoostUsedAt: null,
+      })
+    ).toBe(false);
+  });
+
+  it("false pour un palier sans freeBoostPerCycle", () => {
+    expect(
+      hasUnclaimedFreeBoost({
+        status: "ACTIF",
+        plan: NON_BOOST_PLAN.key,
+        currentPeriodEnd: future,
+        freeBoostUsedAt: null,
+      })
+    ).toBe(false);
+  });
+
+  it("false si le boost du cycle est déjà consommé (non cumulable)", () => {
+    expect(
+      hasUnclaimedFreeBoost({
+        status: "ACTIF",
+        plan: PRO.key,
+        currentPeriodEnd: future,
+        freeBoostUsedAt: new Date(),
+      })
+    ).toBe(false);
+  });
+
+  it("true pour un abonnement Pro actif n'ayant pas encore consommé son boost ce cycle", () => {
+    expect(
+      hasUnclaimedFreeBoost({
+        status: "ACTIF",
+        plan: PRO.key,
+        currentPeriodEnd: future,
+        freeBoostUsedAt: null,
+      })
+    ).toBe(true);
   });
 });
 

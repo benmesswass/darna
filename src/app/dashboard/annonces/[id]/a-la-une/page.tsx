@@ -5,11 +5,12 @@ import { fr as frMeta } from "@/lib/i18n/fr";
 import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
-import { featureListingAction } from "@/actions/properties";
+import { claimFreeFeaturedBoostAction, featureListingAction } from "@/actions/properties";
 import { FEATURED_DURATION_DAYS, FEATURED_PRICE_TND } from "@/lib/config";
 import { isListingFeatured } from "@/lib/listings";
 import { isKonnectEnabled } from "@/lib/konnect";
 import { settleFeaturedOrder } from "@/lib/featured-payments";
+import { hasUnclaimedFreeBoost } from "@/lib/subscriptions";
 import { FeaturedPayButton } from "@/components/dashboard/FeaturedPayButton";
 import { formatDateFr } from "@/lib/format";
 import { Price } from "@/components/currency/Price";
@@ -62,6 +63,19 @@ export default async function AlaUnePage({
     property.status === "ACTIVE" && property.expiresAt.getTime() > Date.now();
   const alreadyFeatured = isListingFeatured(property.featuredUntil);
 
+  // Boost offert par abonnement (MI4) — seuls les comptes AGENCE ont une
+  // Subscription ; inutile d'interroger la table pour un HOTE.
+  const subscription =
+    user.role === "AGENCE"
+      ? await prisma.subscription.findUnique({
+          where: { userId: user.id },
+          select: { status: true, plan: true, currentPeriodEnd: true, freeBoostUsedAt: true },
+        })
+      : null;
+  const canClaimFreeBoost = eligible && hasUnclaimedFreeBoost(subscription);
+  const freeBoostAlreadyUsedThisCycle =
+    eligible && !canClaimFreeBoost && subscription?.freeBoostUsedAt != null;
+
   const advantages = [
     { titre: fr.alaUne.avantage1Titre, desc: fr.alaUne.avantage1Desc },
     { titre: fr.alaUne.avantage2Titre, desc: fr.alaUne.avantage2Desc },
@@ -112,6 +126,29 @@ export default async function AlaUnePage({
             {alreadyFeatured && property.featuredUntil ? (
               <p className="mt-5 rounded-xl bg-amber-50 px-4 py-3 text-xs font-medium text-amber-700">
                 {fr.alaUne.prolongerInfo(formatDateFr(property.featuredUntil))}
+              </p>
+            ) : null}
+
+            {canClaimFreeBoost ? (
+              <div className="mt-5 rounded-2xl bg-emerald-50 p-4 ring-1 ring-emerald-200">
+                <p className="text-sm font-semibold text-emerald-800">
+                  {fr.alaUne.boostOffertTitre}
+                </p>
+                <p className="mt-1 text-xs text-emerald-700/80">{fr.alaUne.boostOffertDesc}</p>
+                <form action={claimFreeFeaturedBoostAction} className="mt-3">
+                  <input type="hidden" name="propertyId" value={property.id} />
+                  <button
+                    type="submit"
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-emerald-500"
+                  >
+                    <StarIcon width={16} height={16} className="fill-current" />
+                    {fr.alaUne.boostOffertBouton}
+                  </button>
+                </form>
+              </div>
+            ) : freeBoostAlreadyUsedThisCycle ? (
+              <p className="mt-5 rounded-xl bg-cream px-4 py-3 text-xs font-medium text-body/70">
+                {fr.alaUne.boostOffertDejaUtilise}
               </p>
             ) : null}
 

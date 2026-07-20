@@ -52,10 +52,13 @@ export async function subscribeAgencyPlanAction(formData: FormData): Promise<voi
       : Date.now();
   const currentPeriodEnd = new Date(base + SUBSCRIPTION_DURATION_DAYS * 24 * 60 * 60 * 1000);
 
+  // freeBoostUsedAt reset à null : nouveau cycle à chaque souscription/
+  // renouvellement, même mécanique que le règlement Konnect réel (MI4,
+  // cf. settleSubscriptionPayment).
   await prisma.subscription.upsert({
     where: { userId: user.id },
-    create: { userId: user.id, plan: plan.key, status: "ACTIF", currentPeriodEnd },
-    update: { plan: plan.key, status: "ACTIF", currentPeriodEnd },
+    create: { userId: user.id, plan: plan.key, status: "ACTIF", currentPeriodEnd, freeBoostUsedAt: null },
+    update: { plan: plan.key, status: "ACTIF", currentPeriodEnd, freeBoostUsedAt: null },
   });
 
   // Bonus de crédits de vérification du palier (MI3, décision Wassim du

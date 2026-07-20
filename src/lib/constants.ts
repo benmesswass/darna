@@ -174,10 +174,35 @@ export type SubscriptionStatus = (typeof SUBSCRIPTION_STATUSES)[number];
 // (jamais reconduit aux renouvellements — cf. Subscription.starterBonusGranted,
 // src/lib/subscription-payments.ts + src/actions/subscriptions.ts). Seul
 // Starter en a un ; 0 pour les autres paliers ("le reste ne change pas").
+// `freeBoostPerCycle` (MI4, décision Wassim du 2026-07-20) : 1 boost « à la
+// une » offert PAR CYCLE (non cumulable, remis à zéro à chaque règlement —
+// cf. Subscription.freeBoostUsedAt). Générique comme verificationCreditsBonus
+// — seul Pro l'a aujourd'hui, false pour les autres paliers.
 export const AGENCY_PLANS = [
-  { key: "STARTER", label: "Starter", listingsIncluded: 3, priceTND: 50, verificationCreditsBonus: 3 },
-  { key: "STANDARD", label: "Standard", listingsIncluded: 10, priceTND: 100, verificationCreditsBonus: 0 },
-  { key: "PRO", label: "Pro", listingsIncluded: 30, priceTND: 200, verificationCreditsBonus: 0 },
+  {
+    key: "STARTER",
+    label: "Starter",
+    listingsIncluded: 3,
+    priceTND: 50,
+    verificationCreditsBonus: 3,
+    freeBoostPerCycle: false,
+  },
+  {
+    key: "STANDARD",
+    label: "Standard",
+    listingsIncluded: 10,
+    priceTND: 100,
+    verificationCreditsBonus: 0,
+    freeBoostPerCycle: false,
+  },
+  {
+    key: "PRO",
+    label: "Pro",
+    listingsIncluded: 30,
+    priceTND: 200,
+    verificationCreditsBonus: 0,
+    freeBoostPerCycle: true,
+  },
 ] as const;
 export type AgencyPlanKey = (typeof AGENCY_PLANS)[number]["key"];
 

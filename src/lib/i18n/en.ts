@@ -1364,6 +1364,12 @@ export const en: Dictionary = {
       "This listing can't be featured: it must be active and online.",
     garantie:
       "You stay in control: at the end of the month your listing simply returns to its normal display. No auto-renewal.",
+    boostOffertTitre: "Free boost with your Pro plan",
+    boostOffertDesc:
+      "Your plan includes 1 free featured boost per month, non-cumulative. Use it on this listing at no cost.",
+    boostOffertBouton: "Use my free boost",
+    boostOffertDejaUtilise:
+      "Free boost already used for this billing cycle — available again at your next renewal.",
   },
   abonnement: {
     titre: "Agency subscription",
