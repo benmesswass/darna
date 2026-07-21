@@ -1,11 +1,18 @@
 import Link from "next/link";
 import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
-import { activeListingWhere, getAlaUneListings, getFeaturedListings } from "@/lib/listings";
+import {
+  activeListingWhere,
+  getAlaUneListings,
+  getFeaturedListings,
+  getRecentVerifications,
+} from "@/lib/listings";
 import { getSessionUser } from "@/lib/session";
 import { immoEnabled, stayEnabled } from "@/lib/modes";
 import { getFavoriteContext, favoritePropFor } from "@/lib/favorites";
 import { GOUVERNORATS } from "@/lib/geo";
+import { VERIFIED_LISTINGS_TARGET } from "@/lib/constants";
+import { formatDateFr } from "@/lib/format";
 import { PropertyCard } from "@/components/property/PropertyCard";
 import { HomeHero } from "@/components/layout/HomeHero";
 import { ScrollRevealGrid } from "@/components/ui/ScrollRevealGrid";
@@ -24,13 +31,14 @@ const POPULAR_CITIES = ["Hammamet", "Djerba", "Sousse", "La Marsa", "Tozeur"];
 
 export default async function HomePage() {
   const fr = await getT();
-  const [alaUne, featured, verifiedCount, activeCities, reviewCount] =
+  const [alaUne, featured, verifiedCount, activeCities, reviewCount, recentVerifications] =
     await Promise.all([
       getAlaUneListings(4),
       getFeaturedListings(6),
       prisma.property.count({ where: { ...activeListingWhere(), verified: true } }),
       prisma.property.groupBy({ by: ["city"], where: activeListingWhere() }),
       prisma.review.count(),
+      getRecentVerifications(5),
     ]);
   const favCtx = await getFavoriteContext((await getSessionUser())?.id);
   return (
@@ -48,6 +56,53 @@ export default async function HomePage() {
           reviews: reviewCount,
         }}
       />
+
+      {/* Mur de la confiance en direct (G10) — progression vers l'objectif
+          north-star + dernières vérifications (ville + date, zéro donnée
+          personnelle). Masqué s'il n'y a encore aucune vérification. */}
+      {recentVerifications.length > 0 ? (
+        <section className="mx-auto max-w-7xl px-4 pt-14 sm:px-6">
+          <div className="rounded-3xl bg-cream p-6 ring-1 ring-darna/5 sm:p-8">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-xl font-bold text-heading sm:text-2xl">
+                {fr.home.liveTrustTitle}
+              </h2>
+              <Link
+                href="/sejours"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-heading hover:text-darna-light"
+              >
+                {fr.home.liveTrustCta}
+                <ArrowRightIcon width={15} height={15} />
+              </Link>
+            </div>
+            <div className="mt-4">
+              <div className="h-2 w-full overflow-hidden rounded-full bg-darna/10">
+                <div
+                  className="h-full rounded-full bg-darna"
+                  style={{
+                    width: `${Math.min(100, Math.round((verifiedCount / VERIFIED_LISTINGS_TARGET) * 100))}%`,
+                  }}
+                />
+              </div>
+              <p className="mt-2 text-sm text-body/70">
+                {fr.home.liveTrustProgress(verifiedCount, VERIFIED_LISTINGS_TARGET)}
+              </p>
+            </div>
+            <ScrollRevealGrid className="mt-5 flex flex-wrap gap-2">
+              {recentVerifications
+                .filter((p) => p.verifiedAt !== null)
+                .map((p) => (
+                  <span
+                    key={p.id}
+                    className="rounded-full bg-surface px-3.5 py-1.5 text-sm text-body ring-1 ring-darna/10"
+                  >
+                    {fr.home.liveTrustItem(p.city, formatDateFr(p.verifiedAt as Date))}
+                  </span>
+                ))}
+            </ScrollRevealGrid>
+          </div>
+        </section>
+      ) : null}
 
       {/* La différence entre les deux verticales — clarifie le produit */}
       <section className="mx-auto max-w-7xl px-4 pt-14 sm:px-6">
