@@ -261,3 +261,12 @@ export function parseAmenitiesParam(value: string | string[] | undefined): Ameni
   const raw = value === undefined ? [] : Array.isArray(value) ? value : [value];
   return [...new Set(raw.filter((v): v is Amenity => (AMENITIES as readonly string[]).includes(v)))];
 }
+
+/**
+ * Cookie visiteur anonyme (INSTRUMENTATION_ROADMAP.md §IN0) — corrèle un
+ * parcours produit avant inscription. Posé par le middleware (Edge), lu par
+ * src/lib/product-events.ts (Node). Constante partagée ici — zéro dépendance
+ * dans ce fichier — pour rester importable depuis le middleware sans tirer
+ * Prisma dans le bundle Edge.
+ */
+export const VISITOR_COOKIE = "darna-vid";
