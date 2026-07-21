@@ -7,11 +7,14 @@ export function BadgeTooltip({
   label,
   description,
   criteria,
+  meta,
 }: {
   children: React.ReactNode;
   label: string;
   description: string;
   criteria?: string;
+  /** Info spécifique à cette instance (ex. vérificateur + date) — distincte de `criteria` (politique générale). */
+  meta?: string;
 }) {
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const ref = useRef<HTMLSpanElement>(null);
@@ -38,6 +41,7 @@ export function BadgeTooltip({
           >
             <p className="text-[11px] font-bold uppercase tracking-wide text-body/40">{label}</p>
             <p className="mt-1 text-xs leading-relaxed text-body/80">{description}</p>
+            {meta && <p className="mt-1 text-[11px] font-medium text-body/60">{meta}</p>}
             {criteria && (
               <p className="mt-2 border-t border-black/6 pt-2 text-[10px] font-semibold uppercase tracking-wide text-body/40">
                 {criteria}

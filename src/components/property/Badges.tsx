@@ -49,6 +49,7 @@ export async function VerifiedBadge({
         label={fr.badges.verifieOnSite}
         description={fr.property.verifieOnSiteTooltip}
         criteria={fr.property.verifieOnSiteCriteres}
+        meta={small && verifierName && dateStr ? `${fr.property.verifiePar(verifierName)} · ${dateStr}` : undefined}
       >
         <span
           className={`inline-flex items-center gap-1.5 rounded-full border-2 border-amber-400 bg-amber-50 font-bold text-amber-800 shadow-md ${
@@ -78,6 +79,7 @@ export async function VerifiedBadge({
         label={fr.badges.verifieRemote}
         description={fr.property.verifieRemoteTooltip}
         criteria={fr.property.verifieRemoteCriteres}
+        meta={small && verifierName && dateStr ? `${fr.property.verifiePar(verifierName)} · ${dateStr}` : undefined}
       >
         <span
           className={`inline-flex items-center gap-1.5 rounded-full border-2 border-blue-300 bg-blue-50 font-semibold text-blue-800 shadow-sm ${

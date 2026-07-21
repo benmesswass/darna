@@ -76,7 +76,14 @@ export async function PropertyCard({
           >
             {featured ? <FeaturedBadge small /> : null}
             {showType ? <TypeBadge type={property.type} /> : null}
-            {property.verified ? <VerifiedBadge small level={property.verificationLevel ?? null} /> : null}
+            {property.verified ? (
+              <VerifiedBadge
+                small
+                level={property.verificationLevel ?? null}
+                verifierName={property.verifiedBy?.name}
+                verifiedAt={property.verifiedAt}
+              />
+            ) : null}
           </div>
           <div className="absolute bottom-3 start-3">
             <FreshnessBadge publishedAt={property.publishedAt} />
