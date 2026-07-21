@@ -752,6 +752,20 @@ export async function getAlaUneListings(take = 4) {
   });
 }
 
+/**
+ * Dernières vérifications pour le mur de la confiance en direct de l'accueil
+ * (G10, `GROWTH_ROADMAP.md`). Ville + date uniquement — zéro donnée
+ * personnelle (ni propriétaire, ni Wakil, ni titre d'annonce).
+ */
+export async function getRecentVerifications(take = 5) {
+  return prisma.property.findMany({
+    where: { ...activeListingWhere(), verified: true },
+    select: { id: true, city: true, verifiedAt: true },
+    orderBy: { verifiedAt: "desc" },
+    take,
+  });
+}
+
 /** Nombre de jours depuis la publication (badge fraîcheur). */
 export function daysSincePublication(publishedAt: Date): number {
   return Math.floor((Date.now() - publishedAt.getTime()) / (24 * 60 * 60 * 1000));

@@ -82,6 +82,11 @@ export const fr = {
     wakilDesc:
       "Rejoignez le réseau d'agents de confiance qui vérifient les biens sur le terrain et gagnez un revenu complémentaire.",
     wakilCta: "Postuler",
+    liveTrustTitle: "La confiance en direct",
+    liveTrustProgress: (count: number, target: number) =>
+      `${count} / ${target} annonces vérifiées vers notre objectif`,
+    liveTrustItem: (city: string, date: string) => `${city} · vérifiée le ${date}`,
+    liveTrustCta: "Voir les annonces vérifiées",
   },
   footer: {
     baseline: "La confiance est notre produit.",

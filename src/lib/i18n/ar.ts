@@ -85,6 +85,11 @@ export const ar: Dictionary = {
     wakilDesc:
       "انضم لشبكة وكلاء الثقة اللي يتثبتوا من العقارات في عين المكان واربح دخل إضافي.",
     wakilCta: "قدّم مطلبك",
+    liveTrustTitle: "الثقة مباشرة",
+    liveTrustProgress: (count: number, target: number) =>
+      `${count} من ${target} إعلان موثّق نحو هدفنا`,
+    liveTrustItem: (city: string, date: string) => `${city} · توثيق في ${date}`,
+    liveTrustCta: "شوف الإعلانات الموثّقة",
   },
   footer: {
     baseline: "الثقة هي المنتوج متاعنا.",

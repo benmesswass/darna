@@ -82,6 +82,11 @@ export const en: Dictionary = {
     wakilDesc:
       "Join the network of trusted agents who verify properties on the ground and earn extra income.",
     wakilCta: "Apply",
+    liveTrustTitle: "Trust, live",
+    liveTrustProgress: (count: number, target: number) =>
+      `${count} / ${target} verified listings toward our goal`,
+    liveTrustItem: (city: string, date: string) => `${city} · verified on ${date}`,
+    liveTrustCta: "See verified listings",
   },
   footer: {
     baseline: "Trust is our product.",
