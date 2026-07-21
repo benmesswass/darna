@@ -56,10 +56,10 @@ ligne G9 par `✅ Voir CR0-CR2 (CROISSANCE_ROADMAP.md)`.
 | # | Tâche | Prio source | Roadmap | Note |
 |---|---|---|---|---|
 | 1 | **IN1** — Funnel de découverte (`SEARCH_PERFORMED`, `BOOKING_STARTED`) | P1 | INSTRUMENTATION | À lancer tôt : capture une baseline avant que les leviers growth ci-dessous ne changent le comportement |
-| 2 | **G8** — Fraîcheur de vérification en résultats de recherche | P2 | GROWTH | Wiring pur, donnée déjà en base |
+| 2 | **G8** — Fraîcheur de vérification en résultats de recherche | P2 | GROWTH | ✅ PR #165 |
 | 3 | **G10** — Mur de la confiance en direct (home) | P2 | GROWTH | ✅ PR #167 |
 | 4 | **G4** — Défi « Hôte Zéro Faille » | P2 | GROWTH | Réutilise le rail MI4 existant |
-| 5 | **PM0** — Fondations promo hôte (`promoPrice`/`promoUntil`) | P0 | CROISSANCE | ⚠️ voir note ci-dessous |
+| 5 | **PM0** — Fondations promo hôte (`promoPrice`/`promoUntil`) | P0 | CROISSANCE | 🔧 PR en attente de revue/merge |
 
 ⚠️ **PM1 (UI badge promo) et G8 (badge fraîcheur vérif) touchent probablement
 tous les deux `PropertyCard.tsx`/`Badges.tsx`.** Ne pas lancer PM1 en même

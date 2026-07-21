@@ -68,7 +68,7 @@ réduction affichée, jamais plus, sauf mode hybride).
 
 | # | Tâche | Prio | Statut | Détail |
 |---|---|---|---|---|
-| PM0 | Fondations promo hôte : `Property.promoPrice` (TND, doit être < `price`, validé serveur) + `Property.promoUntil` (mêmes principes que `featuredUntil` — lazy, jamais de cron) | P0 | ❌ | À la réservation, `subtotal` se calcule sur `promoPrice` au lieu de `price` si `promoUntil > now` — la commission (8 %) suit proportionnellement, toujours positive. **Zéro risque pour Darna par construction.** |
+| PM0 | Fondations promo hôte : `Property.promoPrice` (TND, doit être < `price`, validé serveur) + `Property.promoUntil` (mêmes principes que `featuredUntil` — lazy, jamais de cron) | P0 | 🔧 | **PR en attente de revue/merge.** Migration `20260721152611_add_property_promo`. `setPropertyPromoAction`/`clearPropertyPromoAction` (`src/actions/properties.ts`) : réservé aux annonces vérifiées `ACTIVE`, `promoPrice` toujours < `price` (revalidé serveur), `promoUntil` borné à 365 jours. `effectiveNightlyPrice`/`isPropertyPromoActive` (`src/lib/listings.ts`) : à la réservation, `subtotal` se calcule sur `promoPrice` si `promoUntil > now` ET l'annonce toujours vérifiée (re-vérifié à CHAQUE réservation, pas seulement à la pose de la promo) — branché dans `createBookingAction`/`quoteBookingAction`. Fondation uniquement : l'UI dashboard + badge arrivent avec PM1. Tests : `tests/property-promo.test.ts`, `tests/booking-promo-price.test.ts`. |
 | PM1 | UI hôte : définir/retirer une promo sur une annonce (dashboard) + badge « Promo -X % » sur `PropertyCard.tsx`/`ListingDetail.tsx` | P0 | ❌ | Réservé aux annonces vérifiées `ACTIVE` (aligné north-star — pas de promo sur du stock non fiable). Garde-fou anti-dark-pattern : pas de prix barré artificiel, uniquement le prix promo réel. |
 | PM2 | Nudge automatique : `ensurePromoSuggestionNotifications` (même idiome que `ensureExpiringSoonNotifications`, **aucun cron**) | P1 | ❌ | Déclencheur : annonce `ACTIVE` vérifiée depuis > 14 jours ET zéro résa `CONFIRMEE` dans les 21 prochains jours. Message : nuits vides + comparaison au prix moyen ville (réutilise `computeYield`/`avgNightCity`). Gain affiché = « ce que rapporte une nuit vendue en plus », **jamais un total prédit** (aucune donnée de conversion mesurée à ce jour). Dédup par `href` bucketé par mois (`?promo=2026-07`) → au plus un rappel par annonce par mois, même index unique partiel que l'existant. |
 | PM3 | Promo Darna (campagne plateforme, prix hôte intouché) | P1 | ❌ | Mécanisme **distinct** de PM0 : le prix hôte (`subtotal`) reste inchangé, la remise s'impute uniquement sur `serviceFee` — même principe que `RebookingDiscount`, généralisé à un objet `PromoCampaign` (filtre ville/gouvernorat/vertical, taux plafonné en config à ≤ 7,4 %, dates de validité, activée par un admin). Budget/portée toujours décidés consciemment par Wassim — jamais de déclenchement automatique d'une dépense réelle. |
@@ -78,7 +78,7 @@ réduction affichée, jamais plus, sauf mode hybride).
 ## Exécution (prioritisée)
 
 **Quick win (zéro risque, aucune dépendance) :**
-1. ❌ PM0 — fondations promo hôte.
+1. 🔧 PM0 — fondations promo hôte.
 2. ❌ PM1 — UI hôte + badge.
 
 **Fondations crédits :**
