@@ -92,19 +92,23 @@
 
 | # | Tâche | Prio | Statut | KPI phare | Détail |
 |---|-------|------|--------|-----------|--------|
-| G9 | Parrainage bidirectionnel (voyageur→voyageur, hôte→hôte) | **P1** | ❌ | K-factor ; CAC parrainage vs CAC classique ; taux filleul → conversion | `AUDIT_V1.md` Top 20 #18. Lien personnel réutilisant `ShareButton`/WhatsApp (F8) + paramètre `?ref=` capté au signup (nouveau champ `User.referredBy` — prépare aussi la « première touche d'acquisition » d'`INSTRUMENTATION_ROADMAP.md` IN2). Voyageur→voyageur : réduction sur `rebooking-discount.ts` généralisé. Hôte→hôte : crédit `VerificationWallet` (MI3) — coûte peu à Darna (un crédit), vaut cher perçu (20 TND). |
+| G9 | ~~Parrainage bidirectionnel (voyageur→voyageur, hôte→hôte)~~ | **P1** | ✅ | — | **Doublon détecté par `PRIORITES_ROADMAP.md`** : écrit en parallèle de `CROISSANCE_ROADMAP.md` (CR0-CR2), même fonctionnalité. CR0-CR2 est la version aboutie (wallet dédié + ledger + montants tranchés + plafonds) — G9 est retiré de la queue de ce fichier. **Voir CR0-CR2 (`CROISSANCE_ROADMAP.md`)** pour la spec et le suivi. `AUDIT_V1.md` Top 20 #18 reste couvert, via cet autre chantier. |
 | G10 | Mur de la confiance en direct — objectif 500 annonces vérifiées rendu public | P2 | ✅ | Clics compteur → recherche/inscription hôte | PR #167. Nouvelle section pleine largeur sous le `HomeHero` (`src/app/page.tsx`) : barre de progression vers l'objectif north-star (`VERIFIED_LISTINGS_TARGET = 500`, `src/lib/constants.ts`) + fil des 5 dernières vérifications (`getRecentVerifications`, `src/lib/listings.ts` — sélectionne uniquement `id`/`city`/`verifiedAt`, zéro donnée personnelle). Masquée tant qu'aucune annonce n'est encore vérifiée. `fr`/`en`/`ar` (`src/lib/i18n/`). Tests : `tests/recent-verifications.test.ts`. |
 
 ---
 
 ## Exécution (prioritisée) — séquencement sur 6 mois
 
-**Mois 1 (quasi gratuit, la donnée existe déjà) :** G8, G10, G4.
+**Mois 1 (quasi gratuit, la donnée existe déjà) :** ✅ G8 (PR #165), ✅ G10 (PR #167), G4.
 **Mois 2 (attaque le goulot d'étranglement offre) :** G2, G1.
 **Mois 3 :** G3 (a besoin d'un flux voyageur déjà établi pour générer des leads).
-**Mois 4 (a besoin d'une base d'utilisateurs satisfaits des deux côtés) :** G9.
+**Mois 4 :** ~~G9~~ — voir CR0-CR2 (`CROISSANCE_ROADMAP.md`).
 **Mois 5 :** G6, G5.
 **Mois 6 :** G7.
+
+Voir aussi `PRIORITES_ROADMAP.md` (dispatch multi-session) pour l'ordre de
+lancement réel entre plusieurs sessions en parallèle — ce séquencement par
+mois reste la référence produit, `PRIORITES_ROADMAP.md` l'opérationnalise.
 
 Ordre indicatif, ajustable selon capacité dev. Chaque tâche reste indépendante
 et livrable séparément (une PR par tâche, même discipline que
