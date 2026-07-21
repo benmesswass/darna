@@ -140,6 +140,9 @@ export const en: Dictionary = {
     alaUne: "Featured",
     alaUneTooltip:
       "Promoted listing: it appears at the top of results and on the Darna homepage.",
+    superHote: "Superhost",
+    superHoteTooltip:
+      "Zero cancellations and excellent reviews over the last 3 months — a reliable host, proven by real results.",
   },
   search: {
     villePlaceholder: "City — Hammamet, Djerba, La Marsa…",
@@ -1375,6 +1378,12 @@ export const en: Dictionary = {
     boostOffertBouton: "Use my free boost",
     boostOffertDejaUtilise:
       "Free boost already used for this billing cycle — available again at your next renewal.",
+    superHoteBoostTitre: "Free boost — Superhost badge",
+    superHoteBoostDesc:
+      "Zero cancellations and excellent reviews over the last 3 months: you've earned a free featured boost. Use it on this listing at no cost.",
+    superHoteBoostBouton: "Claim my Superhost boost",
+    superHoteBoostDejaUtilise:
+      "Superhost boost already claimed recently — available again in a few months if your badge stays active.",
   },
   abonnement: {
     titre: "Agency subscription",

@@ -141,6 +141,9 @@ export const fr = {
     alaUne: "À la une",
     alaUneTooltip:
       "Annonce mise en avant : elle apparaît en tête des résultats et sur l'accueil de Darna.",
+    superHote: "Super-Hôte",
+    superHoteTooltip:
+      "Zéro annulation et avis excellents sur les 3 derniers mois — un hôte fiable, vérifié sur ses résultats réels.",
   },
   search: {
     villePlaceholder: "Ville — Hammamet, Djerba, La Marsa…",
@@ -1396,6 +1399,12 @@ export const fr = {
     boostOffertBouton: "Utiliser mon boost offert",
     boostOffertDejaUtilise:
       "Boost offert déjà utilisé pour ce cycle d'abonnement — de nouveau disponible à votre prochain renouvellement.",
+    superHoteBoostTitre: "Boost offert — badge Super-Hôte",
+    superHoteBoostDesc:
+      "Zéro annulation et avis excellents sur les 3 derniers mois : vous avez gagné un boost « à la une » gratuit. Utilisez-le sur cette annonce sans rien payer.",
+    superHoteBoostBouton: "Réclamer mon boost Super-Hôte",
+    superHoteBoostDejaUtilise:
+      "Boost Super-Hôte déjà réclamé récemment — de nouveau disponible dans quelques mois si votre badge reste actif.",
   },
   abonnement: {
     titre: "Abonnement agence",
