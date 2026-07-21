@@ -30,6 +30,12 @@ export default defineConfig({
   test: {
     reporters: inCI ? ["default", "json"] : ["default"],
     outputFile: { json: "./coverage/test-results.json" },
+    // Désactivé en CI seulement : résolution concurrente de `next-auth`/`next/server`
+    // par les projets `node`/`jsdom` en parallèle → échec intermittent
+    // "Cannot find module .../next/server" sur le runner GitHub Actions (jamais
+    // reproduit en local malgré plusieurs runs). Coût négligeable (~600 tests,
+    // quelques secondes), gardé rapide en local où la race ne se manifeste pas.
+    fileParallelism: !inCI,
     coverage: {
       provider: "v8",
       include: ["src/lib/**", "src/actions/**"],
