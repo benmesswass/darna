@@ -63,7 +63,7 @@
 | # | Tâche | Prio | Statut | Détail |
 |---|-------|------|--------|--------|
 | IN0 | Fondations : modèle `ProductEvent` + module `logProductEvent` + id visiteur anonyme | **P0** | ✅ | PR #160 — `ProductEvent` (migration `20260721082024_add_product_event`), `src/lib/product-events.ts`, cookie `darna-vid` (`src/middleware.ts`), `LISTING_VIEWED` câblé sur `ListingDetail.tsx`. `trackEvent` (client) déféré à IN2 — voir détail. |
-| IN1 | Funnel de découverte : recherche → vue annonce → début réservation | P1 | ❌ | — |
+| IN1 | Funnel de découverte : recherche → vue annonce → début réservation | P1 | ✅ | PR #164 — `SEARCH_PERFORMED` câblé sur `searchSejours` (`resultCount` y compris 0), `BOOKING_STARTED` câblé sur la page `/annonce/[slug]/reserver`. `LISTING_VIEWED` déjà couvert par IN0. |
 | IN2 | Adoption des fonctionnalités déjà livrées (simulateur, partage, alertes, carte) + 1ère touche d'acquisition | P1 | ❌ | — |
 | IN3 | Panneaux funnel/adoption dans le dashboard admin existant | P1 | ❌ | — |
 | IN4 | Discipline continue : entrée checklist de revue `QA_ROADMAP.md` | P2 | ❌ | — |
@@ -153,22 +153,38 @@ débuts de réservation abandonnés avant soumission — exactement la « perte
 top-of-funnel » que l'audit reproche.
 
 **Décision — événements :**
-- `SEARCH_PERFORMED` — ville/dates/filtres actifs + nombre de résultats.
-  Câblé dans `searchSejours` (`src/lib/listings.ts:291`), point d'entrée déjà
-  utilisé par les filtres F4/F5 livrés.
-- `LISTING_VIEWED` — id annonce + verticale (repris d'IN0).
-- `BOOKING_STARTED` — ouverture de `BookingPanel`
-  (`src/components/booking/BookingPanel.tsx`), **avant** soumission —
-  distinct du `Booking` `EN_ATTENTE` déjà créé par `createBookingAction`, qui
-  ne capture que les tentatives allées jusqu'au bout.
+- `SEARCH_PERFORMED` — ville/dates/filtres actifs + nombre de résultats,
+  y compris `resultCount: 0`. Câblé dans `searchSejours`
+  (`src/lib/listings.ts`), sur les deux chemins de retour (ville inconnue et
+  résultats réels).
+- `LISTING_VIEWED` — déjà couvert par IN0 (repris tel quel).
+- `BOOKING_STARTED` — câblé dans
+  `src/app/annonce/[slug]/reserver/page.tsx` (Server Component), **pas** dans
+  `BookingPanel.tsx` lui-même. **Correction à l'implémentation** :
+  `BookingPanel` constitue la totalité du contenu de cette route dédiée — il
+  n'y a pas d'« ouverture » de panel séparée à observer côté client,
+  l'arrivée sur la page EST l'ouverture. Émis au même point que
+  `LISTING_VIEWED` (Server Component, donc pas de Server Action `trackEvent`
+  nécessaire ici non plus), exclu pour l'hôte propriétaire (`isOwner`, garde
+  déjà existante pour l'affichage) — distinct du `Booking` `EN_ATTENTE` créé
+  par `createBookingAction`, qui ne capture que les tentatives allées
+  jusqu'au bout.
 - Ensemble, ces trois événements + le funnel existant donnent la chaîne
   complète : recherche → vue annonce → début réservation → réservation
   confirmée.
 
-**Tests.** Une recherche sans résultat écrit `SEARCH_PERFORMED` avec
-`resultCount: 0`. Ouvrir puis fermer `BookingPanel` sans soumettre laisse un
-`BOOKING_STARTED` sans `BOOKING_CREATED` correspondant (l'écart mesure
-l'abandon).
+**Tests.** `tests/listings.test.ts` (3) : `searchSejours` écrit
+`SEARCH_PERFORMED` avec `resultCount: 0` sur ville inconnue (sans requêter la
+DB), le vrai `resultCount` sur une recherche avec résultats, et associe
+l'utilisateur connecté quand une session existe. **Vérifié en direct**
+(Postgres jetable isolé + migrations + seed + `npm run dev`) : recherche
+réelle avec résultats (`resultCount: 3`) et sans résultat (`resultCount: 0`,
+ville inconnue) → ligne `ProductEvent` correcte dans les deux cas ; visite
+connectée d'une page de réservation → `BOOKING_STARTED` avec le bon
+`userId`/`propertyId`/`vertical`. L'écart `BOOKING_STARTED` sans
+`BOOKING_CREATED` correspondant (mesure de l'abandon) est une propriété
+**analytique** de la chaîne complète, pas un test unitaire isolé — à
+observer une fois des données réelles accumulées (cf. IN3).
 
 ### IN2 — [P1] Adoption des fonctionnalités existantes + 1ère touche d'acquisition
 
@@ -266,9 +282,8 @@ IN0 ~0,5-1 j · IN1 ~1 j · IN2 ~0,5-1 j · IN3 ~0,5-1 j · IN4 négligeable
 
 ---
 
-**Statut du chantier : non démarré.** Chantier transverse, indépendant de la
-chaîne `ANNULATION_HOTE_*` (déjà entièrement traversée) — ne s'y substitue
-pas et ne doit pas interrompre un P0 déjà en cours ailleurs. IN0 reste
-cependant peu coûteux (~1 jour) et débloque la mesure de tout le reste : à
-lancer dès que possible plutôt qu'en file d'attente derrière d'autres
-chantiers P1.
+**Statut du chantier : IN0 (#160) et IN1 (#164) livrés, IN2 à IN4 restants.**
+Chantier transverse, indépendant de la chaîne `ANNULATION_HOTE_*` (déjà
+entièrement traversée) — ne s'y substitue pas et ne doit pas interrompre un
+P0 déjà en cours ailleurs. IN2 (adoption des fonctionnalités déjà livrées +
+1ère touche d'acquisition) est la suite naturelle.
