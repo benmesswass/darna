@@ -18,6 +18,9 @@ export const HOST_ACCEPTANCE_EXPIRY_MS = 48 * 60 * 60 * 1000; // 48 heures
 /** Cookie de report de l'onboarding « Vérifications » (« Passer pour l'instant »). */
 export const VERIF_SKIP_COOKIE = "darna-verif-skip";
 
+/** North-star produit (`.agents/product-marketing.md`) : objectif d'annonces vérifiées actives affiché sur l'accueil (G10). */
+export const VERIFIED_LISTINGS_TARGET = 500;
+
 // DEMO_VERIFIE : vérifié en MODE DÉMO (OTP affiché à l'écran). Distinct de VERIFIE
 // (vérification réelle par SMS) pour ne jamais confondre confiance réelle et démo.
 export const KYC_STATUSES = [
