@@ -1,13 +1,23 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { VISITOR_COOKIE } from "@/lib/constants";
+
+const VISITOR_ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const VISITOR_COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1 an, aligné sur darna-locale
 
 /**
- * Middleware de sécurité — deux responsabilités :
+ * Middleware de sécurité — trois responsabilités :
  * 1. Génère un nonce cryptographique par requête et l'injecte dans la CSP.
  *    Next.js App Router lit automatiquement le header `x-nonce` pour ses
  *    propres scripts d'hydratation.
  * 2. Applique la CSP via le header de réponse (defense-in-depth par rapport
  *    aux headers statiques de next.config.ts).
+ * 3. Pose le cookie visiteur anonyme `darna-vid` (INSTRUMENTATION_ROADMAP.md
+ *    §IN0) s'il est absent ou mal formé — id de corrélation produit
+ *    pré-inscription, jamais lu côté client (httpOnly), aucun croisement
+ *    publicitaire. Posé ici (Edge, avant tout rendu) plutôt que côté client
+ *    comme `darna-locale` : contrairement à la langue, l'id doit exister dès
+ *    la toute première page vue pour ne pas perdre le début du parcours.
  *
  * 'unsafe-inline' est conservé pour style-src (Tailwind v4 injecte des <style>
  * inline). Pour script-src, 'unsafe-inline' est neutralisé par 'strict-dynamic'
@@ -56,6 +66,17 @@ export function middleware(request: NextRequest) {
 
   // Header de réponse : appliqué au navigateur
   response.headers.set("Content-Security-Policy", csp);
+
+  const existingVisitorId = request.cookies.get(VISITOR_COOKIE)?.value;
+  if (!existingVisitorId || !VISITOR_ID_RE.test(existingVisitorId)) {
+    response.cookies.set(VISITOR_COOKIE, crypto.randomUUID(), {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: "lax",
+      path: "/",
+      maxAge: VISITOR_COOKIE_MAX_AGE,
+    });
+  }
 
   return response;
 }

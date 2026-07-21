@@ -62,7 +62,7 @@
 
 | # | Tâche | Prio | Statut | Détail |
 |---|-------|------|--------|--------|
-| IN0 | Fondations : modèle `ProductEvent` + module `logProductEvent` + id visiteur anonyme | **P0** | ❌ | — |
+| IN0 | Fondations : modèle `ProductEvent` + module `logProductEvent` + id visiteur anonyme | **P0** | ✅ | PR #160 — `ProductEvent` (migration `20260721082024_add_product_event`), `src/lib/product-events.ts`, cookie `darna-vid` (`src/middleware.ts`), `LISTING_VIEWED` câblé sur `ListingDetail.tsx`. `trackEvent` (client) déféré à IN2 — voir détail. |
 | IN1 | Funnel de découverte : recherche → vue annonce → début réservation | P1 | ❌ | — |
 | IN2 | Adoption des fonctionnalités déjà livrées (simulateur, partage, alertes, carte) + 1ère touche d'acquisition | P1 | ❌ | — |
 | IN3 | Panneaux funnel/adoption dans le dashboard admin existant | P1 | ❌ | — |
@@ -107,33 +107,42 @@ d'architecture ci-dessus) — les y ajouter serait le mauvais outil pour ce job.
 - `src/lib/product-events.ts` : `logProductEvent()` avec **exactement** le
   contrat de `logAudit` — try/catch, `console.error` en échec, ne bloque
   jamais l'appelant.
-- Cookie `darna-vid` (id anonyme aléatoire, longue durée), posé dans
-  `src/middleware.ts` à côté de `darna-locale`. Fonctionnel, premier-parti,
+- Cookie `darna-vid` (id anonyme aléatoire, 1 an, `httpOnly`), posé par
+  `src/middleware.ts` — **pas** à côté de `darna-locale` comme envisagé
+  initialement : `darna-locale` s'est avéré posé **côté client**
+  (`document.cookie` dans `LanguageSwitcher.tsx`), un mécanisme différent et
+  impropre ici. `darna-vid` doit exister dès la **toute première page vue**
+  (avant toute hydratation client) pour ne pas perdre le début du parcours —
+  d'où le choix du middleware (Edge, avant rendu). Fonctionnel, premier-parti,
   aucun partage tiers, aucun croisement publicitaire.
-- Pour les événements **purement client** sans action serveur existante
-  (clic partage, interaction carte) : Server Action dédiée `trackEvent`,
-  `event` validé par un `zod` enum dérivé de `ProductEventName` et
-  `metadata` plafonnée en taille — même discipline « zod sur chaque server
-  action mutante, jamais confiance au client » que le reste du projet.
-  Prévoir un rate-limit léger (réutiliser `src/lib/rate-limit.ts`, clé
-  `anonId`/IP) : c'est un endpoint public à faible friction.
 - Un seul événement câblé pour valider le pipe de bout en bout :
   `LISTING_VIEWED` sur `src/modules/core/listing/ListingDetail.tsx` (le point
-  d'entrée le plus consulté, partagé par les deux verticales STAY/IMMO).
+  d'entrée le plus consulté, partagé par les deux verticales STAY/IMMO) —
+  uniquement pour les annonces **actives** (exclut la prévisualisation par
+  son propre hôte pendant `EN_ATTENTE_VALIDATION`).
 
-**Question ouverte (arbitrage Wassim) :** le cookie `darna-vid` peut-il
-partir maintenant, ou attend-on la bannière consentement cookies
-(`QA_ROADMAP.md`, P1, pas encore livrée) ? Argument pour partir maintenant :
-périmètre strict — pas de fingerprinting, pas de croisement tiers, pas d'IP
-conservée, purge alignée sur `AuditLog` — proche de l'exemption « mesure
-d'audience » (raisonnement type Matomo self-hosted/Plausible). C'est un
-arbitrage produit/légal, pas un choix technique ; je recommande de partir
-maintenant mais n'ai pas tranché seul.
+**Périmètre réduit à l'implémentation.** La Server Action `trackEvent`
+(événements **purement client** sans action serveur existante — clic
+partage, interaction carte) est **déférée à IN2** plutôt que construite ici :
+avec `PRODUCT_EVENT_NAMES` limité à `LISTING_VIEWED` (server-only) dans
+cette PR, `trackEvent` n'aurait eu **aucun appelant réel** — contraire à la
+discipline que ce chantier impose lui-même (§IN4, « pas de code en avance
+sur la fonctionnalité qui le justifie »). Elle arrive avec `SHARE_CLICKED`
+en IN2, son premier vrai appelant.
 
-**Tests.** `logProductEvent` n'expose jamais d'exception à l'appelant (DB
-indisponible simulée). Le cookie `darna-vid` est stable entre deux requêtes
-et régénéré s'il est absent/invalide. `trackEvent` rejette un `event` hors
-enum et une `metadata` surdimensionnée.
+**Décision (Wassim, 2026-07-21) :** cookie `darna-vid` posé dès IN0, sans
+attendre la bannière consentement cookies — périmètre first-party strict
+(pas de fingerprinting, pas d'IP stockée, pas de croisement tiers).
+
+**Tests.** `tests/product-events.test.ts` (5) : `logProductEvent` écrit
+anonId/userId/metadata sérialisée, normalise les valeurs absentes, et
+n'expose jamais d'exception à l'appelant (échec DB simulé) ; `getAnonId` lit
+le cookie ou renvoie `null`. `tests/middleware-visitor-cookie.test.ts` (4) :
+pose un UUID valide si absent, stable si déjà valide, régénère si mal formé,
+toujours `httpOnly`. **Vérifié en direct** (Postgres local + seed + `npm run
+dev`) : visite réelle d'une fiche annonce active → cookie posé + ligne
+`ProductEvent` correcte ; 2ᵉ visite → cookie stable, même `anonId` corrèle
+les deux vues ; fiche expirée → aucun événement.
 
 ### IN1 — [P1] Funnel de découverte
 

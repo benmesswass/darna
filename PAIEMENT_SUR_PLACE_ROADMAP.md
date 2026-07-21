@@ -115,6 +115,89 @@ Le mode ESCROW (Rail 1, ex-"option 1" de la version précédente de cette
 section) garde de son côté la confirmation instantanée dès que l'acompte
 minimum est payé — inchangé, c'est le comportement actuel.
 
+## Question produit — tarification différenciée par mode de paiement (proposée le 2026-07-21, EN ATTENTE D'ARBITRAGE)
+
+**Constat de départ.** Les deux rails coûtent aujourd'hui exactement le
+même total au voyageur (`subtotal + serviceFee`, calculé identiquement dans
+`createBookingAction` et sa preview, `src/actions/bookings.ts`) — aucune
+incitation prix à choisir le rail qui garantit la commission (ESCROW, via
+`computeDepositAmount`) plutôt que celui qui la laisse dépendante d'une
+facture a posteriori (SUR_PLACE, `HostInvoice`).
+
+**Idée proposée par Wassim.** Faire payer plus cher le rail SUR_PLACE et
+reverser une partie du surplus à l'hôte (pas seulement à Darna), pour
+récompenser le risque et la charge de collecte cash qu'il assume. Exemple
+chiffré discuté (illustratif, **pas validé**, cf. réserves ci-dessous) :
+annonce à 200 TND/nuit × 5 nuits (subtotal 1 000 TND) → **1 080 TND en
+ligne** (commission Darna 8 %, inchangé) vs **1 150 TND sur place**
+(commission Darna 10 % = 100 TND facturée à l'hôte via `HostInvoice`, hôte
+net 1 050 TND — soit +50 TND par rapport aux 1 000 TND qu'il touche
+aujourd'hui, quel que soit le rail).
+
+**Critiques soulevées avant tout arbitrage :**
+
+1. **Cible en grande partie captive, pas juste "préférence cash".** Depuis
+   PSP0 (Flouci actif), la population qui n'a *aucun* moyen de paiement en
+   ligne (ni carte, ni e-DINAR, ni Flouci) est déjà qualifiée plus haut
+   (§0bis) de « minorité résiduelle ». Pour elle, majorer le prix sur place
+   n'incite à rien — elle n'a pas d'alternative vers laquelle basculer. Le
+   levier prix ne peut fonctionner que sur le segment qui *pourrait* payer
+   en ligne mais choisit le cash par habitude ou méfiance ; à isoler avant
+   de figer un montant, sous peine de simplement faire payer plus cher les
+   voyageurs les plus captifs.
+2. **Tension avec la promesse « prix affiché = prix payé ».** Le récap
+   actuel (`booking.recapitulatif`, avant même le choix du rail) affiche un
+   total unique avec la phrase `aucunFraisCache` (« Aucun autre frais ne
+   vous sera demandé. Jamais. »). Une tarification à deux vitesses doit
+   donc être visible dès ce premier écran — jamais révélée seulement au
+   moment de choisir le mode de paiement, sous peine d'effet « frais caché »
+   de dernière minute.
+3. **Le vrai problème est le recouvrement, pas le taux.** Un hôte qui ne
+   règle pas une `HostInvoice` de 80 TND ne la réglera pas nécessairement
+   mieux à 100 TND — le mécanisme qui protège réellement le recouvrement
+   existe déjà et n'est pas tarifaire (PSP6 masquage d'annonces, PSP8
+   relance/suspension admin).
+4. **Le no-show n'est pas traité par cette idée.** C'est le risque le plus
+   documenté de Rail 2 (section précédente) et il reste entier quel que
+   soit le barème : un voyageur qui ne se présente jamais laisse l'hôte à
+   0 TND.
+5. **Référence produit interne contredite.** Ce chantier cite Booking.com
+   (« Réservez maintenant, payez à l'hôtel ») comme modèle pour
+   l'acceptation hôte (§ ci-dessus) — Booking.com ne fait pas payer plus
+   cher ce mode, toute la friction y est sur la confiance (l'hôte peut
+   refuser), pas sur le prix. Écart assumé si on va au bout de l'idée, pas
+   un argument qui la disqualifie en soi.
+
+**Principe de cadrage retenu SI le principe est validé** (à ne pas coder
+avant arbitrage de Wassim — à la fois sur l'opportunité de le faire du
+tout, vu la critique n°1, et sur les montants) : présenter le prix
+SUR_PLACE comme la référence et le prix EN LIGNE comme une réduction
+dessus, jamais l'inverse — cohérent avec `aucunFraisCache`, et évite
+l'effet « majoration cash » qui lirait comme un frais caché. Mots
+explicitement à éviter côté cash : *supplément*, *majoration*, *pénalité*,
+*frais additionnel*.
+
+Reformulation i18n proposée (`src/lib/i18n/fr.ts`, clés existantes sauf
+mention « nouveau ») :
+
+| Clé | Avant | Après proposé |
+|---|---|---|
+| `sousTotal` | « Sous-total » → 1 000 TND | inchangé |
+| `fraisService` | « Frais de service Darna » | inchangé comme libellé |
+| *(nouveau)* `totalSurPlace` | — | « Total si paiement sur place » → 1 150 TND (affiché en premier, référence) |
+| *(nouveau)* `totalEnLigne` | — | « Total si paiement en ligne » → 1 080 TND · badge « Économisez 70 TND » |
+| `aucunFraisCache` | « Aucun autre frais ne vous sera demandé. Jamais. » | « Le prix du mode que vous choisirez ci-dessous est définitif — aucun autre frais. Jamais. » |
+| `modeEscrowLabel` | « Payer en ligne » | « Payer en ligne — 1 080 TND » |
+| `modeEscrowAide` | « Acompte protégé par Darna, solde possible en cash à l'arrivée. » | + « Le tarif le plus avantageux. » |
+| `modeCashLabel` | « Payer sur place (cash) » | « Payer sur place (cash) — 1 150 TND » |
+| `modeCashAide` | « 0 TND en ligne — tout se règle en espèces à l'hôte. Votre demande doit d'abord être acceptée par l'hôte. » | inchangé mot pour mot |
+
+**Statut : proposition documentée, PAS tranchée.** Cf. PSP9 ci-dessous —
+`❌`, ne pas commencer avant décision explicite de Wassim sur (a) si cette
+tarification différenciée est lancée du tout, vu la critique n°1, et (b)
+les montants définitifs (8 %/10 % et 1 080/1 150 TND ci-dessus sont des
+exemples de discussion, pas des tarifs validés).
+
 ---
 
 ## Question produit — tarification différenciée en ligne / sur place (ouverte, 2026-07-20)
@@ -164,6 +247,7 @@ tranché.
 | PSP6 | Levier de recouvrement : masquage des annonces si facture en retard — **filtre Prisma dérivé, aucun statut stocké** | P1 | ✅ | `hasOverdueHostInvoice` (`src/lib/host-invoicing.ts`), branché dans `activeListingWhere` (`src/lib/listings.ts` — filtre relationnel sur `owner.hostInvoices`, couvre TOUS les call sites : recherche, sitemap, accueil, marché, yield) et dans `createBookingAction` (`src/actions/bookings.ts`, refuse même via lien direct). Bannière dashboard hôte (`src/app/dashboard/layout.tsx`, lien vers `/dashboard/factures`). Même esprit que `Property.expiresAt` : aucun champ à resynchroniser, la condition redevient fausse dès le règlement. 5 tests (`tests/host-invoicing.test.ts`, `tests/booking-overdue-invoice.test.ts`). |
 | PSP7 | Durcissement sécurité/QA : tests idempotence/IDOR/non-bypass + mise à jour `QA_ROADMAP.md` | P0 | ✅ | Webhook host-invoice : garde de signature testée (`tests/host-invoice-webhook.test.ts`, mêmes cas que le webhook réservation — 404 désactivé, 400 sans ref, 401 sans/mauvaise signature, 429 rate-limit, 200 nominal). Non-bypass des CGU hôte sur le toggle paiement sur place (`tests/cash-payment-terms-bypass.test.ts` — refus transition false→true sans acceptation, pas de re-acceptation forcée quand déjà actif). Idempotence de `settleHostInvoice` et non-bypass du recouvrement (§PSP6) déjà couverts par `tests/host-invoicing.test.ts`. IDOR paiement déjà couvert par `tests/host-invoice-payment.test.ts` (PSP4). Nouvelle section `QA_ROADMAP.md` §6.1 « HostInvoice test suite ». 10 nouveaux tests. |
 | PSP8 | Dashboard **ADMIN** factures (vue globale comptable, distinct du dashboard hôte §PSP5) : total dû/encaissé/en retard, relance manuelle (in-app + e-mail), suspension manuelle. Décisions (2026-07-07, demandées par Wassim) : la suspension manuelle réutilise l'échelle progressive existante (3j → 14j → indéfinie, pas de palier dédié aux impayés) ; la relance manuelle envoie in-app **et** e-mail. | P1 | ✅ | `src/app/dashboard/admin/factures/page.tsx` (ADMIN only, pas Wakil — vue financière). `sendHostInvoiceReminderAction`/`suspendHostForInvoiceAction` (`src/actions/admin.ts`), `notifyHostInvoiceReminder` (`src/lib/notification-center.ts`), `sendHostInvoiceReminderEmail` (`src/lib/notifications.ts`), motif `HOST_INVOICE_OVERDUE` (`src/lib/suspension.ts`), champ `HostInvoice.lastReminderAt` (migration `20260707160000_add_host_invoice_reminder`). 5 tests (`tests/admin-host-invoices.test.ts`). |
+| PSP9 | Tarification différenciée par mode de paiement (réduction si paiement en ligne, prix de référence = sur place) — cf. section « Question produit » dédiée ci-dessus | P2 | ❌ | En attente d'arbitrage business de Wassim (opportunité + montants) avant tout code. Une fois tranché, ajouter le prompt Claude Code correspondant dans la section « Prompts Claude Code » plus bas. |
 
 ## Exécution (prioritisée)
 
@@ -186,7 +270,10 @@ tranché.
 **Outillage admin (indépendant de PSP5/PSP6, peut être fait en parallèle) :**
 8. ✅ PSP8 — dashboard admin factures (vue comptable + relance/suspension manuelles).
 
-**Toutes les tâches de `PAIEMENT_SUR_PLACE_ROADMAP.md` sont désormais livrées.** Voir `FEATURES_ROADMAP.md`, `DESIGN_ROADMAP.md` et `QA_ROADMAP.md` pour les prochaines priorités produit.
+**Extension proposée, pas encore arbitrée :**
+9. ❌ PSP9 — tarification différenciée par mode de paiement (réduction en ligne / prix de référence sur place) — cf. section « Question produit » dédiée. Ne pas commencer sans décision explicite de Wassim.
+
+**PSP0 à PSP8 sont livrées.** PSP9 est une extension proposée le 2026-07-21, en attente d'arbitrage business avant tout développement (cf. section dédiée ci-dessus). Voir `FEATURES_ROADMAP.md`, `DESIGN_ROADMAP.md` et `QA_ROADMAP.md` pour les prochaines priorités produit générales.
 
 ---
 

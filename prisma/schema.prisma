@@ -85,6 +85,8 @@ model User {
   favorites                Favorite[]
   favoriteFolders          FavoriteFolder[]
   auditLogs                AuditLog[]
+  // Événements produit (INSTRUMENTATION_ROADMAP.md §IN0) — sibling d'auditLogs.
+  productEvents            ProductEvent[]
   otpChallenges            OtpChallenge[]
   passwordResetTokens      PasswordResetToken[]
   // Centre de notifications in-app (F9) : réservation confirmée/annulée, avis
@@ -730,4 +732,29 @@ model AuditLog {
   @@index([userId])
   @@index([action, createdAt])
   @@index([createdAt]) // Pour les purges de rétention
+}
+
+/**
+ * Événements produit (funnel, adoption) — INSTRUMENTATION_ROADMAP.md §IN0.
+ * Sibling volontaire d'AuditLog, PAS une extension : volume élevé,
+ * majoritairement anonyme (avant inscription), jamais consulté pour une
+ * enquête de sécurité. AuditLog reste le journal sécurité (faible volume,
+ * authentifié, ip conservée). Ici, pas d'ip stockée (surface PII minimale) ;
+ * l'anonId (cookie darna-vid) est la seule clé de corrélation pré-inscription.
+ * Rétention : alignée sur la purge AuditLog une fois celle-ci construite
+ * (QA_ROADMAP.md), pas de politique séparée pour l'instant.
+ */
+model ProductEvent {
+  id        String   @id @default(cuid())
+  event     String // voir ProductEventName dans src/lib/product-events.ts
+  anonId    String?
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  metadata  String   @default("{}") // JSON stringifié
+  createdAt DateTime @default(now())
+
+  @@index([event, createdAt])
+  @@index([anonId])
+  @@index([userId])
+  @@index([createdAt]) // Pour une future purge de rétention
 }

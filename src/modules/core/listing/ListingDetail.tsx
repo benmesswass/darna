@@ -32,6 +32,8 @@ import { buildPropertyJsonLd } from "@/lib/structured-data";
 import { getSimilarListings } from "@/lib/listings";
 import { blendedRatingStats } from "@/lib/rating";
 import { favoritePropFor } from "@/lib/favorites";
+import { getAnonId, logProductEvent } from "@/lib/product-events";
+import { getSessionUser } from "@/lib/session";
 import { Caracteristique } from "@/modules/core/listing/Caracteristique";
 import type {
   ListingData,
@@ -101,6 +103,19 @@ export async function ListingDetail({
   const avgRating = ratingStats.total > 0 ? ratingStats.average : null;
   const reviewCount = ratingStats.total;
   const similarListings = await getSimilarListings(property);
+
+  // Instrumentation produit (INSTRUMENTATION_ROADMAP.md §IN0) — uniquement les
+  // vues d'annonces réellement publiques : une prévisualisation par son propre
+  // hôte pendant EN_ATTENTE_VALIDATION n'est pas de l'intérêt visiteur.
+  if (isActive) {
+    const [viewer, anonId] = await Promise.all([getSessionUser(), getAnonId()]);
+    await logProductEvent({
+      event: "LISTING_VIEWED",
+      userId: viewer?.id ?? null,
+      anonId,
+      metadata: { propertyId: property.id, vertical: property.vertical },
+    });
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
