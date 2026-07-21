@@ -1,0 +1,265 @@
+# Darna — Instrumentation produit (analytics & funnel)
+
+> **Référence permanente de ce chantier.** Origine : `AUDIT_V1.md` (revue du
+> 2026-07-01), section Analytics — « Funnel analytics produit (events,
+> cohortes) | 🔴 Absent — aucune instrumentation produit » — repris en item
+> **P1** de la priorisation « MUST HAVE AVANT LES 100 PREMIÈRES RÉSERVATIONS »
+> (impact Élevé, effort Faible) et en **#10 du Top 20** des leviers de
+> conversion/revenu. Chantier **transverse** : prérequis à la mesure de tout
+> KPI produit (activation, conversion par étape, adoption fonctionnalité)
+> avant le plan de lancement à 6 mois — sans lui, aucun de ces KPI n'est
+> mesurable en pratique.
+>
+> **Précision sur le constat de l'audit.** Le diagnostic « absent » n'est vrai
+> qu'à moitié. `src/lib/analytics.ts` + `/dashboard/admin/analytics` (522
+> lignes) calculent déjà un vrai tableau de bord fondateur — north-star
+> (annonces vérifiées actives, GMV réelle vs démo, réservations confirmées),
+> répartition par verticale, acquisition (inscriptions/jour, rôle, pays), un
+> **funnel de réservation**, une **rétention/cohortes d'activation** par mois
+> d'inscription, et le réseau Wakil. Mais tout est **entièrement dérivé de
+> l'état des tables existantes** (`User`, `Booking`, `Property`) — calculé à
+> la volée, aucun service payant. Le vrai trou : **aucun événement
+> d'interaction n'est jamais écrit nulle part.** Le funnel actuel démarre au
+> premier `Booking` créé ; tout ce qui précède — et qui détermine la
+> conversion — est invisible : recherche effectuée, annonce consultée,
+> formulaire de réservation ouvert puis abandonné, simulateur utilisé,
+> partage cliqué, alerte créée. C'est précisément ce que vise l'audit, et
+> c'est ce trou que corrige ce chantier — pas reconstruire ce qui existe déjà.
+>
+> **Décision d'architecture.** Étendre le *pattern* `AuditLog`/
+> `src/lib/audit.ts` (écriture async, silencieuse en échec, métadonnées JSON)
+> **sans réutiliser la table**. `AuditLog` reste un journal de **sécurité** :
+> volume faible, actions sensibles et majoritairement authentifiées, consulté
+> pour enquête (`recentEvents` de `getFounderAnalytics`), rétention/purge
+> encore ouverte (`QA_ROADMAP.md` : « AuditLog purge ≥90 days (RGPD) | ❌ »).
+> Y déverser des événements produit à fort volume et majoritairement
+> **anonymes** (avant inscription) polluerait le signal sécurité et
+> compliquerait encore la purge à venir. Un modèle **sibling** `ProductEvent`
+> porte les événements produit, avec son propre cycle de vie. Zéro service
+> payant, zéro nouvelle dépendance : Postgres + Prisma, agrégé à la volée
+> exactement comme `getFounderAnalytics()` aujourd'hui.
+>
+> **Contraintes préservées :** pas de cron — écriture à l'événement, purge
+> différée au mécanisme (encore à construire) de `QA_ROADMAP.md` plutôt que
+> d'en inventer un séparé ; aucune librairie de charts — les nouveaux
+> panneaux réutilisent le rendu `StatCard`/barres CSS déjà dans
+> `/dashboard/admin/analytics/page.tsx` ; aucune donnée envoyée à un tiers ;
+> minimum de PII (pas d'IP stockée dans `ProductEvent`, contrairement à
+> `AuditLog` — non nécessaire au périmètre V1, voir IN0).
+>
+> **Règle de maintenance.** Dès qu'une phase est livrée, cocher `✅`, noter le
+> fichier/PR. Toute nouvelle fonctionnalité produit visible utilisateur ajoute
+> son événement **dans la même PR** — même discipline que `AuditAction` pour
+> les surfaces sensibles (voir IN4). Ne jamais laisser ce fichier dériver de
+> l'état réel du code.
+
+- **Légende statut :** `❌` pas commencé · `🔧` en cours · `✅` fait (préciser fichier/PR).
+- **Priorité :** `P0` (fondations bloquantes, coût quasi nul) · `P1` (fort impact, conforme au calibrage de l'audit) · `P2` (produit / process).
+
+---
+
+## Phases
+
+| # | Tâche | Prio | Statut | Détail |
+|---|-------|------|--------|--------|
+| IN0 | Fondations : modèle `ProductEvent` + module `logProductEvent` + id visiteur anonyme | **P0** | ❌ | — |
+| IN1 | Funnel de découverte : recherche → vue annonce → début réservation | P1 | ❌ | — |
+| IN2 | Adoption des fonctionnalités déjà livrées (simulateur, partage, alertes, carte) + 1ère touche d'acquisition | P1 | ❌ | — |
+| IN3 | Panneaux funnel/adoption dans le dashboard admin existant | P1 | ❌ | — |
+| IN4 | Discipline continue : entrée checklist de revue `QA_ROADMAP.md` | P2 | ❌ | — |
+
+**Ordre d'exécution recommandé :** IN0 (prérequis, ~1j) → IN1 → IN2 → IN3 →
+IN4. IN3 peut être découpé pour livrer un premier panneau dès la fin d'IN1 si
+Wassim veut voir les données arriver avant la fin du chantier.
+
+---
+
+## Détail par tâche
+
+### IN0 — [P0] Fondations
+
+**Constat.** Rien n'écrit d'événement produit aujourd'hui. `logAudit`
+(`src/lib/audit.ts:81`) est le seul point d'écriture d'événements du code, et
+sa table/son enum `AuditAction` sont scopés sécurité (voir décision
+d'architecture ci-dessus) — les y ajouter serait le mauvais outil pour ce job.
+
+**Décision.**
+- Nouveau modèle Prisma `ProductEvent` (migration dédiée), volontairement
+  minimal — pas de champ spéculatif :
+  - `id String @id @default(cuid())`
+  - `event String` — voir `ProductEventName` (union TS fermée dans
+    `src/lib/product-events.ts`, même convention que `AuditAction`)
+  - `anonId String?` — id visiteur (cookie first-party), corrèle un parcours
+    avant inscription
+  - `userId String?` + relation `User? @relation(onDelete: SetNull)` (même
+    pattern que `AuditLog`) ; back-relation `productEvents ProductEvent[]`
+    sur `User`
+  - `metadata String @default("{}")` — JSON stringifié
+  - `createdAt DateTime @default(now())`
+  - Index `[event, createdAt]` (requêtes funnel), `[anonId]`, `[userId]`,
+    `[createdAt]` (purge future)
+  - **Volontairement absents à ce stade :** `ip` (pas de besoin V1, minimise
+    la surface PII) ; `path`/pageview générique (V1 = événements métier
+    nommés avec contexte dans `metadata`, pas de tracking de page brute) ;
+    `sessionId` (une session peut se dériver après coup de `anonId` + écart
+    de temps si jamais utile — pas de colonne dédiée tant que rien ne la
+    consomme).
+- `src/lib/product-events.ts` : `logProductEvent()` avec **exactement** le
+  contrat de `logAudit` — try/catch, `console.error` en échec, ne bloque
+  jamais l'appelant.
+- Cookie `darna-vid` (id anonyme aléatoire, longue durée), posé dans
+  `src/middleware.ts` à côté de `darna-locale`. Fonctionnel, premier-parti,
+  aucun partage tiers, aucun croisement publicitaire.
+- Pour les événements **purement client** sans action serveur existante
+  (clic partage, interaction carte) : Server Action dédiée `trackEvent`,
+  `event` validé par un `zod` enum dérivé de `ProductEventName` et
+  `metadata` plafonnée en taille — même discipline « zod sur chaque server
+  action mutante, jamais confiance au client » que le reste du projet.
+  Prévoir un rate-limit léger (réutiliser `src/lib/rate-limit.ts`, clé
+  `anonId`/IP) : c'est un endpoint public à faible friction.
+- Un seul événement câblé pour valider le pipe de bout en bout :
+  `LISTING_VIEWED` sur `src/modules/core/listing/ListingDetail.tsx` (le point
+  d'entrée le plus consulté, partagé par les deux verticales STAY/IMMO).
+
+**Question ouverte (arbitrage Wassim) :** le cookie `darna-vid` peut-il
+partir maintenant, ou attend-on la bannière consentement cookies
+(`QA_ROADMAP.md`, P1, pas encore livrée) ? Argument pour partir maintenant :
+périmètre strict — pas de fingerprinting, pas de croisement tiers, pas d'IP
+conservée, purge alignée sur `AuditLog` — proche de l'exemption « mesure
+d'audience » (raisonnement type Matomo self-hosted/Plausible). C'est un
+arbitrage produit/légal, pas un choix technique ; je recommande de partir
+maintenant mais n'ai pas tranché seul.
+
+**Tests.** `logProductEvent` n'expose jamais d'exception à l'appelant (DB
+indisponible simulée). Le cookie `darna-vid` est stable entre deux requêtes
+et régénéré s'il est absent/invalide. `trackEvent` rejette un `event` hors
+enum et une `metadata` surdimensionnée.
+
+### IN1 — [P1] Funnel de découverte
+
+**Constat.** `bookingFunnel` (`getFounderAnalytics()`,
+`src/lib/analytics.ts:111-120`) démarre à `Booking` créé. Rien ne mesure la
+perte **avant** : nombre de recherches, nombre de vues d'annonce, nombre de
+débuts de réservation abandonnés avant soumission — exactement la « perte
+top-of-funnel » que l'audit reproche.
+
+**Décision — événements :**
+- `SEARCH_PERFORMED` — ville/dates/filtres actifs + nombre de résultats.
+  Câblé dans `searchSejours` (`src/lib/listings.ts:291`), point d'entrée déjà
+  utilisé par les filtres F4/F5 livrés.
+- `LISTING_VIEWED` — id annonce + verticale (repris d'IN0).
+- `BOOKING_STARTED` — ouverture de `BookingPanel`
+  (`src/components/booking/BookingPanel.tsx`), **avant** soumission —
+  distinct du `Booking` `EN_ATTENTE` déjà créé par `createBookingAction`, qui
+  ne capture que les tentatives allées jusqu'au bout.
+- Ensemble, ces trois événements + le funnel existant donnent la chaîne
+  complète : recherche → vue annonce → début réservation → réservation
+  confirmée.
+
+**Tests.** Une recherche sans résultat écrit `SEARCH_PERFORMED` avec
+`resultCount: 0`. Ouvrir puis fermer `BookingPanel` sans soumettre laisse un
+`BOOKING_STARTED` sans `BOOKING_CREATED` correspondant (l'écart mesure
+l'abandon).
+
+### IN2 — [P1] Adoption des fonctionnalités existantes + 1ère touche d'acquisition
+
+**Constat.** F4 à F9 de `FEATURES_ROADMAP.md` (filtres, fiche hôte, partage,
+notifications, alertes de recherche) sont tous `✅` livrés — et **aucun n'a de
+mesure d'usage**. Idem pour le Yield Advisor
+(`src/app/dashboard/yield/page.tsx`, `src/lib/yield.ts`), en production
+depuis un moment. Impossible aujourd'hui de savoir si ces investissements
+sont utilisés.
+
+**Décision — événements :**
+- `SIMULATOR_USED` — ville/gouvernorat saisis + recommandation retournée par
+  `computeYield`.
+- `SHARE_CLICKED` — canal (lien copié / WhatsApp / partage natif), depuis
+  `src/components/property/ShareButton.tsx`.
+- `SAVED_SEARCH_CREATED` — depuis `src/components/search/SaveSearchButton.tsx`
+  / `src/lib/saved-search.ts`.
+- `MAP_INTERACTED` — première interaction (zoom/pan) sur
+  `src/components/map/MapInner.tsx`, throttlée à un événement par session
+  pour ne pas exploser le volume sur une carte manipulée en continu.
+- Première touche d'acquisition : capturer `?ref=`/UTM à la première visite
+  dans les métadonnées associées à l'`anonId` — une seule écriture, pas de
+  re-tracking à chaque page. Prépare le programme de parrainage diaspora
+  (Top 20 #18 de l'audit, **pas encore construit**) et toute dépense
+  publicitaire (diaspora France) sans re-plomberie le jour venu.
+
+**Note.** `REFERRAL_SIGNUP` et `LISTING_COMPLETION_VIEWED` — cités en exemple
+dans la discussion d'origine — ne sont **pas** dans ce chantier : ils
+mesurent des fonctionnalités qui n'existent pas encore (programme de
+parrainage, score de complétion d'annonce). Règle proposée pour IN4:
+l'événement s'ajoute **dans la même PR** que la fonctionnalité qui le
+justifie, jamais en avance sur du code qui n'existe pas.
+
+**Tests.** Chaque déclencheur UI écrit l'événement attendu (assertion
+`logProductEvent`/`trackEvent` appelé, en complément des tests composants
+existants).
+
+### IN3 — [P1] Panneaux dans le dashboard admin existant
+
+**Constat.** `/dashboard/admin/analytics` est déjà le pilote unique de
+Wassim (admin-only, `force-dynamic`, rendu `StatCard`/barres CSS sans lib de
+charts). Pas de raison d'en construire un second.
+
+**Décision.** Étendre `getFounderAnalytics()` — ou ajouter un
+`getFunnelAnalytics()` séparé si le fichier devient trop chargé (à trancher
+à l'implémentation, seuil indicatif ~600-700 lignes) — avec : conversion
+recherche → vue → début → confirmation (même pattern visuel que l'existant) ;
+compteurs d'adoption (simulateur, partages, alertes créées vs déclenchées) ;
+répartition des sources d'acquisition (`ref`/UTM). Même garde admin-only,
+même agrégation Prisma à la volée.
+
+**Tests.** Rendu de page avec données de seed ; aucune régression sur les
+sections déjà livrées (north-star, funnel réservation, cohortes, Wakil).
+
+### IN4 — [P2] Discipline continue
+
+**Décision.** Ajouter une ligne à la checklist de revue de code de
+`QA_ROADMAP.md` : toute nouvelle fonctionnalité produit visible utilisateur
+ajoute son (ses) événement(s) `ProductEvent` dans la même PR — même exigence
+que celle qui protège déjà `AuditLog` sur les surfaces sensibles. Sans cette
+discipline, ce chantier redevient un instantané qui se périme aussitôt livré
+— constat déjà vrai aujourd'hui pour F4 à F9.
+
+---
+
+## Catalogue d'événements V1 (résumé)
+
+| Événement | Phase | Déclencheur | Anonyme possible ? |
+|---|---|---|---|
+| `SEARCH_PERFORMED` | IN1 | Recherche sur `/sejours` | Oui |
+| `LISTING_VIEWED` | IN0/IN1 | Fiche annonce (`ListingDetail.tsx`) | Oui |
+| `BOOKING_STARTED` | IN1 | Ouverture de `BookingPanel` | Non (connexion requise pour réserver) |
+| `SIMULATOR_USED` | IN2 | Yield Advisor (`/dashboard/yield`) | Non (page dashboard connectée) |
+| `SHARE_CLICKED` | IN2 | `ShareButton` | Oui |
+| `SAVED_SEARCH_CREATED` | IN2 | `SaveSearchButton` | Non (nécessite un compte) |
+| `MAP_INTERACTED` | IN2 | `MapInner`/`PropertyMap` | Oui |
+
+---
+
+## Questions ouvertes (arbitrage Wassim)
+
+1. Cookie `darna-vid` dès IN0, ou après la bannière consentement cookies
+   (`QA_ROADMAP.md`, encore `❌`) ?
+2. Fenêtre de rétention par défaut de `ProductEvent` — proposition : aligner
+   sur ce qui sera décidé pour la purge `AuditLog` (`QA_ROADMAP.md`) plutôt
+   que deux politiques distinctes.
+3. `analytics.ts` étendu en place, ou nouveau fichier séparé pour les
+   panneaux funnel (IN3) ? Dépend de la taille du fichier au moment de coder.
+
+## Effort estimé
+
+IN0 ~0,5-1 j · IN1 ~1 j · IN2 ~0,5-1 j · IN3 ~0,5-1 j · IN4 négligeable
+→ **~3-4 jours** pour tout le P0/P1, cohérent avec le calibrage effort
+« Faible » de `AUDIT_V1.md`.
+
+---
+
+**Statut du chantier : non démarré.** Chantier transverse, indépendant de la
+chaîne `ANNULATION_HOTE_*` (déjà entièrement traversée) — ne s'y substitue
+pas et ne doit pas interrompre un P0 déjà en cours ailleurs. IN0 reste
+cependant peu coûteux (~1 jour) et débloque la mesure de tout le reste : à
+lancer dès que possible plutôt qu'en file d'attente derrière d'autres
+chantiers P1.
