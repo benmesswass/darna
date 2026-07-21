@@ -138,6 +138,9 @@ export const listingCardInclude = {
   stay: { select: { maxGuests: true } },
   // Notes des avis : moyenne + nombre affichés sur la carte (survol marqueur).
   reviews: { select: { rating: true } },
+  // Nom du vérificateur (§G8) — verifiedAt est un scalaire déjà inclus, seule
+  // la relation manque pour afficher la fraîcheur de vérification en tooltip.
+  verifiedBy: { select: { name: true } },
 } satisfies Prisma.PropertyInclude;
 
 export type ListingWithPhoto = Prisma.PropertyGetPayload<{

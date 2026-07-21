@@ -62,6 +62,7 @@ function baseProperty(overrides: Partial<ListingWithPhoto> = {}): ListingWithPho
     verificationLevel: null,
     verifiedAt: null,
     verifiedById: null,
+    verifiedBy: null,
     price: 200,
     ratingAvg: null,
     ratingCount: 0,
