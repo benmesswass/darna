@@ -36,6 +36,11 @@ vi.mock("@/actions/properties", () => ({
   createFolderWithFavoriteAction: vi.fn(),
   removeFavoriteAction: vi.fn(),
 }));
+// PropertyCard importe isListingFeatured de listings.ts (valeur réelle, pas le
+// type), qui importe session/product-events (§IN1) — mocké pour ne jamais
+// charger next-auth pour de vrai ici, sans rapport avec ce qui est testé.
+vi.mock("@/lib/session", () => ({ getSessionUser: vi.fn() }));
+vi.mock("@/lib/product-events", () => ({ getAnonId: vi.fn(), logProductEvent: vi.fn() }));
 // Les badges sont eux-mêmes des Server Components async (comme PropertyCard) :
 // React ne peut pas les rendre en JSX imbriqué sous un rendu client classique
 // (RTL) sans streaming RSC. On les remplace par des équivalents synchrones —

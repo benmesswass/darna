@@ -12,6 +12,8 @@ import { HOST_CANCELLATION_SIGNAL_DAYS } from "@/lib/config";
 import { isSuperHost } from "@/lib/super-host";
 import type { MapMarker } from "@/components/map/types";
 import type { ReviewItem } from "@/components/property/ReviewsSection";
+import { getAnonId, logProductEvent } from "@/lib/product-events";
+import { getSessionUser } from "@/lib/session";
 
 /** Taille de page pour les listings (protection DoS + UX). */
 const PAGE_SIZE = 24;
@@ -42,6 +44,30 @@ export function activeListingWhere(): Prisma.PropertyWhereInput {
 /** Une annonce est « à la une » tant que son boost payé n'a pas expiré. */
 export function isListingFeatured(featuredUntil: Date | null): boolean {
   return featuredUntil !== null && featuredUntil.getTime() > Date.now();
+}
+
+/** Une promo hôte est active tant que sa date de fin n'est pas dépassée (CROISSANCE_ROADMAP.md §PM0). */
+export function isPropertyPromoActive(promoUntil: Date | null): boolean {
+  return promoUntil !== null && promoUntil.getTime() > Date.now();
+}
+
+/**
+ * Prix par nuit RÉELLEMENT appliqué à une réservation : le prix promo hôte
+ * si actif ET l'annonce toujours vérifiée (§PM0 — jamais de promo sur du
+ * stock non fiable, re-vérifié ici même si l'annonce a perdu son badge
+ * après la mise en place de la promo), sinon le prix normal.
+ */
+export function effectiveNightlyPrice(property: {
+  price: number;
+  promoPrice: number | null;
+  promoUntil: Date | null;
+  verified: boolean;
+}): number {
+  return property.verified &&
+    isPropertyPromoActive(property.promoUntil) &&
+    property.promoPrice !== null
+    ? property.promoPrice
+    : property.price;
 }
 
 /**
@@ -292,6 +318,41 @@ async function sampleListings(
   });
 }
 
+/**
+ * Instrumentation produit (INSTRUMENTATION_ROADMAP.md §IN1) — mesure la perte
+ * top-of-funnel en amont du premier `Booking` : nombre de recherches et leur
+ * taux de résultat, y compris `resultCount: 0` (ville inconnue ou filtres trop
+ * stricts).
+ */
+async function logSearchPerformed(
+  params: SejoursSearchParams,
+  resolvedCity: string | null,
+  resultCount: number
+): Promise<void> {
+  const [viewer, anonId] = await Promise.all([getSessionUser(), getAnonId()]);
+  await logProductEvent({
+    event: "SEARCH_PERFORMED",
+    userId: viewer?.id ?? null,
+    anonId,
+    metadata: {
+      ville: params.ville,
+      resolvedCity,
+      arrivee: params.arrivee,
+      depart: params.depart,
+      voyageurs: params.voyageurs,
+      prixMin: params.prixMin,
+      prixMax: params.prixMax,
+      verifie: params.verifie,
+      certifie: params.certifie,
+      equipements: params.equipements,
+      chambres: params.chambres,
+      typeBien: params.typeBien,
+      tri: params.tri,
+      resultCount,
+    },
+  });
+}
+
 export async function searchSejours(params: SejoursSearchParams) {
   await clearExpiredFeatured();
 
@@ -375,6 +436,7 @@ export async function searchSejours(params: SejoursSearchParams) {
   const skip = (page - 1) * PAGE_SIZE;
 
   if (unknownCity) {
+    await logSearchPerformed(params, resolvedCity, 0);
     return {
       results: [],
       resolvedCity,
@@ -409,6 +471,8 @@ export async function searchSejours(params: SejoursSearchParams) {
     resolvedCity && total === 0
       ? await suggestStayAlternatives(resolvedCity, baseWhere)
       : null;
+
+  await logSearchPerformed(params, resolvedCity, total);
 
   return { results, resolvedCity, unknownCity, total, page, pageSize: PAGE_SIZE, sort, suggestions };
 }

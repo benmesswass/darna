@@ -11,6 +11,9 @@ import { VISITOR_COOKIE } from "@/lib/constants";
 export const PRODUCT_EVENT_NAMES = [
   // Fondations (§IN0) — valide le pipe de bout en bout, câblé sur la fiche annonce.
   "LISTING_VIEWED",
+  // Funnel de découverte (§IN1) — recherche → vue annonce → début réservation.
+  "SEARCH_PERFORMED",
+  "BOOKING_STARTED",
 ] as const;
 export type ProductEventName = (typeof PRODUCT_EVENT_NAMES)[number];
 

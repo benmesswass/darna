@@ -205,6 +205,13 @@ model Property {
   // L'annonce est à la une tant que featuredUntil > now ; le champ est remis
   // à null paresseusement une fois expiré (cf. clearExpiredFeatured()).
   featuredUntil             DateTime?
+  // Promo hôte (CROISSANCE_ROADMAP.md §PM0) : prix réduit, actif tant que
+  // promoUntil > now — même principe de lazy-expiry que featuredUntil (aucun
+  // cron ; un promoUntil dépassé redevient simplement inactif au prochain
+  // calcul, sans purge). Toujours < price, revalidé serveur à chaque écriture
+  // ET relu à chaque calcul de prix (jamais une valeur figée/faite confiance).
+  promoPrice                Int?
+  promoUntil                DateTime?
   cancelPolicy              String    @default("MODEREE") // FLEXIBLE | MODEREE | STRICTE
   // Paiement sur place (Rail 2, PAIEMENT_SUR_PLACE_ROADMAP.md) : opt-in HÔTE,
   // annonce SEJOUR uniquement. `cashTermsAcceptedAt` = horodatage d'acceptation

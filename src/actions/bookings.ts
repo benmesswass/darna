@@ -17,7 +17,7 @@ import {
 } from "@/lib/config";
 import { BOOKING_EXPIRY_MS, HOST_ACCEPTANCE_EXPIRY_MS, PAYMENT_MODES } from "@/lib/constants";
 import { logAudit, logStructured } from "@/lib/audit";
-import { recomputePropertyRating } from "@/lib/listings";
+import { recomputePropertyRating, effectiveNightlyPrice } from "@/lib/listings";
 import { blockingBookingOverlap } from "@/lib/booking-overlap";
 import {
   claimRebookingDiscount,
@@ -138,6 +138,9 @@ export async function createBookingAction(
       status: true,
       expiresAt: true,
       price: true,
+      verified: true,
+      promoPrice: true,
+      promoUntil: true,
       // Capacité depuis la table satellite (M2).
       stay: { select: { maxGuests: true } },
       ownerId: true,
@@ -185,7 +188,9 @@ export async function createBookingAction(
     if (user.kycStatus !== "VERIFIE") return { error: fr.booking.cashKycRequis };
   }
 
-  const subtotal = property.price * nights;
+  // Prix promo hôte si actif (§PM0) — jamais le prix brut pris en aveugle.
+  const nightlyPrice = effectiveNightlyPrice(property);
+  const subtotal = nightlyPrice * nights;
   const serviceFee = Math.round(subtotal * SERVICE_FEE_RATE);
   const fullTotalPrice = subtotal + serviceFee;
   // Rail 2 : fenêtre d'ACCEPTATION hôte (48h, pas d'urgence de paiement) ;
@@ -266,7 +271,7 @@ export async function createBookingAction(
           checkIn,
           checkOut,
           guests: parsed.data.voyageurs,
-          nightlyPrice: property.price,
+          nightlyPrice,
           serviceFee,
           totalPrice,
           depositAmount,
@@ -384,6 +389,9 @@ export async function quoteBookingAction(input: {
       status: true,
       expiresAt: true,
       price: true,
+      verified: true,
+      promoPrice: true,
+      promoUntil: true,
       // Capacité depuis la table satellite (M2).
       stay: { select: { maxGuests: true } },
       cancelBlockedUntil: true,
@@ -423,7 +431,9 @@ export async function quoteBookingAction(input: {
   });
   if (conflict) return { ok: false, error: fr.booking.datesIndisponibles };
 
-  const subtotal = property.price * nights;
+  // Prix promo hôte si actif (§PM0) — jamais le prix brut pris en aveugle.
+  const nightlyPrice = effectiveNightlyPrice(property);
+  const subtotal = nightlyPrice * nights;
   const serviceFee = Math.round(subtotal * SERVICE_FEE_RATE);
   const fullTotal = subtotal + serviceFee;
 

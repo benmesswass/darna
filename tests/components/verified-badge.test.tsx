@@ -21,6 +21,11 @@ vi.mock("@/lib/i18n/server", () => ({
     },
   }),
 }));
+// Badges.tsx importe daysSincePublication de listings.ts, qui importe
+// session/product-events (§IN1) — mocké pour ne jamais charger next-auth pour
+// de vrai dans ce test de composant, sans rapport avec ce qui est testé ici.
+vi.mock("@/lib/session", () => ({ getSessionUser: vi.fn() }));
+vi.mock("@/lib/product-events", () => ({ getAnonId: vi.fn(), logProductEvent: vi.fn() }));
 
 const { VerifiedBadge } = await import("@/components/property/Badges");
 

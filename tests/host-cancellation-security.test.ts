@@ -47,7 +47,12 @@ vi.mock("@/lib/notifications", () => ({
   sendBookingConfirmationEmail: vi.fn(),
   sendBookingCancelledByHostEmail: vi.fn(),
 }));
-vi.mock("@/lib/listings", () => ({ recomputePropertyRating: vi.fn() }));
+vi.mock("@/lib/listings", () => ({
+  recomputePropertyRating: vi.fn(),
+  // Pas de promo dans ces scénarios (hors sujet ici, cf. property-promo.test.ts
+  // et booking-promo-price.test.ts pour PM0) — reproduit le prix brut tel quel.
+  effectiveNightlyPrice: vi.fn((property: { price: number }) => property.price),
+}));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
 vi.mock("@/lib/i18n/server", () => ({

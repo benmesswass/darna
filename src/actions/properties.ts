@@ -633,6 +633,110 @@ export async function claimSuperHostBoostAction(formData: FormData): Promise<voi
   redirect("/dashboard/annonces?alaune=1");
 }
 
+export type PropertyPromoFormState = { error?: string; success?: string } | undefined;
+
+const setPromoSchema = z.object({
+  propertyId: z.string().cuid(),
+  promoPrice: z.coerce.number().int().min(1),
+  promoUntil: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+});
+
+/**
+ * Définit ou met à jour une promo hôte (CROISSANCE_ROADMAP.md §PM0). Fondation
+ * uniquement — l'UI dédiée (dashboard + badge) arrive avec PM1. Réservée aux
+ * annonces vérifiées ACTIVE (aligné north-star — pas de promo sur du stock
+ * non fiable) ; promoPrice toujours strictement < price, revalidé serveur
+ * (jamais confiance au client). Le prix promo n'est consommé qu'à la
+ * réservation, tant que promoUntil est dans le futur — même principe de
+ * lazy-expiry que featuredUntil, aucun cron.
+ */
+export async function setPropertyPromoAction(
+  _prev: PropertyPromoFormState,
+  formData: FormData
+): Promise<PropertyPromoFormState> {
+  const fr = await getT();
+  const user = await requireLister();
+
+  const parsed = setPromoSchema.safeParse({
+    propertyId: formData.get("propertyId"),
+    promoPrice: formData.get("promoPrice"),
+    promoUntil: formData.get("promoUntil"),
+  });
+  if (!parsed.success) return { error: fr.common.champsRequis };
+
+  // Autorisation serveur : l'annonce doit appartenir à l'hôte connecté.
+  const property = await requireOwnProperty(parsed.data.propertyId).catch(() => null);
+  if (!property) return { error: fr.common.erreurInconnue };
+
+  // On relit prix/statut/vérif en base (jamais confiance au client) : seule
+  // une annonce ACTIVE, non expirée ET vérifiée peut recevoir une promo.
+  const fresh = await prisma.property.findUnique({
+    where: { id: property.id },
+    select: { price: true, status: true, expiresAt: true, verified: true },
+  });
+  if (!fresh || fresh.status !== "ACTIVE" || fresh.expiresAt.getTime() < Date.now() || !fresh.verified) {
+    return { error: fr.annonceForm.promoAnnonceNonEligible };
+  }
+
+  if (parsed.data.promoPrice >= fresh.price) {
+    return { error: fr.annonceForm.promoPrixInvalide };
+  }
+
+  const promoUntil = new Date(`${parsed.data.promoUntil}T23:59:59.999Z`);
+  const maxUntil = Date.now() + 365 * 24 * 60 * 60 * 1000;
+  if (
+    Number.isNaN(promoUntil.getTime()) ||
+    promoUntil.getTime() <= Date.now() ||
+    promoUntil.getTime() > maxUntil
+  ) {
+    return { error: fr.annonceForm.promoDateInvalide };
+  }
+
+  await prisma.property.update({
+    where: { id: property.id },
+    data: { promoPrice: parsed.data.promoPrice, promoUntil },
+  });
+
+  await logAudit({
+    action: "PROPERTY_PROMO_SET",
+    userId: user.id,
+    success: true,
+    metadata: {
+      propertyId: property.id,
+      promoPrice: parsed.data.promoPrice,
+      promoUntil: promoUntil.toISOString(),
+    },
+  });
+
+  revalidatePath("/dashboard/annonces");
+  revalidatePath(`/annonce/${property.slug}`);
+  return { success: fr.annonceForm.promoDefinie };
+}
+
+/** Retire la promo d'une annonce (idempotent — no-op si déjà absente). */
+export async function clearPropertyPromoAction(formData: FormData): Promise<void> {
+  const parsed = idSchema.safeParse(formData.get("propertyId"));
+  if (!parsed.success) return;
+
+  const property = await requireOwnProperty(parsed.data).catch(() => null);
+  if (!property) return;
+
+  await prisma.property.update({
+    where: { id: property.id },
+    data: { promoPrice: null, promoUntil: null },
+  });
+
+  await logAudit({
+    action: "PROPERTY_PROMO_CLEARED",
+    userId: property.ownerId,
+    success: true,
+    metadata: { propertyId: property.id },
+  });
+
+  revalidatePath("/dashboard/annonces");
+  revalidatePath(`/annonce/${property.slug}`);
+}
+
 export type FeaturedOrderPaymentState = { error?: string; payUrl?: string } | undefined;
 
 /**
