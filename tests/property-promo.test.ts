@@ -47,6 +47,7 @@ function eligibleProperty(overrides: Partial<Record<string, unknown>> = {}) {
     id: PROP_ID,
     ownerId: OWNER.id,
     type: "SEJOUR",
+    vertical: "STAY",
     slug: "villa-hammamet",
     title: "Villa",
     cashPaymentEnabled: false,
@@ -157,6 +158,18 @@ describe("setPropertyPromoAction", () => {
 
   it("refuse une annonce non vérifiée", async () => {
     propertyFindUnique.mockResolvedValue(eligibleProperty({ verified: false }));
+
+    const result = await setPropertyPromoAction(
+      undefined,
+      form({ propertyId: PROP_ID, promoPrice: "250", promoUntil: ymd(10) })
+    );
+
+    expect(result).toEqual({ error: "Annonce non éligible." });
+    expect(propertyUpdate).not.toHaveBeenCalled();
+  });
+
+  it("refuse une annonce non-Séjour (IMMO — vente ou location), même vérifiée active", async () => {
+    propertyFindUnique.mockResolvedValue(eligibleProperty({ vertical: "IMMO" }));
 
     const result = await setPropertyPromoAction(
       undefined,

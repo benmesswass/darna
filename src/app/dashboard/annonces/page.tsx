@@ -197,11 +197,16 @@ export default async function MesAnnoncesPage({
             const canRepublish = (p.status !== "ACTIVE" && !isPending) || isExpired;
             const featured = isListingFeatured(p.featuredUntil);
             const canFeature = p.status === "ACTIVE" && !isExpired;
-            // Promo hôte (§PM1) : réservée aux annonces vérifiées ACTIVE, comme
-            // setPropertyPromoAction — pas de promo sur du stock non fiable.
+            // Promo hôte (§PM1) : réservée aux annonces vérifiées ACTIVE ET
+            // Séjour, comme setPropertyPromoAction — pas de promo sur du stock
+            // non fiable, et un prix promo n'a de sens qu'à la nuitée.
             const promoActive =
               p.verified && isPropertyPromoActive(p.promoUntil) && p.promoPrice !== null;
-            const canPromo = p.status === "ACTIVE" && !isExpired && p.verified;
+            const canSetPromo =
+              p.status === "ACTIVE" && !isExpired && p.verified && p.vertical === "STAY";
+            // Une annonce non-Séjour avec une promo déjà posée (avant ce
+            // correctif) doit rester joignable pour la retirer.
+            const canManagePromo = canSetPromo || promoActive;
 
             return (
               <li
@@ -300,7 +305,7 @@ export default async function MesAnnoncesPage({
                       {featured ? fr.dashboard.prolongerALaUne : fr.dashboard.mettreALaUne}
                     </Link>
                   ) : null}
-                  {canPromo ? (
+                  {canManagePromo ? (
                     <Link
                       href={`/dashboard/annonces/${p.id}/promo`}
                       className="flex items-center justify-center gap-1.5 rounded-xl bg-emerald-100 px-3.5 py-2 text-center text-xs font-bold text-emerald-800 hover:bg-emerald-200"

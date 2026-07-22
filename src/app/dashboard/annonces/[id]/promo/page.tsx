@@ -21,6 +21,7 @@ const propertySelect = {
   status: true,
   expiresAt: true,
   verified: true,
+  vertical: true,
   price: true,
   promoPrice: true,
   promoUntil: true,
@@ -41,13 +42,18 @@ export default async function PromoPage({
   // Autorisation : la page n'est accessible qu'au propriétaire de l'annonce.
   if (!property || property.ownerId !== user.id) notFound();
 
-  // Réservé aux annonces vérifiées ACTIVE (aligné north-star — pas de promo
-  // sur du stock non fiable), même garde que setPropertyPromoAction.
-  const eligible =
+  // Réservé aux annonces vérifiées ACTIVE ET Séjour (un prix promo n'a de
+  // sens qu'à la nuitée), même garde que setPropertyPromoAction.
+  const canSetPromo =
     property.status === "ACTIVE" &&
     property.expiresAt.getTime() > Date.now() &&
-    property.verified;
+    property.verified &&
+    property.vertical === "STAY";
   const promoActive = isPropertyPromoActive(property.promoUntil);
+  // Une annonce non-Séjour qui porte déjà une promo (posée avant ce
+  // correctif) doit rester retirable même si elle ne peut plus en recevoir
+  // une nouvelle — sinon l'hôte n'a plus aucun moyen de la nettoyer.
+  const canManagePromo = canSetPromo || promoActive;
 
   return (
     <div className="mx-auto max-w-xl">
@@ -76,7 +82,7 @@ export default async function PromoPage({
           </p>
         </div>
 
-        {eligible ? (
+        {canManagePromo ? (
           <>
             {promoActive && property.promoPrice !== null && property.promoUntil ? (
               <div className="mt-5 rounded-2xl bg-emerald-50 p-4 ring-1 ring-emerald-200">
@@ -99,9 +105,12 @@ export default async function PromoPage({
               </div>
             ) : null}
 
-            <PropertyPromoForm propertyId={property.id} price={property.price} />
-
-            <p className="mt-4 text-center text-xs text-body/50">{fr.promo.garantie}</p>
+            {canSetPromo ? (
+              <>
+                <PropertyPromoForm propertyId={property.id} price={property.price} />
+                <p className="mt-4 text-center text-xs text-body/50">{fr.promo.garantie}</p>
+              </>
+            ) : null}
           </>
         ) : (
           <div className="mt-5 rounded-2xl bg-red-50 p-5 text-center">
