@@ -22,9 +22,11 @@ vi.mock("@/lib/audit", () => ({
 // moment (transition réelle vers CONFIRMEE), pas son rendu d'e-mail.
 vi.mock("@/lib/notifications", () => ({
   sendBookingConfirmationEmail: vi.fn(),
+  sendNewBookingHostEmail: vi.fn(),
 }));
 vi.mock("@/lib/notification-center", () => ({
   notifyBookingConfirmed: vi.fn(),
+  notifyNewBookingReceived: vi.fn(),
 }));
 
 import { settleKonnectBooking } from "@/lib/payments";
