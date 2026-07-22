@@ -1122,9 +1122,7 @@ export const en: Dictionary = {
   booking: {
     titre: "Booking request",
     recapitulatif: "Summary — 100% transparent",
-    prixNuit: "Price per night",
     nuits: (n: number) => (n === 1 ? "1 night" : `${n} nights`),
-    sousTotal: "Subtotal",
     fraisService: "Darna service fee",
     fraisServiceAide:
       "It funds listing verification and payment protection.",

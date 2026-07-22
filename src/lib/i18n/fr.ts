@@ -1138,9 +1138,7 @@ export const fr = {
   booking: {
     titre: "Demande de réservation",
     recapitulatif: "Récapitulatif — 100 % transparent",
-    prixNuit: "Prix par nuit",
     nuits: (n: number) => (n === 1 ? "1 nuit" : `${n} nuits`),
-    sousTotal: "Sous-total",
     fraisService: "Frais de service Darna",
     fraisServiceAide:
       "Ils financent la vérification des annonces et la protection des paiements.",

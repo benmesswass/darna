@@ -337,6 +337,8 @@ export type BookingQuote =
   | {
       ok: true;
       nights: number;
+      /** Prix/nuit RÉELLEMENT appliqué (promo hôte incluse) — affiché au récap, jamais recalculé côté client. */
+      nightlyPrice: number;
       subtotal: number;
       serviceFee: number;
       total: number;
@@ -456,7 +458,7 @@ export async function quoteBookingAction(input: {
     }
   }
 
-  return { ok: true, nights, subtotal, serviceFee, total, discount };
+  return { ok: true, nights, nightlyPrice, subtotal, serviceFee, total, discount };
 }
 
 /** Montant choisi à la réservation : borné [acompte, total] côté serveur. */

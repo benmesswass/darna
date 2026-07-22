@@ -1134,7 +1134,6 @@ export const ar: Dictionary = {
   booking: {
     titre: "طلب حجز",
     recapitulatif: "الملخّص — شفّاف 100٪",
-    prixNuit: "سوم الليلة",
     nuits: (n: number) =>
       n === 1
         ? "ليلة واحدة"
@@ -1143,7 +1142,6 @@ export const ar: Dictionary = {
           : n <= 10
             ? `${n} ليالي`
             : `${n} ليلة`,
-    sousTotal: "المجموع الجزئي",
     fraisService: "معلوم خدمة دارنا",
     fraisServiceAide: "يموّل توثيق الإعلانات وحماية الخلاصات.",
     total: "المبلغ الجملي",
