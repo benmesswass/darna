@@ -10,6 +10,7 @@ import { PropertyCard } from "@/components/property/PropertyCard";
 import { CheckIcon, StarIcon } from "@/components/icons";
 import { AnimatedGrid } from "@/components/ui/AnimatedGrid";
 import { ReviewsList } from "@/components/property/ReviewsList";
+import { SuperHostBadge } from "@/components/property/Badges";
 
 /** Initiales (1 à 2 lettres) dérivées du nom, pour l'avatar par défaut. */
 function initials(name: string): string {
@@ -83,6 +84,8 @@ export default async function HostPage({
         </div>
 
         <div key="badges" className="mt-5 flex flex-wrap items-center gap-3">
+          {host.isSuperHost ? <SuperHostBadge /> : null}
+
           {host.kycStatus === "VERIFIE" ? (
             <span className="inline-flex items-center gap-1 rounded-full bg-darna/5 px-2.5 py-1 text-xs font-medium text-heading">
               <CheckIcon width={12} height={12} strokeWidth={3} />

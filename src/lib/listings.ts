@@ -9,6 +9,7 @@ import {
   type SortKey,
 } from "@/lib/constants";
 import { HOST_CANCELLATION_SIGNAL_DAYS } from "@/lib/config";
+import { isSuperHost } from "@/lib/super-host";
 import type { MapMarker } from "@/components/map/types";
 import type { ReviewItem } from "@/components/property/ReviewsSection";
 import { getAnonId, logProductEvent } from "@/lib/product-events";
@@ -619,6 +620,8 @@ export type HostProfile = {
   ratingAvg: number | null;
   ratingCount: number;
   reviews: ReviewItem[];
+  // Défi "Hôte Zéro Faille" (GROWTH_ROADMAP.md §G4) — cf. isSuperHost().
+  isSuperHost: boolean;
 };
 
 /**
@@ -634,7 +637,7 @@ export async function getHostProfile(id: string): Promise<HostProfile | null> {
   });
   if (!user || (user.role !== "HOTE" && user.role !== "AGENCE")) return null;
 
-  const [listings, rating, reviews] = await Promise.all([
+  const [listings, rating, reviews, superHost] = await Promise.all([
     prisma.property.findMany({
       where: { ...activeListingWhere(), ownerId: id },
       include: listingCardInclude,
@@ -655,6 +658,7 @@ export async function getHostProfile(id: string): Promise<HostProfile | null> {
         property: { select: { title: true, slug: true } },
       },
     }),
+    isSuperHost(id),
   ]);
 
   return {
@@ -662,6 +666,7 @@ export async function getHostProfile(id: string): Promise<HostProfile | null> {
     listings,
     ratingAvg: rating._count.rating > 0 ? rating._avg.rating : null,
     ratingCount: rating._count.rating,
+    isSuperHost: superHost,
     reviews: reviews.map((r) => ({
       id: r.id,
       rating: r.rating,
