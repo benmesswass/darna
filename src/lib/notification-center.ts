@@ -36,7 +36,10 @@ export type NotificationType =
   | "ANNONCE_CREDITS_VERIF_EPUISES"
   // Vérification Wakil HOTE non payée (MONETISATION_IMMO_ROADMAP.md §MI3,
   // décision Wassim du 2026-07-20 : régime à l'unité, distinct de l'agence).
-  | "ANNONCE_VERIF_PAIEMENT_REQUIS";
+  | "ANNONCE_VERIF_PAIEMENT_REQUIS"
+  // Nouvelle réservation ESCROW confirmée (paiement en séquestre) — distinct
+  // de DEMANDE_CASH_RECUE (Rail 2, avant acceptation hôte).
+  | "RESERVATION_RECUE";
 
 async function createNotification(
   userId: string,
@@ -71,6 +74,26 @@ export async function notifyBookingConfirmed(bookingId: string): Promise<void> {
   });
   if (!booking) return;
   await createNotification(booking.guestId, "RESERVATION_CONFIRMEE", {
+    propertyTitle: booking.property.title,
+    href: "/dashboard/reservations",
+  });
+}
+
+/**
+ * Notifie l'HÔTE qu'une nouvelle réservation ESCROW vient d'être confirmée
+ * (paiement en séquestre) sur son annonce. Appelée aux mêmes points que
+ * notifyBookingConfirmed (voyageur) — mock confirmPaymentAction ET webhook
+ * Konnect settleKonnectBooking — jamais lors de l'acceptation d'une demande
+ * cash par l'hôte lui-même (acceptCashBookingAction), qui n'a pas besoin de se
+ * notifier de sa propre action.
+ */
+export async function notifyNewBookingReceived(bookingId: string): Promise<void> {
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    select: { property: { select: { title: true, ownerId: true } } },
+  });
+  if (!booking) return;
+  await createNotification(booking.property.ownerId, "RESERVATION_RECUE", {
     propertyTitle: booking.property.title,
     href: "/dashboard/reservations",
   });

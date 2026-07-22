@@ -13,8 +13,8 @@
 import { prisma } from "@/lib/prisma";
 import { getKonnectPayment, tndToMillimes } from "@/lib/konnect";
 import { logAudit, logStructured } from "@/lib/audit";
-import { sendBookingConfirmationEmail } from "@/lib/notifications";
-import { notifyBookingConfirmed } from "@/lib/notification-center";
+import { sendBookingConfirmationEmail, sendNewBookingHostEmail } from "@/lib/notifications";
+import { notifyBookingConfirmed, notifyNewBookingReceived } from "@/lib/notification-center";
 
 export type SettleResult =
   | "CONFIRMEE" // payée et sous séquestre
@@ -141,6 +141,8 @@ export async function settleKonnectBooking(
   // seule fois même si webhook et page de retour règlent en concurrence.
   await sendBookingConfirmationEmail(booking.id);
   await notifyBookingConfirmed(booking.id);
+  await sendNewBookingHostEmail(booking.id);
+  await notifyNewBookingReceived(booking.id);
 
   return "CONFIRMEE";
 }

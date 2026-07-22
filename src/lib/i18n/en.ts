@@ -937,6 +937,29 @@ export const en: Dictionary = {
         : "") +
       `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Verified stays.</p>` +
       `</div>`,
+    newBookingHostSujet: (titre: string) =>
+      `Darna — new booking received: ${titre}`,
+    newBookingHostHtml: (p: {
+      hostName: string;
+      guestName: string;
+      propertyTitle: string;
+      checkIn: string;
+      checkOut: string;
+      guests: number;
+      url: string;
+    }) =>
+      `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
+      `<h1 style="color:#0f766e;font-size:20px">New booking 🎉</h1>` +
+      `<p>Hello ${p.hostName},</p>` +
+      `<p><strong>${p.guestName}</strong> just booked <strong>${p.propertyTitle}</strong>. The payment is protected under Darna escrow and will be released to you once the stay is over.</p>` +
+      `<table style="width:100%;border-collapse:collapse;margin:16px 0">` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Check-in</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.checkIn}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Check-out</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.checkOut}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Guests</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.guests}</td></tr>` +
+      `</table>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">View booking</a></p>` +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Verified stays.</p>` +
+      `</div>`,
     bookingCancelledByHostSujet: (titre: string) =>
       `Darna — your stay was cancelled: ${titre}`,
     bookingCancelledByHostHtml: (p: {
@@ -1342,6 +1365,8 @@ export const en: Dictionary = {
       `Your listing “${titre}” could not be verified — you have no verification credits left. Buy a pack to continue.`,
     annonceVerifPaiementRequis: (titre: string) =>
       `Your listing “${titre}” could not be verified — pay for the Wakil verification (20 TND) so an agent can process it.`,
+    reservationRecue: (titre: string) =>
+      `You received a new booking for “${titre}”.`,
   },
   alaUne: {
     titre: "Feature your listing",
