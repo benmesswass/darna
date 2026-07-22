@@ -17,7 +17,13 @@ import {
   verticalOfType,
 } from "@/lib/constants";
 import { verticalEnabled, kycGatingEnabled } from "@/lib/modes";
-import { FEATURED_DURATION_DAYS, FEATURED_PRICE_TND, LISTING_LIFETIME_DAYS, SITE_URL } from "@/lib/config";
+import {
+  FEATURED_DURATION_DAYS,
+  FEATURED_PRICE_TND,
+  HOST_CANCELLATION_SIGNAL_DAYS,
+  LISTING_LIFETIME_DAYS,
+  SITE_URL,
+} from "@/lib/config";
 import { logAudit, logStructured } from "@/lib/audit";
 import { initKonnectPayment, isKonnectEnabled, signKonnectWebhook } from "@/lib/konnect";
 import {
@@ -27,6 +33,7 @@ import {
 } from "@/lib/uploads";
 import { notifyAdmins } from "@/lib/admin-notify";
 import { activeListingsLimit, countActiveListings, hasUnclaimedFreeBoost } from "@/lib/subscriptions";
+import { isSuperHost, superHostBoostClaimEligible } from "@/lib/super-host";
 
 export type PropertyFormState = { error?: string } | undefined;
 
@@ -538,6 +545,85 @@ export async function claimFreeFeaturedBoostAction(formData: FormData): Promise<
       propertyId: property.id,
       featuredUntil: featuredUntil.toISOString(),
       provider: "subscription_perk",
+    },
+  });
+
+  revalidatePath("/dashboard/annonces");
+  revalidatePath(`/annonce/${property.slug}`);
+  revalidatePath("/");
+  redirect("/dashboard/annonces?alaune=1");
+}
+
+/**
+ * Mise à la une — BOOST OFFERT AU MÉRITE (GROWTH_ROADMAP.md §G4, défi
+ * saisonnier « Hôte Zéro Faille ») : tout hôte (HOTE ou AGENCE, contrairement
+ * au boost d'abonnement MI4 réservé AGENCE/Pro) dont le badge Super-Hôte est
+ * actif (cf. isSuperHost()) peut activer 1 boost gratuit par fenêtre
+ * glissante HOST_CANCELLATION_SIGNAL_DAYS. Rail totalement indépendant de
+ * Konnect et de MI4 : les deux boosts offerts sont cumulables s'ils
+ * s'appliquent tous les deux (raisons indépendantes).
+ */
+export async function claimSuperHostBoostAction(formData: FormData): Promise<void> {
+  const user = await requireLister();
+
+  const parsed = idSchema.safeParse(formData.get("propertyId"));
+  if (!parsed.success) return;
+
+  // Autorisation : l'annonce doit appartenir à l'hôte connecté.
+  await requireOwnProperty(parsed.data);
+
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { superHostBoostClaimedAt: true },
+  });
+  if (!dbUser || !superHostBoostClaimEligible(dbUser.superHostBoostClaimedAt)) return;
+
+  // Critère de mérite revérifié en base (jamais confiance à un état affiché
+  // côté client, même s'il vient du même rendu serveur).
+  if (!(await isSuperHost(user.id))) return;
+
+  const property = await prisma.property.findUnique({
+    where: { id: parsed.data },
+    select: { id: true, slug: true, status: true, expiresAt: true, featuredUntil: true },
+  });
+  if (!property || property.status !== "ACTIVE" || property.expiresAt.getTime() < Date.now()) {
+    return;
+  }
+
+  // Consommation atomique : ne mute que si toujours éligible à cet instant
+  // (pas déjà réclamé sur cette fenêtre) — sûr contre une course (double
+  // clic/double onglet), même patron `updateMany` conditionné que
+  // claimFreeFeaturedBoostAction (MI4).
+  const cutoff = new Date(Date.now() - HOST_CANCELLATION_SIGNAL_DAYS * 24 * 60 * 60 * 1000);
+  const claimed = await prisma.user.updateMany({
+    where: {
+      id: user.id,
+      OR: [{ superHostBoostClaimedAt: null }, { superHostBoostClaimedAt: { lt: cutoff } }],
+    },
+    data: { superHostBoostClaimedAt: new Date() },
+  });
+  if (claimed.count === 0) return;
+
+  const boostMs = FEATURED_DURATION_DAYS * 24 * 60 * 60 * 1000;
+  const base =
+    property.featuredUntil && property.featuredUntil.getTime() > Date.now()
+      ? property.featuredUntil.getTime()
+      : Date.now();
+  const featuredUntil = new Date(base + boostMs);
+
+  await prisma.property.update({
+    where: { id: property.id },
+    data: { featuredUntil },
+  });
+
+  await logAudit({
+    action: "PROPERTY_FEATURED",
+    userId: user.id,
+    success: true,
+    metadata: {
+      propertyId: property.id,
+      featuredUntil: featuredUntil.toISOString(),
+      provider: "super_host_perk",
     },
   });
 

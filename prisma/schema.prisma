@@ -72,6 +72,13 @@ model User {
   // clé du pilotage diaspora (north-star marketing : cible France). Null tant
   // que non renseigné (comptes historiques ou inscription sans choix).
   country          String?
+  // Défi "Hôte Zéro Faille" (GROWTH_ROADMAP.md §G4) : date de la dernière
+  // réclamation du boost offert au mérite (badge Super-Hôte — dérivé, jamais
+  // stocké, cf. isSuperHost() dans src/lib/super-host.ts). Une réclamation
+  // par fenêtre glissante HOST_CANCELLATION_SIGNAL_DAYS — pas de concept de
+  // "cycle" ici, contrairement à Subscription.freeBoostUsedAt (MI4, réservé
+  // aux abonnements AGENCE).
+  superHostBoostClaimedAt DateTime?
   createdAt        DateTime  @default(now())
 
   properties               Property[]

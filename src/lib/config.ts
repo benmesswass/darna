@@ -88,6 +88,17 @@ export const REBOOKING_DISCOUNT_VALIDITY_DAYS = 30;
  */
 export const HOST_CANCELLATION_SIGNAL_DAYS = 90;
 
+/**
+ * Défi « Hôte Zéro Faille » (GROWTH_ROADMAP.md §G4) : seuils du badge
+ * Super-Hôte, évalué sur la même fenêtre glissante que le signal
+ * réputationnel ci-dessus (HOST_CANCELLATION_SIGNAL_DAYS) — un seul concept
+ * de fenêtre plutôt que d'en inventer un second. PROVISOIRE, à confirmer une
+ * fois un volume d'avis réel disponible.
+ */
+export const SUPER_HOST_MIN_RATING = 4.5;
+/** Échantillon minimum d'avis pour éviter qu'un avis unique suffise. */
+export const SUPER_HOST_MIN_REVIEWS = 3;
+
 /** Durée de vie d'une annonce avant expiration (fraîcheur des données). */
 export const LISTING_LIFETIME_DAYS = 30;
 

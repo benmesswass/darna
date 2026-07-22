@@ -29,6 +29,7 @@ import { hasOverdueHostInvoice } from "@/lib/host-invoicing";
 import {
   sendBookingConfirmationEmail,
   sendBookingCancelledByHostEmail,
+  sendNewBookingHostEmail,
 } from "@/lib/notifications";
 import { computeBookingRefund } from "@/lib/cancellation";
 import {
@@ -38,6 +39,7 @@ import {
   notifyCashBookingDeclined,
   notifyCashBookingRequested,
   notifyGuestReviewReceived,
+  notifyNewBookingReceived,
   notifyReviewReceived,
 } from "@/lib/notification-center";
 import { isSuspended, applySuspension } from "@/lib/suspension";
@@ -548,6 +550,8 @@ export async function confirmPaymentAction(formData: FormData): Promise<void> {
 
   await sendBookingConfirmationEmail(booking.id);
   await notifyBookingConfirmed(booking.id);
+  await sendNewBookingHostEmail(booking.id);
+  await notifyNewBookingReceived(booking.id);
 
   revalidatePath(`/reservation/${booking.id}/paiement`);
   revalidatePath("/dashboard/reservations");

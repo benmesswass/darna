@@ -237,6 +237,15 @@ work is due.
 | `isWakil` promotion only via admin review | unit | ✅ | Demo | P0 | Unauthorized trust role |
 | Role change re-evaluated on next request (fresh session) | integration | ❌ | Beta | P1 | Stale elevated session |
 
+### 4.13 Product instrumentation / analytics (`INSTRUMENTATION_ROADMAP.md` §IN0–IN2)
+| Test | Type | Status | Phase | Prio | Risk covered |
+|------|------|--------|-------|------|--------------|
+| `trackEvent` action: zod validation, client event-name allowlist, rate-limit | unit | ✅ (`tests/track-event.test.ts`) | Demo | P2 | Forged/arbitrary event names or userId spoofing from client |
+| `SHARE_CLICKED` (native/copy/whatsapp channels) | unit | ✅ (`tests/components/share-button.test.tsx`) | Demo | P3 | Silent metric drift |
+| `SAVED_SEARCH_CREATED` (metadata: city/prixMin/prixMax) | unit | ✅ (`tests/saved-search-events.test.ts`) | Demo | P3 | Silent metric drift |
+| `MAP_INTERACTED` (first `dragstart` or zoom-control click, session-deduped via `sessionStorage`) | unit | ⚠️ (`src/components/map/MapInner.tsx`) | Demo | P2 | Session dedup or event trigger regresses silently — no test would catch it (PR #173) |
+| `SIMULATOR_USED` (fires on every `/dashboard/yield` load when `properties.length > 0`) | unit | ⚠️ (`src/app/dashboard/yield/page.tsx`) | Demo | P2 | Empty-state gate or metadata shape regresses silently (PR #173) |
+
 ---
 
 ## 5. Security test matrix (OWASP & CWE)
@@ -641,6 +650,7 @@ checkout → setup-node 22 → npm ci → prisma generate → prisma migrate dep
 2. D2 booking IDOR + D3 property IDOR + D4 role-gate negatives.
 3. D5 mock-payment exclusivity, D6 price integrity, D7 upload-action wiring.
 4. Keep current CI green. _(Optional: add `vitest --coverage` non-blocking to start a baseline.)_
+5. `MAP_INTERACTED` + `SIMULATOR_USED` unit tests — only 2 of 4 IN2 instrumentation events are currently tested (§4.13).
 
 **Before Beta — quality gates + first integration/E2E + security regression:**
 1. Add coverage gate (≥70% lib+actions) + Playwright E2E smoke (5–8 journeys) to CI.

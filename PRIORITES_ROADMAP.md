@@ -55,7 +55,7 @@ ligne G9 par `✅ Voir CR0-CR2 (CROISSANCE_ROADMAP.md)`.
 
 | # | Tâche | Prio source | Roadmap | Note |
 |---|---|---|---|---|
-| 1 | **IN1** — Funnel de découverte (`SEARCH_PERFORMED`, `BOOKING_STARTED`) | P1 | INSTRUMENTATION | À lancer tôt : capture une baseline avant que les leviers growth ci-dessous ne changent le comportement |
+| 1 | **IN1** — Funnel de découverte (`SEARCH_PERFORMED`, `BOOKING_STARTED`) | P1 | INSTRUMENTATION | ✅ PR #164 |
 | 2 | **G8** — Fraîcheur de vérification en résultats de recherche | P2 | GROWTH | ✅ PR #165 |
 | 3 | **G10** — Mur de la confiance en direct (home) | P2 | GROWTH | ✅ PR #167 |
 | 4 | **G4** — Défi « Hôte Zéro Faille » | P2 | GROWTH | Réutilise le rail MI4 existant |
@@ -71,7 +71,7 @@ temps que G8 — G8 est en vague 1, PM1 est en vague 2, l'ordre les sépare déj
 |---|---|---|---|---|
 | 6 | **PM1** — UI hôte promo + badge | P0 | CROISSANCE | 🔧 PR en attente de revue/merge |
 | 7 | **CR0** — Fondations crédits (`CreditWallet`/`CreditTransaction`/`referralCode`) | P0 | CROISSANCE | Séquencé après PM0/PM1 par `CROISSANCE_ROADMAP.md` |
-| 8 | **IN2** — Adoption features + 1ère touche acquisition (`SIMULATOR_USED`, `SHARE_CLICKED`, `SAVED_SEARCH_CREATED`, `MAP_INTERACTED`) | P1 | INSTRUMENTATION | IN1 (même zone de code, enchaîner) |
+| 8 | **IN2** — Adoption features (`SIMULATOR_USED`, `SHARE_CLICKED`, `SAVED_SEARCH_CREATED`, `MAP_INTERACTED`) | P1 | INSTRUMENTATION | ✅ PR #171 — 1ère touche d'acquisition (`ref`/UTM) différée à `CROISSANCE_ROADMAP.md` §CR0 (aucun consommateur avant le vrai modèle d'attribution) |
 | 9 | **G2** — Barre de complétude d'annonce | P1 | GROWTH | Séquencement GROWTH (mois 2) |
 | 10 | **G1** — Simulateur de revenus | P1 | GROWTH | Idem |
 
