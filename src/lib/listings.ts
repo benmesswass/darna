@@ -45,6 +45,30 @@ export function isListingFeatured(featuredUntil: Date | null): boolean {
   return featuredUntil !== null && featuredUntil.getTime() > Date.now();
 }
 
+/** Une promo hôte est active tant que sa date de fin n'est pas dépassée (CROISSANCE_ROADMAP.md §PM0). */
+export function isPropertyPromoActive(promoUntil: Date | null): boolean {
+  return promoUntil !== null && promoUntil.getTime() > Date.now();
+}
+
+/**
+ * Prix par nuit RÉELLEMENT appliqué à une réservation : le prix promo hôte
+ * si actif ET l'annonce toujours vérifiée (§PM0 — jamais de promo sur du
+ * stock non fiable, re-vérifié ici même si l'annonce a perdu son badge
+ * après la mise en place de la promo), sinon le prix normal.
+ */
+export function effectiveNightlyPrice(property: {
+  price: number;
+  promoPrice: number | null;
+  promoUntil: Date | null;
+  verified: boolean;
+}): number {
+  return property.verified &&
+    isPropertyPromoActive(property.promoUntil) &&
+    property.promoPrice !== null
+    ? property.promoPrice
+    : property.price;
+}
+
 /**
  * Remet à null les boosts « à la une » expirés (même idiome d'expiration
  * paresseuse que les réservations EN_ATTENTE). Garantit que seules les

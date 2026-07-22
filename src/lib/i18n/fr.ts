@@ -648,6 +648,12 @@ export const fr = {
       "Dates invalides — choisissez une arrivée et un départ (départ après l'arrivée, période non passée).",
     blocageConflitReservation:
       "Impossible : une réservation existe déjà sur cette période.",
+    promoAnnonceNonEligible:
+      "Cette annonce doit être vérifiée et active pour bénéficier d'une promo.",
+    promoPrixInvalide: "Le prix promo doit être inférieur au prix normal de l'annonce.",
+    promoDateInvalide:
+      "Date de fin de promo invalide — choisissez une date future, dans un délai raisonnable.",
+    promoDefinie: "Promo activée sur votre annonce.",
     cashPaymentTitre: "Paiement sur place (cash)",
     cashPaymentAide:
       "Réservé aux voyageurs sans moyen de paiement en ligne adapté. Le séjour se règle intégralement en espèces à l'arrivée ; votre commission Darna vous est facturée séparément après la réservation, réglable en ligne.",

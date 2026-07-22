@@ -640,6 +640,12 @@ export const en: Dictionary = {
       "Invalid dates — pick a check-in and check-out (check-out after check-in, not in the past).",
     blocageConflitReservation:
       "Can't block: a booking already exists for this period.",
+    promoAnnonceNonEligible:
+      "This listing must be verified and active to get a promo.",
+    promoPrixInvalide: "The promo price must be lower than the listing's normal price.",
+    promoDateInvalide:
+      "Invalid promo end date — pick a future date, within a reasonable timeframe.",
+    promoDefinie: "Promo activated on your listing.",
     cashPaymentTitre: "Pay-at-property (cash)",
     cashPaymentAide:
       "For guests without a suitable online payment method. The stay is paid entirely in cash on arrival; your Darna commission is invoiced to you separately after the booking, payable online.",
