@@ -141,6 +141,7 @@ export const fr = {
     alaUne: "À la une",
     alaUneTooltip:
       "Annonce mise en avant : elle apparaît en tête des résultats et sur l'accueil de Darna.",
+    promo: (pct: number) => `Promo -${pct} %`,
   },
   search: {
     villePlaceholder: "Ville — Hammamet, Djerba, La Marsa…",
@@ -272,6 +273,7 @@ export const fr = {
     verifieOnSiteBloc:
       "Un agent Wakil s'est rendu sur place. Il a confirmé que le bien existe, que les photos sont conformes à la réalité et que le propriétaire est joignable.",
     verifiePar: (nom: string) => `par ${nom}`,
+    promoTooltip: (date: string) => `Prix réduit temporairement par l'hôte, jusqu'au ${date}.`,
     enSavoirPlusWakil: "En savoir plus sur le réseau Wakil",
     enSavoirPlusDarna: "En savoir plus sur nos contrôles",
     nonVerifieTooltip:
@@ -446,6 +448,8 @@ export const fr = {
     prolongerALaUne: "Prolonger à la une",
     alaUneActif: (date: string) => `À la une jusqu'au ${date}`,
     alaUneSucces: "Votre annonce est désormais à la une ! 🎉",
+    promoLien: "Promo",
+    promoActifBanner: (date: string) => `Promo active jusqu'au ${date}`,
     annonceMasqueeBanner: (date: string) =>
       `Annonce temporairement masquée des recherches suite à une annulation de votre part — elle réapparaît le ${date}.`,
     promoAlaUneTitre: "Passez vos annonces à la une",
@@ -1402,6 +1406,29 @@ export const fr = {
     boostOffertBouton: "Utiliser mon boost offert",
     boostOffertDejaUtilise:
       "Boost offert déjà utilisé pour ce cycle d'abonnement — de nouveau disponible à votre prochain renouvellement.",
+  },
+  promo: {
+    titre: "Créez une promo sur votre annonce",
+    sousTitre:
+      "Baissez temporairement votre prix pour attirer plus de réservations — vous gardez le contrôle total : prix, durée, retrait à tout moment.",
+    annonce: "Annonce",
+    prixActuel: (prix: string) => `Prix actuel : ${prix}`,
+    formPrixLabel: "Prix promo (TND / nuit)",
+    formPrixAide: "Doit être inférieur au prix actuel — c'est ce que les voyageurs paieront.",
+    formDateLabel: "Promo valable jusqu'au",
+    activer: "Activer la promo",
+    retirer: "Retirer la promo",
+    retirerConfirmer: "Retirer cette promo ?",
+    retirerOui: "Retirer",
+    retirerAnnuler: "Annuler",
+    actifTitre: "Promo active",
+    actifDesc: (prixPromo: string, date: string) =>
+      `${prixPromo} / nuit au lieu du prix normal, jusqu'au ${date}.`,
+    indisponible:
+      "Cette promo n'est disponible que pour une annonce vérifiée et active.",
+    retour: "Retour à mes annonces",
+    garantie:
+      "Aucun engagement : vous pouvez retirer la promo à tout moment. Votre revenu par nuit reste garanti — seule la commission Darna varie.",
   },
   abonnement: {
     titre: "Abonnement agence",

@@ -140,6 +140,7 @@ export const en: Dictionary = {
     alaUne: "Featured",
     alaUneTooltip:
       "Promoted listing: it appears at the top of results and on the Darna homepage.",
+    promo: (pct: number) => `${pct}% off`,
   },
   search: {
     villePlaceholder: "City — Hammamet, Djerba, La Marsa…",
@@ -271,6 +272,7 @@ export const en: Dictionary = {
     verifieOnSiteBloc:
       "A Wakil agent visited the property in person. They confirmed the property exists, the photos match reality and the owner is reachable.",
     verifiePar: (nom: string) => `by ${nom}`,
+    promoTooltip: (date: string) => `Price temporarily lowered by the host, until ${date}.`,
     enSavoirPlusWakil: "Learn more about the Wakil network",
     enSavoirPlusDarna: "Learn more about our checks",
     nonVerifieTooltip:
@@ -445,6 +447,8 @@ export const en: Dictionary = {
     prolongerALaUne: "Extend featuring",
     alaUneActif: (date: string) => `Featured until ${date}`,
     alaUneSucces: "Your listing is now featured! 🎉",
+    promoLien: "Promo",
+    promoActifBanner: (date: string) => `Promo active until ${date}`,
     annonceMasqueeBanner: (date: string) =>
       `Listing temporarily hidden from search following a cancellation on your part — it reappears on ${date}.`,
     promoAlaUneTitre: "Feature your listings",
@@ -1381,6 +1385,28 @@ export const en: Dictionary = {
     boostOffertBouton: "Use my free boost",
     boostOffertDejaUtilise:
       "Free boost already used for this billing cycle — available again at your next renewal.",
+  },
+  promo: {
+    titre: "Create a promo on your listing",
+    sousTitre:
+      "Temporarily lower your price to attract more bookings — you stay in full control: price, duration, remove anytime.",
+    annonce: "Listing",
+    prixActuel: (prix: string) => `Current price: ${prix}`,
+    formPrixLabel: "Promo price (TND / night)",
+    formPrixAide: "Must be lower than the current price — this is what travellers will pay.",
+    formDateLabel: "Promo valid until",
+    activer: "Activate the promo",
+    retirer: "Remove the promo",
+    retirerConfirmer: "Remove this promo?",
+    retirerOui: "Remove",
+    retirerAnnuler: "Cancel",
+    actifTitre: "Promo active",
+    actifDesc: (prixPromo: string, date: string) =>
+      `${prixPromo} / night instead of the normal price, until ${date}.`,
+    indisponible: "This promo is only available for a verified, active listing.",
+    retour: "Back to my listings",
+    garantie:
+      "No commitment: you can remove the promo at any time. Your revenue per night stays guaranteed — only Darna's commission varies.",
   },
   abonnement: {
     titre: "Agency subscription",

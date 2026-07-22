@@ -5,15 +5,17 @@ import { FavoriteButton } from "@/components/property/FavoriteButton";
 import { ShareButton } from "@/components/property/ShareButton";
 import { markerPriceLabel } from "@/lib/format";
 import { SITE_URL } from "@/lib/config";
-import { Price } from "@/components/currency/Price";
 import { PropertyMap } from "@/components/map/PropertyMap";
 import { PropertyGallery } from "@/components/property/PropertyGallery";
 import {
   FreshnessBadge,
+  PromoBadge,
   StatusBadge,
   TypeBadge,
   VerifiedBadge,
 } from "@/components/property/Badges";
+import { PromoPrice } from "@/components/property/PromoPrice";
+import { isPropertyPromoActive } from "@/lib/listings";
 import {
   CheckIcon,
   DoorIcon,
@@ -93,6 +95,9 @@ export async function ListingDetail({
   const isPending = property.status === "EN_ATTENTE_VALIDATION";
   const isActive =
     property.status === "ACTIVE" && property.expiresAt.getTime() > Date.now();
+  // Prix promo hôte actif (CROISSANCE_ROADMAP.md §PM1) — badge + prix barré.
+  const promoActive =
+    property.verified && isPropertyPromoActive(property.promoUntil) && property.promoPrice !== null;
   const amenities = property.amenities ? property.amenities.split("|") : [];
   // §AHC7 — la note affichée en tête de fiche intègre les annulations hôte
   // récentes (note automatique 1/5, cf. src/lib/rating.ts) : même chiffre que
@@ -137,6 +142,13 @@ export async function ListingDetail({
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <TypeBadge type={property.type} />
+            {promoActive ? (
+              <PromoBadge
+                price={property.price}
+                promoPrice={property.promoPrice!}
+                promoUntil={property.promoUntil!}
+              />
+            ) : null}
             {property.verified ? (
               <VerifiedBadge
                 level={property.verificationLevel}
@@ -170,8 +182,11 @@ export async function ListingDetail({
           </p>
         </div>
         <div className="text-end">
-          <Price
-            amount={property.price}
+          <PromoPrice
+            price={property.price}
+            promoPrice={property.promoPrice}
+            promoUntil={property.promoUntil}
+            verified={property.verified}
             suffix={priceSuffix}
             className="text-3xl font-bold text-heading"
           />
@@ -371,8 +386,11 @@ export async function ListingDetail({
         {/* Encart latéral : prix + actions + confiance */}
         <aside className="h-fit space-y-4 lg:sticky lg:top-20">
           <div className="rounded-3xl bg-surface p-6 shadow-sm ring-1 ring-darna/10">
-            <Price
-              amount={property.price}
+            <PromoPrice
+              price={property.price}
+              promoPrice={property.promoPrice}
+              promoUntil={property.promoUntil}
+              verified={property.verified}
               suffix={priceSuffix}
               className="text-2xl font-bold text-heading"
             />
