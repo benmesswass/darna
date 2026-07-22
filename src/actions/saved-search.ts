@@ -6,6 +6,7 @@ import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { resolveCity } from "@/lib/geo";
+import { getAnonId, logProductEvent } from "@/lib/product-events";
 
 export type SavedSearchFormState = { error?: string; success?: string } | undefined;
 
@@ -48,6 +49,18 @@ export async function saveSearchAction(
     }
     throw err;
   }
+
+  // Instrumentation produit (INSTRUMENTATION_ROADMAP.md §IN2).
+  await logProductEvent({
+    event: "SAVED_SEARCH_CREATED",
+    userId: user.id,
+    anonId: await getAnonId(),
+    metadata: {
+      city,
+      prixMin: parsed.data.prixMin ? Number(parsed.data.prixMin) : null,
+      prixMax: parsed.data.prixMax ? Number(parsed.data.prixMax) : null,
+    },
+  });
 
   revalidatePath("/dashboard/alertes");
   return { success: fr.search.alerteEnregistree };

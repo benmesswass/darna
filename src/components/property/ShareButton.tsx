@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useT } from "@/components/i18n/LocaleProvider";
 import { CheckIcon, LinkIcon, ShareIcon, WhatsAppIcon } from "@/components/icons";
+import { trackEvent } from "@/actions/track-event";
 
 /**
  * Bouton « Partager » d'une fiche annonce : partage natif (navigator.share,
@@ -45,12 +46,21 @@ export function ShareButton({
     };
   }, [open]);
 
+  // Instrumentation produit (INSTRUMENTATION_ROADMAP.md §IN2) — best-effort,
+  // jamais awaité : ne doit ni bloquer le partage ni retarder une navigation
+  // (lien WhatsApp). Une perte occasionnelle (ex. navigation immédiate) est
+  // acceptée, comme pour tout événement produit.
+  function trackShare(channel: "native" | "copy" | "whatsapp") {
+    void trackEvent({ event: "SHARE_CLICKED", metadata: { channel } });
+  }
+
   async function handleClick() {
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
         await navigator.share({ title, url });
+        trackShare("native");
       } catch {
-        // Annulation utilisateur (AbortError) — rien à faire.
+        // Annulation utilisateur (AbortError) — rien à faire, pas de mesure.
       }
       return;
     }
@@ -59,6 +69,7 @@ export function ShareButton({
 
   async function copyLink() {
     await navigator.clipboard.writeText(url);
+    trackShare("copy");
     setCopied(true);
     setOpen(false);
   }
@@ -99,7 +110,10 @@ export function ShareButton({
             target="_blank"
             rel="noopener noreferrer"
             role="menuitem"
-            onClick={() => setOpen(false)}
+            onClick={() => {
+              trackShare("whatsapp");
+              setOpen(false);
+            }}
             className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-body/80 transition hover:bg-cream"
           >
             <WhatsAppIcon width={16} height={16} />

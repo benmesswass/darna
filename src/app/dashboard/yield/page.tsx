@@ -5,6 +5,7 @@ import { getSessionUser } from "@/lib/session";
 import { computeYield } from "@/lib/yield";
 import { formatTndServer } from "@/lib/format";
 import { SparklesIcon } from "@/components/icons";
+import { getAnonId, logProductEvent } from "@/lib/product-events";
 
 export default async function YieldAdvisorPage() {
   const fr = await getT();
@@ -26,6 +27,21 @@ export default async function YieldAdvisorPage() {
       analysis: await computeYield(p.city, p.gouvernorat),
     }))
   );
+
+  // Instrumentation produit (INSTRUMENTATION_ROADMAP.md §IN2) — uniquement si
+  // l'hôte a réellement quelque chose à analyser (sinon l'état vide n'est pas
+  // un usage réel du simulateur).
+  if (properties.length > 0) {
+    await logProductEvent({
+      event: "SIMULATOR_USED",
+      userId: user.id,
+      anonId: await getAnonId(),
+      metadata: {
+        propertyCount: properties.length,
+        recommendations: analyses.map((a) => a.analysis.recommendation),
+      },
+    });
+  }
 
   return (
     <div>
