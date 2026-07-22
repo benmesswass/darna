@@ -140,6 +140,7 @@ export const en: Dictionary = {
     alaUne: "Featured",
     alaUneTooltip:
       "Promoted listing: it appears at the top of results and on the Darna homepage.",
+    promo: (pct: number) => `${pct}% off`,
     superHote: "Superhost",
     superHoteTooltip:
       "Zero cancellations and excellent reviews over the last 3 months — a reliable host, proven by real results.",
@@ -274,6 +275,7 @@ export const en: Dictionary = {
     verifieOnSiteBloc:
       "A Wakil agent visited the property in person. They confirmed the property exists, the photos match reality and the owner is reachable.",
     verifiePar: (nom: string) => `by ${nom}`,
+    promoTooltip: (date: string) => `Price temporarily lowered by the host, until ${date}.`,
     enSavoirPlusWakil: "Learn more about the Wakil network",
     enSavoirPlusDarna: "Learn more about our checks",
     nonVerifieTooltip:
@@ -448,6 +450,8 @@ export const en: Dictionary = {
     prolongerALaUne: "Extend featuring",
     alaUneActif: (date: string) => `Featured until ${date}`,
     alaUneSucces: "Your listing is now featured! 🎉",
+    promoLien: "Promo",
+    promoActifBanner: (date: string) => `Promo active until ${date}`,
     annonceMasqueeBanner: (date: string) =>
       `Listing temporarily hidden from search following a cancellation on your part — it reappears on ${date}.`,
     promoAlaUneTitre: "Feature your listings",
@@ -1144,9 +1148,7 @@ export const en: Dictionary = {
   booking: {
     titre: "Booking request",
     recapitulatif: "Summary — 100% transparent",
-    prixNuit: "Price per night",
     nuits: (n: number) => (n === 1 ? "1 night" : `${n} nights`),
-    sousTotal: "Subtotal",
     fraisService: "Darna service fee",
     fraisServiceAide:
       "It funds listing verification and payment protection.",
@@ -1415,6 +1417,28 @@ export const en: Dictionary = {
     superHoteBoostBouton: "Claim my Superhost boost",
     superHoteBoostDejaUtilise:
       "Superhost boost already claimed recently — available again in a few months if your badge stays active.",
+  },
+  promo: {
+    titre: "Create a promo on your listing",
+    sousTitre:
+      "Temporarily lower your price to attract more bookings — you stay in full control: price, duration, remove anytime.",
+    annonce: "Listing",
+    prixActuel: (prix: string) => `Current price: ${prix}`,
+    formPrixLabel: "Promo price (TND / night)",
+    formPrixAide: "Must be lower than the current price — this is what travellers will pay.",
+    formDateLabel: "Promo valid until",
+    activer: "Activate the promo",
+    retirer: "Remove the promo",
+    retirerConfirmer: "Remove this promo?",
+    retirerOui: "Remove",
+    retirerAnnuler: "Cancel",
+    actifTitre: "Promo active",
+    actifDesc: (prixPromo: string, date: string) =>
+      `${prixPromo} / night instead of the normal price, until ${date}.`,
+    indisponible: "This promo is only available for a verified, active listing.",
+    retour: "Back to my listings",
+    garantie:
+      "No commitment: you can remove the promo at any time. Your revenue per night stays guaranteed — only Darna's commission varies.",
   },
   abonnement: {
     titre: "Agency subscription",

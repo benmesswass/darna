@@ -144,6 +144,7 @@ export const ar: Dictionary = {
     alaUne: "في الواجهة",
     alaUneTooltip:
       "إعلان مميّز: يظهر في قمة النتائج وفي صفحة استقبال دارنا.",
+    promo: (pct: number) => `تخفيض ${pct}%`,
     superHote: "مضيف مثالي",
     superHoteTooltip:
       "صفر إلغاء وتقييمات ممتازة في آخر 3 أشهر — مضيف يستاهل الثقة، متثبّت بالنتائج الحقيقية متاعو.",
@@ -297,6 +298,7 @@ export const ar: Dictionary = {
     verifieOnSiteBloc:
       "وكيل دارنا زار العقار شخصيًا. تثبّت أنه موجود، الصور تطابق الواقع، والمالك يمكن الاتصال به.",
     verifiePar: (nom: string) => `بواسطة ${nom}`,
+    promoTooltip: (date: string) => `السعر تنقّص وقتيًا من المضيف، حتى ${date}.`,
     enSavoirPlusWakil: "اعرف أكثر على شبكة الوكلاء",
     enSavoirPlusDarna: "اعرف أكثر على مراجعاتنا",
     nonVerifieTooltip:
@@ -470,6 +472,8 @@ export const ar: Dictionary = {
     prolongerALaUne: "طوّل في الواجهة",
     alaUneActif: (date: string) => `في الواجهة حتى ${date}`,
     alaUneSucces: "إعلانك ولّى في الواجهة! 🎉",
+    promoLien: "تخفيض",
+    promoActifBanner: (date: string) => `تخفيض فعّال حتى ${date}`,
     annonceMasqueeBanner: (date: string) =>
       `الإعلان تحجب مؤقتًا من نتائج البحث على خاطر إلغاء من عندك — باش يرجع يبان في ${date}.`,
     promoAlaUneTitre: "حطّ إعلاناتك في الواجهة",
@@ -1156,7 +1160,6 @@ export const ar: Dictionary = {
   booking: {
     titre: "طلب حجز",
     recapitulatif: "الملخّص — شفّاف 100٪",
-    prixNuit: "سوم الليلة",
     nuits: (n: number) =>
       n === 1
         ? "ليلة واحدة"
@@ -1165,7 +1168,6 @@ export const ar: Dictionary = {
           : n <= 10
             ? `${n} ليالي`
             : `${n} ليلة`,
-    sousTotal: "المجموع الجزئي",
     fraisService: "معلوم خدمة دارنا",
     fraisServiceAide: "يموّل توثيق الإعلانات وحماية الخلاصات.",
     total: "المبلغ الجملي",
@@ -1429,6 +1431,28 @@ export const ar: Dictionary = {
     superHoteBoostBouton: "اطلب البوست متاع المضيف المثالي",
     superHoteBoostDejaUtilise:
       "بوست المضيف المثالي تستعمل ديجا من قريب — يرجع متوفر بعد شهرين ولا ثلاثة إذا بقا الوسام متاعك فعال.",
+  },
+  promo: {
+    titre: "عمل تخفيض على إعلانك",
+    sousTitre:
+      "نقّص في السوم وقتيًا باش تجبد أكثر حجوزات — الكنترول عندك بالكامل: السعر، المدة، وتنجم تسحبها في أي وقت.",
+    annonce: "الإعلان",
+    prixActuel: (prix: string) => `السعر الحالي: ${prix}`,
+    formPrixLabel: "سعر التخفيض (دينار / الليلة)",
+    formPrixAide: "لازم يكون أقل من السعر الحالي — هذا اللي المسافرين باش يخلصوه.",
+    formDateLabel: "التخفيض صالح حتى",
+    activer: "فعّل التخفيض",
+    retirer: "اسحب التخفيض",
+    retirerConfirmer: "تسحب هذا التخفيض؟",
+    retirerOui: "اسحب",
+    retirerAnnuler: "الغي",
+    actifTitre: "تخفيض فعّال",
+    actifDesc: (prixPromo: string, date: string) =>
+      `${prixPromo} / الليلة بدل السعر العادي، حتى ${date}.`,
+    indisponible: "هالتخفيض متاح غير للإعلانات الموثّقة والنشيطة.",
+    retour: "رجوع لإعلاناتي",
+    garantie:
+      "بلا التزام: تنجم تسحب التخفيض في أي وقت. الدخل متاعك في الليلة يبقى مضمون — إلي يتبدل هو غير عمولة دارنا.",
   },
   abonnement: {
     titre: "اشتراك الوكالة",
