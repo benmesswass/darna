@@ -26,13 +26,16 @@ import { initKonnectPayment, isKonnectEnabled, signKonnectWebhook } from "@/lib/
 /**
  * Règlement DÉMO (aucun argent réel) : crédite 1 vérification immédiatement.
  * Ne s'exécute JAMAIS quand Konnect est actif (même garde d'exclusivité que
- * buyVerificationCreditPackDemoAction/confirmHostInvoiceAction).
+ * buyVerificationCreditPackDemoAction/confirmHostInvoiceAction). Signature
+ * `useActionState` (au lieu d'une simple action de formulaire) pour que le
+ * bouton (HostVerificationDemoPayButton) puisse afficher un état pending —
+ * la page se recharge sinon sans aucun retour visible pendant l'aller-retour.
  */
-export async function payHostVerificationDemoAction(): Promise<void> {
-  if (isKonnectEnabled()) return;
+export async function payHostVerificationDemoAction(_prev: undefined): Promise<undefined> {
+  if (isKonnectEnabled()) return undefined;
 
   const user = await requireUser();
-  if (user.role !== "HOTE") return;
+  if (user.role !== "HOTE") return undefined;
 
   await prisma.verificationWallet.upsert({
     where: { userId: user.id },

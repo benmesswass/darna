@@ -460,6 +460,8 @@ export const fr = {
     verifWakilPrix: "Prix de la vérification",
     verifWakilPayer: "Payer la vérification",
     verifWakilPayerSimulation: "Payer la vérification (simulation)",
+    verifWakilCreditPret:
+      "Crédit de vérification prêt — un Wakil va bientôt examiner cette annonce.",
     aucuneReservation: "Aucune réservation pour le moment.",
     aucuneReservationCta: "Trouvez votre prochain séjour parmi nos annonces vérifiées.",
     aucuneReservationHote: "Aucun voyageur n'a encore réservé vos annonces.",
