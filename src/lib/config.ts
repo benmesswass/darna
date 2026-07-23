@@ -88,6 +88,17 @@ export const REBOOKING_DISCOUNT_VALIDITY_DAYS = 30;
  */
 export const HOST_CANCELLATION_SIGNAL_DAYS = 90;
 
+/**
+ * Défi « Hôte Zéro Faille » (GROWTH_ROADMAP.md §G4) : seuils du badge
+ * Super-Hôte, évalué sur la même fenêtre glissante que le signal
+ * réputationnel ci-dessus (HOST_CANCELLATION_SIGNAL_DAYS) — un seul concept
+ * de fenêtre plutôt que d'en inventer un second. PROVISOIRE, à confirmer une
+ * fois un volume d'avis réel disponible.
+ */
+export const SUPER_HOST_MIN_RATING = 4.5;
+/** Échantillon minimum d'avis pour éviter qu'un avis unique suffise. */
+export const SUPER_HOST_MIN_REVIEWS = 3;
+
 /** Durée de vie d'une annonce avant expiration (fraîcheur des données). */
 export const LISTING_LIFETIME_DAYS = 30;
 
@@ -98,6 +109,19 @@ export const LISTING_EXPIRE_SOON_DAYS = 5;
 /** Seuil (jours restants) à partir duquel une HostInvoice EN_ATTENTE est
  *  signalée « bientôt due » (PAIEMENT_SUR_PLACE_ROADMAP.md §PSP5). */
 export const HOST_INVOICE_DUE_SOON_DAYS = 3;
+
+/**
+ * Score de complétude d'annonce (GROWTH_ROADMAP.md §G2) : seuils, PROVISOIRES,
+ * choisis à partir de champs déjà présents sur Property — aucun nouveau champ.
+ * `COMPLETENESS_MIN_PHOTOS` reprend directement AUDIT_V1.md Top 20 #12
+ * (« Pousser 5+ photos minimum »), au-delà du minimum de 1 exigé à la création.
+ */
+export const COMPLETENESS_MIN_PHOTOS = 5;
+/** Au-delà du minimum de 40 caractères exigé à la création (createSchema). */
+export const COMPLETENESS_MIN_DESCRIPTION_LENGTH = 150;
+export const COMPLETENESS_MIN_AMENITIES = 3;
+/** Délai avant la première relance d'une annonce restée incomplète. */
+export const LISTING_INCOMPLETE_NUDGE_DAYS = 3;
 
 /** Mise en avant payante (« à la une ») : durée du boost et prix unique. */
 export const FEATURED_DURATION_DAYS = 30;

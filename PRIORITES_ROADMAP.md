@@ -55,24 +55,26 @@ ligne G9 par `✅ Voir CR0-CR2 (CROISSANCE_ROADMAP.md)`.
 
 | # | Tâche | Prio source | Roadmap | Note |
 |---|---|---|---|---|
-| 1 | **IN1** — Funnel de découverte (`SEARCH_PERFORMED`, `BOOKING_STARTED`) | P1 | INSTRUMENTATION | À lancer tôt : capture une baseline avant que les leviers growth ci-dessous ne changent le comportement |
-| 2 | **G8** — Fraîcheur de vérification en résultats de recherche | P2 | GROWTH | Wiring pur, donnée déjà en base |
+| 1 | **IN1** — Funnel de découverte (`SEARCH_PERFORMED`, `BOOKING_STARTED`) | P1 | INSTRUMENTATION | ✅ PR #164 |
+| 2 | **G8** — Fraîcheur de vérification en résultats de recherche | P2 | GROWTH | ✅ PR #165 |
 | 3 | **G10** — Mur de la confiance en direct (home) | P2 | GROWTH | ✅ PR #167 |
-| 4 | **G4** — Défi « Hôte Zéro Faille » | P2 | GROWTH | Réutilise le rail MI4 existant |
-| 5 | **PM0** — Fondations promo hôte (`promoPrice`/`promoUntil`) | P0 | CROISSANCE | ⚠️ voir note ci-dessous |
+| 4 | **G4** — Défi « Hôte Zéro Faille » | P2 | GROWTH | ✅ PR #170 |
+| 5 | **PM0** — Fondations promo hôte (`promoPrice`/`promoUntil`) | P0 | CROISSANCE | ✅ PR #169 |
 
-⚠️ **PM1 (UI badge promo) et G8 (badge fraîcheur vérif) touchent probablement
-tous les deux `PropertyCard.tsx`/`Badges.tsx`.** Ne pas lancer PM1 en même
-temps que G8 — G8 est en vague 1, PM1 est en vague 2, l'ordre les sépare déjà.
+✅ Risque de conflit PM1/G8 sur `PropertyCard.tsx`/`Badges.tsx` évité par le
+séquencement en vagues séparées, comme prévu. Le conflit réel rencontré au
+merge de PM1 (#172) était sur `src/lib/i18n/{fr,en,ar}.ts` avec G4 (#170, clés
+`superHote*` vs `promo*` au même endroit) — résolu en gardant les deux, aucune
+ligne en litige.
 
 ### Vague 2 — après la vague 1 (dépendances directes)
 
 | # | Tâche | Prio source | Roadmap | Dépend de |
 |---|---|---|---|---|
-| 6 | **PM1** — UI hôte promo + badge | P0 | CROISSANCE | PM0 |
+| 6 | **PM1** — UI hôte promo + badge | P0 | CROISSANCE | ✅ PR #172 |
 | 7 | **CR0** — Fondations crédits (`CreditWallet`/`CreditTransaction`/`referralCode`) | P0 | CROISSANCE | Séquencé après PM0/PM1 par `CROISSANCE_ROADMAP.md` |
-| 8 | **IN2** — Adoption features + 1ère touche acquisition (`SIMULATOR_USED`, `SHARE_CLICKED`, `SAVED_SEARCH_CREATED`, `MAP_INTERACTED`) | P1 | INSTRUMENTATION | IN1 (même zone de code, enchaîner) |
-| 9 | **G2** — Barre de complétude d'annonce | P1 | GROWTH | Séquencement GROWTH (mois 2) |
+| 8 | **IN2** — Adoption features (`SIMULATOR_USED`, `SHARE_CLICKED`, `SAVED_SEARCH_CREATED`, `MAP_INTERACTED`) | P1 | INSTRUMENTATION | ✅ PR #173 — 1ère touche d'acquisition (`ref`/UTM) différée à `CROISSANCE_ROADMAP.md` §CR0 (aucun consommateur avant le vrai modèle d'attribution) |
+| 9 | **G2** — Barre de complétude d'annonce | P1 | GROWTH | ✅ PR #179 |
 | 10 | **G1** — Simulateur de revenus | P1 | GROWTH | Idem |
 
 ### Vague 3

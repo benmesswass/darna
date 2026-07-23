@@ -11,6 +11,15 @@ import { VISITOR_COOKIE } from "@/lib/constants";
 export const PRODUCT_EVENT_NAMES = [
   // Fondations (§IN0) — valide le pipe de bout en bout, câblé sur la fiche annonce.
   "LISTING_VIEWED",
+  // Funnel de découverte (§IN1) — recherche → vue annonce → début réservation.
+  "SEARCH_PERFORMED",
+  "BOOKING_STARTED",
+  // Adoption de fonctionnalités déjà livrées (§IN2) — F4-F9/Yield Advisor
+  // existent depuis longtemps sans aucune mesure d'usage.
+  "SIMULATOR_USED",
+  "SHARE_CLICKED",
+  "SAVED_SEARCH_CREATED",
+  "MAP_INTERACTED",
 ] as const;
 export type ProductEventName = (typeof PRODUCT_EVENT_NAMES)[number];
 

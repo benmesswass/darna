@@ -17,7 +17,13 @@ import {
   verticalOfType,
 } from "@/lib/constants";
 import { verticalEnabled, kycGatingEnabled } from "@/lib/modes";
-import { FEATURED_DURATION_DAYS, FEATURED_PRICE_TND, LISTING_LIFETIME_DAYS, SITE_URL } from "@/lib/config";
+import {
+  FEATURED_DURATION_DAYS,
+  FEATURED_PRICE_TND,
+  HOST_CANCELLATION_SIGNAL_DAYS,
+  LISTING_LIFETIME_DAYS,
+  SITE_URL,
+} from "@/lib/config";
 import { logAudit, logStructured } from "@/lib/audit";
 import { initKonnectPayment, isKonnectEnabled, signKonnectWebhook } from "@/lib/konnect";
 import {
@@ -27,6 +33,7 @@ import {
 } from "@/lib/uploads";
 import { notifyAdmins } from "@/lib/admin-notify";
 import { activeListingsLimit, countActiveListings, hasUnclaimedFreeBoost } from "@/lib/subscriptions";
+import { isSuperHost, superHostBoostClaimEligible } from "@/lib/super-host";
 
 export type PropertyFormState = { error?: string } | undefined;
 
@@ -545,6 +552,197 @@ export async function claimFreeFeaturedBoostAction(formData: FormData): Promise<
   revalidatePath(`/annonce/${property.slug}`);
   revalidatePath("/");
   redirect("/dashboard/annonces?alaune=1");
+}
+
+/**
+ * Mise à la une — BOOST OFFERT AU MÉRITE (GROWTH_ROADMAP.md §G4, défi
+ * saisonnier « Hôte Zéro Faille ») : tout hôte (HOTE ou AGENCE, contrairement
+ * au boost d'abonnement MI4 réservé AGENCE/Pro) dont le badge Super-Hôte est
+ * actif (cf. isSuperHost()) peut activer 1 boost gratuit par fenêtre
+ * glissante HOST_CANCELLATION_SIGNAL_DAYS. Rail totalement indépendant de
+ * Konnect et de MI4 : les deux boosts offerts sont cumulables s'ils
+ * s'appliquent tous les deux (raisons indépendantes).
+ */
+export async function claimSuperHostBoostAction(formData: FormData): Promise<void> {
+  const user = await requireLister();
+
+  const parsed = idSchema.safeParse(formData.get("propertyId"));
+  if (!parsed.success) return;
+
+  // Autorisation : l'annonce doit appartenir à l'hôte connecté.
+  await requireOwnProperty(parsed.data);
+
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { superHostBoostClaimedAt: true },
+  });
+  if (!dbUser || !superHostBoostClaimEligible(dbUser.superHostBoostClaimedAt)) return;
+
+  // Critère de mérite revérifié en base (jamais confiance à un état affiché
+  // côté client, même s'il vient du même rendu serveur).
+  if (!(await isSuperHost(user.id))) return;
+
+  const property = await prisma.property.findUnique({
+    where: { id: parsed.data },
+    select: { id: true, slug: true, status: true, expiresAt: true, featuredUntil: true },
+  });
+  if (!property || property.status !== "ACTIVE" || property.expiresAt.getTime() < Date.now()) {
+    return;
+  }
+
+  // Consommation atomique : ne mute que si toujours éligible à cet instant
+  // (pas déjà réclamé sur cette fenêtre) — sûr contre une course (double
+  // clic/double onglet), même patron `updateMany` conditionné que
+  // claimFreeFeaturedBoostAction (MI4).
+  const cutoff = new Date(Date.now() - HOST_CANCELLATION_SIGNAL_DAYS * 24 * 60 * 60 * 1000);
+  const claimed = await prisma.user.updateMany({
+    where: {
+      id: user.id,
+      OR: [{ superHostBoostClaimedAt: null }, { superHostBoostClaimedAt: { lt: cutoff } }],
+    },
+    data: { superHostBoostClaimedAt: new Date() },
+  });
+  if (claimed.count === 0) return;
+
+  const boostMs = FEATURED_DURATION_DAYS * 24 * 60 * 60 * 1000;
+  const base =
+    property.featuredUntil && property.featuredUntil.getTime() > Date.now()
+      ? property.featuredUntil.getTime()
+      : Date.now();
+  const featuredUntil = new Date(base + boostMs);
+
+  await prisma.property.update({
+    where: { id: property.id },
+    data: { featuredUntil },
+  });
+
+  await logAudit({
+    action: "PROPERTY_FEATURED",
+    userId: user.id,
+    success: true,
+    metadata: {
+      propertyId: property.id,
+      featuredUntil: featuredUntil.toISOString(),
+      provider: "super_host_perk",
+    },
+  });
+
+  revalidatePath("/dashboard/annonces");
+  revalidatePath(`/annonce/${property.slug}`);
+  revalidatePath("/");
+  redirect("/dashboard/annonces?alaune=1");
+}
+
+export type PropertyPromoFormState = { error?: string; success?: string } | undefined;
+
+const setPromoSchema = z.object({
+  propertyId: z.string().cuid(),
+  promoPrice: z.coerce.number().int().min(1),
+  promoUntil: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+});
+
+/**
+ * Définit ou met à jour une promo hôte (CROISSANCE_ROADMAP.md §PM0). Fondation
+ * uniquement — l'UI dédiée (dashboard + badge) arrive avec PM1. Réservée aux
+ * annonces vérifiées ACTIVE (aligné north-star — pas de promo sur du stock
+ * non fiable) ; promoPrice toujours strictement < price, revalidé serveur
+ * (jamais confiance au client). Le prix promo n'est consommé qu'à la
+ * réservation, tant que promoUntil est dans le futur — même principe de
+ * lazy-expiry que featuredUntil, aucun cron.
+ */
+export async function setPropertyPromoAction(
+  _prev: PropertyPromoFormState,
+  formData: FormData
+): Promise<PropertyPromoFormState> {
+  const fr = await getT();
+  const user = await requireLister();
+
+  const parsed = setPromoSchema.safeParse({
+    propertyId: formData.get("propertyId"),
+    promoPrice: formData.get("promoPrice"),
+    promoUntil: formData.get("promoUntil"),
+  });
+  if (!parsed.success) return { error: fr.common.champsRequis };
+
+  // Autorisation serveur : l'annonce doit appartenir à l'hôte connecté.
+  const property = await requireOwnProperty(parsed.data.propertyId).catch(() => null);
+  if (!property) return { error: fr.common.erreurInconnue };
+
+  // On relit prix/statut/vérif en base (jamais confiance au client) : seule
+  // une annonce ACTIVE, non expirée, vérifiée ET Séjour peut recevoir une
+  // promo — un prix promo n'a de sens qu'à la nuitée (bug remonté en test :
+  // une annonce IMMO/vente affichait un "prix par nuit").
+  const fresh = await prisma.property.findUnique({
+    where: { id: property.id },
+    select: { price: true, status: true, expiresAt: true, verified: true, vertical: true },
+  });
+  if (
+    !fresh ||
+    fresh.status !== "ACTIVE" ||
+    fresh.expiresAt.getTime() < Date.now() ||
+    !fresh.verified ||
+    fresh.vertical !== "STAY"
+  ) {
+    return { error: fr.annonceForm.promoAnnonceNonEligible };
+  }
+
+  if (parsed.data.promoPrice >= fresh.price) {
+    return { error: fr.annonceForm.promoPrixInvalide };
+  }
+
+  const promoUntil = new Date(`${parsed.data.promoUntil}T23:59:59.999Z`);
+  const maxUntil = Date.now() + 365 * 24 * 60 * 60 * 1000;
+  if (
+    Number.isNaN(promoUntil.getTime()) ||
+    promoUntil.getTime() <= Date.now() ||
+    promoUntil.getTime() > maxUntil
+  ) {
+    return { error: fr.annonceForm.promoDateInvalide };
+  }
+
+  await prisma.property.update({
+    where: { id: property.id },
+    data: { promoPrice: parsed.data.promoPrice, promoUntil },
+  });
+
+  await logAudit({
+    action: "PROPERTY_PROMO_SET",
+    userId: user.id,
+    success: true,
+    metadata: {
+      propertyId: property.id,
+      promoPrice: parsed.data.promoPrice,
+      promoUntil: promoUntil.toISOString(),
+    },
+  });
+
+  revalidatePath("/dashboard/annonces");
+  revalidatePath(`/annonce/${property.slug}`);
+  return { success: fr.annonceForm.promoDefinie };
+}
+
+/** Retire la promo d'une annonce (idempotent — no-op si déjà absente). */
+export async function clearPropertyPromoAction(formData: FormData): Promise<void> {
+  const parsed = idSchema.safeParse(formData.get("propertyId"));
+  if (!parsed.success) return;
+
+  const property = await requireOwnProperty(parsed.data).catch(() => null);
+  if (!property) return;
+
+  await prisma.property.update({
+    where: { id: property.id },
+    data: { promoPrice: null, promoUntil: null },
+  });
+
+  await logAudit({
+    action: "PROPERTY_PROMO_CLEARED",
+    userId: property.ownerId,
+    success: true,
+    metadata: { propertyId: property.id },
+  });
+
+  revalidatePath("/dashboard/annonces");
+  revalidatePath(`/annonce/${property.slug}`);
 }
 
 export type FeaturedOrderPaymentState = { error?: string; payUrl?: string } | undefined;

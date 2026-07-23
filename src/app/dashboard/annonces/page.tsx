@@ -10,11 +10,13 @@ import {
 } from "@/actions/properties";
 import {
   FeaturedBadge,
+  PromoBadge,
   StatusBadge,
   TypeBadge,
   VerifiedBadge,
 } from "@/components/property/Badges";
-import { isListingFeatured } from "@/lib/listings";
+import { PromoPrice } from "@/components/property/PromoPrice";
+import { isListingFeatured, isPropertyPromoActive } from "@/lib/listings";
 import { formatDateFr } from "@/lib/format";
 import { Price } from "@/components/currency/Price";
 import { StarIcon } from "@/components/icons";
@@ -27,6 +29,7 @@ import { verificationCreditsRemaining } from "@/lib/verification-credits";
 import { settleVerificationCreditOrder } from "@/lib/verification-credit-payments";
 import { isKonnectEnabled } from "@/lib/konnect";
 import { HOST_VERIFICATION_PRICE_TND } from "@/lib/config";
+import { computeListingCompleteness } from "@/lib/listing-completeness";
 
 export default async function MesAnnoncesPage({
   searchParams,
@@ -61,7 +64,10 @@ export default async function MesAnnoncesPage({
 
   const properties = await prisma.property.findMany({
     where: { ownerId: user.id },
-    include: { photos: { orderBy: { position: "asc" }, take: 1 } },
+    include: {
+      photos: { orderBy: { position: "asc" }, take: 1 },
+      _count: { select: { photos: true } },
+    },
     orderBy: { createdAt: "desc" },
   });
 
@@ -204,6 +210,28 @@ export default async function MesAnnoncesPage({
             const hostCreditReady =
               needsHostVerificationPayment && (hostVerificationCredits ?? 0) > hostUnverifiedRank;
             if (needsHostVerificationPayment) hostUnverifiedRank += 1;
+            // Promo hôte (§PM1) : réservée aux annonces vérifiées ACTIVE ET
+            // Séjour, comme setPropertyPromoAction — pas de promo sur du stock
+            // non fiable, et un prix promo n'a de sens qu'à la nuitée.
+            const promoActive =
+              p.verified && isPropertyPromoActive(p.promoUntil) && p.promoPrice !== null;
+            const canSetPromo =
+              p.status === "ACTIVE" && !isExpired && p.verified && p.vertical === "STAY";
+            // Une annonce non-Séjour avec une promo déjà posée (avant ce
+            // correctif) doit rester joignable pour la retirer.
+            const canManagePromo = canSetPromo || promoActive;
+            // Complétude d'annonce (§G2) : uniquement affichée pour une
+            // annonce encore "en jeu" et non déjà complète — pas de bruit
+            // pour un stock loué/vendu/expiré ou déjà exemplaire.
+            const showCompleteness =
+              (p.status === "EN_ATTENTE_VALIDATION" || p.status === "ACTIVE") && !isExpired;
+            const completeness = showCompleteness
+              ? computeListingCompleteness({
+                  photoCount: p._count.photos,
+                  description: p.description,
+                  amenities: p.amenities,
+                })
+              : null;
 
             return (
               <li
@@ -225,6 +253,14 @@ export default async function MesAnnoncesPage({
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-1.5">
                     {featured ? <FeaturedBadge small /> : null}
+                    {promoActive ? (
+                      <PromoBadge
+                        small
+                        price={p.price}
+                        promoPrice={p.promoPrice!}
+                        promoUntil={p.promoUntil!}
+                      />
+                    ) : null}
                     <TypeBadge type={p.type} />
                     {p.verified ? <VerifiedBadge small /> : null}
                     <StatusBadge status={effectiveExpired ? "EXPIREE" : p.status} />
@@ -232,7 +268,13 @@ export default async function MesAnnoncesPage({
                   <p className="mt-1.5 truncate font-semibold text-body">{p.title}</p>
                   <p className="text-sm text-body/60">
                     {p.city} ·{" "}
-                    <Price amount={p.price} className="font-semibold text-heading" />
+                    <PromoPrice
+                      price={p.price}
+                      promoPrice={p.promoPrice}
+                      promoUntil={p.promoUntil}
+                      verified={p.verified}
+                      className="font-semibold text-heading"
+                    />
                   </p>
                   <p
                     className={`mt-0.5 text-xs ${
@@ -251,6 +293,11 @@ export default async function MesAnnoncesPage({
                       {fr.dashboard.alaUneActif(formatDateFr(p.featuredUntil))}
                     </p>
                   ) : null}
+                  {promoActive && p.promoUntil ? (
+                    <p className="mt-0.5 text-xs font-semibold text-emerald-600">
+                      {fr.dashboard.promoActifBanner(formatDateFr(p.promoUntil))}
+                    </p>
+                  ) : null}
                   {/* §AHC3 — encart de blocage : l'hôte voit que son annonce est
                       masquée suite à SON annulation, avec la date de réapparition.
                       Filtre paresseux (comparaison à nowMs), pas de cron. */}
@@ -258,6 +305,43 @@ export default async function MesAnnoncesPage({
                     <p className="mt-1.5 rounded-lg bg-red-50 px-2.5 py-1.5 text-xs font-semibold text-red-700">
                       {fr.dashboard.annonceMasqueeBanner(formatDateFr(p.cancelBlockedUntil))}
                     </p>
+                  ) : null}
+                  {/* Complétude d'annonce (§G2) : masquée dès que l'annonce
+                      remplit les 3 critères — pas de bruit pour une annonce
+                      déjà exemplaire. */}
+                  {completeness && completeness.score < completeness.total ? (
+                    <div className="mt-1.5 rounded-lg bg-sand-light/40 px-2.5 py-1.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-xs font-semibold text-darna-dark">
+                          {fr.dashboard.completudeTitre(completeness.score, completeness.total)}
+                        </p>
+                        <Link
+                          href={`/dashboard/annonces/${p.id}/modifier`}
+                          className="shrink-0 text-xs font-semibold text-heading underline"
+                        >
+                          {fr.dashboard.completudeCta}
+                        </Link>
+                      </div>
+                      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/70">
+                        <div
+                          className="h-full rounded-full bg-darna"
+                          style={{
+                            width: `${Math.round(
+                              (completeness.score / completeness.total) * 100
+                            )}%`,
+                          }}
+                        />
+                      </div>
+                      <p className="mt-1 text-[11px] text-body/50">
+                        {[
+                          !completeness.photosOk ? fr.dashboard.completudePhotos : null,
+                          !completeness.descriptionOk ? fr.dashboard.completudeDescription : null,
+                          !completeness.amenitiesOk ? fr.dashboard.completudeEquipements : null,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </p>
+                    </div>
                   ) : null}
                 </div>
 
@@ -281,6 +365,14 @@ export default async function MesAnnoncesPage({
                     >
                       <StarIcon width={13} height={13} className="fill-current" />
                       {featured ? fr.dashboard.prolongerALaUne : fr.dashboard.mettreALaUne}
+                    </Link>
+                  ) : null}
+                  {canManagePromo ? (
+                    <Link
+                      href={`/dashboard/annonces/${p.id}/promo`}
+                      className="flex items-center justify-center gap-1.5 rounded-xl bg-emerald-100 px-3.5 py-2 text-center text-xs font-bold text-emerald-800 hover:bg-emerald-200"
+                    >
+                      {fr.dashboard.promoLien}
                     </Link>
                   ) : null}
                   {/* Vérification Wakil payante (§MI3, HOTE uniquement) : à

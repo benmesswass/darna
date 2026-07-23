@@ -36,6 +36,11 @@ vi.mock("@/actions/properties", () => ({
   createFolderWithFavoriteAction: vi.fn(),
   removeFavoriteAction: vi.fn(),
 }));
+// PropertyCard importe isListingFeatured de listings.ts (valeur réelle, pas le
+// type), qui importe session/product-events (§IN1) — mocké pour ne jamais
+// charger next-auth pour de vrai ici, sans rapport avec ce qui est testé.
+vi.mock("@/lib/session", () => ({ getSessionUser: vi.fn() }));
+vi.mock("@/lib/product-events", () => ({ getAnonId: vi.fn(), logProductEvent: vi.fn() }));
 // Les badges sont eux-mêmes des Server Components async (comme PropertyCard) :
 // React ne peut pas les rendre en JSX imbriqué sous un rendu client classique
 // (RTL) sans streaming RSC. On les remplace par des équivalents synchrones —
@@ -45,6 +50,9 @@ vi.mock("@/components/property/Badges", () => ({
   VerifiedBadge: () => <span>Vérifié</span>,
   FreshnessBadge: () => null,
   TypeBadge: ({ type }: { type: string }) => <span>{type}</span>,
+  PromoBadge: ({ price, promoPrice }: { price: number; promoPrice: number }) => (
+    <span>Promo -{Math.round((1 - promoPrice / price) * 100)}%</span>
+  ),
 }));
 
 const { PropertyCard } = await import("@/components/property/PropertyCard");
@@ -78,6 +86,8 @@ function baseProperty(overrides: Partial<ListingWithPhoto> = {}): ListingWithPho
     publishedAt: new Date(),
     expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     featuredUntil: null,
+    promoPrice: null,
+    promoUntil: null,
     cancelPolicy: "MODEREE",
     cashPaymentEnabled: false,
     cashTermsAcceptedAt: null,
@@ -122,6 +132,52 @@ describe("<PropertyCard />", () => {
   it("affiche le badge Vérifié quand l'annonce est vérifiée", async () => {
     render(await PropertyCard({ property: baseProperty({ verified: true }) }));
     expect(screen.getByText("Vérifié")).toBeInTheDocument();
+  });
+
+  it("affiche le badge promo + le prix barré quand une promo est active (§PM1)", async () => {
+    render(
+      await PropertyCard({
+        property: baseProperty({
+          verified: true,
+          price: 300,
+          promoPrice: 240,
+          promoUntil: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        }),
+      })
+    );
+    expect(screen.getByText("Promo -20%")).toBeInTheDocument();
+    expect(screen.getByText(/300 TND/)).toBeInTheDocument();
+    expect(screen.getByText(/240 TND/)).toBeInTheDocument();
+  });
+
+  it("n'affiche aucune promo si l'annonce n'est plus vérifiée (re-vérifié à l'affichage, pas seulement à la pose)", async () => {
+    render(
+      await PropertyCard({
+        property: baseProperty({
+          verified: false,
+          price: 300,
+          promoPrice: 240,
+          promoUntil: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        }),
+      })
+    );
+    expect(screen.queryByText(/Promo -/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/240 TND/)).not.toBeInTheDocument();
+  });
+
+  it("n'affiche aucune promo si elle est expirée", async () => {
+    render(
+      await PropertyCard({
+        property: baseProperty({
+          verified: true,
+          price: 300,
+          promoPrice: 240,
+          promoUntil: new Date(Date.now() - 24 * 60 * 60 * 1000),
+        }),
+      })
+    );
+    expect(screen.queryByText(/Promo -/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/240 TND/)).not.toBeInTheDocument();
   });
 
   it("affiche la ville et le gouvernorat", async () => {

@@ -1,7 +1,25 @@
 import { getT } from "@/lib/i18n/server";
-import { StarIcon } from "@/components/icons";
+import { StarIcon, ShieldIcon } from "@/components/icons";
 import { daysSincePublication } from "@/lib/listings";
 import { BadgeTooltip } from "./BadgeTooltip";
+
+/**
+ * Badge « Super-Hôte » (GROWTH_ROADMAP.md §G4, défi « Hôte Zéro Faille ») —
+ * dérivé (cf. isSuperHost()), jamais stocké. Distinct du badge Vérifié
+ * (fiabilité de l'annonce) : celui-ci porte sur le COMPORTEMENT de l'hôte
+ * (annulations, avis) sur la fenêtre glissante en cours.
+ */
+export async function SuperHostBadge() {
+  const fr = await getT();
+  return (
+    <BadgeTooltip label={fr.badges.superHote} description={fr.badges.superHoteTooltip}>
+      <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-emerald-400 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800 shadow-sm">
+        <ShieldIcon width={13} height={13} className="fill-current" />
+        {fr.badges.superHote}
+      </span>
+    </BadgeTooltip>
+  );
+}
 
 /** Badge « À la une » — mise en avant payante, distincte du badge Vérifié. */
 export async function FeaturedBadge({ small = false }: { small?: boolean }) {
@@ -22,6 +40,38 @@ export async function FeaturedBadge({ small = false }: { small?: boolean }) {
           className="fill-current"
         />
         {fr.badges.alaUne}
+      </span>
+    </BadgeTooltip>
+  );
+}
+
+/** Badge « Promo -X% » (CROISSANCE_ROADMAP.md §PM1) — prix promo hôte actif. */
+export async function PromoBadge({
+  small = false,
+  price,
+  promoPrice,
+  promoUntil,
+}: {
+  small?: boolean;
+  price: number;
+  promoPrice: number;
+  promoUntil: Date;
+}) {
+  const fr = await getT();
+  const pct = Math.round((1 - promoPrice / price) * 100);
+  const dateStr = promoUntil.toLocaleDateString("fr-TN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+  return (
+    <BadgeTooltip label={fr.badges.promo(pct)} description={fr.property.promoTooltip(dateStr)}>
+      <span
+        className={`inline-flex items-center gap-1 rounded-full bg-emerald-500 font-bold text-white shadow-sm ${
+          small ? "px-2 py-0.5 text-[11px]" : "px-2.5 py-1 text-xs"
+        }`}
+      >
+        {fr.badges.promo(pct)}
       </span>
     </BadgeTooltip>
   );

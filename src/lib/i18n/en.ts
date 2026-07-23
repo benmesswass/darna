@@ -140,6 +140,10 @@ export const en: Dictionary = {
     alaUne: "Featured",
     alaUneTooltip:
       "Promoted listing: it appears at the top of results and on the Darna homepage.",
+    promo: (pct: number) => `${pct}% off`,
+    superHote: "Superhost",
+    superHoteTooltip:
+      "Zero cancellations and excellent reviews over the last 3 months — a reliable host, proven by real results.",
   },
   search: {
     villePlaceholder: "City — Hammamet, Djerba, La Marsa…",
@@ -271,6 +275,7 @@ export const en: Dictionary = {
     verifieOnSiteBloc:
       "A Wakil agent visited the property in person. They confirmed the property exists, the photos match reality and the owner is reachable.",
     verifiePar: (nom: string) => `by ${nom}`,
+    promoTooltip: (date: string) => `Price temporarily lowered by the host, until ${date}.`,
     enSavoirPlusWakil: "Learn more about the Wakil network",
     enSavoirPlusDarna: "Learn more about our checks",
     nonVerifieTooltip:
@@ -445,11 +450,18 @@ export const en: Dictionary = {
     prolongerALaUne: "Extend featuring",
     alaUneActif: (date: string) => `Featured until ${date}`,
     alaUneSucces: "Your listing is now featured! 🎉",
+    promoLien: "Promo",
+    promoActifBanner: (date: string) => `Promo active until ${date}`,
     annonceMasqueeBanner: (date: string) =>
       `Listing temporarily hidden from search following a cancellation on your part — it reappears on ${date}.`,
     promoAlaUneTitre: "Feature your listings",
     promoAlaUneDesc:
       "Top of results and on the homepage for a month, with an eye-catching gold badge. Featured listings get seen far more often.",
+    completudeTitre: (score: number, total: number) => `Listing ${score}/${total} complete`,
+    completudePhotos: "At least 5 photos",
+    completudeDescription: "Detailed description",
+    completudeEquipements: "At least 3 amenities",
+    completudeCta: "Complete this listing",
     verifWakilSolde: (n: number) =>
       n === 1
         ? "1 Wakil verification credit available."
@@ -641,6 +653,12 @@ export const en: Dictionary = {
       "Invalid dates — pick a check-in and check-out (check-out after check-in, not in the past).",
     blocageConflitReservation:
       "Can't block: a booking already exists for this period.",
+    promoAnnonceNonEligible:
+      "This listing must be verified and active to get a promo.",
+    promoPrixInvalide: "The promo price must be lower than the listing's normal price.",
+    promoDateInvalide:
+      "Invalid promo end date — pick a future date, within a reasonable timeframe.",
+    promoDefinie: "Promo activated on your listing.",
     cashPaymentTitre: "Pay-at-property (cash)",
     cashPaymentAide:
       "For guests without a suitable online payment method. The stay is paid entirely in cash on arrival; your Darna commission is invoiced to you separately after the booking, payable online.",
@@ -929,6 +947,29 @@ export const en: Dictionary = {
         : "") +
       `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Verified stays.</p>` +
       `</div>`,
+    newBookingHostSujet: (titre: string) =>
+      `Darna — new booking received: ${titre}`,
+    newBookingHostHtml: (p: {
+      hostName: string;
+      guestName: string;
+      propertyTitle: string;
+      checkIn: string;
+      checkOut: string;
+      guests: number;
+      url: string;
+    }) =>
+      `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
+      `<h1 style="color:#0f766e;font-size:20px">New booking 🎉</h1>` +
+      `<p>Hello ${p.hostName},</p>` +
+      `<p><strong>${p.guestName}</strong> just booked <strong>${p.propertyTitle}</strong>. The payment is protected under Darna escrow and will be released to you once the stay is over.</p>` +
+      `<table style="width:100%;border-collapse:collapse;margin:16px 0">` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Check-in</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.checkIn}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Check-out</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.checkOut}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Guests</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.guests}</td></tr>` +
+      `</table>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">View booking</a></p>` +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Verified stays.</p>` +
+      `</div>`,
     bookingCancelledByHostSujet: (titre: string) =>
       `Darna — your stay was cancelled: ${titre}`,
     bookingCancelledByHostHtml: (p: {
@@ -1113,9 +1154,7 @@ export const en: Dictionary = {
   booking: {
     titre: "Booking request",
     recapitulatif: "Summary — 100% transparent",
-    prixNuit: "Price per night",
     nuits: (n: number) => (n === 1 ? "1 night" : `${n} nights`),
-    sousTotal: "Subtotal",
     fraisService: "Darna service fee",
     fraisServiceAide:
       "It funds listing verification and payment protection.",
@@ -1334,6 +1373,10 @@ export const en: Dictionary = {
       `Your listing “${titre}” could not be verified — you have no verification credits left. Buy a pack to continue.`,
     annonceVerifPaiementRequis: (titre: string) =>
       `Your listing “${titre}” could not be verified — pay for the Wakil verification (20 TND) so an agent can process it.`,
+    reservationRecue: (titre: string) =>
+      `You received a new booking for “${titre}”.`,
+    annonceIncomplete: (titre: string) =>
+      `Your listing "${titre}" still has boxes to check — complete it to convert better.`,
   },
   alaUne: {
     titre: "Feature your listing",
@@ -1376,6 +1419,34 @@ export const en: Dictionary = {
     boostOffertBouton: "Use my free boost",
     boostOffertDejaUtilise:
       "Free boost already used for this billing cycle — available again at your next renewal.",
+    superHoteBoostTitre: "Free boost — Superhost badge",
+    superHoteBoostDesc:
+      "Zero cancellations and excellent reviews over the last 3 months: you've earned a free featured boost. Use it on this listing at no cost.",
+    superHoteBoostBouton: "Claim my Superhost boost",
+    superHoteBoostDejaUtilise:
+      "Superhost boost already claimed recently — available again in a few months if your badge stays active.",
+  },
+  promo: {
+    titre: "Create a promo on your listing",
+    sousTitre:
+      "Temporarily lower your price to attract more bookings — you stay in full control: price, duration, remove anytime.",
+    annonce: "Listing",
+    prixActuel: (prix: string) => `Current price: ${prix}`,
+    formPrixLabel: "Promo price (TND / night)",
+    formPrixAide: "Must be lower than the current price — this is what travellers will pay.",
+    formDateLabel: "Promo valid until",
+    activer: "Activate the promo",
+    retirer: "Remove the promo",
+    retirerConfirmer: "Remove this promo?",
+    retirerOui: "Remove",
+    retirerAnnuler: "Cancel",
+    actifTitre: "Promo active",
+    actifDesc: (prixPromo: string, date: string) =>
+      `${prixPromo} / night instead of the normal price, until ${date}.`,
+    indisponible: "This promo is only available for a verified, active listing.",
+    retour: "Back to my listings",
+    garantie:
+      "No commitment: you can remove the promo at any time. Your revenue per night stays guaranteed — only Darna's commission varies.",
   },
   abonnement: {
     titre: "Agency subscription",

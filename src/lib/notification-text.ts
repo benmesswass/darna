@@ -52,6 +52,10 @@ export function notificationMessage(
       return fr.notifications.annonceCreditsVerifEpuises(n.propertyTitle ?? "");
     case "ANNONCE_VERIF_PAIEMENT_REQUIS":
       return fr.notifications.annonceVerifPaiementRequis(n.propertyTitle ?? "");
+    case "RESERVATION_RECUE":
+      return fr.notifications.reservationRecue(n.propertyTitle ?? "");
+    case "ANNONCE_INCOMPLETE":
+      return fr.notifications.annonceIncomplete(n.propertyTitle ?? "");
     default:
       return "";
   }

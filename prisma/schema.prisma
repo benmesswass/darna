@@ -72,6 +72,13 @@ model User {
   // clé du pilotage diaspora (north-star marketing : cible France). Null tant
   // que non renseigné (comptes historiques ou inscription sans choix).
   country          String?
+  // Défi "Hôte Zéro Faille" (GROWTH_ROADMAP.md §G4) : date de la dernière
+  // réclamation du boost offert au mérite (badge Super-Hôte — dérivé, jamais
+  // stocké, cf. isSuperHost() dans src/lib/super-host.ts). Une réclamation
+  // par fenêtre glissante HOST_CANCELLATION_SIGNAL_DAYS — pas de concept de
+  // "cycle" ici, contrairement à Subscription.freeBoostUsedAt (MI4, réservé
+  // aux abonnements AGENCE).
+  superHostBoostClaimedAt DateTime?
   createdAt        DateTime  @default(now())
 
   properties               Property[]
@@ -198,6 +205,13 @@ model Property {
   // L'annonce est à la une tant que featuredUntil > now ; le champ est remis
   // à null paresseusement une fois expiré (cf. clearExpiredFeatured()).
   featuredUntil             DateTime?
+  // Promo hôte (CROISSANCE_ROADMAP.md §PM0) : prix réduit, actif tant que
+  // promoUntil > now — même principe de lazy-expiry que featuredUntil (aucun
+  // cron ; un promoUntil dépassé redevient simplement inactif au prochain
+  // calcul, sans purge). Toujours < price, revalidé serveur à chaque écriture
+  // ET relu à chaque calcul de prix (jamais une valeur figée/faite confiance).
+  promoPrice                Int?
+  promoUntil                DateTime?
   cancelPolicy              String    @default("MODEREE") // FLEXIBLE | MODEREE | STRICTE
   // Paiement sur place (Rail 2, PAIEMENT_SUR_PLACE_ROADMAP.md) : opt-in HÔTE,
   // annonce SEJOUR uniquement. `cashTermsAcceptedAt` = horodatage d'acceptation
@@ -614,6 +628,8 @@ model Notification {
   //  - ANNONCE_EXPIRE_BIENTOT — migration 20260702170000_add_notification
   //  - FACTURE_BIENTOT_DUE / FACTURE_EN_RETARD — migration
   //    20260707170000_add_host_invoice_reminder_notif (§PSP5)
+  //  - ANNONCE_INCOMPLETE — migration
+  //    20260722000000_add_incomplete_listing_notification (§G2)
   // Ne PAS les supprimer via `migrate dev` sans les recréer manuellement
   // (cf. src/lib/notification-center.ts).
 

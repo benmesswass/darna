@@ -79,6 +79,54 @@ export async function sendBookingConfirmationEmail(bookingId: string): Promise<v
 }
 
 /**
+ * Envoie à l'HÔTE l'e-mail de nouvelle réservation ESCROW confirmée. Appelé
+ * au même moment EXACT que sendBookingConfirmationEmail (voyageur) — mock
+ * confirmPaymentAction ET webhook Konnect settleKonnectBooking — jamais lors
+ * de l'acceptation d'une demande cash par l'hôte lui-même.
+ */
+export async function sendNewBookingHostEmail(bookingId: string): Promise<void> {
+  try {
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      select: {
+        checkIn: true,
+        checkOut: true,
+        guests: true,
+        guest: { select: { name: true } },
+        property: {
+          select: { title: true, owner: { select: { email: true, name: true } } },
+        },
+      },
+    });
+
+    if (!booking) {
+      logStructured("warn", "notif.new_booking_host_not_found", { bookingId });
+      return;
+    }
+
+    await sendEmail({
+      to: booking.property.owner.email,
+      subject: frMail.email.newBookingHostSujet(booking.property.title),
+      html: frMail.email.newBookingHostHtml({
+        hostName: booking.property.owner.name,
+        guestName: booking.guest.name,
+        propertyTitle: booking.property.title,
+        checkIn: formatDateFr(booking.checkIn),
+        checkOut: formatDateFr(booking.checkOut),
+        guests: booking.guests,
+        url: `${SITE_URL}/dashboard/reservations`,
+      }),
+    });
+  } catch (err) {
+    // Non bloquant : la réservation est confirmée quoi qu'il arrive à l'e-mail.
+    logStructured("error", "notif.new_booking_host_failed", {
+      bookingId,
+      error: (err as Error).message,
+    });
+  }
+}
+
+/**
  * Envoie au VOYAGEUR l'e-mail d'annulation par l'hôte (ANNULATION_HOTE_CORRECTIFS
  * _ROADMAP.md §AHC4). Appelé APRÈS la transaction d'annulation, best-effort :
  * un échec d'envoi ne remet jamais en cause l'annulation déjà actée. Cible
