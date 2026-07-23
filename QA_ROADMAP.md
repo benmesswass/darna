@@ -237,6 +237,15 @@ work is due.
 | `isWakil` promotion only via admin review | unit | ✅ | Demo | P0 | Unauthorized trust role |
 | Role change re-evaluated on next request (fresh session) | integration | ❌ | Beta | P1 | Stale elevated session |
 
+### 4.13 Product instrumentation / analytics (`INSTRUMENTATION_ROADMAP.md` §IN0–IN2)
+| Test | Type | Status | Phase | Prio | Risk covered |
+|------|------|--------|-------|------|--------------|
+| `trackEvent` action: zod validation, client event-name allowlist, rate-limit | unit | ✅ (`tests/track-event.test.ts`) | Demo | P2 | Forged/arbitrary event names or userId spoofing from client |
+| `SHARE_CLICKED` (native/copy/whatsapp channels) | unit | ✅ (`tests/components/share-button.test.tsx`) | Demo | P3 | Silent metric drift |
+| `SAVED_SEARCH_CREATED` (metadata: city/prixMin/prixMax) | unit | ✅ (`tests/saved-search-events.test.ts`) | Demo | P3 | Silent metric drift |
+| `MAP_INTERACTED` (first `dragstart` or zoom-control click, session-deduped via `sessionStorage`) | unit | ⚠️ (`src/components/map/MapInner.tsx`) | Demo | P2 | Session dedup or event trigger regresses silently — no test would catch it (PR #173) |
+| `SIMULATOR_USED` (fires on every `/dashboard/yield` load when `properties.length > 0`) | unit | ⚠️ (`src/app/dashboard/yield/page.tsx`) | Demo | P2 | Empty-state gate or metadata shape regresses silently (PR #173) |
+
 ---
 
 ## 5. Security test matrix (OWASP & CWE)
@@ -322,6 +331,137 @@ intentionally **not** a `"use server"`, mirrors `settleKonnectBooking`).
 | Cash-terms non-bypass | Host flips `cashPaymentEnabled` false→true without accepting CGU, or re-toggles an already-active mode | Rejected on first transition without acceptance; no re-acceptance forced when already active (`cashTermsAcceptedAt` untouched) | ✅ `cash-payment-terms-bypass.test.ts` | Demo |
 | View IDOR (`/dashboard/factures/[id]`) | Host B opens host A's invoice URL directly | `notFound()` — `invoice.hostId !== user.id` (`src/app/dashboard/factures/[id]/page.tsx:59`) | ⚠️ guarded in code, not unit-tested (no Server Component test harness in this suite — same gap as other page-level ownership checks) | Demo |
 | Reconciliation | Konnect status vs local `HostInvoice` mismatch | Detect & alert; never silent loss | ❌ | Production |
+
+### 6.2 FeaturedOrder test suite (mise en avant « à la une », MONETISATION_IMMO_ROADMAP.md §MI0)
+
+Same bar as §6, applied to `FeaturedOrder` (achat/prolongation du boost
+« à la une » — `Property.featuredUntil`). Settlement lives in
+`src/lib/featured-payments.ts` (`settleFeaturedOrder`, intentionally **not**
+a `"use server"`, mirrors `settleHostInvoice`/`settleKonnectBooking`). Le
+mock démo (`featureListingAction`) reste le fallback quand Konnect est
+désactivé — jamais les deux à la fois (garde d'exclusivité, comme AH/PSP).
+
+| Scenario | Test to create | Expected guarantee | Status | Phase |
+|----------|----------------|---------------------|--------|-------|
+| Double settlement | Two `settleFeaturedOrder` calls, same ref | Only first mutates/extends `featuredUntil`; second is a no-op | ✅ `featured-payments.test.ts` | Demo |
+| Settlement race (webhook vs return page) | Concurrent settle, `updateMany` count 0 on the loser | Single `PAYEE`, single boost extension, single audit | ✅ `featured-payments.test.ts` | Demo |
+| Amount tamper | `reachedAmount < expected` | Reject (`ERREUR`, no confirm, no extension) | ✅ `featured-payments.test.ts` | Demo |
+| Unknown reference | Settle with an unrecognized `paymentRef`/`orderId` | `INTROUVABLE`, harmless no-op | ✅ `featured-payments.test.ts` | Demo |
+| Cumulative extension | Settle while a previous boost is still active | Extends from the remaining `featuredUntil`, not from now | ✅ `featured-payments.test.ts` | Demo |
+| Payment IDOR | Host B initiates the boost payment for host A's listing (`startFeaturedOrderPaymentAction`) | Rejected — `property.ownerId !== user.id` | ✅ `featured-payment-idor.test.ts` | Demo |
+| Ineligible listing | Boost a non-`ACTIVE`/expired listing | Rejected before any `FeaturedOrder`/Konnect call | ✅ `featured-payment-idor.test.ts` | Demo |
+| Demo/real exclusivity | `featureListingAction` while Konnect is enabled | No-op, never applies the mock effect | ✅ `featured-payment-idor.test.ts` | Demo |
+| **Webhook authenticity** | Forged/missing signature on `featured-webhook` | Reject (401) without valid HMAC (`verifyKonnectWebhook`), same guard as the booking/host-invoice webhooks | ✅ `featured-webhook.test.ts` | Demo |
+| Webhook rate limiting | Hammering one `fid` | 429 beyond the per-order cap | ✅ `featured-webhook.test.ts` | Demo |
+| Reconciliation | Konnect status vs local `FeaturedOrder` mismatch | Detect & alert; never silent loss | ❌ | Production |
+
+### 6.3 Subscription test suite (abonnement agence, MONETISATION_IMMO_ROADMAP.md §MI2)
+
+Same bar as §6, applied to `Subscription` (souscription/renouvellement de
+l'abonnement agence — quota d'annonces actives). Settlement lives in
+`src/lib/subscription-payments.ts` (`settleSubscriptionPayment`,
+intentionally **not** a `"use server"`). Différence structurelle testée
+explicitement : `Subscription` est une ligne UNIQUE réutilisée à chaque cycle
+(pas une ligne par paiement comme `FeaturedOrder`/`HostInvoice`) — l'idempotence
+repose donc sur `paymentRef` (remis à `null` au règlement), pas sur `status`,
+pour que le renouvellement d'un abonnement déjà `ACTIF` reste réglable. Le mock
+démo (`subscribeAgencyPlanAction`) reste le fallback quand Konnect est
+désactivé — jamais les deux à la fois (garde d'exclusivité, comme AH/PSP/MI0).
+
+| Scenario | Test to create | Expected guarantee | Status | Phase |
+|----------|----------------|---------------------|--------|-------|
+| Double settlement | Two `settleSubscriptionPayment` calls, same ref | Only first mutates; second is a no-op | ✅ `subscription-payments.test.ts` | Demo |
+| Settlement race (webhook vs return page) | Concurrent settle, `updateMany` count 0 on the loser | Single `ACTIF`, single audit | ✅ `subscription-payments.test.ts` | Demo |
+| Amount tamper | `reachedAmount < expected` (recomputed from `AGENCY_PLANS`, never client-supplied) | Reject (`ERREUR`, no activation) | ✅ `subscription-payments.test.ts` | Demo |
+| Unknown reference | Settle with an unrecognized `paymentRef`/`subscriptionId` | `INTROUVABLE`, harmless no-op | ✅ `subscription-payments.test.ts` | Demo |
+| Renewal on an already-`ACTIF` subscription | Settle a second payment while `status: "ACTIF"` | Extends from the remaining `currentPeriodEnd`, not blocked by `status` (unlike a naive `EN_ATTENTE`-gated `updateMany`) | ✅ `subscription-payments.test.ts` | Demo |
+| Stale `paymentRef` replay | Replay an old ref after a new cycle changed it | `INTROUVABLE`, harmless no-op | ✅ `subscription-payments.test.ts` | Demo |
+| Role non-bypass | `startSubscriptionPaymentAction`/`subscribeAgencyPlanAction` called by a `HOTE` account | Rejected — the subscription mechanism only targets `AGENCE` | ✅ `subscription-payment-access.test.ts` | Demo |
+| Demo/real exclusivity | `subscribeAgencyPlanAction` while Konnect is enabled | No-op, never applies the mock effect | ✅ `subscription-payment-access.test.ts` | Demo |
+| **Webhook authenticity** | Forged/missing signature on `subscription-webhook` | Reject (401) without valid HMAC (`verifyKonnectWebhook`), same guard as the booking/host-invoice/featured webhooks | ✅ `subscription-webhook.test.ts` | Demo |
+| Webhook rate limiting | Hammering one `sid` | 429 beyond the per-subscription cap | ✅ `subscription-webhook.test.ts` | Demo |
+| Active-listings limit non-bypass | `verifyPropertyAction` on an `AGENCE` owner already at quota (free tier or paid plan) | Rejected before the listing becomes `ACTIVE` — quota re-derived server-side (`activeListingsLimit`), never a stored/trusted count | ✅ `admin.test.ts` | Demo |
+| Quota-reached notification | `verifyPropertyAction` refusal for a quota-blocked listing | Agency is notified in-app (`ANNONCE_LIMITE_ABONNEMENT`, `notifyAgencyQuotaReached`) pointing to `/dashboard/abonnement` — the admin seeing the error is not enough, the agency has no other way to find out | ✅ `notification-quota.test.ts`, `admin.test.ts` | Demo |
+| Reconciliation | Konnect status vs local `Subscription` mismatch | Detect & alert; never silent loss | ❌ | Production |
+
+### 6.4 Wakil verification credits test suite (MONETISATION_IMMO_ROADMAP.md §MI3)
+
+Same bar as §6, applied to `VerificationWallet`/`VerificationCreditOrder`
+(payment gate on Wakil verification, `verifyPropertyAction` in
+`src/actions/admin.ts`). **Two DIFFERENT regimes by role** (decision
+2026-07-20) sharing the SAME balance and settlement code:
+- `AGENCE`: `FREE_VERIFICATION_CREDITS = 1` free for life + a one-time Starter
+  plan bonus (`AGENCY_PLANS[].verificationCreditsBonus`, generic — non-zero
+  only for Starter today), then prepaid packs only (`VERIFICATION_CREDIT_PACKS`)
+  — never a per-unit charge.
+- `HOTE`: 0 free credits ever, strictly per-unit (`HOST_VERIFICATION_PRICE_TND`),
+  never a pack — must pay BEFORE a Wakil can verify.
+
+**A consumed credit pays for the listing for its entire lifetime**, never per
+verification event (correction 2026-07-20). `Property.verificationCreditSpentAt`
+(`DateTime?`, migration `20260720084214_add_property_verification_credit_spent`)
+marks consumption permanently per listing — `verifyPropertyAction` never
+re-consumes for that same listing again, including across
+`unverifyPropertyAction` (badge removal) or `republishPropertyAction`
+(republication after `LISTING_LIFETIME_DAYS` expiry).
+
+Settlement lives in `src/lib/verification-credit-payments.ts`
+(`settleVerificationCreditOrder`, intentionally **not** a `"use server"`,
+mirrors `settleFeaturedOrder` — one row per purchase, unlike `Subscription`).
+The demo mocks (`buyVerificationCreditPackDemoAction`,
+`payHostVerificationDemoAction`) are the fallback when Konnect is off — never
+both at once. The webhook (`verification-credit-webhook`) is shared by both
+regimes (generic, role-agnostic).
+
+| Scenario | Test to create | Expected guarantee | Status | Phase |
+|----------|----------------|---------------------|--------|-------|
+| Role-aware free baseline | `verificationCreditsRemaining`/`consumeVerificationCredit` for `AGENCE` vs `HOTE` with no wallet row | `AGENCE` → `FREE_VERIFICATION_CREDITS` (1); `HOTE` → 0 (must pay first) | ✅ `verification-credits.test.ts` | Demo |
+| Credit consumption non-bypass | `verifyPropertyAction` when balance is 0, for either role | Rejected before the listing is verified/activated — atomic `updateMany` guarded by `balance: {gt: 0}`, never a stored/trusted balance | ✅ `admin.test.ts`, `verification-credits.test.ts` | Demo |
+| **Lifetime credit coverage** | Re-verify a listing whose `verificationCreditSpentAt` is already set (after `unverifyPropertyAction` or a `republishPropertyAction` post-`LISTING_LIFETIME_DAYS` cycle), balance at 0, for `AGENCE` and `HOTE` | Succeeds without touching the wallet — a credit is consumed AT MOST ONCE per listing, ever | ✅ `admin.test.ts` (2 dedicated regressions) + live preview proof (DB + browser: pay → expire → republish → re-verify, zero re-debit) | Demo |
+| Role-differentiated notification | Credit-blocked verification for `AGENCE` vs `HOTE` | Agency → `ANNONCE_CREDITS_VERIF_EPUISES`/`notifyAgencyOutOfVerificationCredits` → `/dashboard/abonnement`; Host → `ANNONCE_VERIF_PAIEMENT_REQUIS`/`notifyHostVerificationPaymentRequired` → `/dashboard/annonces` — never the wrong one for the wrong role | ✅ `admin.test.ts` | Demo |
+| Starter bonus granted once | Subscribe/renew Starter twice (demo and real settlement) | +3 credits ONLY on the first activation (`Subscription.starterBonusGranted`); a renewal never re-grants | ✅ `subscription-payments.test.ts`, `subscription-payment-access.test.ts` | Demo |
+| No bonus for other plans | Subscribe/renew Standard or Pro (`verificationCreditsBonus = 0`) | Wallet never touched | ✅ `subscription-payments.test.ts`, `subscription-payment-access.test.ts` | Demo |
+| Double settlement | Two `settleVerificationCreditOrder` calls, same ref (agency pack or host single-credit order) | Only first credits the wallet; second is a no-op | ✅ `verification-credit-payments.test.ts` | Demo |
+| Settlement race (webhook vs return page) | Concurrent settle, `updateMany` count 0 on the loser | Single credit applied, single audit | ✅ `verification-credit-payments.test.ts` | Demo |
+| Amount tamper | `reachedAmount < expected` (pack price or `HOST_VERIFICATION_PRICE_TND`, recomputed server-side) | Reject (`ERREUR`, no credit) | ✅ `verification-credit-payments.test.ts` | Demo |
+| Role non-bypass (agency packs) | `startVerificationCreditPaymentAction` called by a `HOTE` account | Rejected — packs only exist for agencies | ✅ `verification-credit-payment-action.test.ts` | Demo |
+| Role non-bypass (host per-unit) | `startHostVerificationPaymentAction` called by an `AGENCE` account | Rejected — per-unit payment only exists for individuals | ✅ `host-verification-payments.test.ts` | Demo |
+| Demo/real exclusivity | `buyVerificationCreditPackDemoAction`/`payHostVerificationDemoAction` while Konnect is enabled | No-op, never grants a free credit | ✅ `verification-credit-payment-action.test.ts`, `host-verification-payments.test.ts` | Demo |
+| **Webhook authenticity** | Forged/missing signature on `verification-credit-webhook` | Reject (401) without valid HMAC, same guard as the other payment webhooks | ✅ `verification-credit-webhook.test.ts` (404 disabled, 400 no ref, 401 missing/bad signature, 429 rate-limit, 200 nominal — same 6-case pattern as `featured-webhook.test.ts`) | Demo |
+| Reconciliation | Konnect status vs local `VerificationCreditOrder` mismatch | Detect & alert; never silent loss | ❌ | Production |
+
+### 6.5 Free featured-boost claim test suite (MONETISATION_IMMO_ROADMAP.md §MI4)
+
+Applied to `claimFreeFeaturedBoostAction` (`src/actions/properties.ts`) — the
+Pro-plan subscription perk (decision 2026-07-20: existing Pro tier, 1 free
+« à la une » boost per billing cycle, non-cumulative). Unlike §6.1-6.4 this
+is **not a payment rail**: no `FeaturedOrder`, no Konnect call, no webhook —
+the only sensitive surface is authorization (IDOR, role, plan/cycle
+eligibility) and the atomic claim guard, so the bar here is the ownership/
+non-bypass pattern (`D2`/`D3`/`D8`-style) rather than the payment-idempotency
+pattern of §6.1-6.4.
+
+`Subscription.freeBoostUsedAt` (`DateTime?`, migration
+`20260720120305_add_subscription_free_boost`) tracks per-cycle consumption —
+reset to `null` on EVERY successful settlement (`settleSubscriptionPayment`
+and `subscribeAgencyPlanAction`, initial subscribe and renewal alike), so a
+new cycle always starts with a fresh, unclaimed boost. `hasUnclaimedFreeBoost()`
+(`src/lib/subscriptions.ts`) is the single source of truth for eligibility,
+shared by the server action and the `/dashboard/annonces/[id]/a-la-une` UI.
+
+| Scenario | Test to create | Expected guarantee | Status | Phase |
+|----------|----------------|---------------------|--------|-------|
+| IDOR | Agency B calls `claimFreeFeaturedBoostAction` on agency A's property | Rejected (`ACCES_REFUSE` via `requireOwnProperty`), no wallet/property mutation | ✅ `free-boost-claim.test.ts` | Demo |
+| Role non-bypass | A `HOTE` account calls the action | Rejected before any DB read beyond the role check — the perk only targets `AGENCE` | ✅ `free-boost-claim.test.ts` | Demo |
+| Plan non-bypass | An `AGENCE` on Starter/Standard (`freeBoostPerCycle: false`) calls the action | Rejected — `hasUnclaimedFreeBoost` false, no mutation | ✅ `free-boost-claim.test.ts` | Demo |
+| Cycle non-bypass (no double-dip) | Called again after `freeBoostUsedAt` is already set this cycle | Rejected — non-cumulable, no `featuredUntil` extension | ✅ `free-boost-claim.test.ts` | Demo |
+| Subscription-state non-bypass | Called with an expired (`currentPeriodEnd` past) or `EN_ATTENTE` subscription | Rejected — `isSubscriptionActive` gate, same derived-`EXPIRE` pattern as `activeListingsLimit` | ✅ `free-boost-claim.test.ts` | Demo |
+| Listing eligibility | Called on a non-`ACTIVE`/expired property | Rejected — same eligibility re-check as `featureListingAction`/`startFeaturedOrderPaymentAction` | ✅ `free-boost-claim.test.ts` | Demo |
+| Claim race (double click / double tab) | Concurrent claim, `updateMany` count 0 on the loser (`where: {userId, freeBoostUsedAt: null}`) | Only the winner extends `featuredUntil`; no double extension | ✅ `free-boost-claim.test.ts` | Demo |
+| Reset on settlement (real) | `settleSubscriptionPayment` on any plan/cycle | `freeBoostUsedAt` included as `null` in the winning `updateMany` — new cycle, fresh boost | ✅ `subscription-payments.test.ts` | Demo |
+| Reset on settlement (demo) | `subscribeAgencyPlanAction` (Konnect off) | `freeBoostUsedAt: null` in both `create`/`update` of the upsert | ✅ `subscription-payment-access.test.ts` | Demo |
+| Plan shape | Exactly one plan (`PRO`) has `freeBoostPerCycle: true` | Locks the current business decision; a future plan change must touch this test | ✅ `agency-plans.test.ts` | Demo |
+| Happy path | Eligible Pro agency claims on an eligible active listing | `featuredUntil` extended by `FEATURED_DURATION_DAYS` (cumulative if already featured), `PROPERTY_FEATURED` audit with `provider: "subscription_perk"`, redirect to `/dashboard/annonces?alaune=1` | ✅ `free-boost-claim.test.ts` + live Playwright proof (before/after screenshots: no banner → green claim banner → redirect with extended boost visible on `/dashboard/annonces` → banner replaced by "already used this cycle" note on revisit) | Demo |
 
 ---
 
@@ -510,6 +650,7 @@ checkout → setup-node 22 → npm ci → prisma generate → prisma migrate dep
 2. D2 booking IDOR + D3 property IDOR + D4 role-gate negatives.
 3. D5 mock-payment exclusivity, D6 price integrity, D7 upload-action wiring.
 4. Keep current CI green. _(Optional: add `vitest --coverage` non-blocking to start a baseline.)_
+5. `MAP_INTERACTED` + `SIMULATOR_USED` unit tests — only 2 of 4 IN2 instrumentation events are currently tested (§4.13).
 
 **Before Beta — quality gates + first integration/E2E + security regression:**
 1. Add coverage gate (≥70% lib+actions) + Playwright E2E smoke (5–8 journeys) to CI.

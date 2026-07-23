@@ -18,6 +18,9 @@ export const HOST_ACCEPTANCE_EXPIRY_MS = 48 * 60 * 60 * 1000; // 48 heures
 /** Cookie de report de l'onboarding « Vérifications » (« Passer pour l'instant »). */
 export const VERIF_SKIP_COOKIE = "darna-verif-skip";
 
+/** North-star produit (`.agents/product-marketing.md`) : objectif d'annonces vérifiées actives affiché sur l'accueil (G10). */
+export const VERIFIED_LISTINGS_TARGET = 500;
+
 // DEMO_VERIFIE : vérifié en MODE DÉMO (OTP affiché à l'écran). Distinct de VERIFIE
 // (vérification réelle par SMS) pour ne jamais confondre confiance réelle et démo.
 export const KYC_STATUSES = [
@@ -143,6 +146,85 @@ export type PaymentMode = (typeof PAYMENT_MODES)[number];
 export const HOST_INVOICE_STATUSES = ["EN_ATTENTE", "PAYEE"] as const;
 export type HostInvoiceStatus = (typeof HOST_INVOICE_STATUSES)[number];
 
+/**
+ * Statuts d'un achat de mise en avant (« à la une », MONETISATION_IMMO_ROADMAP.md
+ * §MI0) — même esprit que HOST_INVOICE_STATUSES, aucun statut "ANNULEE" stocké :
+ * une commande jamais réglée reste simplement EN_ATTENTE indéfiniment (aucun
+ * effet métier tant qu'elle n'est pas payée).
+ */
+export const FEATURED_ORDER_STATUSES = ["EN_ATTENTE", "PAYEE"] as const;
+export type FeaturedOrderStatus = (typeof FEATURED_ORDER_STATUSES)[number];
+
+/**
+ * Statuts d'un abonnement agence (MONETISATION_IMMO_ROADMAP.md §MI1) — même
+ * esprit que FEATURED_ORDER_STATUSES : aucun statut "EXPIRE" stocké,
+ * l'expiration est un DÉRIVÉ (ACTIF + currentPeriodEnd < now), jamais écrit
+ * en base (l'application de cette dérivation arrive avec MI2).
+ */
+export const SUBSCRIPTION_STATUSES = ["EN_ATTENTE", "ACTIF"] as const;
+export type SubscriptionStatus = (typeof SUBSCRIPTION_STATUSES)[number];
+
+/**
+ * Paliers d'abonnement agence (MONETISATION_IMMO_ROADMAP.md §MI1/MI2). Trois
+ * paliers — tarif de lancement décidé par Wassim le 2026-07-16 (revu à la
+ * baisse par rapport à l'hypothèse initiale de §Chiffrage, jugée trop chère
+ * pour le marché tunisien tant que Darna construit sa confiance) : toujours
+ * PROVISOIRE, à réviser après un vrai test terrain. `Subscription.plan`
+ * référence la clé `key` d'un palier ci-dessous.
+ */
+// `verificationCreditsBonus` (MI3, décision Wassim du 2026-07-20) : crédits de
+// vérification Wakil offerts UNE SEULE FOIS à la 1re activation de ce palier
+// (jamais reconduit aux renouvellements — cf. Subscription.starterBonusGranted,
+// src/lib/subscription-payments.ts + src/actions/subscriptions.ts). Seul
+// Starter en a un ; 0 pour les autres paliers ("le reste ne change pas").
+// `freeBoostPerCycle` (MI4, décision Wassim du 2026-07-20) : 1 boost « à la
+// une » offert PAR CYCLE (non cumulable, remis à zéro à chaque règlement —
+// cf. Subscription.freeBoostUsedAt). Générique comme verificationCreditsBonus
+// — seul Pro l'a aujourd'hui, false pour les autres paliers.
+export const AGENCY_PLANS = [
+  {
+    key: "STARTER",
+    label: "Starter",
+    listingsIncluded: 3,
+    priceTND: 50,
+    verificationCreditsBonus: 3,
+    freeBoostPerCycle: false,
+  },
+  {
+    key: "STANDARD",
+    label: "Standard",
+    listingsIncluded: 10,
+    priceTND: 100,
+    verificationCreditsBonus: 0,
+    freeBoostPerCycle: false,
+  },
+  {
+    key: "PRO",
+    label: "Pro",
+    listingsIncluded: 30,
+    priceTND: 200,
+    verificationCreditsBonus: 0,
+    freeBoostPerCycle: true,
+  },
+] as const;
+export type AgencyPlanKey = (typeof AGENCY_PLANS)[number]["key"];
+
+/**
+ * Lots de crédits de vérification Wakil pour un compte AGENCE
+ * (MONETISATION_IMMO_ROADMAP.md §MI3) — décision Wassim du 2026-07-16 :
+ * FREE_VERIFICATION_CREDITS (src/lib/config.ts) gratuites À VIE + le bonus
+ * Starter ci-dessus, puis UNIQUEMENT ces deux lots prépayés (jamais de
+ * paiement à l'unité pour une agence — cf. HOST_VERIFICATION_PRICE_TND pour
+ * le régime différent des particuliers). Prix PROVISOIRE — non confronté à
+ * une vraie agence, à réviser comme AGENCY_PLANS.
+ * `VerificationCreditOrder.credits`/`.amount` référencent un lot ci-dessous.
+ */
+export const VERIFICATION_CREDIT_PACKS = [
+  { key: "PACK10", credits: 10, priceTND: 40 },
+  { key: "PACK25", credits: 25, priceTND: 90 },
+] as const;
+export type VerificationCreditPackKey = (typeof VERIFICATION_CREDIT_PACKS)[number]["key"];
+
 export const CANCEL_POLICIES = ["FLEXIBLE", "MODEREE", "FERME", "STRICTE"] as const;
 export type CancelPolicy = (typeof CANCEL_POLICIES)[number];
 
@@ -182,3 +264,12 @@ export function parseAmenitiesParam(value: string | string[] | undefined): Ameni
   const raw = value === undefined ? [] : Array.isArray(value) ? value : [value];
   return [...new Set(raw.filter((v): v is Amenity => (AMENITIES as readonly string[]).includes(v)))];
 }
+
+/**
+ * Cookie visiteur anonyme (INSTRUMENTATION_ROADMAP.md §IN0) — corrèle un
+ * parcours produit avant inscription. Posé par le middleware (Edge), lu par
+ * src/lib/product-events.ts (Node). Constante partagée ici — zéro dépendance
+ * dans ce fichier — pour rester importable depuis le middleware sans tirer
+ * Prisma dans le bundle Edge.
+ */
+export const VISITOR_COOKIE = "darna-vid";

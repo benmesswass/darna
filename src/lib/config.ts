@@ -88,6 +88,17 @@ export const REBOOKING_DISCOUNT_VALIDITY_DAYS = 30;
  */
 export const HOST_CANCELLATION_SIGNAL_DAYS = 90;
 
+/**
+ * Défi « Hôte Zéro Faille » (GROWTH_ROADMAP.md §G4) : seuils du badge
+ * Super-Hôte, évalué sur la même fenêtre glissante que le signal
+ * réputationnel ci-dessus (HOST_CANCELLATION_SIGNAL_DAYS) — un seul concept
+ * de fenêtre plutôt que d'en inventer un second. PROVISOIRE, à confirmer une
+ * fois un volume d'avis réel disponible.
+ */
+export const SUPER_HOST_MIN_RATING = 4.5;
+/** Échantillon minimum d'avis pour éviter qu'un avis unique suffise. */
+export const SUPER_HOST_MIN_REVIEWS = 3;
+
 /** Durée de vie d'une annonce avant expiration (fraîcheur des données). */
 export const LISTING_LIFETIME_DAYS = 30;
 
@@ -99,10 +110,62 @@ export const LISTING_EXPIRE_SOON_DAYS = 5;
  *  signalée « bientôt due » (PAIEMENT_SUR_PLACE_ROADMAP.md §PSP5). */
 export const HOST_INVOICE_DUE_SOON_DAYS = 3;
 
+/**
+ * Score de complétude d'annonce (GROWTH_ROADMAP.md §G2) : seuils, PROVISOIRES,
+ * choisis à partir de champs déjà présents sur Property — aucun nouveau champ.
+ * `COMPLETENESS_MIN_PHOTOS` reprend directement AUDIT_V1.md Top 20 #12
+ * (« Pousser 5+ photos minimum »), au-delà du minimum de 1 exigé à la création.
+ */
+export const COMPLETENESS_MIN_PHOTOS = 5;
+/** Au-delà du minimum de 40 caractères exigé à la création (createSchema). */
+export const COMPLETENESS_MIN_DESCRIPTION_LENGTH = 150;
+export const COMPLETENESS_MIN_AMENITIES = 3;
+/** Délai avant la première relance d'une annonce restée incomplète. */
+export const LISTING_INCOMPLETE_NUDGE_DAYS = 3;
+
 /** Mise en avant payante (« à la une ») : durée du boost et prix unique. */
-export const FEATURED_DURATION_DAYS = 7;
-/** Prix en TND du boost « à la une » pour une semaine (paiement mock). */
-export const FEATURED_PRICE_TND = 49;
+export const FEATURED_DURATION_DAYS = 30;
+/** Prix en TND du boost « à la une » pour un mois (tarif de lancement). */
+export const FEATURED_PRICE_TND = 29;
+
+/** Durée d'un cycle d'abonnement agence (MONETISATION_IMMO_ROADMAP.md §MI2). */
+export const SUBSCRIPTION_DURATION_DAYS = 30;
+/**
+ * Palier gratuit (sans abonnement ACTIF) : nombre d'annonces actives
+ * autorisées pour un compte AGENCE avant que la souscription (§MI1/MI2) ne
+ * soit requise. Ne s'applique jamais aux comptes HOTE (cf.
+ * src/lib/subscriptions.ts) — hypothèse provisoire, à réviser comme le prix
+ * du palier STANDARD (cf. roadmap §Chiffrage).
+ */
+export const FREE_TIER_LISTINGS_LIMIT = 3;
+
+/**
+ * Vérifications Wakil gratuites À VIE pour un compte AGENCE
+ * (MONETISATION_IMMO_ROADMAP.md §MI3) — décision Wassim du 2026-07-20 (revu à
+ * la baisse depuis 3, cf. `git log` de ce fichier) : gagner la confiance
+ * gratuitement au début, puis imposer un abonnement. Contrairement à
+ * FREE_TIER_LISTINGS_LIMIT (un plafond, jamais consommé), ce nombre est un
+ * SOLDE qui se consomme et ne se réinitialise jamais — cf.
+ * src/lib/verification-credits.ts. Au-delà : le palier Starter accorde un
+ * bonus ponctuel (`AGENCY_PLANS[].verificationCreditsBonus`), sinon achat
+ * d'un lot prépayé (VERIFICATION_CREDIT_PACKS, src/lib/constants.ts) — jamais
+ * de paiement à l'unité POUR UNE AGENCE (cf. HOST_VERIFICATION_PRICE_TND
+ * ci-dessous pour le régime, différent, des particuliers).
+ */
+export const FREE_VERIFICATION_CREDITS = 1;
+
+/**
+ * Vérification Wakil pour un compte HOTE (particulier) — décision Wassim du
+ * 2026-07-20 : RÉGIME DIFFÉRENT de l'agence, volontairement. Aucune
+ * vérification gratuite, paiement À L'UNITÉ (pas de lot), et le paiement doit
+ * être réglé AVANT que le Wakil ne puisse vérifier l'annonce — cf.
+ * src/actions/host-verification-payments.ts, gate dans verifyPropertyAction
+ * (src/actions/admin.ts). Réutilise le même mécanisme de solde
+ * (VerificationWallet) qu'une agence : payer crédite +1, une vérification en
+ * consomme 1 — seule la façon d'obtenir un crédit diffère (jamais gratuit,
+ * jamais en lot).
+ */
+export const HOST_VERIFICATION_PRICE_TND = 20;
 
 /** Occupation estivale estimée pour le Yield Advisor. */
 export const SUMMER_OCCUPANCY_RATE = 0.6;

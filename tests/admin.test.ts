@@ -11,6 +11,14 @@ vi.mock("@/lib/prisma", () => ({
     property: {
       findUnique: vi.fn(),
       update: vi.fn(),
+      count: vi.fn(),
+    },
+    subscription: {
+      findUnique: vi.fn(),
+    },
+    verificationWallet: {
+      upsert: vi.fn(),
+      updateMany: vi.fn(),
     },
     wakilApplication: {
       findUnique: vi.fn(),
@@ -35,6 +43,13 @@ vi.mock("@/lib/audit", () => ({
   clientIp: vi.fn().mockResolvedValue("127.0.0.1"),
 }));
 
+vi.mock("@/lib/notification-center", () => ({
+  notifyHostInvoiceReminder: vi.fn(),
+  notifyAgencyQuotaReached: vi.fn(),
+  notifyAgencyOutOfVerificationCredits: vi.fn(),
+  notifyHostVerificationPaymentRequired: vi.fn(),
+}));
+
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
@@ -46,6 +61,9 @@ vi.mock("@/lib/i18n/server", () => ({
       annonceMiseANonVerifiee: "Badge retiré.",
       proprietaireNonVerifie: "Propriétaire non vérifié.",
       candidatureRevue: "Candidature revue.",
+      limiteAbonnementAtteinte: (limite: number) => `Limite atteinte (${limite}).`,
+      creditsVerificationEpuises: "Crédits de vérification épuisés.",
+      hostVerificationPaiementRequis: "Paiement de vérification requis.",
     },
     common: {
       champsRequis: "Champs requis.",
@@ -57,9 +75,18 @@ vi.mock("@/lib/i18n/server", () => ({
 import { verifyPropertyAction, unverifyPropertyAction, reviewWakilApplicationAction } from "@/actions/admin";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin, requireWakilOrAdmin } from "@/lib/session";
+import {
+  notifyAgencyQuotaReached,
+  notifyAgencyOutOfVerificationCredits,
+  notifyHostVerificationPaymentRequired,
+} from "@/lib/notification-center";
 
 const propertyFindUnique = prisma.property.findUnique as unknown as Mock;
 const propertyUpdate = prisma.property.update as unknown as Mock;
+const propertyCount = prisma.property.count as unknown as Mock;
+const subscriptionFindUnique = prisma.subscription.findUnique as unknown as Mock;
+const walletUpsert = prisma.verificationWallet.upsert as unknown as Mock;
+const walletUpdateMany = prisma.verificationWallet.updateMany as unknown as Mock;
 const wakilFindUnique = prisma.wakilApplication.findUnique as unknown as Mock;
 const wakilUpdate = prisma.wakilApplication.update as unknown as Mock;
 const userUpdate = prisma.user.update as unknown as Mock;
@@ -79,6 +106,10 @@ beforeEach(() => {
   propertyUpdate.mockResolvedValue({});
   wakilUpdate.mockResolvedValue({});
   userUpdate.mockResolvedValue({});
+  // Défaut : crédit de vérification disponible (MI3) — les tests dédiés à
+  // l'épuisement du solde écrasent explicitement ce mock.
+  walletUpsert.mockResolvedValue({});
+  walletUpdateMany.mockResolvedValue({ count: 1 });
 });
 
 // ── PR1 : verifyPropertyAction ────────────────────────────────────────────────
@@ -139,6 +170,234 @@ describe("verifyPropertyAction", () => {
 
     expect(result?.error).toBeDefined();
     expect(propertyUpdate).not.toHaveBeenCalled();
+  });
+
+  it("refuse si le compte agence a atteint sa limite d'annonces actives (palier gratuit, MONETISATION_IMMO_ROADMAP.md §MI2) et notifie l'agence", async () => {
+    (requireWakilOrAdmin as unknown as Mock).mockResolvedValue(mockAdmin);
+    propertyFindUnique.mockResolvedValue({
+      id: PROP_ID,
+      title: "Appartement S+2 vue mer",
+      verified: false,
+      ownerId: "clowner00000000000000000004",
+      owner: { kycStatus: "VERIFIE", role: "AGENCE" },
+    });
+    subscriptionFindUnique.mockResolvedValue(null); // pas d'abonnement → palier gratuit (3)
+    propertyCount.mockResolvedValue(3); // déjà à la limite
+
+    const fd = new FormData();
+    fd.set("propertyId", PROP_ID);
+    fd.set("verificationLevel", "REMOTE");
+    const result = await verifyPropertyAction(undefined, fd);
+
+    expect(result?.error).toBeDefined();
+    expect(propertyUpdate).not.toHaveBeenCalled();
+    // L'agence n'a aucun autre moyen de le découvrir que cette notification.
+    expect(notifyAgencyQuotaReached).toHaveBeenCalledWith(
+      "clowner00000000000000000004",
+      "Appartement S+2 vue mer"
+    );
+  });
+
+  it("autorise un compte agence qui n'a pas encore atteint sa limite d'annonces actives", async () => {
+    (requireWakilOrAdmin as unknown as Mock).mockResolvedValue(mockAdmin);
+    propertyFindUnique.mockResolvedValue({
+      id: PROP_ID,
+      verified: false,
+      ownerId: "clowner00000000000000000005",
+      owner: { kycStatus: "VERIFIE", role: "AGENCE" },
+    });
+    subscriptionFindUnique.mockResolvedValue(null);
+    propertyCount.mockResolvedValue(1); // sous la limite gratuite (3)
+
+    const fd = new FormData();
+    fd.set("propertyId", PROP_ID);
+    fd.set("verificationLevel", "REMOTE");
+    const result = await verifyPropertyAction(undefined, fd);
+
+    expect(result?.success).toBeDefined();
+    expect(propertyUpdate).toHaveBeenCalled();
+    expect(notifyAgencyQuotaReached).not.toHaveBeenCalled();
+  });
+
+  it("ignore la limite d'abonnement pour un compte HOTE (le mécanisme ne cible que les agences)", async () => {
+    (requireWakilOrAdmin as unknown as Mock).mockResolvedValue(mockAdmin);
+    propertyFindUnique.mockResolvedValue({
+      id: PROP_ID,
+      verified: false,
+      ownerId: "clowner00000000000000000006",
+      owner: { kycStatus: "VERIFIE", role: "HOTE" },
+    });
+
+    const fd = new FormData();
+    fd.set("propertyId", PROP_ID);
+    fd.set("verificationLevel", "REMOTE");
+    const result = await verifyPropertyAction(undefined, fd);
+
+    expect(result?.success).toBeDefined();
+    // Le quota d'annonces (MI2) ignore bien un compte HOTE — mais la
+    // consommation de crédit de vérification (MI3bis), elle, s'applique
+    // désormais À TOUS les rôles (cf. bloc de tests MI3bis ci-dessous).
+    expect(propertyCount).not.toHaveBeenCalled();
+    expect(subscriptionFindUnique).not.toHaveBeenCalled();
+    expect(notifyAgencyQuotaReached).not.toHaveBeenCalled();
+  });
+
+  // ── MI3 : crédits de vérification Wakil ─────────────────────────────────────
+
+  it("refuse si le compte agence n'a plus de crédit de vérification (MONETISATION_IMMO_ROADMAP.md §MI3) et notifie l'agence", async () => {
+    (requireWakilOrAdmin as unknown as Mock).mockResolvedValue(mockAdmin);
+    propertyFindUnique.mockResolvedValue({
+      id: PROP_ID,
+      title: "Studio Sousse",
+      verified: false,
+      ownerId: "clowner00000000000000000007",
+      owner: { kycStatus: "VERIFIE", role: "AGENCE" },
+    });
+    subscriptionFindUnique.mockResolvedValue(null);
+    propertyCount.mockResolvedValue(0); // largement sous le quota d'annonces
+    walletUpdateMany.mockResolvedValue({ count: 0 }); // solde épuisé
+
+    const fd = new FormData();
+    fd.set("propertyId", PROP_ID);
+    fd.set("verificationLevel", "REMOTE");
+    const result = await verifyPropertyAction(undefined, fd);
+
+    expect(result?.error).toBeDefined();
+    expect(propertyUpdate).not.toHaveBeenCalled();
+    expect(notifyAgencyOutOfVerificationCredits).toHaveBeenCalledWith(
+      "clowner00000000000000000007",
+      "Studio Sousse"
+    );
+  });
+
+  it("consomme un crédit et vérifie l'annonce quand le compte agence a un solde disponible", async () => {
+    (requireWakilOrAdmin as unknown as Mock).mockResolvedValue(mockAdmin);
+    propertyFindUnique.mockResolvedValue({
+      id: PROP_ID,
+      verified: false,
+      ownerId: "clowner00000000000000000008",
+      owner: { kycStatus: "VERIFIE", role: "AGENCE" },
+    });
+    subscriptionFindUnique.mockResolvedValue(null);
+    propertyCount.mockResolvedValue(0);
+    walletUpdateMany.mockResolvedValue({ count: 1 }); // crédit consommé avec succès
+
+    const fd = new FormData();
+    fd.set("propertyId", PROP_ID);
+    fd.set("verificationLevel", "REMOTE");
+    const result = await verifyPropertyAction(undefined, fd);
+
+    expect(result?.success).toBeDefined();
+    expect(propertyUpdate).toHaveBeenCalled();
+    expect(notifyAgencyOutOfVerificationCredits).not.toHaveBeenCalled();
+  });
+
+  // ── MI3bis (décision Wassim du 2026-07-20) : régime HOTE, différent de
+  // l'agence — aucune vérification gratuite, paiement à l'unité obligatoire
+  // AVANT. Le quota d'annonces (ci-dessus), lui, reste ignoré pour un HOTE.
+
+  it("HOTE : refuse si aucun crédit payé (0 gratuit) et notifie — chemin DIFFÉRENT de l'agence", async () => {
+    (requireWakilOrAdmin as unknown as Mock).mockResolvedValue(mockAdmin);
+    propertyFindUnique.mockResolvedValue({
+      id: PROP_ID,
+      title: "Studio Sfax",
+      verified: false,
+      ownerId: "clowner00000000000000000009",
+      owner: { kycStatus: "VERIFIE", role: "HOTE" },
+    });
+    walletUpdateMany.mockResolvedValue({ count: 0 }); // jamais payé
+
+    const fd = new FormData();
+    fd.set("propertyId", PROP_ID);
+    fd.set("verificationLevel", "REMOTE");
+    const result = await verifyPropertyAction(undefined, fd);
+
+    expect(result?.error).toBeDefined();
+    expect(propertyUpdate).not.toHaveBeenCalled();
+    // Ignore le quota d'annonces (réservé aux agences) mais bloque bien sur le crédit.
+    expect(propertyCount).not.toHaveBeenCalled();
+    expect(notifyHostVerificationPaymentRequired).toHaveBeenCalledWith(
+      "clowner00000000000000000009",
+      "Studio Sfax"
+    );
+    // La notification/erreur AGENCE ne doit jamais être déclenchée pour un HOTE.
+    expect(notifyAgencyOutOfVerificationCredits).not.toHaveBeenCalled();
+  });
+
+  it("HOTE : consomme le crédit payé et vérifie l'annonce quand un paiement a déjà été réglé", async () => {
+    (requireWakilOrAdmin as unknown as Mock).mockResolvedValue(mockAdmin);
+    propertyFindUnique.mockResolvedValue({
+      id: PROP_ID,
+      verified: false,
+      ownerId: "clowner00000000000000000010",
+      owner: { kycStatus: "VERIFIE", role: "HOTE" },
+    });
+    walletUpdateMany.mockResolvedValue({ count: 1 }); // a payé au moins 1 vérification
+
+    const fd = new FormData();
+    fd.set("propertyId", PROP_ID);
+    fd.set("verificationLevel", "REMOTE");
+    const result = await verifyPropertyAction(undefined, fd);
+
+    expect(result?.success).toBeDefined();
+    expect(propertyUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ verificationCreditSpentAt: expect.any(Date) }),
+      })
+    );
+    expect(notifyHostVerificationPaymentRequired).not.toHaveBeenCalled();
+  });
+
+  // ── Correction du 2026-07-20 : un crédit couvre l'annonce À VIE, jamais par
+  // événement — une revérification (après retrait de badge OU republication
+  // suite à expiration à LISTING_LIFETIME_DAYS jours) de la MÊME annonce ne
+  // doit JAMAIS reconsommer de crédit, même à solde 0.
+
+  it("AGENCE : une annonce déjà payée À VIE reste vérifiable même à solde 0 (republication après expiration)", async () => {
+    (requireWakilOrAdmin as unknown as Mock).mockResolvedValue(mockAdmin);
+    propertyFindUnique.mockResolvedValue({
+      id: PROP_ID,
+      verified: false,
+      verificationCreditSpentAt: new Date("2026-06-01"), // déjà payée lors d'un cycle précédent
+      ownerId: "clowner00000000000000000011",
+      owner: { kycStatus: "VERIFIE", role: "AGENCE" },
+    });
+    subscriptionFindUnique.mockResolvedValue(null);
+    propertyCount.mockResolvedValue(0);
+    walletUpdateMany.mockResolvedValue({ count: 0 }); // solde à 0 : ne doit MÊME PAS être consulté
+
+    const fd = new FormData();
+    fd.set("propertyId", PROP_ID);
+    fd.set("verificationLevel", "REMOTE");
+    const result = await verifyPropertyAction(undefined, fd);
+
+    expect(result?.success).toBeDefined();
+    expect(walletUpdateMany).not.toHaveBeenCalled(); // jamais interrogé : déjà payée à vie
+    expect(notifyAgencyOutOfVerificationCredits).not.toHaveBeenCalled();
+    // Ne réécrit pas verificationCreditSpentAt (déjà posé, pas la peine).
+    const call = propertyUpdate.mock.calls[0][0];
+    expect(call.data.verificationCreditSpentAt).toBeUndefined();
+  });
+
+  it("HOTE : une annonce déjà payée À VIE reste vérifiable sans repayer, même à solde 0", async () => {
+    (requireWakilOrAdmin as unknown as Mock).mockResolvedValue(mockAdmin);
+    propertyFindUnique.mockResolvedValue({
+      id: PROP_ID,
+      verified: false,
+      verificationCreditSpentAt: new Date("2026-06-01"),
+      ownerId: "clowner00000000000000000012",
+      owner: { kycStatus: "VERIFIE", role: "HOTE" },
+    });
+    walletUpdateMany.mockResolvedValue({ count: 0 });
+
+    const fd = new FormData();
+    fd.set("propertyId", PROP_ID);
+    fd.set("verificationLevel", "REMOTE");
+    const result = await verifyPropertyAction(undefined, fd);
+
+    expect(result?.success).toBeDefined();
+    expect(walletUpdateMany).not.toHaveBeenCalled();
+    expect(notifyHostVerificationPaymentRequired).not.toHaveBeenCalled();
   });
 
   it("refuse si le propertyId est invalide (non-cuid)", async () => {

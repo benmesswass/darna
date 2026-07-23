@@ -17,7 +17,7 @@ import {
 } from "@/lib/config";
 import { BOOKING_EXPIRY_MS, HOST_ACCEPTANCE_EXPIRY_MS, PAYMENT_MODES } from "@/lib/constants";
 import { logAudit, logStructured } from "@/lib/audit";
-import { recomputePropertyRating } from "@/lib/listings";
+import { recomputePropertyRating, effectiveNightlyPrice } from "@/lib/listings";
 import { blockingBookingOverlap } from "@/lib/booking-overlap";
 import {
   claimRebookingDiscount,
@@ -29,6 +29,7 @@ import { hasOverdueHostInvoice } from "@/lib/host-invoicing";
 import {
   sendBookingConfirmationEmail,
   sendBookingCancelledByHostEmail,
+  sendNewBookingHostEmail,
 } from "@/lib/notifications";
 import { computeBookingRefund } from "@/lib/cancellation";
 import {
@@ -38,6 +39,7 @@ import {
   notifyCashBookingDeclined,
   notifyCashBookingRequested,
   notifyGuestReviewReceived,
+  notifyNewBookingReceived,
   notifyReviewReceived,
 } from "@/lib/notification-center";
 import { isSuspended, applySuspension } from "@/lib/suspension";
@@ -138,6 +140,9 @@ export async function createBookingAction(
       status: true,
       expiresAt: true,
       price: true,
+      verified: true,
+      promoPrice: true,
+      promoUntil: true,
       // Capacité depuis la table satellite (M2).
       stay: { select: { maxGuests: true } },
       ownerId: true,
@@ -185,7 +190,9 @@ export async function createBookingAction(
     if (user.kycStatus !== "VERIFIE") return { error: fr.booking.cashKycRequis };
   }
 
-  const subtotal = property.price * nights;
+  // Prix promo hôte si actif (§PM0) — jamais le prix brut pris en aveugle.
+  const nightlyPrice = effectiveNightlyPrice(property);
+  const subtotal = nightlyPrice * nights;
   const serviceFee = Math.round(subtotal * SERVICE_FEE_RATE);
   const fullTotalPrice = subtotal + serviceFee;
   // Rail 2 : fenêtre d'ACCEPTATION hôte (48h, pas d'urgence de paiement) ;
@@ -266,7 +273,7 @@ export async function createBookingAction(
           checkIn,
           checkOut,
           guests: parsed.data.voyageurs,
-          nightlyPrice: property.price,
+          nightlyPrice,
           serviceFee,
           totalPrice,
           depositAmount,
@@ -340,6 +347,8 @@ export type BookingQuote =
   | {
       ok: true;
       nights: number;
+      /** Prix/nuit RÉELLEMENT appliqué (promo hôte incluse) — affiché au récap, jamais recalculé côté client. */
+      nightlyPrice: number;
       subtotal: number;
       serviceFee: number;
       total: number;
@@ -392,6 +401,9 @@ export async function quoteBookingAction(input: {
       status: true,
       expiresAt: true,
       price: true,
+      verified: true,
+      promoPrice: true,
+      promoUntil: true,
       // Capacité depuis la table satellite (M2).
       stay: { select: { maxGuests: true } },
       cancelBlockedUntil: true,
@@ -431,7 +443,9 @@ export async function quoteBookingAction(input: {
   });
   if (conflict) return { ok: false, error: fr.booking.datesIndisponibles };
 
-  const subtotal = property.price * nights;
+  // Prix promo hôte si actif (§PM0) — jamais le prix brut pris en aveugle.
+  const nightlyPrice = effectiveNightlyPrice(property);
+  const subtotal = nightlyPrice * nights;
   const serviceFee = Math.round(subtotal * SERVICE_FEE_RATE);
   const fullTotal = subtotal + serviceFee;
 
@@ -454,7 +468,7 @@ export async function quoteBookingAction(input: {
     }
   }
 
-  return { ok: true, nights, subtotal, serviceFee, total, discount };
+  return { ok: true, nights, nightlyPrice, subtotal, serviceFee, total, discount };
 }
 
 /** Montant choisi à la réservation : borné [acompte, total] côté serveur. */
@@ -544,6 +558,8 @@ export async function confirmPaymentAction(formData: FormData): Promise<void> {
 
   await sendBookingConfirmationEmail(booking.id);
   await notifyBookingConfirmed(booking.id);
+  await sendNewBookingHostEmail(booking.id);
+  await notifyNewBookingReceived(booking.id);
 
   revalidatePath(`/reservation/${booking.id}/paiement`);
   revalidatePath("/dashboard/reservations");

@@ -3,11 +3,12 @@ import Link from "next/link";
 import { getT } from "@/lib/i18n/server";
 import { SERVICE_FEE_RATE } from "@/lib/config";
 import type { ListingWithPhoto } from "@/lib/listings";
-import { isListingFeatured } from "@/lib/listings";
+import { effectiveNightlyPrice, isListingFeatured, isPropertyPromoActive } from "@/lib/listings";
 import type { FavoriteCardProp } from "@/lib/favorites";
 import { Price } from "@/components/currency/Price";
 import { FavoriteButton } from "./FavoriteButton";
-import { FeaturedBadge, FreshnessBadge, TypeBadge, VerifiedBadge } from "./Badges";
+import { FeaturedBadge, FreshnessBadge, PromoBadge, TypeBadge, VerifiedBadge } from "./Badges";
+import { PromoPrice } from "./PromoPrice";
 import { DoorIcon, MapPinIcon, RulerIcon, UsersIcon } from "@/components/icons";
 
 export async function PropertyCard({
@@ -30,11 +31,14 @@ export async function PropertyCard({
   nights?: number;
 }) {
   const fr = await getT();
+  // Prix réellement payé : le prix promo hôte si actif (§PM1), sinon le prix normal.
+  const nightlyPrice = effectiveNightlyPrice(property);
+  const promoActive =
+    property.verified && isPropertyPromoActive(property.promoUntil) && property.promoPrice !== null;
   // Total tout compris pour le séjour cherché (même calcul que la réservation).
   const stayTotal =
     nights && nights > 0 && property.type === "SEJOUR"
-      ? property.price * nights +
-        Math.round(property.price * nights * SERVICE_FEE_RATE)
+      ? nightlyPrice * nights + Math.round(nightlyPrice * nights * SERVICE_FEE_RATE)
       : null;
   // Helper interne : dépend du dictionnaire de la requête.
   function priceSuffix(type: string): string | undefined {
@@ -75,8 +79,23 @@ export async function PropertyCard({
             }`}
           >
             {featured ? <FeaturedBadge small /> : null}
+            {promoActive ? (
+              <PromoBadge
+                small
+                price={property.price}
+                promoPrice={property.promoPrice!}
+                promoUntil={property.promoUntil!}
+              />
+            ) : null}
             {showType ? <TypeBadge type={property.type} /> : null}
-            {property.verified ? <VerifiedBadge small level={property.verificationLevel ?? null} /> : null}
+            {property.verified ? (
+              <VerifiedBadge
+                small
+                level={property.verificationLevel ?? null}
+                verifierName={property.verifiedBy?.name}
+                verifiedAt={property.verifiedAt}
+              />
+            ) : null}
           </div>
           <div className="absolute bottom-3 start-3">
             <FreshnessBadge publishedAt={property.publishedAt} />
@@ -110,8 +129,11 @@ export async function PropertyCard({
             ) : null}
           </div>
           <div className="mt-auto pt-1">
-            <Price
-              amount={property.price}
+            <PromoPrice
+              price={property.price}
+              promoPrice={property.promoPrice}
+              promoUntil={property.promoUntil}
+              verified={property.verified}
               suffix={priceSuffix(property.type)}
               className="text-lg font-bold text-heading"
             />

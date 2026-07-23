@@ -9,8 +9,11 @@ import {
   type SortKey,
 } from "@/lib/constants";
 import { HOST_CANCELLATION_SIGNAL_DAYS } from "@/lib/config";
+import { isSuperHost } from "@/lib/super-host";
 import type { MapMarker } from "@/components/map/types";
 import type { ReviewItem } from "@/components/property/ReviewsSection";
+import { getAnonId, logProductEvent } from "@/lib/product-events";
+import { getSessionUser } from "@/lib/session";
 
 /** Taille de page pour les listings (protection DoS + UX). */
 const PAGE_SIZE = 24;
@@ -41,6 +44,30 @@ export function activeListingWhere(): Prisma.PropertyWhereInput {
 /** Une annonce est « à la une » tant que son boost payé n'a pas expiré. */
 export function isListingFeatured(featuredUntil: Date | null): boolean {
   return featuredUntil !== null && featuredUntil.getTime() > Date.now();
+}
+
+/** Une promo hôte est active tant que sa date de fin n'est pas dépassée (CROISSANCE_ROADMAP.md §PM0). */
+export function isPropertyPromoActive(promoUntil: Date | null): boolean {
+  return promoUntil !== null && promoUntil.getTime() > Date.now();
+}
+
+/**
+ * Prix par nuit RÉELLEMENT appliqué à une réservation : le prix promo hôte
+ * si actif ET l'annonce toujours vérifiée (§PM0 — jamais de promo sur du
+ * stock non fiable, re-vérifié ici même si l'annonce a perdu son badge
+ * après la mise en place de la promo), sinon le prix normal.
+ */
+export function effectiveNightlyPrice(property: {
+  price: number;
+  promoPrice: number | null;
+  promoUntil: Date | null;
+  verified: boolean;
+}): number {
+  return property.verified &&
+    isPropertyPromoActive(property.promoUntil) &&
+    property.promoPrice !== null
+    ? property.promoPrice
+    : property.price;
 }
 
 /**
@@ -136,6 +163,9 @@ export const listingCardInclude = {
   stay: { select: { maxGuests: true } },
   // Notes des avis : moyenne + nombre affichés sur la carte (survol marqueur).
   reviews: { select: { rating: true } },
+  // Nom du vérificateur (§G8) — verifiedAt est un scalaire déjà inclus, seule
+  // la relation manque pour afficher la fraîcheur de vérification en tooltip.
+  verifiedBy: { select: { name: true } },
 } satisfies Prisma.PropertyInclude;
 
 export type ListingWithPhoto = Prisma.PropertyGetPayload<{
@@ -288,6 +318,41 @@ async function sampleListings(
   });
 }
 
+/**
+ * Instrumentation produit (INSTRUMENTATION_ROADMAP.md §IN1) — mesure la perte
+ * top-of-funnel en amont du premier `Booking` : nombre de recherches et leur
+ * taux de résultat, y compris `resultCount: 0` (ville inconnue ou filtres trop
+ * stricts).
+ */
+async function logSearchPerformed(
+  params: SejoursSearchParams,
+  resolvedCity: string | null,
+  resultCount: number
+): Promise<void> {
+  const [viewer, anonId] = await Promise.all([getSessionUser(), getAnonId()]);
+  await logProductEvent({
+    event: "SEARCH_PERFORMED",
+    userId: viewer?.id ?? null,
+    anonId,
+    metadata: {
+      ville: params.ville,
+      resolvedCity,
+      arrivee: params.arrivee,
+      depart: params.depart,
+      voyageurs: params.voyageurs,
+      prixMin: params.prixMin,
+      prixMax: params.prixMax,
+      verifie: params.verifie,
+      certifie: params.certifie,
+      equipements: params.equipements,
+      chambres: params.chambres,
+      typeBien: params.typeBien,
+      tri: params.tri,
+      resultCount,
+    },
+  });
+}
+
 export async function searchSejours(params: SejoursSearchParams) {
   await clearExpiredFeatured();
 
@@ -371,6 +436,7 @@ export async function searchSejours(params: SejoursSearchParams) {
   const skip = (page - 1) * PAGE_SIZE;
 
   if (unknownCity) {
+    await logSearchPerformed(params, resolvedCity, 0);
     return {
       results: [],
       resolvedCity,
@@ -405,6 +471,8 @@ export async function searchSejours(params: SejoursSearchParams) {
     resolvedCity && total === 0
       ? await suggestStayAlternatives(resolvedCity, baseWhere)
       : null;
+
+  await logSearchPerformed(params, resolvedCity, total);
 
   return { results, resolvedCity, unknownCity, total, page, pageSize: PAGE_SIZE, sort, suggestions };
 }
@@ -552,6 +620,8 @@ export type HostProfile = {
   ratingAvg: number | null;
   ratingCount: number;
   reviews: ReviewItem[];
+  // Défi "Hôte Zéro Faille" (GROWTH_ROADMAP.md §G4) — cf. isSuperHost().
+  isSuperHost: boolean;
 };
 
 /**
@@ -567,7 +637,7 @@ export async function getHostProfile(id: string): Promise<HostProfile | null> {
   });
   if (!user || (user.role !== "HOTE" && user.role !== "AGENCE")) return null;
 
-  const [listings, rating, reviews] = await Promise.all([
+  const [listings, rating, reviews, superHost] = await Promise.all([
     prisma.property.findMany({
       where: { ...activeListingWhere(), ownerId: id },
       include: listingCardInclude,
@@ -588,6 +658,7 @@ export async function getHostProfile(id: string): Promise<HostProfile | null> {
         property: { select: { title: true, slug: true } },
       },
     }),
+    isSuperHost(id),
   ]);
 
   return {
@@ -595,6 +666,7 @@ export async function getHostProfile(id: string): Promise<HostProfile | null> {
     listings,
     ratingAvg: rating._count.rating > 0 ? rating._avg.rating : null,
     ratingCount: rating._count.rating,
+    isSuperHost: superHost,
     reviews: reviews.map((r) => ({
       id: r.id,
       rating: r.rating,
@@ -748,6 +820,20 @@ export async function getAlaUneListings(take = 4) {
     where: { ...activeListingWhere(), featuredUntil: { gt: new Date() } },
     include: listingCardInclude,
     orderBy: { featuredUntil: "desc" },
+    take,
+  });
+}
+
+/**
+ * Dernières vérifications pour le mur de la confiance en direct de l'accueil
+ * (G10, `GROWTH_ROADMAP.md`). Ville + date uniquement — zéro donnée
+ * personnelle (ni propriétaire, ni Wakil, ni titre d'annonce).
+ */
+export async function getRecentVerifications(take = 5) {
+  return prisma.property.findMany({
+    where: { ...activeListingWhere(), verified: true },
+    select: { id: true, city: true, verifiedAt: true },
+    orderBy: { verifiedAt: "desc" },
     take,
   });
 }

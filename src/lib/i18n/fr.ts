@@ -82,6 +82,11 @@ export const fr = {
     wakilDesc:
       "Rejoignez le réseau d'agents de confiance qui vérifient les biens sur le terrain et gagnez un revenu complémentaire.",
     wakilCta: "Postuler",
+    liveTrustTitle: "La confiance en direct",
+    liveTrustProgress: (count: number, target: number) =>
+      `${count} / ${target} annonces vérifiées vers notre objectif`,
+    liveTrustItem: (city: string, date: string) => `${city} · vérifiée le ${date}`,
+    liveTrustCta: "Voir les annonces vérifiées",
   },
   footer: {
     baseline: "La confiance est notre produit.",
@@ -136,6 +141,10 @@ export const fr = {
     alaUne: "À la une",
     alaUneTooltip:
       "Annonce mise en avant : elle apparaît en tête des résultats et sur l'accueil de Darna.",
+    promo: (pct: number) => `Promo -${pct} %`,
+    superHote: "Super-Hôte",
+    superHoteTooltip:
+      "Zéro annulation et avis excellents sur les 3 derniers mois — un hôte fiable, vérifié sur ses résultats réels.",
   },
   search: {
     villePlaceholder: "Ville — Hammamet, Djerba, La Marsa…",
@@ -267,6 +276,7 @@ export const fr = {
     verifieOnSiteBloc:
       "Un agent Wakil s'est rendu sur place. Il a confirmé que le bien existe, que les photos sont conformes à la réalité et que le propriétaire est joignable.",
     verifiePar: (nom: string) => `par ${nom}`,
+    promoTooltip: (date: string) => `Prix réduit temporairement par l'hôte, jusqu'au ${date}.`,
     enSavoirPlusWakil: "En savoir plus sur le réseau Wakil",
     enSavoirPlusDarna: "En savoir plus sur nos contrôles",
     nonVerifieTooltip:
@@ -441,11 +451,27 @@ export const fr = {
     prolongerALaUne: "Prolonger à la une",
     alaUneActif: (date: string) => `À la une jusqu'au ${date}`,
     alaUneSucces: "Votre annonce est désormais à la une ! 🎉",
+    promoLien: "Promo",
+    promoActifBanner: (date: string) => `Promo active jusqu'au ${date}`,
     annonceMasqueeBanner: (date: string) =>
       `Annonce temporairement masquée des recherches suite à une annulation de votre part — elle réapparaît le ${date}.`,
     promoAlaUneTitre: "Passez vos annonces à la une",
     promoAlaUneDesc:
-      "En tête des résultats et sur l'accueil pendant 7 jours, avec un badge doré qui attire l'œil. Les annonces mises en avant sont vues bien plus souvent.",
+      "En tête des résultats et sur l'accueil pendant un mois, avec un badge doré qui attire l'œil. Les annonces mises en avant sont vues bien plus souvent.",
+    completudeTitre: (score: number, total: number) => `Annonce complète à ${score}/${total}`,
+    completudePhotos: "Au moins 5 photos",
+    completudeDescription: "Description détaillée",
+    completudeEquipements: "Au moins 3 équipements",
+    completudeCta: "Compléter l'annonce",
+    verifWakilSolde: (n: number) =>
+      n === 1
+        ? "1 crédit de vérification Wakil disponible."
+        : n === 0
+          ? "Aucun crédit de vérification Wakil — payez à l'unité pour faire vérifier une annonce."
+          : `${n} crédits de vérification Wakil disponibles.`,
+    verifWakilPrix: "Prix de la vérification",
+    verifWakilPayer: "Payer la vérification",
+    verifWakilPayerSimulation: "Payer la vérification (simulation)",
     aucuneReservation: "Aucune réservation pour le moment.",
     aucuneReservationCta: "Trouvez votre prochain séjour parmi nos annonces vérifiées.",
     aucuneReservationHote: "Aucun voyageur n'a encore réservé vos annonces.",
@@ -634,6 +660,12 @@ export const fr = {
       "Dates invalides — choisissez une arrivée et un départ (départ après l'arrivée, période non passée).",
     blocageConflitReservation:
       "Impossible : une réservation existe déjà sur cette période.",
+    promoAnnonceNonEligible:
+      "Cette annonce doit être vérifiée et active pour bénéficier d'une promo.",
+    promoPrixInvalide: "Le prix promo doit être inférieur au prix normal de l'annonce.",
+    promoDateInvalide:
+      "Date de fin de promo invalide — choisissez une date future, dans un délai raisonnable.",
+    promoDefinie: "Promo activée sur votre annonce.",
     cashPaymentTitre: "Paiement sur place (cash)",
     cashPaymentAide:
       "Réservé aux voyageurs sans moyen de paiement en ligne adapté. Le séjour se règle intégralement en espèces à l'arrivée ; votre commission Darna vous est facturée séparément après la réservation, réglable en ligne.",
@@ -726,6 +758,12 @@ export const fr = {
     annonceMiseANonVerifiee: "Badge de vérification retiré.",
     proprietaireNonVerifie:
       "Le propriétaire doit être vérifié (KYC) pour que l'annonce reçoive le badge.",
+    limiteAbonnementAtteinte: (limite: number) =>
+      `Ce compte agence a atteint sa limite d'annonces actives (${limite}). Invitez-le à souscrire ou renouveler son abonnement (/dashboard/abonnement) avant de valider une annonce supplémentaire.`,
+    creditsVerificationEpuises:
+      "Ce compte agence n'a plus de crédit de vérification Wakil. Invitez-le à acheter un lot (/dashboard/abonnement) avant de vérifier une annonce supplémentaire.",
+    hostVerificationPaiementRequis:
+      "Ce particulier n'a pas encore payé la vérification Wakil de cette annonce (20 TND). Invitez-le à régler le paiement depuis /dashboard/annonces avant de la vérifier.",
     aucuneAnnonce: "Aucune annonce active pour le moment.",
     annoncesDejVerifiees: "Annonces déjà vérifiées",
     candidaturesWakil: "Candidatures Wakil",
@@ -922,6 +960,29 @@ export const fr = {
         : "") +
       `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Le logement vérifié.</p>` +
       `</div>`,
+    newBookingHostSujet: (titre: string) =>
+      `Darna — nouvelle réservation reçue : ${titre}`,
+    newBookingHostHtml: (p: {
+      hostName: string;
+      guestName: string;
+      propertyTitle: string;
+      checkIn: string;
+      checkOut: string;
+      guests: number;
+      url: string;
+    }) =>
+      `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
+      `<h1 style="color:#0f766e;font-size:20px">Nouvelle réservation 🎉</h1>` +
+      `<p>Bonjour ${p.hostName},</p>` +
+      `<p><strong>${p.guestName}</strong> vient de réserver <strong>${p.propertyTitle}</strong>. Le paiement est protégé sous séquestre Darna et vous sera versé une fois le séjour terminé.</p>` +
+      `<table style="width:100%;border-collapse:collapse;margin:16px 0">` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Arrivée</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.checkIn}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Départ</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.checkOut}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Voyageurs</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.guests}</td></tr>` +
+      `</table>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">Voir la réservation</a></p>` +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Le logement vérifié.</p>` +
+      `</div>`,
     bookingCancelledByHostSujet: (titre: string) =>
       `Darna — votre séjour a été annulé : ${titre}`,
     bookingCancelledByHostHtml: (p: {
@@ -1108,9 +1169,7 @@ export const fr = {
   booking: {
     titre: "Demande de réservation",
     recapitulatif: "Récapitulatif — 100 % transparent",
-    prixNuit: "Prix par nuit",
     nuits: (n: number) => (n === 1 ? "1 nuit" : `${n} nuits`),
-    sousTotal: "Sous-total",
     fraisService: "Frais de service Darna",
     fraisServiceAide:
       "Ils financent la vérification des annonces et la protection des paiements.",
@@ -1328,11 +1387,21 @@ export const fr = {
       `Votre facture de commission pour « ${titre} » arrive bientôt à échéance.`,
     factureEnRetard: (titre: string) =>
       `Votre facture de commission pour « ${titre} » a dépassé son échéance.`,
+    annonceLimiteAbonnement: (titre: string) =>
+      `Votre annonce « ${titre} » ne peut pas encore être publiée — vous avez atteint votre limite d'annonces actives. Voir les options d'abonnement.`,
+    annonceCreditsVerifEpuises: (titre: string) =>
+      `Votre annonce « ${titre} » n'a pas pu être vérifiée — vous n'avez plus de crédit de vérification. Achetez un lot pour continuer.`,
+    annonceVerifPaiementRequis: (titre: string) =>
+      `Votre annonce « ${titre} » n'a pas pu être vérifiée — payez la vérification Wakil (20 TND) pour qu'un agent puisse la traiter.`,
+    reservationRecue: (titre: string) =>
+      `Vous avez reçu une nouvelle réservation pour « ${titre} ».`,
+    annonceIncomplete: (titre: string) =>
+      `Votre annonce « ${titre} » a encore des cases à cocher — complétez-la pour mieux convertir.`,
   },
   alaUne: {
     titre: "Mettez votre annonce à la une",
     sousTitre:
-      "Boostez votre visibilité pendant une semaine : votre annonce passe en tête des résultats et s'affiche sur l'accueil de Darna.",
+      "Boostez votre visibilité pendant un mois : votre annonce passe en tête des résultats et s'affiche sur l'accueil de Darna.",
     avantage1Titre: "En tête des résultats",
     avantage1Desc:
       "Votre annonce s'affiche avant toutes les autres dans les recherches séjours et immobilier.",
@@ -1346,18 +1415,119 @@ export const fr = {
     annonce: "Annonce",
     duree: "Durée de la mise en avant",
     dureeValeur: (j: number) => (j === 1 ? "1 jour" : `${j} jours`),
-    prix: "Mise à la une (1 semaine)",
+    prix: "Mise à la une (1 mois)",
     total: "Total à payer",
     mockInfo:
       "Paiement Konnect / Flouci bientôt disponible. Mode démonstration : aucun débit réel.",
     payer: "Payer et passer à la une (simulation)",
+    payerKonnect: "Payer et passer à la une",
+    redirectionKonnect: "Redirection vers le paiement…",
+    paiementEnVerification: "Paiement en cours de vérification…",
+    actualiser: "Actualiser",
+    paiementEchoue: "Le paiement a échoué. Merci de réessayer.",
+    paiementErreur: "Erreur lors de l'initialisation du paiement.",
     prolongerInfo: (date: string) =>
-      `Cette annonce est déjà à la une jusqu'au ${date}. Un nouvel achat prolonge le boost d'une semaine.`,
+      `Cette annonce est déjà à la une jusqu'au ${date}. Un nouvel achat prolonge le boost d'un mois.`,
     retour: "Retour à mes annonces",
     indisponible:
       "Cette annonce ne peut pas être mise à la une : elle doit être active et en ligne.",
     garantie:
-      "Vous gardez le contrôle : à la fin de la semaine, votre annonce revient simplement à son affichage normal. Aucun renouvellement automatique.",
+      "Vous gardez le contrôle : à la fin du mois, votre annonce revient simplement à son affichage normal. Aucun renouvellement automatique.",
+    boostOffertTitre: "Boost offert avec votre abonnement Pro",
+    boostOffertDesc:
+      "Votre palier inclut 1 boost « à la une » offert par mois, non cumulable. Utilisez-le sur cette annonce sans rien payer.",
+    boostOffertBouton: "Utiliser mon boost offert",
+    boostOffertDejaUtilise:
+      "Boost offert déjà utilisé pour ce cycle d'abonnement — de nouveau disponible à votre prochain renouvellement.",
+    superHoteBoostTitre: "Boost offert — badge Super-Hôte",
+    superHoteBoostDesc:
+      "Zéro annulation et avis excellents sur les 3 derniers mois : vous avez gagné un boost « à la une » gratuit. Utilisez-le sur cette annonce sans rien payer.",
+    superHoteBoostBouton: "Réclamer mon boost Super-Hôte",
+    superHoteBoostDejaUtilise:
+      "Boost Super-Hôte déjà réclamé récemment — de nouveau disponible dans quelques mois si votre badge reste actif.",
+  },
+  promo: {
+    titre: "Créez une promo sur votre annonce",
+    sousTitre:
+      "Baissez temporairement votre prix pour attirer plus de réservations — vous gardez le contrôle total : prix, durée, retrait à tout moment.",
+    annonce: "Annonce",
+    prixActuel: (prix: string) => `Prix actuel : ${prix}`,
+    formPrixLabel: "Prix promo (TND / nuit)",
+    formPrixAide: "Doit être inférieur au prix actuel — c'est ce que les voyageurs paieront.",
+    formDateLabel: "Promo valable jusqu'au",
+    activer: "Activer la promo",
+    retirer: "Retirer la promo",
+    retirerConfirmer: "Retirer cette promo ?",
+    retirerOui: "Retirer",
+    retirerAnnuler: "Annuler",
+    actifTitre: "Promo active",
+    actifDesc: (prixPromo: string, date: string) =>
+      `${prixPromo} / nuit au lieu du prix normal, jusqu'au ${date}.`,
+    indisponible:
+      "Cette promo n'est disponible que pour une annonce vérifiée et active.",
+    retour: "Retour à mes annonces",
+    garantie:
+      "Aucun engagement : vous pouvez retirer la promo à tout moment. Votre revenu par nuit reste garanti — seule la commission Darna varie.",
+  },
+  abonnement: {
+    titre: "Abonnement agence",
+    sousTitre:
+      "Levez la limite d'annonces actives et donnez à vos biens la visibilité qu'ils méritent.",
+    planLabel: (label: string) => `Palier ${label}`,
+    annoncesIncluses: (n: number) => `${n} annonces actives incluses`,
+    prixMensuel: "Prix mensuel",
+    statutActif: (date: string) => `Actif jusqu'au ${date}`,
+    statutInactif: "Aucun abonnement actif",
+    quotaActuel: (utilisees: number, limite: number) =>
+      utilisees === 1
+        ? `1 annonce active sur une limite de ${limite}`
+        : `${utilisees} annonces actives sur une limite de ${limite}`,
+    quotaGratuitInfo: (limite: number) =>
+      `Palier gratuit : jusqu'à ${limite} annonces actives. Souscrivez pour lever cette limite.`,
+    quotaAtteintAlerte:
+      "Vous avez atteint votre limite d'annonces actives — une nouvelle annonce ne pourra pas être validée tant qu'une place ne se libère pas ou que vous n'aurez pas souscrit/renouvelé.",
+    annoncesEnAttenteBloquees: (n: number) =>
+      n === 1
+        ? "1 annonce est en attente de validation et sera publiée dès que vous aurez de la place ou aurez souscrit."
+        : `${n} annonces sont en attente de validation et seront publiées dès que vous aurez de la place ou aurez souscrit.`,
+    coutParAnnonce: (prixTND: number) =>
+      `Soit environ ${prixTND} TND par annonce active incluse.`,
+    palierActuelBadge: "Palier actuel",
+    modalTitre: "Cette annonce attendra son tour",
+    modalTexte: (utilisees: number, limite: number) =>
+      `Votre annonce a bien été créée et sera examinée normalement. Mais vous avez déjà ${utilisees} annonce(s) active(s) sur ${limite} incluse(s) : elle ne pourra pas être publiée tant qu'une place ne se libère pas ou que vous n'aurez pas souscrit à l'abonnement Agence.`,
+    modalRecommandation: (label: string, listingsIncluded: number, prixTND: number) =>
+      `Le palier ${label} (${listingsIncluded} annonces incluses, ${prixTND} TND/mois) vous permettrait de la publier dès maintenant.`,
+    modalCta: "Voir les options d'abonnement",
+    modalPlusTard: "Plus tard",
+    souscrire: "Souscrire",
+    renouveler: "Renouveler un mois",
+    payer: "Souscrire (simulation)",
+    payerKonnect: "Souscrire",
+    redirectionKonnect: "Redirection vers le paiement…",
+    mockInfo:
+      "Paiement Konnect bientôt disponible. Mode démonstration : aucun débit réel.",
+    paiementEnVerification: "Paiement en cours de vérification…",
+    actualiser: "Actualiser",
+    paiementEchoue: "Le paiement a échoué. Merci de réessayer.",
+    paiementErreur: "Erreur lors de l'initialisation du paiement.",
+    prolongerInfo: (date: string) =>
+      `Votre abonnement est déjà actif jusqu'au ${date}. Un nouveau paiement prolonge la période d'un mois.`,
+    garantie:
+      "Aucun renouvellement automatique : Konnect ne prélève jamais seul, vous choisissez quand renouveler.",
+    reserveAgence: "Cette page est réservée aux comptes agence.",
+    creditsVerifTitre: "Crédits de vérification Wakil",
+    creditsVerifSousTitre: (n: number) =>
+      n === 1
+        ? "Chaque vérification par un Wakil consomme un crédit. La première est gratuite, à vie."
+        : `Chaque vérification par un Wakil consomme un crédit. Les ${n} premières sont gratuites, à vie.`,
+    creditsVerifSolde: (n: number) =>
+      n === 1 ? "1 crédit de vérification restant" : `${n} crédits de vérification restants`,
+    creditsVerifEpuiseAlerte:
+      "Vous n'avez plus de crédit de vérification — vos annonces en attente ne pourront pas être vérifiées tant que vous n'aurez pas acheté un lot.",
+    creditsVerifPackLabel: (n: number) => `${n} vérifications`,
+    creditsVerifAcheter: "Acheter",
+    creditsVerifAcheterSimulation: "Acheter (simulation)",
   },
   contact: {
     titre: "Contacter l'annonceur",

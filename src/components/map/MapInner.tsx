@@ -3,11 +3,52 @@
 import { useEffect, useMemo, useRef } from "react";
 import Image from "next/image";
 import L from "leaflet";
-import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
+import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { useT } from "@/components/i18n/LocaleProvider";
 import { StarIcon, CheckIcon } from "@/components/icons";
+import { trackEvent } from "@/actions/track-event";
 import type { MapMarker } from "./types";
+
+/**
+ * Session-only, pas un cookie : évite de spammer un événement à chaque
+ * zoom/pan ou à chaque carte remontée (résultats de recherche PUIS fiche
+ * annonce dans la même visite) sans avoir besoin d'infra serveur dédiée.
+ */
+const MAP_INTERACTED_SESSION_KEY = "darna-map-interacted";
+
+function reportOnce(markerCount: number) {
+  if (typeof window === "undefined") return;
+  if (window.sessionStorage.getItem(MAP_INTERACTED_SESSION_KEY)) return;
+  window.sessionStorage.setItem(MAP_INTERACTED_SESSION_KEY, "1");
+  void trackEvent({ event: "MAP_INTERACTED", metadata: { markerCount } });
+}
+
+/**
+ * Première interaction (zoom/pan) — INSTRUMENTATION_ROADMAP.md §IN2.
+ * `dragstart` est fiable : contrairement à `movestart`/`zoomstart`, Leaflet ne
+ * l'émet JAMAIS pour un `setView`/`fitBounds` programmatique (cf. AutoResize
+ * ci-dessus, qui recadre la carte à chaque montage/redimensionnement) — donc
+ * pas de faux positif à chaque chargement de page. Le zoom est capté via un
+ * clic réel sur les boutons +/− (même nœuds DOM que ZoomFocusFix), jamais via
+ * `zoomstart` pour la même raison.
+ */
+function InteractionTracker({ markerCount }: { markerCount: number }) {
+  const map = useMapEvents({
+    dragstart: () => reportOnce(markerCount),
+  });
+
+  useEffect(() => {
+    const links = map
+      .getContainer()
+      .querySelectorAll<HTMLAnchorElement>(".leaflet-control-zoom a");
+    const onClick = () => reportOnce(markerCount);
+    links.forEach((link) => link.addEventListener("click", onClick));
+    return () => links.forEach((link) => link.removeEventListener("click", onClick));
+  }, [map, markerCount]);
+
+  return null;
+}
 
 // Centre par défaut : Tunisie.
 const TUNISIA_CENTER: [number, number] = [35.6, 9.9];
@@ -191,6 +232,7 @@ export default function MapInner({ markers }: { markers: MapMarker[] }) {
     >
       <AutoResize bounds={bounds} center={center} zoom={zoom} />
       <ZoomFocusFix />
+      <InteractionTracker markerCount={markers.length} />
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

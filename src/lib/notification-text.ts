@@ -46,6 +46,16 @@ export function notificationMessage(
       return fr.notifications.factureBientotDue(n.propertyTitle ?? "");
     case "FACTURE_EN_RETARD":
       return fr.notifications.factureEnRetard(n.propertyTitle ?? "");
+    case "ANNONCE_LIMITE_ABONNEMENT":
+      return fr.notifications.annonceLimiteAbonnement(n.propertyTitle ?? "");
+    case "ANNONCE_CREDITS_VERIF_EPUISES":
+      return fr.notifications.annonceCreditsVerifEpuises(n.propertyTitle ?? "");
+    case "ANNONCE_VERIF_PAIEMENT_REQUIS":
+      return fr.notifications.annonceVerifPaiementRequis(n.propertyTitle ?? "");
+    case "RESERVATION_RECUE":
+      return fr.notifications.reservationRecue(n.propertyTitle ?? "");
+    case "ANNONCE_INCOMPLETE":
+      return fr.notifications.annonceIncomplete(n.propertyTitle ?? "");
     default:
       return "";
   }

@@ -85,6 +85,11 @@ export const ar: Dictionary = {
     wakilDesc:
       "انضم لشبكة وكلاء الثقة اللي يتثبتوا من العقارات في عين المكان واربح دخل إضافي.",
     wakilCta: "قدّم مطلبك",
+    liveTrustTitle: "الثقة مباشرة",
+    liveTrustProgress: (count: number, target: number) =>
+      `${count} من ${target} إعلان موثّق نحو هدفنا`,
+    liveTrustItem: (city: string, date: string) => `${city} · توثيق في ${date}`,
+    liveTrustCta: "شوف الإعلانات الموثّقة",
   },
   footer: {
     baseline: "الثقة هي المنتوج متاعنا.",
@@ -139,6 +144,10 @@ export const ar: Dictionary = {
     alaUne: "في الواجهة",
     alaUneTooltip:
       "إعلان مميّز: يظهر في قمة النتائج وفي صفحة استقبال دارنا.",
+    promo: (pct: number) => `تخفيض ${pct}%`,
+    superHote: "مضيف مثالي",
+    superHoteTooltip:
+      "صفر إلغاء وتقييمات ممتازة في آخر 3 أشهر — مضيف يستاهل الثقة، متثبّت بالنتائج الحقيقية متاعو.",
   },
   search: {
     villePlaceholder: "مدينة — الحمامات، جربة، المرسى…",
@@ -289,6 +298,7 @@ export const ar: Dictionary = {
     verifieOnSiteBloc:
       "وكيل دارنا زار العقار شخصيًا. تثبّت أنه موجود، الصور تطابق الواقع، والمالك يمكن الاتصال به.",
     verifiePar: (nom: string) => `بواسطة ${nom}`,
+    promoTooltip: (date: string) => `السعر تنقّص وقتيًا من المضيف، حتى ${date}.`,
     enSavoirPlusWakil: "اعرف أكثر على شبكة الوكلاء",
     enSavoirPlusDarna: "اعرف أكثر على مراجعاتنا",
     nonVerifieTooltip:
@@ -462,11 +472,27 @@ export const ar: Dictionary = {
     prolongerALaUne: "طوّل في الواجهة",
     alaUneActif: (date: string) => `في الواجهة حتى ${date}`,
     alaUneSucces: "إعلانك ولّى في الواجهة! 🎉",
+    promoLien: "تخفيض",
+    promoActifBanner: (date: string) => `تخفيض فعّال حتى ${date}`,
     annonceMasqueeBanner: (date: string) =>
       `الإعلان تحجب مؤقتًا من نتائج البحث على خاطر إلغاء من عندك — باش يرجع يبان في ${date}.`,
     promoAlaUneTitre: "حطّ إعلاناتك في الواجهة",
     promoAlaUneDesc:
-      "في قمة النتائج وفي صفحة الاستقبال مدّة 7 أيام، مع شارة ذهبية تجبد العين. الإعلانات اللي في الواجهة تتشاف أكثر برشة.",
+      "في قمة النتائج وفي صفحة الاستقبال مدّة شهر، مع شارة ذهبية تجبد العين. الإعلانات اللي في الواجهة تتشاف أكثر برشة.",
+    completudeTitre: (score: number, total: number) => `الإعلان كامل ${score}/${total}`,
+    completudePhotos: "على الأقل 5 تصاور",
+    completudeDescription: "وصف مفصّل",
+    completudeEquipements: "على الأقل 3 تجهيزات",
+    completudeCta: "كمّل الإعلان",
+    verifWakilSolde: (n: number) =>
+      n === 1
+        ? "عندك كريدي توثيق وكيل واحد."
+        : n === 0
+          ? "ما عندكش كريدي توثيق — خلّص بالوحدة باش توثّق إعلان."
+          : `عندك ${n} كريدي توثيق وكيل.`,
+    verifWakilPrix: "ثمن التوثيق",
+    verifWakilPayer: "خلّص التوثيق",
+    verifWakilPayerSimulation: "خلّص التوثيق (تجربة)",
     aucuneReservation: "حتى حجز للتوّ.",
     aucuneReservationCta: "لوّج على إقامتك الجاية في إعلاناتنا الموثّقة.",
     aucuneReservationHote: "حتى مسافر ما حجز إعلاناتك للتوّ.",
@@ -645,6 +671,12 @@ export const ar: Dictionary = {
       "تواريخ غالطة — اختار تاريخ وصول وتاريخ مغادرة (المغادرة بعد الوصول، وفترة ماهيش فايتة).",
     blocageConflitReservation:
       "ما ينجمش: فما حجز موجود في هالفترة.",
+    promoAnnonceNonEligible:
+      "لازم الإعلان يكون موثّق ونشيط باش يتعطاله تخفيض.",
+    promoPrixInvalide: "لازم سعر التخفيض يكون أقل من السعر العادي متاع الإعلان.",
+    promoDateInvalide:
+      "تاريخ نهاية التخفيض غالط — اختار تاريخ جاي، في مدة معقولة.",
+    promoDefinie: "التخفيض تفعّل على إعلانك.",
     cashPaymentTitre: "خلاص عالمكان (كاش)",
     cashPaymentAide:
       "خاص بالمسافرين اللي ماعندهمش وسيلة خلاص أونلاين مناسبة. الإقامة تتخلص بالكامل كاش عند الوصول ؛ العمولة متاع دارنا تتفوترلك بعد الحجز، تنجم تخلصها أونلاين.",
@@ -733,6 +765,12 @@ export const ar: Dictionary = {
     annonceMiseANonVerifiee: "تمّ حذف شارة التوثيق.",
     proprietaireNonVerifie:
       "يلزم يكون المالك موثّق (KYC) باش يتوثّق الإعلان.",
+    limiteAbonnementAtteinte: (limite: number) =>
+      `هالحساب وكالة وصل للحدّ الأقصى متاع الإعلانات النشيطة (${limite}). عاوضو يشترك ولا يجدّد الاشتراك (/dashboard/abonnement) قبل ما توثّق إعلان آخر.`,
+    creditsVerificationEpuises:
+      "هالحساب وكالة ما عندوش كريدي توثيق باقي. عاوضو يشري باقة (/dashboard/abonnement) قبل ما توثّق إعلان آخر.",
+    hostVerificationPaiementRequis:
+      "هالشخص ما خلّصش توثيق الوكيل متاع الإعلان هذا (20 دينار). عاوضو يخلّص من /dashboard/annonces قبل ما توثّقو.",
     aucuneAnnonce: "حتى إعلان نشط في الوقت الحالي.",
     annoncesDejVerifiees: "الإعلانات الموثّقة مسبقاً",
     candidaturesWakil: "طلبات الوكلاء",
@@ -924,6 +962,29 @@ export const ar: Dictionary = {
         : "") +
       `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — السكن المضمون.</p>` +
       `</div>`,
+    newBookingHostSujet: (titre: string) =>
+      `Darna — حجز جديد وصل: ${titre}`,
+    newBookingHostHtml: (p: {
+      hostName: string;
+      guestName: string;
+      propertyTitle: string;
+      checkIn: string;
+      checkOut: string;
+      guests: number;
+      url: string;
+    }) =>
+      `<div dir="rtl" style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
+      `<h1 style="color:#0f766e;font-size:20px">حجز جديد 🎉</h1>` +
+      `<p>أهلا ${p.hostName}،</p>` +
+      `<p><strong>${p.guestName}</strong> جا يحجز <strong>${p.propertyTitle}</strong>. الفلوس محميّة عند Darna وتتعطالك كي تكمّل الإقامة.</p>` +
+      `<table style="width:100%;border-collapse:collapse;margin:16px 0">` +
+      `<tr><td style="padding:6px 0;color:#6b7280">الدخول</td><td style="padding:6px 0;text-align:left;font-weight:600">${p.checkIn}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">الخروج</td><td style="padding:6px 0;text-align:left;font-weight:600">${p.checkOut}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">المسافرين</td><td style="padding:6px 0;text-align:left;font-weight:600">${p.guests}</td></tr>` +
+      `</table>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">شوف الحجز</a></p>` +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — السكن المضمون.</p>` +
+      `</div>`,
     bookingCancelledByHostSujet: (titre: string) =>
       `Darna — السفرة متاعك تلغات : ${titre}`,
     bookingCancelledByHostHtml: (p: {
@@ -1104,7 +1165,6 @@ export const ar: Dictionary = {
   booking: {
     titre: "طلب حجز",
     recapitulatif: "الملخّص — شفّاف 100٪",
-    prixNuit: "سوم الليلة",
     nuits: (n: number) =>
       n === 1
         ? "ليلة واحدة"
@@ -1113,7 +1173,6 @@ export const ar: Dictionary = {
           : n <= 10
             ? `${n} ليالي`
             : `${n} ليلة`,
-    sousTotal: "المجموع الجزئي",
     fraisService: "معلوم خدمة دارنا",
     fraisServiceAide: "يموّل توثيق الإعلانات وحماية الخلاصات.",
     total: "المبلغ الجملي",
@@ -1322,11 +1381,20 @@ export const ar: Dictionary = {
       `فاتورة الكوميسيون متاعك لـ « ${titre} » قريب توصل لأجل خلاصها.`,
     factureEnRetard: (titre: string) =>
       `فاتورة الكوميسيون متاعك لـ « ${titre} » فاتها أجل الخلاص.`,
+    annonceLimiteAbonnement: (titre: string) =>
+      `الإعلان متاعك « ${titre} » ما ينجمش يتنشر توّة — وصلت للحدّ الأقصى متاع الإعلانات النشيطة. شوف خيارات الاشتراك.`,
+    annonceCreditsVerifEpuises: (titre: string) =>
+      `الإعلان متاعك « ${titre} » ما تحقّقش — ما عندكش كريدي توثيق باقي. اشري باقة باش تكمّل.`,
+    annonceVerifPaiementRequis: (titre: string) =>
+      `الإعلان متاعك « ${titre} » ما تحقّقش — خلّص التوثيق متاع الوكيل (20 دينار) باش يلزمو وكيل يعالجو.`,
+    reservationRecue: (titre: string) => `جالك حجز جديد على « ${titre} ».`,
+    annonceIncomplete: (titre: string) =>
+      `الإعلان متاعك « ${titre} » مازال فيه حاجات ناقصة — كمّلو باش يبيع أحسن.`,
   },
   alaUne: {
     titre: "حطّ إعلانك في الواجهة",
     sousTitre:
-      "كبّر ظهورك مدّة جمعة: إعلانك يطلع في قمة النتائج ويظهر في صفحة استقبال دارنا.",
+      "كبّر ظهورك مدّة شهر: إعلانك يطلع في قمة النتائج ويظهر في صفحة استقبال دارنا.",
     avantage1Titre: "في قمة النتائج",
     avantage1Desc:
       "إعلانك يظهر قبل الكل في تلويج الإقامات والعقارات.",
@@ -1339,19 +1407,116 @@ export const ar: Dictionary = {
     recapTitre: "ملخّص — شفّاف 100%",
     annonce: "الإعلان",
     duree: "مدّة الإبراز",
-    dureeValeur: (j: number) => (j === 1 ? "نهار" : `${j} أيام`),
-    prix: "إبراز في الواجهة (جمعة)",
+    dureeValeur: (j: number) => (j === 1 ? "نهار" : j >= 11 ? `${j} يوم` : `${j} أيام`),
+    prix: "إبراز في الواجهة (شهر)",
     total: "المجموع اللي تخلصو",
     mockInfo:
       "الخلاص عبر Konnect / Flouci قريبًا. وضع تجريبي: حتى خصم حقيقي ما يصير.",
     payer: "اخلص وحطّ في الواجهة (تجربة)",
+    payerKonnect: "اخلص وحطّ في الواجهة",
+    redirectionKonnect: "تحويل للخلاص…",
+    paiementEnVerification: "الخلاص في طور التأكيد…",
+    actualiser: "عاود حمّل",
+    paiementEchoue: "الخلاص ما نجحش. عاود حاول.",
+    paiementErreur: "خطأ في بداية الخلاص.",
     prolongerInfo: (date: string) =>
-      `الإعلان هذا موجود في الواجهة حتى ${date}. شراء جديد يطوّل الإبراز جمعة أخرى.`,
+      `الإعلان هذا موجود في الواجهة حتى ${date}. شراء جديد يطوّل الإبراز شهر آخر.`,
     retour: "ارجع لإعلاناتي",
     indisponible:
       "الإعلان هذا ما ينجمش يتحطّ في الواجهة: لازمو يكون نشيط وعلى الخطّ.",
     garantie:
-      "إنت اللي تحكم: كي تكمّل الجمعة، إعلانك يرجع للعرض العادي. ما فمّاش تجديد تلقائي.",
+      "إنت اللي تحكم: كي يكمّل الشهر، إعلانك يرجع للعرض العادي. ما فمّاش تجديد تلقائي.",
+    boostOffertTitre: "بوست مجّاني مع باقة Pro متاعك",
+    boostOffertDesc:
+      "الباقة متاعك فيها بوست \"في الواجهة\" مجّاني كل شهر، ما يتجمّعش من شهر لآخر. استعملو في هالإعلان بلاش ما تخلص.",
+    boostOffertBouton: "استعمل البوست المجّاني متاعي",
+    boostOffertDejaUtilise:
+      "البوست المجّاني تستعمل ديجا في الدورة هاذي — يرجع متوفر مع التجديد الجاي.",
+    superHoteBoostTitre: "بوست مجّاني — وسام مضيف مثالي",
+    superHoteBoostDesc:
+      "صفر إلغاء وتقييمات ممتازة في آخر 3 أشهر: ربحت بوست \"في الواجهة\" مجّاني. استعملو في هالإعلان بلاش ما تخلص.",
+    superHoteBoostBouton: "اطلب البوست متاع المضيف المثالي",
+    superHoteBoostDejaUtilise:
+      "بوست المضيف المثالي تستعمل ديجا من قريب — يرجع متوفر بعد شهرين ولا ثلاثة إذا بقا الوسام متاعك فعال.",
+  },
+  promo: {
+    titre: "عمل تخفيض على إعلانك",
+    sousTitre:
+      "نقّص في السوم وقتيًا باش تجبد أكثر حجوزات — الكنترول عندك بالكامل: السعر، المدة، وتنجم تسحبها في أي وقت.",
+    annonce: "الإعلان",
+    prixActuel: (prix: string) => `السعر الحالي: ${prix}`,
+    formPrixLabel: "سعر التخفيض (دينار / الليلة)",
+    formPrixAide: "لازم يكون أقل من السعر الحالي — هذا اللي المسافرين باش يخلصوه.",
+    formDateLabel: "التخفيض صالح حتى",
+    activer: "فعّل التخفيض",
+    retirer: "اسحب التخفيض",
+    retirerConfirmer: "تسحب هذا التخفيض؟",
+    retirerOui: "اسحب",
+    retirerAnnuler: "الغي",
+    actifTitre: "تخفيض فعّال",
+    actifDesc: (prixPromo: string, date: string) =>
+      `${prixPromo} / الليلة بدل السعر العادي، حتى ${date}.`,
+    indisponible: "هالتخفيض متاح غير للإعلانات الموثّقة والنشيطة.",
+    retour: "رجوع لإعلاناتي",
+    garantie:
+      "بلا التزام: تنجم تسحب التخفيض في أي وقت. الدخل متاعك في الليلة يبقى مضمون — إلي يتبدل هو غير عمولة دارنا.",
+  },
+  abonnement: {
+    titre: "اشتراك الوكالة",
+    sousTitre: "فكّ الحدّ متاع الإعلانات النشيطة وعطي لعقاراتك الظهور اللي يستاهلوه.",
+    planLabel: (label: string) => `الباقة ${label}`,
+    annoncesIncluses: (n: number) =>
+      n === 1 ? "إعلان نشيط واحد مشمول" : `${n} إعلانات نشيطة مشمولة`,
+    prixMensuel: "الثمن الشهري",
+    statutActif: (date: string) => `نشيط حتى ${date}`,
+    statutInactif: "ما فماش اشتراك نشيط",
+    quotaActuel: (utilisees: number, limite: number) =>
+      utilisees === 1
+        ? `إعلان نشيط واحد من الحدّ الأقصى ${limite}`
+        : `${utilisees} إعلان نشيط من الحدّ الأقصى ${limite}`,
+    quotaGratuitInfo: (limite: number) =>
+      `الباقة المجانية: حتى ${limite} إعلان نشيط. اشترك باش تفكّ هالحدّ.`,
+    quotaAtteintAlerte:
+      "وصلت للحدّ الأقصى متاع الإعلانات النشيطة — ما ينجمش يتوثّق إعلان جديد حتى تتفكّ مكان ولا تشترك/تجدّد.",
+    annoncesEnAttenteBloquees: (n: number) =>
+      n === 1
+        ? "إعلان واحد راهو في الانتظار وباش يتنشر كي يتفكّ مكان ولا تشترك."
+        : `${n} إعلانات في الانتظار وباش يتنشرو كي يتفكّ مكان ولا تشترك.`,
+    coutParAnnonce: (prixTND: number) => `يعني تقريبًا ${prixTND} دينار لكل إعلان نشيط مشمول.`,
+    palierActuelBadge: "الباقة الحالية",
+    modalTitre: "هالإعلان باش يستنى دوره",
+    modalTexte: (utilisees: number, limite: number) =>
+      `الإعلان متاعك تزاد وباش يتفحّص بصفة عادية. لكن عندك بالفعل ${utilisees} إعلان نشيط من ${limite} مشمولين : ما ينجمش يتنشر حتى تتفكّ مكان ولا تشترك في باقة الوكالة.`,
+    modalRecommandation: (label: string, listingsIncluded: number, prixTND: number) =>
+      `باقة ${label} (${listingsIncluded} إعلان مشمولين، ${prixTND} دينار بالشهر) تخليك تنشرها دغري.`,
+    modalCta: "شوف خيارات الاشتراك",
+    modalPlusTard: "من بعد",
+    souscrire: "اشترك",
+    renouveler: "جدّد شهر",
+    payer: "اشترك (تجربة)",
+    payerKonnect: "اشترك",
+    redirectionKonnect: "تحويل للخلاص…",
+    mockInfo: "الخلاص عبر Konnect قريبًا. وضع تجريبي: حتى خصم حقيقي ما يصير.",
+    paiementEnVerification: "الخلاص في طور التأكيد…",
+    actualiser: "عاود حمّل",
+    paiementEchoue: "الخلاص ما نجحش. عاود حاول.",
+    paiementErreur: "خطأ في بداية الخلاص.",
+    prolongerInfo: (date: string) =>
+      `الاشتراك متاعك موجود نشيط حتى ${date}. خلاص جديد يطوّل المدّة شهر آخر.`,
+    garantie: "إنت اللي تحكم: Konnect ما يخصمش وحدو، إنت اللي تختار وقتاش تجدّد.",
+    reserveAgence: "الصفحة هذي مخصّصة لحسابات الوكالات.",
+    creditsVerifTitre: "كريدي توثيق الوكلاء",
+    creditsVerifSousTitre: (n: number) =>
+      n === 1
+        ? "كل توثيق من وكيل يخصم كريدي واحد. أول وحدة مجانية، للأبد."
+        : `كل توثيق من وكيل يخصم كريدي واحد. أول ${n} مجانيين، للأبد.`,
+    creditsVerifSolde: (n: number) =>
+      n === 1 ? "باقيلك كريدي توثيق واحد" : `باقيلك ${n} كريدي توثيق`,
+    creditsVerifEpuiseAlerte:
+      "ما باقيلكش كريدي توثيق — الإعلانات المعلّقة متاعك ما يتوثّقوش حتى تشري باقة.",
+    creditsVerifPackLabel: (n: number) => `${n} توثيقات`,
+    creditsVerifAcheter: "اشري",
+    creditsVerifAcheterSimulation: "اشري (تجربة)",
   },
   contact: {
     titre: "اتصل بصاحب الإعلان",

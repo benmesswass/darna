@@ -9,6 +9,7 @@ import { BookingPanel } from "@/components/booking/BookingPanel";
 import { ActiveSection } from "@/components/layout/ActiveSection";
 import { expandUnavailable } from "@/lib/availability";
 import { isRebookingDiscountValid } from "@/lib/rebooking-discount";
+import { getAnonId, logProductEvent } from "@/lib/product-events";
 
 export const metadata: Metadata = { title: frMeta.booking.titre };
 
@@ -39,6 +40,7 @@ export default async function ReserverPage({
       status: true,
       expiresAt: true,
       price: true,
+      vertical: true,
       // Capacité depuis la table satellite (M2).
       stay: { select: { maxGuests: true } },
       ownerId: true,
@@ -73,6 +75,19 @@ export default async function ReserverPage({
   // Un hôte ne peut pas réserver son propre logement : on l'explique d'emblée
   // plutôt que de laisser le formulaire échouer après affichage du prix.
   const isOwner = Boolean(user && user.id === property.ownerId);
+
+  // Instrumentation produit (INSTRUMENTATION_ROADMAP.md §IN1) — uniquement les
+  // débuts de réservation réels : un hôte qui atterrit sur sa propre fiche
+  // (isOwner) ne voit jamais le BookingPanel, donc pas de vrai début de
+  // réservation à mesurer, même garde que ci-dessus.
+  if (!isOwner) {
+    await logProductEvent({
+      event: "BOOKING_STARTED",
+      userId: user?.id ?? null,
+      anonId: await getAnonId(),
+      metadata: { propertyId: property.id, vertical: property.vertical },
+    });
+  }
 
   // Réduction ponctuelle (§AH4) : vérifiée ICI (lecture seule) pour ne
   // transmettre au client qu'un token dont on sait déjà qu'il est valide —

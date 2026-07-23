@@ -17,14 +17,23 @@ import {
   verticalOfType,
 } from "@/lib/constants";
 import { verticalEnabled, kycGatingEnabled } from "@/lib/modes";
-import { FEATURED_DURATION_DAYS, LISTING_LIFETIME_DAYS } from "@/lib/config";
-import { logAudit } from "@/lib/audit";
+import {
+  FEATURED_DURATION_DAYS,
+  FEATURED_PRICE_TND,
+  HOST_CANCELLATION_SIGNAL_DAYS,
+  LISTING_LIFETIME_DAYS,
+  SITE_URL,
+} from "@/lib/config";
+import { logAudit, logStructured } from "@/lib/audit";
+import { initKonnectPayment, isKonnectEnabled, signKonnectWebhook } from "@/lib/konnect";
 import {
   MAX_PHOTOS_PER_PROPERTY,
   deleteUploadedImage,
   saveUploadedImage,
 } from "@/lib/uploads";
 import { notifyAdmins } from "@/lib/admin-notify";
+import { activeListingsLimit, countActiveListings, hasUnclaimedFreeBoost } from "@/lib/subscriptions";
+import { isSuperHost, superHostBoostClaimEligible } from "@/lib/super-host";
 
 export type PropertyFormState = { error?: string } | undefined;
 
@@ -221,8 +230,25 @@ export async function createPropertyAction(
     ownerEmail: user.email,
   });
 
+  // Avertissement précoce (MONETISATION_IMMO_ROADMAP.md §MI2) : si ce compte
+  // AGENCE a déjà atteint son quota d'annonces actives, prévenir tout de suite
+  // plutôt que de laisser l'agence découvrir le blocage seulement quand un
+  // admin/wakil tentera (et échouera) à vérifier cette annonce plus tard. Ne
+  // bloque JAMAIS la création elle-même — voir verifyPropertyAction pour le
+  // seul vrai gate (le quota peut changer d'ici la vérification).
+  let quotaAtteint = false;
+  if (user.role === "AGENCE") {
+    const subscription = await prisma.subscription.findUnique({
+      where: { userId: user.id },
+      select: { status: true, plan: true, currentPeriodEnd: true },
+    });
+    const limit = activeListingsLimit(user.role, subscription);
+    const activeCount = await countActiveListings(user.id);
+    quotaAtteint = activeCount >= limit;
+  }
+
   revalidatePath("/dashboard/annonces");
-  redirect("/dashboard/annonces?creee=1");
+  redirect(`/dashboard/annonces?creee=1${quotaAtteint ? "&quotaAtteint=1" : ""}`);
 }
 
 /** Vérifie que l'annonce appartient bien à l'utilisateur connecté. */
@@ -396,15 +422,21 @@ export async function republishPropertyAction(formData: FormData): Promise<void>
 }
 
 /**
- * Mise à la une (paiement simulé) : le boost « à la une » est activé pour
- * FEATURED_DURATION_DAYS jours. Un nouvel achat alors qu'un boost est encore
- * actif le PROLONGE (cumul à partir de la date de fin restante).
+ * Mise à la une — RÈGLEMENT DÉMO uniquement (séquestre simulé, aucun argent
+ * réel) : le boost « à la une » est activé pour FEATURED_DURATION_DAYS jours.
+ * Un nouvel achat alors qu'un boost est encore actif le PROLONGE (cumul à
+ * partir de la date de fin restante).
  *
- * Le paiement est un mock assumé (même esprit que le séquestre des séjours) :
- * aucune intégration de paiement réel, mais l'autorisation et l'effet métier
- * sont, eux, bien réels et vérifiés côté serveur.
+ * Ne s'exécute JAMAIS quand Konnect est actif (même garde d'exclusivité que
+ * confirmHostInvoiceAction/confirmPaymentAction : anti-confusion démo/réel).
+ * En mode Konnect réel, c'est startFeaturedOrderPaymentAction +
+ * settleFeaturedOrder (src/lib/featured-payments.ts) qui appliquent l'effet,
+ * uniquement après paiement effectivement reçu — cf. MONETISATION_IMMO_ROADMAP.md
+ * §MI0.
  */
 export async function featureListingAction(formData: FormData): Promise<void> {
+  if (isKonnectEnabled()) return;
+
   const user = await requireLister();
 
   const parsed = idSchema.safeParse(formData.get("propertyId"));
@@ -447,6 +479,372 @@ export async function featureListingAction(formData: FormData): Promise<void> {
   revalidatePath(`/annonce/${property.slug}`);
   revalidatePath("/");
   redirect("/dashboard/annonces?alaune=1");
+}
+
+/**
+ * Mise à la une — BOOST OFFERT PAR ABONNEMENT (MONETISATION_IMMO_ROADMAP.md
+ * §MI4, décision Wassim du 2026-07-20) : les comptes AGENCE dont le palier
+ * inclut `freeBoostPerCycle` (Pro aujourd'hui) peuvent activer 1 boost
+ * gratuit par cycle d'abonnement, NON cumulable. Rail totalement indépendant
+ * de Konnect (démo ou réel) : disponible même quand isKonnectEnabled() est
+ * vrai, puisqu'aucun argent ne transite ici — jamais de FeaturedOrder.
+ */
+export async function claimFreeFeaturedBoostAction(formData: FormData): Promise<void> {
+  const user = await requireLister();
+  if (user.role !== "AGENCE") return;
+
+  const parsed = idSchema.safeParse(formData.get("propertyId"));
+  if (!parsed.success) return;
+
+  // Autorisation : l'annonce doit appartenir à l'agence connectée.
+  await requireOwnProperty(parsed.data);
+
+  const subscription = await prisma.subscription.findUnique({
+    where: { userId: user.id },
+    select: { status: true, plan: true, currentPeriodEnd: true, freeBoostUsedAt: true },
+  });
+  if (!hasUnclaimedFreeBoost(subscription)) return;
+
+  // On relit le statut/expiration en base (jamais confiance au client) —
+  // même garde que featureListingAction/startFeaturedOrderPaymentAction.
+  const property = await prisma.property.findUnique({
+    where: { id: parsed.data },
+    select: { id: true, slug: true, status: true, expiresAt: true, featuredUntil: true },
+  });
+  if (!property || property.status !== "ACTIVE" || property.expiresAt.getTime() < Date.now()) {
+    return;
+  }
+
+  // Consommation atomique du boost offert : ne mute que si encore non
+  // consommé ce cycle — sûr contre une course (double clic/double onglet),
+  // même patron `updateMany` conditionné que partout ailleurs dans Darna.
+  const claimed = await prisma.subscription.updateMany({
+    where: { userId: user.id, freeBoostUsedAt: null },
+    data: { freeBoostUsedAt: new Date() },
+  });
+  if (claimed.count === 0) return;
+
+  const boostMs = FEATURED_DURATION_DAYS * 24 * 60 * 60 * 1000;
+  // Prolongation : on part de la fin de boost restante si elle est future.
+  const base =
+    property.featuredUntil && property.featuredUntil.getTime() > Date.now()
+      ? property.featuredUntil.getTime()
+      : Date.now();
+  const featuredUntil = new Date(base + boostMs);
+
+  await prisma.property.update({
+    where: { id: property.id },
+    data: { featuredUntil },
+  });
+
+  await logAudit({
+    action: "PROPERTY_FEATURED",
+    userId: user.id,
+    success: true,
+    metadata: {
+      propertyId: property.id,
+      featuredUntil: featuredUntil.toISOString(),
+      provider: "subscription_perk",
+    },
+  });
+
+  revalidatePath("/dashboard/annonces");
+  revalidatePath(`/annonce/${property.slug}`);
+  revalidatePath("/");
+  redirect("/dashboard/annonces?alaune=1");
+}
+
+/**
+ * Mise à la une — BOOST OFFERT AU MÉRITE (GROWTH_ROADMAP.md §G4, défi
+ * saisonnier « Hôte Zéro Faille ») : tout hôte (HOTE ou AGENCE, contrairement
+ * au boost d'abonnement MI4 réservé AGENCE/Pro) dont le badge Super-Hôte est
+ * actif (cf. isSuperHost()) peut activer 1 boost gratuit par fenêtre
+ * glissante HOST_CANCELLATION_SIGNAL_DAYS. Rail totalement indépendant de
+ * Konnect et de MI4 : les deux boosts offerts sont cumulables s'ils
+ * s'appliquent tous les deux (raisons indépendantes).
+ */
+export async function claimSuperHostBoostAction(formData: FormData): Promise<void> {
+  const user = await requireLister();
+
+  const parsed = idSchema.safeParse(formData.get("propertyId"));
+  if (!parsed.success) return;
+
+  // Autorisation : l'annonce doit appartenir à l'hôte connecté.
+  await requireOwnProperty(parsed.data);
+
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { superHostBoostClaimedAt: true },
+  });
+  if (!dbUser || !superHostBoostClaimEligible(dbUser.superHostBoostClaimedAt)) return;
+
+  // Critère de mérite revérifié en base (jamais confiance à un état affiché
+  // côté client, même s'il vient du même rendu serveur).
+  if (!(await isSuperHost(user.id))) return;
+
+  const property = await prisma.property.findUnique({
+    where: { id: parsed.data },
+    select: { id: true, slug: true, status: true, expiresAt: true, featuredUntil: true },
+  });
+  if (!property || property.status !== "ACTIVE" || property.expiresAt.getTime() < Date.now()) {
+    return;
+  }
+
+  // Consommation atomique : ne mute que si toujours éligible à cet instant
+  // (pas déjà réclamé sur cette fenêtre) — sûr contre une course (double
+  // clic/double onglet), même patron `updateMany` conditionné que
+  // claimFreeFeaturedBoostAction (MI4).
+  const cutoff = new Date(Date.now() - HOST_CANCELLATION_SIGNAL_DAYS * 24 * 60 * 60 * 1000);
+  const claimed = await prisma.user.updateMany({
+    where: {
+      id: user.id,
+      OR: [{ superHostBoostClaimedAt: null }, { superHostBoostClaimedAt: { lt: cutoff } }],
+    },
+    data: { superHostBoostClaimedAt: new Date() },
+  });
+  if (claimed.count === 0) return;
+
+  const boostMs = FEATURED_DURATION_DAYS * 24 * 60 * 60 * 1000;
+  const base =
+    property.featuredUntil && property.featuredUntil.getTime() > Date.now()
+      ? property.featuredUntil.getTime()
+      : Date.now();
+  const featuredUntil = new Date(base + boostMs);
+
+  await prisma.property.update({
+    where: { id: property.id },
+    data: { featuredUntil },
+  });
+
+  await logAudit({
+    action: "PROPERTY_FEATURED",
+    userId: user.id,
+    success: true,
+    metadata: {
+      propertyId: property.id,
+      featuredUntil: featuredUntil.toISOString(),
+      provider: "super_host_perk",
+    },
+  });
+
+  revalidatePath("/dashboard/annonces");
+  revalidatePath(`/annonce/${property.slug}`);
+  revalidatePath("/");
+  redirect("/dashboard/annonces?alaune=1");
+}
+
+export type PropertyPromoFormState = { error?: string; success?: string } | undefined;
+
+const setPromoSchema = z.object({
+  propertyId: z.string().cuid(),
+  promoPrice: z.coerce.number().int().min(1),
+  promoUntil: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+});
+
+/**
+ * Définit ou met à jour une promo hôte (CROISSANCE_ROADMAP.md §PM0). Fondation
+ * uniquement — l'UI dédiée (dashboard + badge) arrive avec PM1. Réservée aux
+ * annonces vérifiées ACTIVE (aligné north-star — pas de promo sur du stock
+ * non fiable) ; promoPrice toujours strictement < price, revalidé serveur
+ * (jamais confiance au client). Le prix promo n'est consommé qu'à la
+ * réservation, tant que promoUntil est dans le futur — même principe de
+ * lazy-expiry que featuredUntil, aucun cron.
+ */
+export async function setPropertyPromoAction(
+  _prev: PropertyPromoFormState,
+  formData: FormData
+): Promise<PropertyPromoFormState> {
+  const fr = await getT();
+  const user = await requireLister();
+
+  const parsed = setPromoSchema.safeParse({
+    propertyId: formData.get("propertyId"),
+    promoPrice: formData.get("promoPrice"),
+    promoUntil: formData.get("promoUntil"),
+  });
+  if (!parsed.success) return { error: fr.common.champsRequis };
+
+  // Autorisation serveur : l'annonce doit appartenir à l'hôte connecté.
+  const property = await requireOwnProperty(parsed.data.propertyId).catch(() => null);
+  if (!property) return { error: fr.common.erreurInconnue };
+
+  // On relit prix/statut/vérif en base (jamais confiance au client) : seule
+  // une annonce ACTIVE, non expirée, vérifiée ET Séjour peut recevoir une
+  // promo — un prix promo n'a de sens qu'à la nuitée (bug remonté en test :
+  // une annonce IMMO/vente affichait un "prix par nuit").
+  const fresh = await prisma.property.findUnique({
+    where: { id: property.id },
+    select: { price: true, status: true, expiresAt: true, verified: true, vertical: true },
+  });
+  if (
+    !fresh ||
+    fresh.status !== "ACTIVE" ||
+    fresh.expiresAt.getTime() < Date.now() ||
+    !fresh.verified ||
+    fresh.vertical !== "STAY"
+  ) {
+    return { error: fr.annonceForm.promoAnnonceNonEligible };
+  }
+
+  if (parsed.data.promoPrice >= fresh.price) {
+    return { error: fr.annonceForm.promoPrixInvalide };
+  }
+
+  const promoUntil = new Date(`${parsed.data.promoUntil}T23:59:59.999Z`);
+  const maxUntil = Date.now() + 365 * 24 * 60 * 60 * 1000;
+  if (
+    Number.isNaN(promoUntil.getTime()) ||
+    promoUntil.getTime() <= Date.now() ||
+    promoUntil.getTime() > maxUntil
+  ) {
+    return { error: fr.annonceForm.promoDateInvalide };
+  }
+
+  await prisma.property.update({
+    where: { id: property.id },
+    data: { promoPrice: parsed.data.promoPrice, promoUntil },
+  });
+
+  await logAudit({
+    action: "PROPERTY_PROMO_SET",
+    userId: user.id,
+    success: true,
+    metadata: {
+      propertyId: property.id,
+      promoPrice: parsed.data.promoPrice,
+      promoUntil: promoUntil.toISOString(),
+    },
+  });
+
+  revalidatePath("/dashboard/annonces");
+  revalidatePath(`/annonce/${property.slug}`);
+  return { success: fr.annonceForm.promoDefinie };
+}
+
+/** Retire la promo d'une annonce (idempotent — no-op si déjà absente). */
+export async function clearPropertyPromoAction(formData: FormData): Promise<void> {
+  const parsed = idSchema.safeParse(formData.get("propertyId"));
+  if (!parsed.success) return;
+
+  const property = await requireOwnProperty(parsed.data).catch(() => null);
+  if (!property) return;
+
+  await prisma.property.update({
+    where: { id: property.id },
+    data: { promoPrice: null, promoUntil: null },
+  });
+
+  await logAudit({
+    action: "PROPERTY_PROMO_CLEARED",
+    userId: property.ownerId,
+    success: true,
+    metadata: { propertyId: property.id },
+  });
+
+  revalidatePath("/dashboard/annonces");
+  revalidatePath(`/annonce/${property.slug}`);
+}
+
+export type FeaturedOrderPaymentState = { error?: string; payUrl?: string } | undefined;
+
+/**
+ * Démarre un paiement Konnect RÉEL pour la mise à la une
+ * (MONETISATION_IMMO_ROADMAP.md §MI0). Miroir de payHostInvoiceAction
+ * (src/actions/host-invoices.ts) : crée un FeaturedOrder EN_ATTENTE,
+ * initialise le paiement, stocke le paymentRef, renvoie payUrl (redirection
+ * CÔTÉ CLIENT, cf. FeaturedPayButton — compat CSP form-action 'self').
+ * L'extension de `featuredUntil` n'a lieu qu'au règlement effectif
+ * (settleFeaturedOrder), JAMAIS ici — l'argent n'est pas encore reçu.
+ */
+export async function startFeaturedOrderPaymentAction(
+  _prev: FeaturedOrderPaymentState,
+  formData: FormData
+): Promise<FeaturedOrderPaymentState> {
+  const fr = await getT();
+  const user = await requireLister();
+
+  if (!isKonnectEnabled()) return { error: fr.common.erreurInconnue };
+
+  const parsed = idSchema.safeParse(formData.get("propertyId"));
+  if (!parsed.success) return { error: fr.common.erreurInconnue };
+
+  const property = await prisma.property.findUnique({
+    where: { id: parsed.data },
+    select: { id: true, ownerId: true, title: true, status: true, expiresAt: true },
+  });
+
+  // Autorisation stricte (IDOR) : seul le propriétaire de l'annonce peut la
+  // mettre à la une — jamais confiance au client.
+  if (!property || property.ownerId !== user.id) return { error: fr.common.erreurInconnue };
+  if (property.status !== "ACTIVE" || property.expiresAt.getTime() < Date.now()) {
+    return { error: fr.alaUne.indisponible };
+  }
+
+  const order = await prisma.featuredOrder.create({
+    data: { propertyId: property.id, ownerId: user.id, amount: FEATURED_PRICE_TND },
+  });
+
+  const [firstName, ...rest] = user.name.trim().split(/\s+/);
+
+  let payUrl: string;
+  let paymentRef: string;
+  try {
+    const result = await initKonnectPayment({
+      amountTND: FEATURED_PRICE_TND,
+      orderId: order.id,
+      description: `Darna — mise à la une : ${property.title}`,
+      // URL de webhook SIGNÉE : signKonnectWebhook signe une string générique
+      // (pas spécifiquement un bookingId) — réutilisable telle quelle pour un
+      // FeaturedOrder.id (même principe que le webhook HostInvoice).
+      webhook: `${SITE_URL}/api/payments/konnect/featured-webhook?fid=${order.id}&sig=${signKonnectWebhook(order.id)}`,
+      // `fid` propagé dans le retour : contrairement à HostInvoice (id de
+      // facture = paramètre de route), la route /a-la-une est identifiée par
+      // le propertyId — il faut donc l'id de commande pour savoir QUEL
+      // FeaturedOrder régler côté page de retour (filet ?konnect=success).
+      successUrl: `${SITE_URL}/dashboard/annonces/${property.id}/a-la-une?konnect=success&fid=${order.id}`,
+      failUrl: `${SITE_URL}/dashboard/annonces/${property.id}/a-la-une?konnect=fail&fid=${order.id}`,
+      // Pas de hold à expiration courte (contrairement au hold de réservation
+      // voyageur) : durée de vie généreuse et fixe du lien de paiement.
+      lifespanMinutes: 60,
+      firstName: firstName || user.name,
+      lastName: rest.join(" ") || undefined,
+      email: user.email,
+      phoneNumber: user.phone ?? undefined,
+    });
+    payUrl = result.payUrl;
+    paymentRef = result.paymentRef;
+  } catch (err) {
+    logStructured("error", "konnect.featured_init_failed", {
+      propertyId: property.id,
+      orderId: order.id,
+      userId: user.id,
+      error: (err as Error).message,
+    });
+    await logAudit({
+      action: "PROPERTY_FEATURED_PAYMENT_FAILED",
+      userId: user.id,
+      success: false,
+      metadata: { propertyId: property.id, orderId: order.id, stage: "init" },
+    });
+    return { error: fr.alaUne.paiementErreur };
+  }
+
+  await prisma.featuredOrder.update({ where: { id: order.id }, data: { paymentRef } });
+
+  await logAudit({
+    action: "PROPERTY_FEATURED_PAYMENT_INITIATED",
+    userId: user.id,
+    success: true,
+    metadata: {
+      propertyId: property.id,
+      orderId: order.id,
+      paymentRef,
+      amount: FEATURED_PRICE_TND,
+      provider: "konnect",
+    },
+  });
+
+  return { payUrl };
 }
 
 export type PhotoFormState = { error?: string; success?: string } | undefined;

@@ -17,12 +17,16 @@ vi.mock("@/lib/prisma", () => ({
 // L'action recalcule les agrégats d'avis après création : on stub le helper
 // (testé ailleurs) pour isoler le contrôle d'autorisation IDOR.
 vi.mock("@/lib/listings", () => ({ recomputePropertyRating: vi.fn() }));
-vi.mock("@/lib/notifications", () => ({ sendBookingConfirmationEmail: vi.fn() }));
+vi.mock("@/lib/notifications", () => ({
+  sendBookingConfirmationEmail: vi.fn(),
+  sendNewBookingHostEmail: vi.fn(),
+}));
 vi.mock("@/lib/notification-center", () => ({
   notifyBookingConfirmed: vi.fn(),
   notifyBookingCancelled: vi.fn(),
   notifyReviewReceived: vi.fn(),
   notifyGuestReviewReceived: vi.fn(),
+  notifyNewBookingReceived: vi.fn(),
 }));
 vi.mock("@/lib/session", () => ({ requireUser: vi.fn() }));
 vi.mock("@/lib/audit", () => ({ logAudit: vi.fn(), logStructured: vi.fn() }));

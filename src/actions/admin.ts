@@ -8,8 +8,15 @@ import { requireAdmin, requireWakilOrAdmin } from "@/lib/session";
 import { logAudit } from "@/lib/audit";
 import { notifyMatchingSavedSearches } from "@/lib/saved-search";
 import { applySuspension } from "@/lib/suspension";
-import { notifyHostInvoiceReminder } from "@/lib/notification-center";
+import {
+  notifyHostInvoiceReminder,
+  notifyAgencyQuotaReached,
+  notifyAgencyOutOfVerificationCredits,
+  notifyHostVerificationPaymentRequired,
+} from "@/lib/notification-center";
 import { sendHostInvoiceReminderEmail } from "@/lib/notifications";
+import { activeListingsLimit, countActiveListings } from "@/lib/subscriptions";
+import { consumeVerificationCredit } from "@/lib/verification-credits";
 
 export type AdminActionState = { error?: string; success?: string } | undefined;
 
@@ -46,9 +53,11 @@ export async function verifyPropertyAction(
     where: { id: parsed.data.propertyId },
     select: {
       id: true,
+      title: true,
       verified: true,
+      verificationCreditSpentAt: true,
       ownerId: true,
-      owner: { select: { kycStatus: true } },
+      owner: { select: { kycStatus: true, role: true } },
     },
   });
 
@@ -61,6 +70,56 @@ export async function verifyPropertyAction(
     return { error: fr.admin.proprietaireNonVerifie };
   }
 
+  // Limite d'annonces actives selon abonnement (MONETISATION_IMMO_ROADMAP.md
+  // §MI2) : ne concerne que les comptes AGENCE. C'est ICI, au moment précis
+  // où l'annonce devient ACTIVE, que l'invariant doit être vérifié — jamais à
+  // la création (une annonce EN_ATTENTE_VALIDATION ne compte pas encore dans
+  // le quota, cf. src/lib/subscriptions.ts).
+  if (property.owner.role === "AGENCE") {
+    const [subscription, activeCount] = await Promise.all([
+      prisma.subscription.findUnique({
+        where: { userId: property.ownerId },
+        select: { status: true, plan: true, currentPeriodEnd: true },
+      }),
+      countActiveListings(property.ownerId),
+    ]);
+    const limit = activeListingsLimit(property.owner.role, subscription);
+    if (activeCount >= limit) {
+      // L'agence n'a aucune autre façon de le découvrir (l'admin voit l'erreur,
+      // pas elle) — notification pointant vers la page d'abonnement.
+      await notifyAgencyQuotaReached(property.ownerId, property.title);
+      return { error: fr.admin.limiteAbonnementAtteinte(limit) };
+    }
+  }
+
+  // Crédits de vérification Wakil (MONETISATION_IMMO_ROADMAP.md §MI3) —
+  // RÉGIME DIFFÉRENT selon le rôle (décision Wassim du 2026-07-20) :
+  //  - AGENCE : crédits gratuits à vie + bonus Starter + lots prépayés.
+  //  - HOTE : AUCUNE vérification gratuite, paiement À L'UNITÉ obligatoire
+  //    AVANT (cf. src/actions/host-verification-payments.ts).
+  // UN CRÉDIT COUVRE CETTE ANNONCE À VIE (décision Wassim du 2026-07-20) : si
+  // `verificationCreditSpentAt` est déjà posé, on ne consomme JAMAIS un
+  // second crédit pour la MÊME annonce — même après un retrait de badge
+  // (unverifyPropertyAction) ou une republication suite à expiration
+  // (republishPropertyAction, tous les LISTING_LIFETIME_DAYS jours). Consommé
+  // ICI, APRÈS le check de quota AGENCE ci-dessus et JUSTE AVANT l'activation
+  // réelle — jamais bloquer/facturer pour un refus qui aurait eu lieu de
+  // toute façon pour une autre raison (KYC, quota).
+  const alreadyPaidForLife = Boolean(property.verificationCreditSpentAt);
+  if (!alreadyPaidForLife) {
+    const creditConsumed = await consumeVerificationCredit(property.ownerId, property.owner.role);
+    if (!creditConsumed) {
+      if (property.owner.role === "AGENCE") {
+        // L'agence n'a aucune autre façon de le découvrir que cette notification.
+        await notifyAgencyOutOfVerificationCredits(property.ownerId, property.title);
+        return { error: fr.admin.creditsVerificationEpuises };
+      }
+      // HOTE : n'a jamais payé (ou plus de solde) pour CETTE vérification.
+      await notifyHostVerificationPaymentRequired(property.ownerId, property.title);
+      return { error: fr.admin.hostVerificationPaiementRequis };
+    }
+  }
+
   await prisma.property.update({
     where: { id: property.id },
     data: {
@@ -69,6 +128,7 @@ export async function verifyPropertyAction(
       verificationLevel: parsed.data.verificationLevel,
       verifiedAt: new Date(),
       verifiedById: actor.id,
+      ...(alreadyPaidForLife ? {} : { verificationCreditSpentAt: new Date() }),
     },
   });
 

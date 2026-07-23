@@ -58,8 +58,8 @@ bas :
 | **Composant / front (React)** | ✅ **P0 couvert (Phase 2)** | Harness jsdom + Testing Library ; `KonnectPayButton`, `LoginForm`, `RegisterForm`, `PropertyCard`, `Price`, i18n — reste KYC/date-picker/carte en P1 |
 | **E2E navigateur** | ❌ **Absent** | **Aucun Playwright**, aucun parcours signup→KYC→booking→paiement automatisé |
 | **Couverture mesurée** | ✅ **En place (Phase 1)** | `@vitest/coverage-v8` + seuils ratchet bloquants en CI (`src/lib`+`src/actions`) |
-| Sécurité automatisée | ⚠️ Partiel | Invariants testés en Vitest, mais **pas de SAST/DAST/dep-scan structuré** hors `npm audit` |
-| Performance / charge | ❌ Absent | Aucun test de charge sur la recherche ni la fenêtre de course booking |
+| Sécurité automatisée | ⚠️ Partiel | Semgrep (SAST) + ZAP baseline (DAST, nightly) désormais en place ; reste **dep-scan structuré** au-delà de `npm audit` (Dependabot déjà actif) |
+| Performance / charge | ✅ Bon | k6 sur `/sejours` (recherche) + course booking (20 VUs concurrents), nightly/hebdo (cf. §6.7) |
 | Accessibilité | ❌ Absent | Aucun `axe`, site trilingue + RTL non testé |
 
 **Décision.** La plateforme est **« Beta-ready » côté logique métier**, mais
@@ -193,10 +193,10 @@ dépendre de l'ordre du seed.
 | DB de test réelle | **Testcontainers** (ou service Postgres CI existant) | Transactions/contraintes réelles, isolable | ❌ P1 |
 | Accessibilité | **@axe-core/playwright** | Scan a11y automatisé sur les pages clés + RTL | ❌ P2 |
 | Contrat / schéma | **zod (déjà) + tests HTTP des routes `api/**`** | Valider entrées/sorties webhooks, statuts HTTP | ⚠️ P1 |
-| Perf / charge | **k6** (ou Artillery) | Charge recherche + course booking, seuils p95 | ❌ P2 |
+| Perf / charge | **k6** (ou Artillery) | Charge recherche + course booking, seuils p95 | ⚠️ P2 (recherche livrée, course booking non couverte) |
 | SAST | **Semgrep** (règles Next/React/OWASP) | Détecte `dangerouslySetInnerHTML`, injections, secrets | ❌ P1 |
 | Dépendances | **npm audit (déjà) + Dependabot/Renovate** | Veille CVE continue, pas seulement au build | ⚠️ P2 |
-| DAST (Beta+) | **OWASP ZAP baseline** (scan passif en CI nightly) | Headers, CSP, cookies, redirections | ❌ P2 |
+| DAST (Beta+) | **OWASP ZAP baseline** (scan passif en CI nightly) | Headers, CSP, cookies, redirections | ✅ P2 |
 | Visuel (option) | **Playwright screenshots / toMatchSnapshot** | Régression visuelle carte/annonce/RTL | ❌ P3 |
 
 > **Contrainte projet respectée :** aucun service payant obligatoire. Playwright,
@@ -268,8 +268,40 @@ dépendre de l'ordre du seed.
 ### 6.6 Sécurité automatisée (P1)
 - **SAST Semgrep** en CI : interdiction `dangerouslySetInnerHTML` hors
   `JsonLd.tsx`, détection secrets, patterns injection/SSRF.
-- **DAST ZAP baseline** nightly (Beta+) : CSP par nonce présente, HSTS,
-  `X-Frame-Options DENY`, nosniff, cookies `HttpOnly/Secure/SameSite`.
+- [x] **DAST ZAP baseline** nightly (Beta+) : CSP par nonce présente, HSTS,
+  `X-Frame-Options DENY`, nosniff, cookies `HttpOnly/Secure/SameSite`. →
+  `zaproxy/action-baseline` (`.github/workflows/zap-baseline.yml`), scan
+  PASSIF uniquement (aucune attaque active), contre un build de production
+  (`next start`). Job isolé, **jamais sur PR** (workflow séparé de `ci.yml`,
+  même choix que `perf.yml`) : nightly/hebdo + `workflow_dispatch`.
+  `fail_action: false` volontaire — seuils/faux positifs pas encore calibrés
+  sur un vrai résultat, donc un rapport à examiner plutôt qu'un gate bloquant
+  pour l'instant (à durcir une fois le bruit de fond connu).
+  **Validé en réel le 2026-07-20** (1er `workflow_dispatch` sur `main`,
+  run #1) : le tag d'action (`@v0.12.0`) était correct et les noms de
+  fichiers de rapport supposés l'étaient aussi (`report_html.html`/
+  `report_json.json`/`report_md.md` à la racine). Un souci différent et
+  imprévu a été trouvé et corrigé au 1er essai : l'upload d'artifact
+  **interne à l'action** cible l'ancienne API Actions Artifacts (v1/v2,
+  `api-version=6.0-preview`) que GitHub a dépréciée côté serveur — la
+  sous-étape échoue (`Create Artifact Container failed`) **indépendamment**
+  de `fail_action` (qui ne gouverne que les findings, pas cette erreur
+  d'upload), alors que le scan lui-même aboutit sans aucun problème.
+  Correctif : `continue-on-error: true` sur l'étape ZAP + upload des rapports
+  par nous-mêmes via `actions/upload-artifact@v4` (API actuelle, déjà
+  éprouvée dans `ci.yml`) au lieu de dépendre du mécanisme interne cassé
+  de l'action.
+  **Premiers résultats réels** (387 URLs scannées) : **0 `FAIL-NEW`**, 59
+  règles passées, 8 catégories `WARN-NEW` (aucune bloquante) — CSP
+  `style-src unsafe-inline` (attendu, Tailwind), absence de jetons
+  anti-CSRF perçue par ZAP (faux positif connu : Next.js protège les Server
+  Actions par vérification d'origine same-origin, pas par jeton — déjà
+  couvert par `tests/api/security-regressions.spec.ts`, Phase 4), en-tête
+  Cross-Origin-Embedder-Policy absent, et 4 autres catégories purement
+  informationnelles (redirection `/dashboard`, contenu non cacheable,
+  détection SPA/formulaires d'auth). Rien nécessitant une action immédiate ;
+  triage complet à faire par Wassim au calme, pas dans l'urgence de ce
+  chantier.
 - Régressions à figer en test : anti-énumération connexion (erreur générique),
   exception assumée inscription (« compte existe déjà ») + rate-limit + CAPTCHA
   dual-mode (`turnstile`), open-redirect (`redirect-landing` déjà), CSRF sur
@@ -277,11 +309,32 @@ dépendre de l'ordre du seed.
 - **Dependabot/Renovate** activé, `npm audit --audit-level=high` conservé.
 
 ### 6.7 Performance / charge (P2)
-- **k6** sur `/sejours` (recherche + carte) : p95 < 500 ms à charge cible.
-- **Charge sur la fenêtre de course booking** : N `createBookingAction`
-  simultanés → aucune double-réservation, latence bornée, pas de deadlock
-  Postgres non géré.
-- Budget perf front (Lighthouse CI optionnel) sur pages annonce/recherche.
+- [x] **k6** sur `/sejours` (recherche) : montée à 10 VUs, 40 annonces
+  seedées (`tests/perf/search-seed.ts`) pour un p95 réaliste. Seuil
+  p95 < 2000 ms — mesuré 1.31 s en pratique, contre un build **`next dev`**
+  (pas `next start` : limite connue, à revoir si le seuil devient trop
+  proche de la marge). → `tests/perf/search.js`, job isolé
+  `.github/workflows/perf.yml` (hebdo + `workflow_dispatch`, **jamais sur
+  PR** — workflow séparé de `ci.yml`, pas un simple `if:` sur un trigger
+  partagé). **La carte (Leaflet) est hors de portée** : rendu client, k6/http
+  n'exécute pas de JS navigateur.
+- [x] **Charge sur la fenêtre de course booking** : 20 requêtes
+  `createBookingAction` simultanées sur le même créneau → exactement une
+  seule réservation active en base, p95 < 1.5 s (mesuré 684 ms).
+  `createBookingAction` est une Server Action Next.js (RPC via header
+  `Next-Action` + FormData, pas une route REST) — pilotée par k6 via un
+  spike validé : capturer une vraie requête une fois (login Playwright réel
+  dans `tests/perf/booking-load-setup.ts`), puis la rejouer en HTTP brut
+  (l'id d'action capturé reste valide pour les appels suivants). →
+  `tests/perf/booking-load.js` + `booking-load-verify.ts`. La CORRECTION
+  sous concurrence était déjà prouvée sous vraie transaction SERIALIZABLE
+  par `tests/integration/booking-concurrency.integration.test.ts`
+  (Phase 1) — ce lot ajoute la caractérisation de la LATENCE sous charge
+  réelle, et a mis au jour un vrai bug : 4/20 requêtes perdantes
+  remontaient en 500 brut (abandon de transaction Postgres P2034 non
+  rattrapé) au lieu du message générique "dates indisponibles" — corrigé
+  dans `src/actions/bookings.ts`.
+- [ ] Budget perf front (Lighthouse CI optionnel) sur pages annonce/recherche.
 
 ### 6.8 Accessibilité (P2)
 - **axe** sur pages clés (accueil, recherche, annonce, réservation, dashboard)
@@ -394,7 +447,7 @@ satisfont via leur rapport Allure.
 > `P2034`). L'invariant métier (jamais deux résas actives qui se chevauchent)
 > est lui **prouvé et tenu**.
 
-### Phase 2 — Tests composant / front *(P0, ~4-5 j)* — ✅ **LIVRÉE (périmètre P0)**
+### Phase 2 — Tests composant / front *(P0, ~4-5 j)* — ✅ **LIVRÉE (P0 + reliquat P1)**
 - [x] Projet Vitest `jsdom` + Testing Library + user-event. → `vitest.config.ts` (projets `node`/`jsdom`), `tests/components/setup.ts`, `tests/components/helpers.tsx`.
 - [x] Test i18n/RTL (fr/en/ar) : `dir` + **parité des clés des 3 dicos**. → `tests/i18n-parity.test.ts`.
 - [x] Premier composant paiement **`KonnectPayButton`** (P0) : libellé, erreur serveur, redirection client `payUrl`. → `tests/components/konnect-pay-button.test.tsx`.
@@ -404,7 +457,7 @@ satisfont via leur rapport Allure.
 - [x] **`PropertyCard`** (J9 recherche) : prix + suffixe nuit/mois, total séjour tout compris, badge Vérifié, lien + query string. → `tests/components/property-card.test.tsx`.
 - [x] Gate front en CI. → le projet `jsdom` tourne dans `npm run test:coverage` (déjà appelé par la CI).
 - [x] **Rapport de tests détaillé & exhaustif dans le run CI** (§7.3) : tous les tests affichés (par fichier + détail replié), échecs avec message, totaux, couverture, artifact HTML. → `scripts/ci-test-summary.mjs`, `.github/workflows/ci.yml`.
-- [ ] Reste hors périmètre P0 (à reprendre en P1) : formulaire KYC, sélecteur de dates de réservation, carte (`PropertyMap`/`MapInner`), `HistoryNav`/`MessagesNotifier` (positionnement).
+- [x] Reliquat P1 : formulaire KYC (`CinVerifyFlow` — erreur unicité CIN, bascule état vérifié réel vs démo, `onVerified`) → `tests/components/kyc-cin-form.test.tsx`. Sélecteur de dates de réservation (`BookingDatePicker`, composant contrôlé pur — sélection arrivée/départ, jour indisponible/passé désactivé, reset, navigation mois) → `tests/components/booking-date-picker.test.tsx`. Carte (`PropertyMap` — bouton agrandir, modale, filtre prix ; `MapInner`/Leaflet mocké, APIs géométriques réelles hors de portée de jsdom, même patron que les Server Components async de Phase 2 P0) → `tests/components/property-map.test.tsx`. `HistoryNav`/`MessagesNotifier` (positionnement — ancrage `bottom-4 start-4` vs `bottom-4 end-4`, garde de non-recouvrement CLAUDE.md) → `tests/components/history-nav.test.tsx`, `tests/components/messages-notifier.test.tsx`.
 
 > **Note technique Phase 2 :** les Server Components async (badges, `PropertyCard`
 > lui-même) ne peuvent pas être rendus en JSX imbriqué par le renderer client de
@@ -455,15 +508,11 @@ satisfont via leur rapport Allure.
       la main — déjà couverte au niveau UI par `tests/e2e/01-auth.spec.ts`).
 
 ### Phase 5 — Perf, a11y, DAST, visuel *(P2/P3, ~4-5 j)*
-- [x] k6 : recherche + course booking, seuils p95 — `tests/perf/search.js`
-      (p95<2s, mesuré 1.31s sur `next dev`/40 annonces) et
-      `tests/perf/booking-load.js` (20 VUs sur le même créneau, exactement 1
-      gagnant, p95<1.5s). Job séparé `.github/workflows/perf.yml`, schedule
-      hebdo + déclenchement manuel — jamais sur PR (charge non stable sur
-      runner partagé). **Vrai gap corrigé en cours de route** : sous charge
-      réelle, un abandon de transaction Postgres (P2034, perdant de la
-      course) remontait en 500 brut au lieu du message générique
-      "dates indisponibles" — `catch` étendu dans `createBookingAction`
+- [x] k6 : recherche + course booking, seuils p95 — ✅ livré, cf. §6.7 pour le
+      détail. **Vrai gap corrigé en cours de route** : sous charge réelle, un
+      abandon de transaction Postgres (P2034, perdant de la course)
+      remontait en 500 brut au lieu du message générique "dates
+      indisponibles" — `catch` étendu dans `createBookingAction`
       (`src/actions/bookings.ts`), le commentaire du code annonçait ce retry
       comme prévu ("→ Phase 2") mais jamais implémenté.
 - [x] axe sur pages clés × 3 langues — `tests/e2e/10-a11y.spec.ts` (5 pages ×
@@ -471,8 +520,15 @@ satisfont via leur rapport Allure.
       **hors `color-contrast`**, exclu du gate après un vrai finding
       systémique (design tokens `text-body/*`, tracké en tant que chantier
       dédié dans `TODO-PRODUCTION.md`, pas masqué).
-- [ ] ZAP baseline nightly (headers/CSP/cookies).
+- [x] ZAP baseline nightly (headers/CSP/cookies) — ✅ livré, cf. §6.6 pour le
+      détail et la limite de validation assumée (premier run jamais exécuté
+      avant la mise en prod du job, Docker indisponible dans l'environnement
+      d'écriture de ce chantier).
 - [ ] (Option) snapshots visuels carte/annonce/RTL.
+
+**Phase 5 : seuls les snapshots visuels (option P3, jamais engagée comme
+prioritaire) restent non livrés.** k6, axe et ZAP sont tous les trois en
+place.
 
 ---
 

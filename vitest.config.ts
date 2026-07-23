@@ -22,7 +22,16 @@ import react from "@vitejs/plugin-react";
  * couverture dans la page du run (`$GITHUB_STEP_SUMMARY`). On garde un seul
  * rapport, clair et exhaustif, plutôt que plusieurs blocs concurrents.
  */
-const alias = { "@": fileURLToPath(new URL("./src", import.meta.url)) };
+const alias = {
+  "@": fileURLToPath(new URL("./src", import.meta.url)),
+  // `next-auth/lib/env.js` importe `next/server` sans extension. Sans champ
+  // `exports` dans le package.json de `next`, ce spécificateur retombe sur la
+  // résolution Node native (stricte sur les extensions) selon que le module
+  // soit externalisé ou non par Vite — intermittent d'un run à l'autre :
+  // "Cannot find module .../next/server", alors que next/server.js existe.
+  // Alias explicite vers le fichier réel : élimine l'ambiguïté de résolution.
+  "next/server": fileURLToPath(new URL("./node_modules/next/server.js", import.meta.url)),
+};
 const inCI = Boolean(process.env.GITHUB_ACTIONS);
 
 export default defineConfig({
@@ -30,6 +39,12 @@ export default defineConfig({
   test: {
     reporters: inCI ? ["default", "json"] : ["default"],
     outputFile: { json: "./coverage/test-results.json" },
+    // Désactivé en CI seulement : résolution concurrente de `next-auth`/`next/server`
+    // par les projets `node`/`jsdom` en parallèle → échec intermittent
+    // "Cannot find module .../next/server" sur le runner GitHub Actions (jamais
+    // reproduit en local malgré plusieurs runs). Coût négligeable (~600 tests,
+    // quelques secondes), gardé rapide en local où la race ne se manifeste pas.
+    fileParallelism: !inCI,
     coverage: {
       provider: "v8",
       include: ["src/lib/**", "src/actions/**"],

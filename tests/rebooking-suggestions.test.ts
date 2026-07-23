@@ -16,6 +16,10 @@ vi.mock("@/lib/geo", () => ({
   resolveCity: vi.fn((c: string) => c),
   nearbyCities: vi.fn(() => [{ name: "Nabeul" }, { name: "Sousse" }]),
 }));
+// listings.ts importe session/product-events (§IN1, SEARCH_PERFORMED) — mocké
+// ici pour ne jamais charger next-auth pour de vrai dans ce test, sans rapport.
+vi.mock("@/lib/session", () => ({ getSessionUser: vi.fn() }));
+vi.mock("@/lib/product-events", () => ({ getAnonId: vi.fn(), logProductEvent: vi.fn() }));
 
 import { getRebookingSuggestions, getHostCancellationSignals } from "@/lib/listings";
 import { prisma } from "@/lib/prisma";
