@@ -17,9 +17,6 @@
     "test:api": "playwright test --config=playwright.api.config.ts",
     "report:e2e": "node scripts/e2e-report.mjs"
   },
-  "overrides": {
-    "sharp": "^0.35.0"
-  },
   "dependencies": {
     "@prisma/client": "^6.19.3",
     "aws4fetch": "^1.0.20",
@@ -27,7 +24,7 @@
     "ioredis": "^5.11.1",
     "leaflet": "^1.9.4",
     "motion": "^12.42.2",
-    "next": "15.5.19",
+    "next": "15.5.21",
     "next-auth": "5.0.0-beta.31",
     "react": "19.1.0",
     "react-dom": "19.1.0",
@@ -53,7 +50,7 @@
     "allure-js-commons": "^3.10.2",
     "allure-playwright": "^3.10.2",
     "eslint": "^9",
-    "eslint-config-next": "15.5.19",
+    "eslint-config-next": "15.5.21",
     "jsdom": "^26.1.0",
     "prisma": "^6.19.3",
     "tailwindcss": "^4",
