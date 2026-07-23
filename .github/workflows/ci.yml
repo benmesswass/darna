@@ -96,7 +96,10 @@ jobs:
 
   # Job isolé (§7.4 TEST_AUTOMATION_ROADMAP.md) : pas de `needs: build` — reste
   # relançable indépendamment même si `build` échoue ou n'a pas encore tourné.
+  # `if` : seulement sur PR — déjà validé juste avant le merge, inutile de le
+  # rejouer sur le push de main qui suit (§ minutes Actions).
   e2e:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
 
     services:
@@ -190,7 +193,9 @@ jobs:
   # actif sur ce serveur — incompatible avec `e2e` qui dépend du paiement
   # démo (Konnect désactivé, cf. scénario 02). Un seul `next dev` ne peut pas
   # avoir les deux valeurs en même temps, d'où un serveur/job dédié.
+  # `if` : seulement sur PR, même raison que le job `e2e` ci-dessus.
   api:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
 
     services:
