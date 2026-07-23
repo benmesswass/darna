@@ -8,8 +8,13 @@
 
 import { prisma } from "@/lib/prisma";
 import { logStructured } from "@/lib/audit";
-import { HOST_INVOICE_DUE_SOON_DAYS, LISTING_EXPIRE_SOON_DAYS } from "@/lib/config";
+import {
+  HOST_INVOICE_DUE_SOON_DAYS,
+  LISTING_EXPIRE_SOON_DAYS,
+  LISTING_INCOMPLETE_NUDGE_DAYS,
+} from "@/lib/config";
 import { sendHostInvoiceDueSoonEmail, sendHostInvoiceOverdueEmail } from "@/lib/notifications";
+import { computeListingCompleteness } from "@/lib/listing-completeness";
 
 export type NotificationType =
   | "RESERVATION_CONFIRMEE"
@@ -39,7 +44,9 @@ export type NotificationType =
   | "ANNONCE_VERIF_PAIEMENT_REQUIS"
   // Nouvelle réservation ESCROW confirmée (paiement en séquestre) — distinct
   // de DEMANDE_CASH_RECUE (Rail 2, avant acceptation hôte).
-  | "RESERVATION_RECUE";
+  | "RESERVATION_RECUE"
+  // Relance de complétude d'annonce (GROWTH_ROADMAP.md §G2).
+  | "ANNONCE_INCOMPLETE";
 
 async function createNotification(
   userId: string,
@@ -299,6 +306,60 @@ export async function ensureExpiringSoonNotifications(userId: string): Promise<v
     } catch (err) {
       if ((err as { code?: string }).code !== "P2002") {
         logStructured("error", "notif.expiring_soon_failed", {
+          userId,
+          propertyId: p.id,
+          error: (err as Error).message,
+        });
+      }
+    }
+  }
+}
+
+/**
+ * Détection paresseuse des annonces restées incomplètes (GROWTH_ROADMAP.md
+ * §G2) — même idiome exact que ensureExpiringSoonNotifications : pas de cron,
+ * calculé au sondage, dédupliqué par un index unique PARTIEL en base (userId,
+ * href) WHERE type = 'ANNONCE_INCOMPLETE' (cf. migration
+ * 20260722_add_incomplete_listing_notification) — une seule relance par
+ * annonce, jamais répétée à chaque sondage. Ne cible que les annonces encore
+ * "en jeu" (EN_ATTENTE_VALIDATION ou ACTIVE) — inutile de relancer une
+ * annonce louée/vendue/expirée.
+ */
+export async function ensureIncompleteListingNotifications(userId: string): Promise<void> {
+  const cutoff = new Date(Date.now() - LISTING_INCOMPLETE_NUDGE_DAYS * 24 * 60 * 60 * 1000);
+
+  const properties = await prisma.property.findMany({
+    where: {
+      ownerId: userId,
+      status: { in: ["EN_ATTENTE_VALIDATION", "ACTIVE"] },
+      createdAt: { lte: cutoff },
+    },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      amenities: true,
+      _count: { select: { photos: true } },
+    },
+  });
+
+  for (const p of properties) {
+    const completeness = computeListingCompleteness({
+      photoCount: p._count.photos,
+      description: p.description,
+      amenities: p.amenities,
+    });
+    if (completeness.score >= completeness.total) continue;
+
+    // Lien direct vers l'édition — sert aussi de clé de dédoublonnage.
+    const href = `/dashboard/annonces/${p.id}/modifier`;
+    try {
+      await prisma.notification.create({
+        data: { userId, type: "ANNONCE_INCOMPLETE", propertyTitle: p.title, href },
+      });
+    } catch (err) {
+      if ((err as { code?: string }).code !== "P2002") {
+        logStructured("error", "notif.incomplete_listing_failed", {
           userId,
           propertyId: p.id,
           error: (err as Error).message,

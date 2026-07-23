@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
-import { ensureExpiringSoonNotifications, ensureHostInvoiceReminders } from "@/lib/notification-center";
+import {
+  ensureExpiringSoonNotifications,
+  ensureHostInvoiceReminders,
+  ensureIncompleteListingNotifications,
+} from "@/lib/notification-center";
 
 // Sondé périodiquement par NotificationBell : jamais mis en cache.
 export const dynamic = "force-dynamic";
@@ -26,6 +30,8 @@ export async function GET() {
   await ensureExpiringSoonNotifications(user.id);
   // Idem pour les HostInvoice bientôt dues / en retard (§PSP5).
   await ensureHostInvoiceReminders(user.id);
+  // Idem pour les annonces restées incomplètes (§G2).
+  await ensureIncompleteListingNotifications(user.id);
 
   const [count, items] = await Promise.all([
     prisma.notification.count({ where: { userId: user.id, readAt: null } }),

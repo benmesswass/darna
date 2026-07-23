@@ -479,6 +479,11 @@ export const ar: Dictionary = {
     promoAlaUneTitre: "حطّ إعلاناتك في الواجهة",
     promoAlaUneDesc:
       "في قمة النتائج وفي صفحة الاستقبال مدّة شهر، مع شارة ذهبية تجبد العين. الإعلانات اللي في الواجهة تتشاف أكثر برشة.",
+    completudeTitre: (score: number, total: number) => `الإعلان كامل ${score}/${total}`,
+    completudePhotos: "على الأقل 5 تصاور",
+    completudeDescription: "وصف مفصّل",
+    completudeEquipements: "على الأقل 3 تجهيزات",
+    completudeCta: "كمّل الإعلان",
     verifWakilSolde: (n: number) =>
       n === 1
         ? "عندك كريدي توثيق وكيل واحد."
@@ -1383,6 +1388,8 @@ export const ar: Dictionary = {
     annonceVerifPaiementRequis: (titre: string) =>
       `الإعلان متاعك « ${titre} » ما تحقّقش — خلّص التوثيق متاع الوكيل (20 دينار) باش يلزمو وكيل يعالجو.`,
     reservationRecue: (titre: string) => `جالك حجز جديد على « ${titre} ».`,
+    annonceIncomplete: (titre: string) =>
+      `الإعلان متاعك « ${titre} » مازال فيه حاجات ناقصة — كمّلو باش يبيع أحسن.`,
   },
   alaUne: {
     titre: "حطّ إعلانك في الواجهة",

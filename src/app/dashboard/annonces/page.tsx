@@ -31,6 +31,7 @@ import {
 } from "@/actions/host-verification-payments";
 import { isKonnectEnabled } from "@/lib/konnect";
 import { HOST_VERIFICATION_PRICE_TND } from "@/lib/config";
+import { computeListingCompleteness } from "@/lib/listing-completeness";
 
 export default async function MesAnnoncesPage({
   searchParams,
@@ -65,7 +66,10 @@ export default async function MesAnnoncesPage({
 
   const properties = await prisma.property.findMany({
     where: { ownerId: user.id },
-    include: { photos: { orderBy: { position: "asc" }, take: 1 } },
+    include: {
+      photos: { orderBy: { position: "asc" }, take: 1 },
+      _count: { select: { photos: true } },
+    },
     orderBy: { createdAt: "desc" },
   });
 
@@ -207,6 +211,18 @@ export default async function MesAnnoncesPage({
             // Une annonce non-Séjour avec une promo déjà posée (avant ce
             // correctif) doit rester joignable pour la retirer.
             const canManagePromo = canSetPromo || promoActive;
+            // Complétude d'annonce (§G2) : uniquement affichée pour une
+            // annonce encore "en jeu" et non déjà complète — pas de bruit
+            // pour un stock loué/vendu/expiré ou déjà exemplaire.
+            const showCompleteness =
+              (p.status === "EN_ATTENTE_VALIDATION" || p.status === "ACTIVE") && !isExpired;
+            const completeness = showCompleteness
+              ? computeListingCompleteness({
+                  photoCount: p._count.photos,
+                  description: p.description,
+                  amenities: p.amenities,
+                })
+              : null;
 
             return (
               <li
@@ -280,6 +296,43 @@ export default async function MesAnnoncesPage({
                     <p className="mt-1.5 rounded-lg bg-red-50 px-2.5 py-1.5 text-xs font-semibold text-red-700">
                       {fr.dashboard.annonceMasqueeBanner(formatDateFr(p.cancelBlockedUntil))}
                     </p>
+                  ) : null}
+                  {/* Complétude d'annonce (§G2) : masquée dès que l'annonce
+                      remplit les 3 critères — pas de bruit pour une annonce
+                      déjà exemplaire. */}
+                  {completeness && completeness.score < completeness.total ? (
+                    <div className="mt-1.5 rounded-lg bg-sand-light/40 px-2.5 py-1.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-xs font-semibold text-darna-dark">
+                          {fr.dashboard.completudeTitre(completeness.score, completeness.total)}
+                        </p>
+                        <Link
+                          href={`/dashboard/annonces/${p.id}/modifier`}
+                          className="shrink-0 text-xs font-semibold text-heading underline"
+                        >
+                          {fr.dashboard.completudeCta}
+                        </Link>
+                      </div>
+                      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/70">
+                        <div
+                          className="h-full rounded-full bg-darna"
+                          style={{
+                            width: `${Math.round(
+                              (completeness.score / completeness.total) * 100
+                            )}%`,
+                          }}
+                        />
+                      </div>
+                      <p className="mt-1 text-[11px] text-body/50">
+                        {[
+                          !completeness.photosOk ? fr.dashboard.completudePhotos : null,
+                          !completeness.descriptionOk ? fr.dashboard.completudeDescription : null,
+                          !completeness.amenitiesOk ? fr.dashboard.completudeEquipements : null,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </p>
+                    </div>
                   ) : null}
                 </div>
 
