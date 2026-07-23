@@ -17,9 +17,6 @@
     "test:api": "playwright test --config=playwright.api.config.ts",
     "report:e2e": "node scripts/e2e-report.mjs"
   },
-  "overrides": {
-    "sharp": "^0.35.0"
-  },
   "dependencies": {
     "@prisma/client": "^6.19.3",
     "aws4fetch": "^1.0.20",
