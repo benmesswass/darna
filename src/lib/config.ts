@@ -110,6 +110,19 @@ export const LISTING_EXPIRE_SOON_DAYS = 5;
  *  signalée « bientôt due » (PAIEMENT_SUR_PLACE_ROADMAP.md §PSP5). */
 export const HOST_INVOICE_DUE_SOON_DAYS = 3;
 
+/**
+ * Score de complétude d'annonce (GROWTH_ROADMAP.md §G2) : seuils, PROVISOIRES,
+ * choisis à partir de champs déjà présents sur Property — aucun nouveau champ.
+ * `COMPLETENESS_MIN_PHOTOS` reprend directement AUDIT_V1.md Top 20 #12
+ * (« Pousser 5+ photos minimum »), au-delà du minimum de 1 exigé à la création.
+ */
+export const COMPLETENESS_MIN_PHOTOS = 5;
+/** Au-delà du minimum de 40 caractères exigé à la création (createSchema). */
+export const COMPLETENESS_MIN_DESCRIPTION_LENGTH = 150;
+export const COMPLETENESS_MIN_AMENITIES = 3;
+/** Délai avant la première relance d'une annonce restée incomplète. */
+export const LISTING_INCOMPLETE_NUDGE_DAYS = 3;
+
 /** Mise en avant payante (« à la une ») : durée du boost et prix unique. */
 export const FEATURED_DURATION_DAYS = 30;
 /** Prix en TND du boost « à la une » pour un mois (tarif de lancement). */

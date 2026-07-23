@@ -458,6 +458,11 @@ export const fr = {
     promoAlaUneTitre: "Passez vos annonces à la une",
     promoAlaUneDesc:
       "En tête des résultats et sur l'accueil pendant un mois, avec un badge doré qui attire l'œil. Les annonces mises en avant sont vues bien plus souvent.",
+    completudeTitre: (score: number, total: number) => `Annonce complète à ${score}/${total}`,
+    completudePhotos: "Au moins 5 photos",
+    completudeDescription: "Description détaillée",
+    completudeEquipements: "Au moins 3 équipements",
+    completudeCta: "Compléter l'annonce",
     verifWakilSolde: (n: number) =>
       n === 1
         ? "1 crédit de vérification Wakil disponible."
@@ -1390,6 +1395,8 @@ export const fr = {
       `Votre annonce « ${titre} » n'a pas pu être vérifiée — payez la vérification Wakil (20 TND) pour qu'un agent puisse la traiter.`,
     reservationRecue: (titre: string) =>
       `Vous avez reçu une nouvelle réservation pour « ${titre} ».`,
+    annonceIncomplete: (titre: string) =>
+      `Votre annonce « ${titre} » a encore des cases à cocher — complétez-la pour mieux convertir.`,
   },
   alaUne: {
     titre: "Mettez votre annonce à la une",

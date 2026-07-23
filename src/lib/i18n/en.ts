@@ -457,6 +457,11 @@ export const en: Dictionary = {
     promoAlaUneTitre: "Feature your listings",
     promoAlaUneDesc:
       "Top of results and on the homepage for a month, with an eye-catching gold badge. Featured listings get seen far more often.",
+    completudeTitre: (score: number, total: number) => `Listing ${score}/${total} complete`,
+    completudePhotos: "At least 5 photos",
+    completudeDescription: "Detailed description",
+    completudeEquipements: "At least 3 amenities",
+    completudeCta: "Complete this listing",
     verifWakilSolde: (n: number) =>
       n === 1
         ? "1 Wakil verification credit available."
@@ -1369,6 +1374,8 @@ export const en: Dictionary = {
       `Your listing “${titre}” could not be verified — pay for the Wakil verification (20 TND) so an agent can process it.`,
     reservationRecue: (titre: string) =>
       `You received a new booking for “${titre}”.`,
+    annonceIncomplete: (titre: string) =>
+      `Your listing "${titre}" still has boxes to check — complete it to convert better.`,
   },
   alaUne: {
     titre: "Feature your listing",

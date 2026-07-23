@@ -628,6 +628,8 @@ model Notification {
   //  - ANNONCE_EXPIRE_BIENTOT — migration 20260702170000_add_notification
   //  - FACTURE_BIENTOT_DUE / FACTURE_EN_RETARD — migration
   //    20260707170000_add_host_invoice_reminder_notif (§PSP5)
+  //  - ANNONCE_INCOMPLETE — migration
+  //    20260722000000_add_incomplete_listing_notification (§G2)
   // Ne PAS les supprimer via `migrate dev` sans les recréer manuellement
   // (cf. src/lib/notification-center.ts).
 
