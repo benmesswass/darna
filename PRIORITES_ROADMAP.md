@@ -69,7 +69,7 @@ temps que G8 — G8 est en vague 1, PM1 est en vague 2, l'ordre les sépare déj
 
 | # | Tâche | Prio source | Roadmap | Dépend de |
 |---|---|---|---|---|
-| 6 | **PM1** — UI hôte promo + badge | P0 | CROISSANCE | PM0 |
+| 6 | **PM1** — UI hôte promo + badge | P0 | CROISSANCE | 🔧 PR en attente de revue/merge |
 | 7 | **CR0** — Fondations crédits (`CreditWallet`/`CreditTransaction`/`referralCode`) | P0 | CROISSANCE | Séquencé après PM0/PM1 par `CROISSANCE_ROADMAP.md` |
 | 8 | **IN2** — Adoption features (`SIMULATOR_USED`, `SHARE_CLICKED`, `SAVED_SEARCH_CREATED`, `MAP_INTERACTED`) | P1 | INSTRUMENTATION | ✅ PR #171 — 1ère touche d'acquisition (`ref`/UTM) différée à `CROISSANCE_ROADMAP.md` §CR0 (aucun consommateur avant le vrai modèle d'attribution) |
 | 9 | **G2** — Barre de complétude d'annonce | P1 | GROWTH | Séquencement GROWTH (mois 2) |

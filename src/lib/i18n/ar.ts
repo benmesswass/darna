@@ -144,6 +144,7 @@ export const ar: Dictionary = {
     alaUne: "في الواجهة",
     alaUneTooltip:
       "إعلان مميّز: يظهر في قمة النتائج وفي صفحة استقبال دارنا.",
+    promo: (pct: number) => `تخفيض ${pct}%`,
     superHote: "مضيف مثالي",
     superHoteTooltip:
       "صفر إلغاء وتقييمات ممتازة في آخر 3 أشهر — مضيف يستاهل الثقة، متثبّت بالنتائج الحقيقية متاعو.",
@@ -297,6 +298,7 @@ export const ar: Dictionary = {
     verifieOnSiteBloc:
       "وكيل دارنا زار العقار شخصيًا. تثبّت أنه موجود، الصور تطابق الواقع، والمالك يمكن الاتصال به.",
     verifiePar: (nom: string) => `بواسطة ${nom}`,
+    promoTooltip: (date: string) => `السعر تنقّص وقتيًا من المضيف، حتى ${date}.`,
     enSavoirPlusWakil: "اعرف أكثر على شبكة الوكلاء",
     enSavoirPlusDarna: "اعرف أكثر على مراجعاتنا",
     nonVerifieTooltip:
@@ -470,6 +472,8 @@ export const ar: Dictionary = {
     prolongerALaUne: "طوّل في الواجهة",
     alaUneActif: (date: string) => `في الواجهة حتى ${date}`,
     alaUneSucces: "إعلانك ولّى في الواجهة! 🎉",
+    promoLien: "تخفيض",
+    promoActifBanner: (date: string) => `تخفيض فعّال حتى ${date}`,
     annonceMasqueeBanner: (date: string) =>
       `الإعلان تحجب مؤقتًا من نتائج البحث على خاطر إلغاء من عندك — باش يرجع يبان في ${date}.`,
     promoAlaUneTitre: "حطّ إعلاناتك في الواجهة",
@@ -953,6 +957,29 @@ export const ar: Dictionary = {
         : "") +
       `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — السكن المضمون.</p>` +
       `</div>`,
+    newBookingHostSujet: (titre: string) =>
+      `Darna — حجز جديد وصل: ${titre}`,
+    newBookingHostHtml: (p: {
+      hostName: string;
+      guestName: string;
+      propertyTitle: string;
+      checkIn: string;
+      checkOut: string;
+      guests: number;
+      url: string;
+    }) =>
+      `<div dir="rtl" style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
+      `<h1 style="color:#0f766e;font-size:20px">حجز جديد 🎉</h1>` +
+      `<p>أهلا ${p.hostName}،</p>` +
+      `<p><strong>${p.guestName}</strong> جا يحجز <strong>${p.propertyTitle}</strong>. الفلوس محميّة عند Darna وتتعطالك كي تكمّل الإقامة.</p>` +
+      `<table style="width:100%;border-collapse:collapse;margin:16px 0">` +
+      `<tr><td style="padding:6px 0;color:#6b7280">الدخول</td><td style="padding:6px 0;text-align:left;font-weight:600">${p.checkIn}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">الخروج</td><td style="padding:6px 0;text-align:left;font-weight:600">${p.checkOut}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">المسافرين</td><td style="padding:6px 0;text-align:left;font-weight:600">${p.guests}</td></tr>` +
+      `</table>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">شوف الحجز</a></p>` +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — السكن المضمون.</p>` +
+      `</div>`,
     bookingCancelledByHostSujet: (titre: string) =>
       `Darna — السفرة متاعك تلغات : ${titre}`,
     bookingCancelledByHostHtml: (p: {
@@ -1133,7 +1160,6 @@ export const ar: Dictionary = {
   booking: {
     titre: "طلب حجز",
     recapitulatif: "الملخّص — شفّاف 100٪",
-    prixNuit: "سوم الليلة",
     nuits: (n: number) =>
       n === 1
         ? "ليلة واحدة"
@@ -1142,7 +1168,6 @@ export const ar: Dictionary = {
           : n <= 10
             ? `${n} ليالي`
             : `${n} ليلة`,
-    sousTotal: "المجموع الجزئي",
     fraisService: "معلوم خدمة دارنا",
     fraisServiceAide: "يموّل توثيق الإعلانات وحماية الخلاصات.",
     total: "المبلغ الجملي",
@@ -1357,6 +1382,7 @@ export const ar: Dictionary = {
       `الإعلان متاعك « ${titre} » ما تحقّقش — ما عندكش كريدي توثيق باقي. اشري باقة باش تكمّل.`,
     annonceVerifPaiementRequis: (titre: string) =>
       `الإعلان متاعك « ${titre} » ما تحقّقش — خلّص التوثيق متاع الوكيل (20 دينار) باش يلزمو وكيل يعالجو.`,
+    reservationRecue: (titre: string) => `جالك حجز جديد على « ${titre} ».`,
   },
   alaUne: {
     titre: "حطّ إعلانك في الواجهة",
@@ -1405,6 +1431,28 @@ export const ar: Dictionary = {
     superHoteBoostBouton: "اطلب البوست متاع المضيف المثالي",
     superHoteBoostDejaUtilise:
       "بوست المضيف المثالي تستعمل ديجا من قريب — يرجع متوفر بعد شهرين ولا ثلاثة إذا بقا الوسام متاعك فعال.",
+  },
+  promo: {
+    titre: "عمل تخفيض على إعلانك",
+    sousTitre:
+      "نقّص في السوم وقتيًا باش تجبد أكثر حجوزات — الكنترول عندك بالكامل: السعر، المدة، وتنجم تسحبها في أي وقت.",
+    annonce: "الإعلان",
+    prixActuel: (prix: string) => `السعر الحالي: ${prix}`,
+    formPrixLabel: "سعر التخفيض (دينار / الليلة)",
+    formPrixAide: "لازم يكون أقل من السعر الحالي — هذا اللي المسافرين باش يخلصوه.",
+    formDateLabel: "التخفيض صالح حتى",
+    activer: "فعّل التخفيض",
+    retirer: "اسحب التخفيض",
+    retirerConfirmer: "تسحب هذا التخفيض؟",
+    retirerOui: "اسحب",
+    retirerAnnuler: "الغي",
+    actifTitre: "تخفيض فعّال",
+    actifDesc: (prixPromo: string, date: string) =>
+      `${prixPromo} / الليلة بدل السعر العادي، حتى ${date}.`,
+    indisponible: "هالتخفيض متاح غير للإعلانات الموثّقة والنشيطة.",
+    retour: "رجوع لإعلاناتي",
+    garantie:
+      "بلا التزام: تنجم تسحب التخفيض في أي وقت. الدخل متاعك في الليلة يبقى مضمون — إلي يتبدل هو غير عمولة دارنا.",
   },
   abonnement: {
     titre: "اشتراك الوكالة",

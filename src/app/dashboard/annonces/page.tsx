@@ -10,11 +10,13 @@ import {
 } from "@/actions/properties";
 import {
   FeaturedBadge,
+  PromoBadge,
   StatusBadge,
   TypeBadge,
   VerifiedBadge,
 } from "@/components/property/Badges";
-import { isListingFeatured } from "@/lib/listings";
+import { PromoPrice } from "@/components/property/PromoPrice";
+import { isListingFeatured, isPropertyPromoActive } from "@/lib/listings";
 import { formatDateFr } from "@/lib/format";
 import { Price } from "@/components/currency/Price";
 import { StarIcon } from "@/components/icons";
@@ -195,6 +197,16 @@ export default async function MesAnnoncesPage({
             const canRepublish = (p.status !== "ACTIVE" && !isPending) || isExpired;
             const featured = isListingFeatured(p.featuredUntil);
             const canFeature = p.status === "ACTIVE" && !isExpired;
+            // Promo hôte (§PM1) : réservée aux annonces vérifiées ACTIVE ET
+            // Séjour, comme setPropertyPromoAction — pas de promo sur du stock
+            // non fiable, et un prix promo n'a de sens qu'à la nuitée.
+            const promoActive =
+              p.verified && isPropertyPromoActive(p.promoUntil) && p.promoPrice !== null;
+            const canSetPromo =
+              p.status === "ACTIVE" && !isExpired && p.verified && p.vertical === "STAY";
+            // Une annonce non-Séjour avec une promo déjà posée (avant ce
+            // correctif) doit rester joignable pour la retirer.
+            const canManagePromo = canSetPromo || promoActive;
 
             return (
               <li
@@ -216,6 +228,14 @@ export default async function MesAnnoncesPage({
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-1.5">
                     {featured ? <FeaturedBadge small /> : null}
+                    {promoActive ? (
+                      <PromoBadge
+                        small
+                        price={p.price}
+                        promoPrice={p.promoPrice!}
+                        promoUntil={p.promoUntil!}
+                      />
+                    ) : null}
                     <TypeBadge type={p.type} />
                     {p.verified ? <VerifiedBadge small /> : null}
                     <StatusBadge status={effectiveExpired ? "EXPIREE" : p.status} />
@@ -223,7 +243,13 @@ export default async function MesAnnoncesPage({
                   <p className="mt-1.5 truncate font-semibold text-body">{p.title}</p>
                   <p className="text-sm text-body/60">
                     {p.city} ·{" "}
-                    <Price amount={p.price} className="font-semibold text-heading" />
+                    <PromoPrice
+                      price={p.price}
+                      promoPrice={p.promoPrice}
+                      promoUntil={p.promoUntil}
+                      verified={p.verified}
+                      className="font-semibold text-heading"
+                    />
                   </p>
                   <p
                     className={`mt-0.5 text-xs ${
@@ -240,6 +266,11 @@ export default async function MesAnnoncesPage({
                     <p className="mt-0.5 flex items-center gap-1 text-xs font-semibold text-amber-600">
                       <StarIcon width={12} height={12} className="fill-current" />
                       {fr.dashboard.alaUneActif(formatDateFr(p.featuredUntil))}
+                    </p>
+                  ) : null}
+                  {promoActive && p.promoUntil ? (
+                    <p className="mt-0.5 text-xs font-semibold text-emerald-600">
+                      {fr.dashboard.promoActifBanner(formatDateFr(p.promoUntil))}
                     </p>
                   ) : null}
                   {/* §AHC3 — encart de blocage : l'hôte voit que son annonce est
@@ -272,6 +303,14 @@ export default async function MesAnnoncesPage({
                     >
                       <StarIcon width={13} height={13} className="fill-current" />
                       {featured ? fr.dashboard.prolongerALaUne : fr.dashboard.mettreALaUne}
+                    </Link>
+                  ) : null}
+                  {canManagePromo ? (
+                    <Link
+                      href={`/dashboard/annonces/${p.id}/promo`}
+                      className="flex items-center justify-center gap-1.5 rounded-xl bg-emerald-100 px-3.5 py-2 text-center text-xs font-bold text-emerald-800 hover:bg-emerald-200"
+                    >
+                      {fr.dashboard.promoLien}
                     </Link>
                   ) : null}
                   {/* Vérification Wakil payante (§MI3, HOTE uniquement) : à

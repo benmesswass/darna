@@ -13,7 +13,7 @@ import { isSuspended } from "@/lib/suspension";
 import { CONTACT_MASK } from "@/lib/message-scan";
 import { contactRevealState } from "@/lib/contact-reveal";
 import type { CancelPolicy } from "@/lib/constants";
-import { LockIcon, ChevronLeftIcon } from "@/components/icons";
+import { LockIcon, ChevronLeftIcon, ArrowRightIcon } from "@/components/icons";
 
 export const metadata: Metadata = { title: frMeta.messages.titre };
 
@@ -80,7 +80,13 @@ export default async function MessagesPage({
       </Link>
 
       <h1 className="mt-4 text-2xl font-bold text-heading">{fr.messages.titre}</h1>
-      <p className="mt-1 text-sm text-body/60">{booking.property.title}</p>
+      <Link
+        href={`/annonce/${booking.property.slug}`}
+        className="mt-1 inline-flex items-center gap-1 text-sm text-body/60 underline-offset-2 hover:text-darna hover:underline"
+      >
+        {booking.property.title}
+        <ArrowRightIcon width={12} height={12} className="shrink-0 rtl:rotate-180" />
+      </Link>
 
       {/* Bandeau de sécurité : coordonnées masquées tant que la réservation
           n'est pas ferme (anti-bypass). */}

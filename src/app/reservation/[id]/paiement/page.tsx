@@ -50,6 +50,7 @@ export default async function PaiementPage({
     guests: true,
     checkIn: true,
     checkOut: true,
+    nightlyPrice: true,
     serviceFee: true,
     totalPrice: true,
     depositAmount: true,
@@ -106,6 +107,9 @@ export default async function PaiementPage({
   // contact » avant paiement.
   const isWakilVerified = booking.property.verificationLevel === "ON_SITE";
   const balanceDue = booking.totalPrice - booking.amountPaid;
+  const nights = Math.round(
+    (booking.checkOut.getTime() - booking.checkIn.getTime()) / (24 * 60 * 60 * 1000)
+  );
 
   // Politique d'annulation traduite en DATES précises (paliers de remboursement
   // calculés depuis le check-in), comme chez les concurrents.
@@ -129,7 +133,9 @@ export default async function PaiementPage({
         <dd className="text-body/70">{fr.property.capacite(booking!.guests)}</dd>
       </div>
       <div className="flex justify-between">
-        <dt className="text-body/70">{fr.booking.sousTotal}</dt>
+        <dt className="text-body/70">
+          <Price amount={booking!.nightlyPrice} /> × {fr.booking.nuits(nights)}
+        </dt>
         <dd>
           <Price
             amount={booking!.totalPrice - booking!.serviceFee}

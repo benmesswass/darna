@@ -669,12 +669,20 @@ export async function setPropertyPromoAction(
   if (!property) return { error: fr.common.erreurInconnue };
 
   // On relit prix/statut/vérif en base (jamais confiance au client) : seule
-  // une annonce ACTIVE, non expirée ET vérifiée peut recevoir une promo.
+  // une annonce ACTIVE, non expirée, vérifiée ET Séjour peut recevoir une
+  // promo — un prix promo n'a de sens qu'à la nuitée (bug remonté en test :
+  // une annonce IMMO/vente affichait un "prix par nuit").
   const fresh = await prisma.property.findUnique({
     where: { id: property.id },
-    select: { price: true, status: true, expiresAt: true, verified: true },
+    select: { price: true, status: true, expiresAt: true, verified: true, vertical: true },
   });
-  if (!fresh || fresh.status !== "ACTIVE" || fresh.expiresAt.getTime() < Date.now() || !fresh.verified) {
+  if (
+    !fresh ||
+    fresh.status !== "ACTIVE" ||
+    fresh.expiresAt.getTime() < Date.now() ||
+    !fresh.verified ||
+    fresh.vertical !== "STAY"
+  ) {
     return { error: fr.annonceForm.promoAnnonceNonEligible };
   }
 

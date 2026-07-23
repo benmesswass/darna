@@ -44,6 +44,7 @@
 | # | Tâche | Prio | Statut | Détail |
 |---|-------|------|--------|--------|
 | F10 | Vérifier/exposer clairement un flux d'annulation self-service côté voyageur dans le dashboard | P1 | ✅ | **Déjà livré avant cette roadmap** (PR #56) : `CancelBookingButton` (`src/components/booking/CancelBookingButton.tsx`) est bien branché dans `src/app/dashboard/reservations/page.tsx` pour toute réservation `CONFIRMEE` (confirmation + calcul du remboursement via `computeBookingRefund`). Entrée corrigée après vérification — aucun code écrit ici. |
+| F11 | Notification hôte à la réception d'une nouvelle réservation confirmée + lien direct vers l'annonce depuis le fil de messagerie | P1 | ✅ | Nouveau type `RESERVATION_RECUE` (`src/lib/notification-center.ts` → `notifyNewBookingReceived`, `src/lib/notifications.ts` → `sendNewBookingHostEmail`) branché aux deux points de confirmation ESCROW (`confirmPaymentAction` mock + `settleKonnectBooking` Konnect) — jamais sur l'acceptation cash par l'hôte lui-même (déjà notifié via `DEMANDE_CASH_RECUE`, et acteur de sa propre action). Titre de l'annonce rendu cliquable (`/annonce/[slug]`) dans l'en-tête du fil `src/app/reservation/[id]/messages/page.tsx`. |
 
 ---
 
@@ -62,6 +63,7 @@
 8. ✅ F9 — centre de notifications in-app.
 9. ✅ F7 — alertes de recherche sauvegardée.
 10. ✅ F2 — sous-notes d'avis.
+11. ✅ F11 — notification hôte nouvelle réservation + lien annonce depuis la messagerie.
 
 **Toutes les tâches de `FEATURES_ROADMAP.md` sont désormais livrées.** Voir `DESIGN_ROADMAP.md` et `QA_ROADMAP.md` pour les prochaines priorités produit.
 

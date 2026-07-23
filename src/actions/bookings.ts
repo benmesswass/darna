@@ -29,6 +29,7 @@ import { hasOverdueHostInvoice } from "@/lib/host-invoicing";
 import {
   sendBookingConfirmationEmail,
   sendBookingCancelledByHostEmail,
+  sendNewBookingHostEmail,
 } from "@/lib/notifications";
 import { computeBookingRefund } from "@/lib/cancellation";
 import {
@@ -38,6 +39,7 @@ import {
   notifyCashBookingDeclined,
   notifyCashBookingRequested,
   notifyGuestReviewReceived,
+  notifyNewBookingReceived,
   notifyReviewReceived,
 } from "@/lib/notification-center";
 import { isSuspended, applySuspension } from "@/lib/suspension";
@@ -337,6 +339,8 @@ export type BookingQuote =
   | {
       ok: true;
       nights: number;
+      /** Prix/nuit RÉELLEMENT appliqué (promo hôte incluse) — affiché au récap, jamais recalculé côté client. */
+      nightlyPrice: number;
       subtotal: number;
       serviceFee: number;
       total: number;
@@ -456,7 +460,7 @@ export async function quoteBookingAction(input: {
     }
   }
 
-  return { ok: true, nights, subtotal, serviceFee, total, discount };
+  return { ok: true, nights, nightlyPrice, subtotal, serviceFee, total, discount };
 }
 
 /** Montant choisi à la réservation : borné [acompte, total] côté serveur. */
@@ -546,6 +550,8 @@ export async function confirmPaymentAction(formData: FormData): Promise<void> {
 
   await sendBookingConfirmationEmail(booking.id);
   await notifyBookingConfirmed(booking.id);
+  await sendNewBookingHostEmail(booking.id);
+  await notifyNewBookingReceived(booking.id);
 
   revalidatePath(`/reservation/${booking.id}/paiement`);
   revalidatePath("/dashboard/reservations");
