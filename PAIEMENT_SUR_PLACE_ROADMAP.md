@@ -200,6 +200,40 @@ exemples de discussion, pas des tarifs validés).
 
 ---
 
+## Question produit — tarification différenciée en ligne / sur place (ouverte, 2026-07-20)
+
+Idée (Wassim) : inciter le Rail ESCROW en rendant le Rail SUR_PLACE plus
+cher pour le voyageur, avec un upside pour l'hôte. Reformulée après
+critique :
+
+- Cadrage **réduction si paiement en ligne** (pas surcharge cash) —
+  cohérent avec "zéro frais caché".
+- Incitation concentrée côté **hôte** (upside à activer
+  `cashPaymentEnabled`), pas côté voyageur — c'est là que le manque à
+  gagner actuel est réel et le moins problématique éthiquement (aujourd'hui
+  l'hôte touche 1000 TND net dans les deux rails, aucune raison d'accepter
+  le risque du Rail 2).
+- Ne règle pas le no-show (déjà traité par acceptation hôte + KYC +
+  suspension, section ci-dessus) ni le recouvrement HostInvoice (déjà
+  traité par PSP6/PSP8) — seulement le manque à gagner de la commission.
+- **À valider avant de figer un delta chiffré** : mesurer, avec du volume
+  réel post-Flouci, qui choisit encore le Rail 2 alors qu'il pourrait payer
+  en ligne — la population vraiment captive rétrécit déjà mécaniquement
+  (§0bis), donc l'effet incitatif réel du levier prix est probablement plus
+  faible qu'il ne semble sur le papier.
+- **Comment mesurer, concrètement** : pas besoin du chantier `ProductEvent`
+  (`INSTRUMENTATION_ROADMAP.md`, IN0-IN4, non démarré) — `paymentMode` est
+  déjà un champ persisté sur `Booking` depuis PSP1. Un `prisma.booking.groupBy({
+  by: ["paymentMode"] })` de plus dans `getFounderAnalytics()`
+  (`src/lib/analytics.ts`, même pattern que les groupBy déjà en place),
+  affiché dans `/dashboard/admin/analytics` existant, suffit. Aucune
+  dépendance, aucun jour d'effort supplémentaire.
+
+Statut : réflexion — pas de delta chiffré ni d'implémentation tant que non
+tranché.
+
+---
+
 ## Phases
 
 | # | Tâche | Prio | Statut | Détail |
