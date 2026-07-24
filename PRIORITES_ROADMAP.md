@@ -103,7 +103,7 @@ ligne en litige.
 | # | Tâche | Prio source | Roadmap | Dépend de |
 |---|---|---|---|---|
 | 15 | **PM2** — Nudge promo automatique | P1 | CROISSANCE | PM0/PM1 |
-| 16 | **CR2** — Parrainage hôte | P1 | CROISSANCE | CR0 |
+| 16 | **CR2** — Parrainage hôte | P1 | CROISSANCE | 🔧 PR #192 — détection+crédit faits, dépense sur vérif/boost/abonnement restante |
 | 17 | **CR3** — Crédit de bienvenue spontané | P2 | CROISSANCE | CR0 |
 | 18 | **G6** — Relance de réservation abandonnée | P1 | GROWTH | Tension « zéro cron » à trancher avec toi (voir fichier source) |
 | 19 | **G5** — Signaux de dynamique temps réel | P2 | GROWTH | IN1 (`BOOKING_STARTED` pour mesurer) |
