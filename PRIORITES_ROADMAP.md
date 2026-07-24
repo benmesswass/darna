@@ -35,7 +35,7 @@ ligne G9 par `✅ Voir CR0-CR2 (CROISSANCE_ROADMAP.md)`.
 
 | Item | Roadmap | Attend |
 |---|---|---|
-| **PSP9** | `PAIEMENT_SUR_PLACE_ROADMAP.md` | Ton arbitrage tarification en ligne/sur place — PR #157 déjà ouverte, CI verte, prête dès que tu trancheS |
+| **PSP9** | `PAIEMENT_SUR_PLACE_ROADMAP.md` | Ton arbitrage tarification en ligne/sur place — corrigé le 2026-07-24 : PR #157 (mergée) n'a documenté QUE la question ouverte, aucun code PSP9 n'existe, rien à merger — tout reste à écrire une fois l'arbitrage tranché |
 | **MI5** | `MONETISATION_IMMO_ROADMAP.md` | Partenariat bancaire externe non signé — le lead-capture (modèle `FinancingLead`) peut être codé en amont si tu veux avancer sans attendre |
 
 ## ✅ Chantiers clos ou quasi (rien d'urgent)
@@ -75,7 +75,7 @@ ligne en litige.
 | 7 | **CR0** — Fondations crédits (`CreditWallet`/`CreditTransaction`/`referralCode`) | P0 | CROISSANCE | Séquencé après PM0/PM1 par `CROISSANCE_ROADMAP.md` |
 | 8 | **IN2** — Adoption features (`SIMULATOR_USED`, `SHARE_CLICKED`, `SAVED_SEARCH_CREATED`, `MAP_INTERACTED`) | P1 | INSTRUMENTATION | ✅ PR #173 — 1ère touche d'acquisition (`ref`/UTM) différée à `CROISSANCE_ROADMAP.md` §CR0 (aucun consommateur avant le vrai modèle d'attribution) |
 | 9 | **G2** — Barre de complétude d'annonce | P1 | GROWTH | ✅ PR #179 |
-| 10 | **G1** — Simulateur de revenus | P1 | GROWTH | Idem |
+| 10 | **G1** — Simulateur de revenus | P1 | GROWTH | ❌ pas commencé — corrigé le 2026-07-24 : confondu à tort avec PR #179 (qui ne couvrait que G2), aucun code trouvé (`GROWTH_ROADMAP.md` le montre bien `❌`) |
 
 ### Vague 3
 
