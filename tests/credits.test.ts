@@ -22,14 +22,19 @@ vi.mock("@/lib/prisma", () => ({
       findFirst: vi.fn(),
       update: vi.fn(),
       updateMany: vi.fn(),
+      count: vi.fn(),
     },
     user: {
       findUnique: vi.fn(),
       findUniqueOrThrow: vi.fn(),
       update: vi.fn(),
+      findMany: vi.fn(),
     },
+    property: { findFirst: vi.fn() },
+    booking: { findFirst: vi.fn() },
   },
 }));
+vi.mock("@/lib/bookings", () => ({ completeElapsedBookings: vi.fn() }));
 
 import {
   computeCreditApplication,
@@ -38,10 +43,11 @@ import {
   findUserByReferralCode,
   issueCredit,
   refundCreditForBooking,
+  settleHostReferralMilestones,
   spendCredit,
 } from "@/lib/credits";
 import { prisma } from "@/lib/prisma";
-import { CREDIT_VALIDITY_DAYS } from "@/lib/config";
+import { CREDIT_VALIDITY_DAYS, HOST_REFERRAL_BONUS_TND, HOST_REFERRAL_YEARLY_CAP } from "@/lib/config";
 
 const walletFindUnique = prisma.creditWallet.findUnique as unknown as Mock;
 const walletFindUniqueOrThrow = prisma.creditWallet.findUniqueOrThrow as unknown as Mock;
@@ -53,9 +59,13 @@ const transactionFindMany = prisma.creditTransaction.findMany as unknown as Mock
 const transactionFindFirst = prisma.creditTransaction.findFirst as unknown as Mock;
 const transactionUpdate = prisma.creditTransaction.update as unknown as Mock;
 const transactionUpdateMany = prisma.creditTransaction.updateMany as unknown as Mock;
+const transactionCount = prisma.creditTransaction.count as unknown as Mock;
 const userFindUnique = prisma.user.findUnique as unknown as Mock;
 const userFindUniqueOrThrow = prisma.user.findUniqueOrThrow as unknown as Mock;
 const userUpdate = prisma.user.update as unknown as Mock;
+const userFindMany = prisma.user.findMany as unknown as Mock;
+const propertyFindFirst = prisma.property.findFirst as unknown as Mock;
+const bookingFindFirst = prisma.booking.findFirst as unknown as Mock;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -67,6 +77,10 @@ beforeEach(() => {
   transactionFindMany.mockResolvedValue([]);
   walletUpsert.mockResolvedValue({ id: "wallet-1" });
   transactionCreate.mockResolvedValue({});
+  // §CR2 : par défaut, aucun filleul/jalon — les tests CR0/CR1/CR4 existants
+  // n'appellent pas settleHostReferralMilestones, ces defaults ne les affectent pas.
+  transactionCount.mockResolvedValue(0);
+  userFindMany.mockResolvedValue([]);
 });
 
 describe("creditBalance", () => {
@@ -317,6 +331,92 @@ describe("refundCreditForBooking (§CR4)", () => {
 
     expect(walletUpsert).not.toHaveBeenCalled();
     expect(transactionCreate).not.toHaveBeenCalled();
+  });
+});
+
+describe("settleHostReferralMilestones (§CR2)", () => {
+  it("ne fait rien si aucun filleul", async () => {
+    userFindMany.mockResolvedValue([]);
+    await settleHostReferralMilestones("parrain-1");
+    expect(propertyFindFirst).not.toHaveBeenCalled();
+    expect(transactionCreate).not.toHaveBeenCalled();
+  });
+
+  it("crédite le parrain quand un filleul a une annonce vérifiée ACTIVE ET une résa TERMINEE", async () => {
+    userFindMany.mockResolvedValue([{ id: "filleul-1" }]);
+    propertyFindFirst.mockResolvedValue({ id: "prop-1" });
+    bookingFindFirst.mockResolvedValue({ id: "booking-1" });
+
+    await settleHostReferralMilestones("parrain-1");
+
+    expect(walletUpsert).toHaveBeenCalledWith({
+      where: { userId: "parrain-1" },
+      create: { userId: "parrain-1", balance: HOST_REFERRAL_BONUS_TND },
+      update: { balance: { increment: HOST_REFERRAL_BONUS_TND } },
+    });
+    expect(transactionCreate).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        amount: HOST_REFERRAL_BONUS_TND,
+        motif: "PARRAINAGE_FILLEUL_TERMINE",
+        referredUserId: "filleul-1",
+      }),
+    });
+  });
+
+  it("ne crédite rien si le filleul n'a pas encore d'annonce vérifiée ACTIVE", async () => {
+    userFindMany.mockResolvedValue([{ id: "filleul-1" }]);
+    propertyFindFirst.mockResolvedValue(null);
+
+    await settleHostReferralMilestones("parrain-1");
+
+    expect(bookingFindFirst).not.toHaveBeenCalled();
+    expect(transactionCreate).not.toHaveBeenCalled();
+  });
+
+  it("ne crédite rien si le filleul a une annonce vérifiée mais aucune résa TERMINEE", async () => {
+    userFindMany.mockResolvedValue([{ id: "filleul-1" }]);
+    propertyFindFirst.mockResolvedValue({ id: "prop-1" });
+    bookingFindFirst.mockResolvedValue(null);
+
+    await settleHostReferralMilestones("parrain-1");
+
+    expect(transactionCreate).not.toHaveBeenCalled();
+  });
+
+  it("exclut les filleuls déjà récompensés de la recherche (idempotence)", async () => {
+    transactionFindMany.mockResolvedValue([{ referredUserId: "deja-recompense" }]);
+    userFindMany.mockResolvedValue([]);
+
+    await settleHostReferralMilestones("parrain-1");
+
+    expect(userFindMany).toHaveBeenCalledWith({
+      where: { referredById: "parrain-1", id: { notIn: ["deja-recompense"] } },
+      select: { id: true },
+    });
+  });
+
+  it("plafonne à HOST_REFERRAL_YEARLY_CAP filleuls récompensés par an glissant", async () => {
+    transactionCount.mockResolvedValue(HOST_REFERRAL_YEARLY_CAP);
+    userFindMany.mockResolvedValue([{ id: "filleul-1" }]);
+
+    await settleHostReferralMilestones("parrain-1");
+
+    expect(userFindMany).not.toHaveBeenCalled();
+    expect(transactionCreate).not.toHaveBeenCalled();
+  });
+
+  it("s'arrête dès que le plafond annuel est atteint en cours de boucle (plusieurs candidats)", async () => {
+    transactionCount.mockResolvedValue(HOST_REFERRAL_YEARLY_CAP - 1); // 1 slot restant
+    userFindMany.mockResolvedValue([{ id: "filleul-1" }, { id: "filleul-2" }]);
+    propertyFindFirst.mockResolvedValue({ id: "prop-1" });
+    bookingFindFirst.mockResolvedValue({ id: "booking-1" });
+
+    await settleHostReferralMilestones("parrain-1");
+
+    expect(transactionCreate).toHaveBeenCalledTimes(1);
+    expect(transactionCreate).toHaveBeenCalledWith({
+      data: expect.objectContaining({ referredUserId: "filleul-1" }),
+    });
   });
 });
 
