@@ -238,6 +238,9 @@ export const CREDIT_TRANSACTION_MOTIFS = [
   "UTILISATION_SERVICE_HOTE",
   "EXPIRATION",
   "AJUSTEMENT_ADMIN",
+  // Restitution (CROISSANCE_ROADMAP.md §CR4) : la résa qui avait consommé du
+  // crédit est annulée-remboursée — le crédit dépensé est réémis.
+  "REMBOURSEMENT_RESERVATION_ANNULEE",
 ] as const;
 export type CreditTransactionMotif = (typeof CREDIT_TRANSACTION_MOTIFS)[number];
 
