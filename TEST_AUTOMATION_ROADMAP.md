@@ -572,6 +572,53 @@ place.
 
 ---
 
+## 11. Dette technique — dépendances majeures bloquées (2026-07-24)
+
+> Revue exhaustive des PR Dependabot ouvertes (build/tsc/lint/test/e2e/api en
+> local, quota GitHub Actions épuisé oblige — cf. exception CI de `CLAUDE.md`).
+> Chaque bump majeur testé individuellement avant merge ; ceux listés ici ont
+> échoué pour un motif technique précis, pas par prudence générique.
+
+- [ ] **Next.js 16 + eslint-config-next 16** (PR #137/#134, **P2**) —
+      **fixable, pas bloqué en amont** : `eslint-config-next@16` expose un
+      export flat-config natif qui remplace `FlatCompat.extends("next/core-
+      web-vitals", "next/typescript")` dans `eslint.config.mjs` (legacy,
+      cause du crash `Converting circular structure to JSON` avec ESLint 9
+      **et** 10). Bascule testée et confirmée fonctionnelle. Mais elle fait
+      remonter **38 erreurs réelles sur ~30 fichiers** : le
+      `eslint-plugin-react-hooks` bundlé (v7.x) applique les règles strictes
+      "Rules of React" (`react-hooks/purity`, `react-hooks/set-state-in-
+      effect`) — ex. `Date.now()` pendant le rendu dans les 3 pages détail
+      annonce (`ListingDetail`/`ImmoDetail`/`StayDetail`, risque faible en
+      pratique, Server Components rendus une fois par requête), ou un
+      `setState` synchrone dans un `useEffect` de montage (`ThemeToggle`,
+      pattern usuel de sync post-hydratation). Chantier : migrer
+      `eslint.config.mjs` vers l'export natif, puis auditer/corriger (ou
+      justifier par un commentaire, comme la convention `nosemgrep` déjà en
+      place) chacun des ~30 fichiers. Ni urgent ni bloquant produit — mais
+      pas à re-router silencieusement dans un futur bump.
+- [ ] **Prisma 7** (PR #136, **P2**) — vrai chantier de migration, pas un
+      bump : Prisma 7 supprime `url`/`directUrl` du bloc `datasource` du
+      schema (`P1012` au `prisma generate`), il faut migrer vers
+      `prisma.config.ts` + un driver adapter (`accelerateUrl` ou `adapter`,
+      cf. https://pris.ly/d/config-datasource). Introduit aussi une vraie
+      vulnérabilité haute en l'état (`find-my-way` via `@prisma/dev`,
+      GHSA-c96f-x56v-gq3h) — à ne pas adopter tel quel même une fois la
+      migration schema faite, revérifier l'audit à ce moment-là.
+- [ ] **TypeScript 7 + ESLint 10 seuls** (PR #133/#131, **P3, bloqué en
+      amont**) — rien à faire côté Darna : `typescript-eslint` refuse
+      explicitement de tourner sur TS7 (issue de suivi amont
+      typescript-eslint/typescript-eslint#10940) ; `eslint-config-next`
+      actuel (15.x) rejette ESLint 10 en peer dependency, et même
+      `eslint-config-next@16` (cf. item Next 16 ci-dessus) n'y change rien.
+      À revoir quand `typescript-eslint` publiera un support TS7.
+
+Les 5 PR correspondantes ont été fermées côté GitHub (`@dependabot ignore
+this major version`) avec le détail technique en commentaire sur chacune —
+Dependabot les reproposera de lui-même dès qu'une version compatible sort.
+
+---
+
 *Document vivant — mis à jour à chaque phase livrée. Propriétaire : rôle Test
 Lead / QA. Complémentaire de `QA_ROADMAP.md`, `FEATURES_ROADMAP.md`,
 `DESIGN_ROADMAP.md`.*
