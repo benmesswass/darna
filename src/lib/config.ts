@@ -80,6 +80,14 @@ export const REBOOKING_DISCOUNT_CAP_TND = 150;
 export const REBOOKING_DISCOUNT_VALIDITY_DAYS = 30;
 
 /**
+ * Durée de validité d'un crédit émis (programme parrainage/bienvenue,
+ * CROISSANCE_ROADMAP.md §CR0) avant expiration automatique — ~6 mois, levier
+ * de rentabilité (breakage, cf. §CR6). Compté depuis l'émission, par crédit
+ * (pas par wallet) — cf. issueCredit, src/lib/credits.ts.
+ */
+export const CREDIT_VALIDITY_DAYS = 182;
+
+/**
  * Signal réputationnel « annulé par l'hôte » (ANNULATION_HOTE_CORRECTIFS
  * _ROADMAP.md §AHC7, benchmark Airbnb) : chaque annulation hôte apparaît
  * comme une entrée système dans les avis de l'ANNONCE concernée, dès la 1re
