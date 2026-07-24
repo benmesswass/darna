@@ -585,6 +585,7 @@ checkout → setup-node 22 → npm ci → prisma generate → prisma migrate dep
 - [ ] No copy-paste duplication of a guard/validation (extract & reuse).
 - [ ] Naming/idiom matches surrounding code; i18n keys added in **all three** dictionaries.
 - [ ] Tests added/updated for the changed behavior; **QA_ROADMAP.md updated** if a sensitive surface changed.
+- [ ] New user-visible product feature emits its `ProductEvent`(s) in the **same PR** (see `INSTRUMENTATION_ROADMAP.md` §IN4) — same discipline as the audit-log rule above for sensitive surfaces.
 
 **Performance**
 - [ ] No **N+1** (use `include`/`select`, batch); list queries hit an index.

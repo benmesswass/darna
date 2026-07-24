@@ -116,7 +116,7 @@ ligne en litige.
 | 21 | **CR5 / PM4** — Dashboards exposition/décision | P1/P2 | CROISSANCE | CR0-CR3/PM0-PM3 |
 | 22 | **G7** — Fidélité voyageur cumulative | P2 | GROWTH | Historique de réservations réel |
 | 23 | **CR6** — Leviers de rentabilité long terme | P2 | CROISSANCE | Données réelles disponibles |
-| 24 | **IN4** — Discipline continue (checklist `QA_ROADMAP.md`) | P2 | INSTRUMENTATION | Process, pas du code — à adopter dès IN1 livré |
+| 24 | **IN4** — Discipline continue (checklist `QA_ROADMAP.md`) | P2 | INSTRUMENTATION | ✅ PR #196 — `INSTRUMENTATION_ROADMAP.md` clos à 100 % (IN0-IN4) |
 
 ### Optionnel / opportuniste (pas de fenêtre imposée)
 
