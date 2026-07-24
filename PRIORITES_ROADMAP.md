@@ -38,6 +38,18 @@ ligne G9 par `✅ Voir CR0-CR2 (CROISSANCE_ROADMAP.md)`.
 | **PSP9** | `PAIEMENT_SUR_PLACE_ROADMAP.md` | Ton arbitrage tarification en ligne/sur place — corrigé le 2026-07-24 : PR #157 (mergée) n'a documenté QUE la question ouverte, aucun code PSP9 n'existe, rien à merger — tout reste à écrire une fois l'arbitrage tranché |
 | **MI5** | `MONETISATION_IMMO_ROADMAP.md` | Partenariat bancaire externe non signé — le lead-capture (modèle `FinancingLead`) peut être codé en amont si tu veux avancer sans attendre |
 
+## 🔧 Dette dépendances (ni bloqué sur toi, ni du code produit)
+
+Revue complète des PR Dependabot faite le 2026-07-24 (12/17 mergées). Détail
+technique complet dans `TEST_AUTOMATION_ROADMAP.md` §11 — 5 PR fermées
+(`@dependabot ignore this major version`), pas perdues :
+
+| Item | Roadmap source | Nature du blocage |
+|---|---|---|
+| Next.js 16 + eslint-config-next 16 | TEST_AUTOMATION §11 | Fixable (migration `eslint.config.mjs` identifiée) mais fait remonter 38 erreurs "Rules of React" sur ~30 fichiers — chantier dédié, pas un bump |
+| Prisma 7 | TEST_AUTOMATION §11 | Vrai chantier de migration (schema → `prisma.config.ts` + adapter) |
+| TypeScript 7 + ESLint 10 seuls | TEST_AUTOMATION §11 | Bloqué en amont (`typescript-eslint` ne supporte pas encore TS7) — rien à faire, revoir périodiquement |
+
 ## ✅ Chantiers clos ou quasi (rien d'urgent)
 
 - `ANNULATION_HOTE_ROADMAP.md` + `ANNULATION_HOTE_CORRECTIFS_ROADMAP.md` — 100 %, clos 2026-07-08
