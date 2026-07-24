@@ -14,8 +14,15 @@ vi.mock("@/lib/prisma", () => ({
       findUniqueOrThrow: vi.fn(),
       upsert: vi.fn(),
       updateMany: vi.fn(),
+      update: vi.fn(),
     },
-    creditTransaction: { create: vi.fn() },
+    creditTransaction: {
+      create: vi.fn(),
+      findMany: vi.fn(),
+      findFirst: vi.fn(),
+      update: vi.fn(),
+      updateMany: vi.fn(),
+    },
     user: {
       findUnique: vi.fn(),
       findUniqueOrThrow: vi.fn(),
@@ -30,6 +37,7 @@ import {
   ensureReferralCode,
   findUserByReferralCode,
   issueCredit,
+  refundCreditForBooking,
   spendCredit,
 } from "@/lib/credits";
 import { prisma } from "@/lib/prisma";
@@ -39,7 +47,12 @@ const walletFindUnique = prisma.creditWallet.findUnique as unknown as Mock;
 const walletFindUniqueOrThrow = prisma.creditWallet.findUniqueOrThrow as unknown as Mock;
 const walletUpsert = prisma.creditWallet.upsert as unknown as Mock;
 const walletUpdateMany = prisma.creditWallet.updateMany as unknown as Mock;
+const walletUpdate = prisma.creditWallet.update as unknown as Mock;
 const transactionCreate = prisma.creditTransaction.create as unknown as Mock;
+const transactionFindMany = prisma.creditTransaction.findMany as unknown as Mock;
+const transactionFindFirst = prisma.creditTransaction.findFirst as unknown as Mock;
+const transactionUpdate = prisma.creditTransaction.update as unknown as Mock;
+const transactionUpdateMany = prisma.creditTransaction.updateMany as unknown as Mock;
 const userFindUnique = prisma.user.findUnique as unknown as Mock;
 const userFindUniqueOrThrow = prisma.user.findUniqueOrThrow as unknown as Mock;
 const userUpdate = prisma.user.update as unknown as Mock;
@@ -48,6 +61,10 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // Par défaut : aucune émission à balayer/consommer (sweepExpiredCredits et
+  // la boucle FIFO de spendCredit no-opent) — les tests CR0/CR1 existants ne
+  // s'en préoccupent pas ; les tests CR4 ci-dessous surchargent explicitement.
+  transactionFindMany.mockResolvedValue([]);
   walletUpsert.mockResolvedValue({ id: "wallet-1" });
   transactionCreate.mockResolvedValue({});
 });
@@ -61,6 +78,45 @@ describe("creditBalance", () => {
   it("renvoie le solde stocké si une ligne existe", async () => {
     walletFindUnique.mockResolvedValue({ balance: 25 });
     expect(await creditBalance("u1")).toBe(25);
+  });
+});
+
+describe("creditBalance — purge des émissions expirées (§CR4)", () => {
+  it("balaie une émission expirée : décrémente le wallet et journalise EXPIRATION", async () => {
+    walletFindUnique.mockResolvedValue({ id: "wallet-1", balance: 15 });
+    transactionFindMany.mockResolvedValue([{ id: "tx-1", remainingAmount: 15 }]);
+    transactionUpdateMany.mockResolvedValue({ count: 1 });
+
+    await creditBalance("u1");
+
+    expect(transactionUpdateMany).toHaveBeenCalledWith({
+      where: { id: "tx-1", remainingAmount: 15 },
+      data: { remainingAmount: 0 },
+    });
+    expect(walletUpdate).toHaveBeenCalledWith({
+      where: { id: "wallet-1" },
+      data: { balance: { decrement: 15 } },
+    });
+    expect(transactionCreate).toHaveBeenCalledWith({
+      data: { walletId: "wallet-1", amount: -15, motif: "EXPIRATION" },
+    });
+  });
+
+  it("ignore une émission déjà balayée par un appel concurrent (updateMany count=0)", async () => {
+    walletFindUnique.mockResolvedValue({ id: "wallet-1", balance: 0 });
+    transactionFindMany.mockResolvedValue([{ id: "tx-1", remainingAmount: 15 }]);
+    transactionUpdateMany.mockResolvedValue({ count: 0 });
+
+    await creditBalance("u1");
+
+    expect(walletUpdate).not.toHaveBeenCalled();
+    expect(transactionCreate).not.toHaveBeenCalled();
+  });
+
+  it("n'appelle rien si aucun wallet n'existe (rien à balayer)", async () => {
+    walletFindUnique.mockResolvedValue(null);
+    await creditBalance("u1");
+    expect(transactionFindMany).not.toHaveBeenCalled();
   });
 });
 
@@ -121,6 +177,13 @@ describe("issueCredit", () => {
     const createOrder = transactionCreate.mock.invocationCallOrder[0];
     expect(upsertOrder).toBeLessThan(createOrder);
   });
+
+  it("pose remainingAmount = amount à l'émission (§CR4 — base de la purge/consommation FIFO)", async () => {
+    await issueCredit({ userId: "u1", amount: 40, motif: "BIENVENUE_PARRAINAGE" });
+    expect(transactionCreate).toHaveBeenCalledWith({
+      data: expect.objectContaining({ remainingAmount: 40 }),
+    });
+  });
 });
 
 describe("spendCredit", () => {
@@ -163,6 +226,97 @@ describe("spendCredit", () => {
     const upsertOrder = walletUpsert.mock.invocationCallOrder[0];
     const updateManyOrder = walletUpdateMany.mock.invocationCallOrder[0];
     expect(upsertOrder).toBeLessThan(updateManyOrder);
+  });
+});
+
+describe("spendCredit — consommation FIFO + purge (§CR4)", () => {
+  beforeEach(() => {
+    walletUpdateMany.mockResolvedValue({ count: 1 });
+    walletFindUniqueOrThrow.mockResolvedValue({ id: "wallet-1" });
+  });
+
+  it("consomme l'émission la plus ancienne en premier, intégralement si elle suffit", async () => {
+    transactionFindMany.mockResolvedValue([{ id: "tx-old", remainingAmount: 30 }]);
+
+    await spendCredit({ userId: "u1", amount: 20, motif: "UTILISATION_RESERVATION" });
+
+    expect(transactionUpdate).toHaveBeenCalledWith({
+      where: { id: "tx-old" },
+      data: { remainingAmount: { decrement: 20 } },
+    });
+    expect(transactionUpdate).toHaveBeenCalledTimes(1);
+  });
+
+  it("déborde sur l'émission suivante si la plus ancienne ne suffit pas (FIFO)", async () => {
+    transactionFindMany.mockResolvedValue([
+      { id: "tx-old", remainingAmount: 5 },
+      { id: "tx-new", remainingAmount: 100 },
+    ]);
+
+    await spendCredit({ userId: "u1", amount: 20, motif: "UTILISATION_RESERVATION" });
+
+    expect(transactionUpdate).toHaveBeenNthCalledWith(1, {
+      where: { id: "tx-old" },
+      data: { remainingAmount: { decrement: 5 } },
+    });
+    expect(transactionUpdate).toHaveBeenNthCalledWith(2, {
+      where: { id: "tx-new" },
+      data: { remainingAmount: { decrement: 15 } },
+    });
+  });
+
+  it("balaie les émissions expirées AVANT de tenter la dépense (solde déjà réduit par la purge)", async () => {
+    // Le solde agrégé est la seule source de vérité pour le updateMany gardé
+    // ci-dessus (déjà testé) ; ce test vérifie juste l'ORDRE d'appel : le
+    // balayage (déclenché par un wallet existant) a lieu avant le
+    // prélèvement, jamais après.
+    walletFindUnique.mockResolvedValue({ id: "wallet-1" });
+    transactionFindMany.mockResolvedValue([]);
+    await spendCredit({ userId: "u1", amount: 10, motif: "UTILISATION_RESERVATION" });
+
+    const findManyOrder = transactionFindMany.mock.invocationCallOrder[0];
+    const updateManyOrder = walletUpdateMany.mock.invocationCallOrder[0];
+    expect(findManyOrder).toBeLessThan(updateManyOrder);
+  });
+});
+
+describe("refundCreditForBooking (§CR4)", () => {
+  it("ne fait rien si aucune dépense de crédit n'est liée à cette résa", async () => {
+    transactionFindFirst.mockResolvedValue(null);
+    await refundCreditForBooking("booking-1");
+    expect(walletUpsert).not.toHaveBeenCalled();
+  });
+
+  it("réémet le montant exact dépensé, motif REMBOURSEMENT_RESERVATION_ANNULEE", async () => {
+    transactionFindFirst
+      .mockResolvedValueOnce({ amount: -20, wallet: { userId: "u1" } }) // la dépense trouvée
+      .mockResolvedValueOnce(null); // pas déjà remboursée
+
+    await refundCreditForBooking("booking-1");
+
+    expect(walletUpsert).toHaveBeenCalledWith({
+      where: { userId: "u1" },
+      create: { userId: "u1", balance: 20 },
+      update: { balance: { increment: 20 } },
+    });
+    expect(transactionCreate).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        amount: 20,
+        motif: "REMBOURSEMENT_RESERVATION_ANNULEE",
+        bookingId: "booking-1",
+      }),
+    });
+  });
+
+  it("est idempotent — ne rembourse pas deux fois la même résa", async () => {
+    transactionFindFirst
+      .mockResolvedValueOnce({ amount: -20, wallet: { userId: "u1" } })
+      .mockResolvedValueOnce({ id: "already-refunded" }); // déjà remboursée
+
+    await refundCreditForBooking("booking-1");
+
+    expect(walletUpsert).not.toHaveBeenCalled();
+    expect(transactionCreate).not.toHaveBeenCalled();
   });
 });
 

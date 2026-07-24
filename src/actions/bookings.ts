@@ -24,7 +24,7 @@ import {
   computeRebookingDiscount,
   isRebookingDiscountValid,
 } from "@/lib/rebooking-discount";
-import { computeCreditApplication, creditBalance, spendCredit } from "@/lib/credits";
+import { computeCreditApplication, creditBalance, refundCreditForBooking, spendCredit } from "@/lib/credits";
 import { initKonnectPayment, isKonnectEnabled, signKonnectWebhook } from "@/lib/konnect";
 import { hasOverdueHostInvoice } from "@/lib/host-invoicing";
 import {
@@ -978,6 +978,17 @@ export async function cancelBookingAction(
     metadata: { bookingId: booking.id, refundAmount },
   });
 
+  // Restitution du crédit éventuellement dépensé sur cette résa (§CR4) —
+  // best-effort, ne doit jamais faire échouer une annulation déjà actée.
+  try {
+    await refundCreditForBooking(booking.id);
+  } catch (err) {
+    logStructured("error", "credits.refund_failed", {
+      bookingId: booking.id,
+      error: (err as Error).message,
+    });
+  }
+
   revalidatePath("/dashboard/reservations");
   revalidatePath(`/annonce/${booking.property.slug}`);
   return { success: fr.booking.annulationConfirmee };
@@ -1107,6 +1118,17 @@ export async function hostCancelBookingAction(
   // faire échouer l'annulation déjà actée.
   await notifyBookingCancelledByHost(booking.id);
   await sendBookingCancelledByHostEmail(booking.id);
+
+  // Restitution du crédit éventuellement dépensé sur cette résa (§CR4) —
+  // best-effort, ne doit jamais faire échouer une annulation déjà actée.
+  try {
+    await refundCreditForBooking(booking.id);
+  } catch (err) {
+    logStructured("error", "credits.refund_failed", {
+      bookingId: booking.id,
+      error: (err as Error).message,
+    });
+  }
 
   revalidatePath("/dashboard/reservations");
   revalidatePath(`/annonce/${booking.property.slug}`);

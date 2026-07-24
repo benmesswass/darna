@@ -530,14 +530,23 @@ model CreditWallet {
 // mis à jour ATOMIQUEMENT en même temps que cette ligne (cf. issueCredit/
 // spendCredit — même principe transactionnel que settleFeaturedOrder).
 model CreditTransaction {
-  id        String    @id @default(cuid())
-  amount    Int // TND — positif (émission) ou négatif (dépense/expiration)
+  id              String    @id @default(cuid())
+  amount          Int // TND — positif (émission) ou négatif (dépense/expiration)
   // BIENVENUE_PARRAINAGE | BIENVENUE_SPONTANE | PARRAINAGE_FILLEUL_TERMINE |
-  // UTILISATION_RESERVATION | UTILISATION_SERVICE_HOTE | EXPIRATION | AJUSTEMENT_ADMIN
+  // UTILISATION_RESERVATION | UTILISATION_SERVICE_HOTE | EXPIRATION |
+  // AJUSTEMENT_ADMIN | REMBOURSEMENT_RESERVATION_ANNULEE
   // Cf. CREDIT_TRANSACTION_MOTIFS (src/lib/constants.ts).
-  motif     String
-  expiresAt DateTime?
-  createdAt DateTime  @default(now())
+  motif           String
+  expiresAt       DateTime?
+  // Part encore disponible de CETTE émission (CROISSANCE_ROADMAP.md §CR4) —
+  // renseigné UNIQUEMENT sur une émission (amount > 0), décrémenté FIFO à
+  // chaque dépense (spendCredit consomme les émissions les plus anciennes en
+  // premier — cohérent avec l'expiration). Null sur une dépense/expiration/
+  // ajustement/remboursement. Permet la purge paresseuse des émissions
+  // expirées (sweepExpiredCredits, src/lib/credits.ts, même principe que
+  // clearExpiredFeatured — aucun cron) sans recalculer tout le ledger.
+  remainingAmount Int?
+  createdAt       DateTime  @default(now())
 
   walletId String
   wallet   CreditWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)

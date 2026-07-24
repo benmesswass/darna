@@ -22,12 +22,51 @@ import type { CreditTransactionMotif } from "@/lib/constants";
 type DbClient = PrismaClient | Prisma.TransactionClient;
 
 /**
- * Solde de crédits restant. L'ABSENCE de CreditWallet vaut solde 0 — la ligne
- * n'est matérialisée qu'au premier mouvement réel (cf. issueCredit/spendCredit),
- * même convention que verificationCreditsRemaining.
+ * Purge paresseuse des émissions expirées (CROISSANCE_ROADMAP.md §CR4) —
+ * même principe que clearExpiredFeatured/ensureExpiringSoonNotifications :
+ * aucun cron, corrigé au prochain accès. Pour chaque émission dont
+ * `expiresAt` est dépassé ET `remainingAmount > 0`, réclame ATOMIQUEMENT
+ * cette ligne (`updateMany` gardé par la valeur lue — un seul appelant
+ * concurrent peut gagner), décrémente le wallet d'autant et journalise une
+ * transaction EXPIRATION compensatoire. Appelée avant toute lecture/dépense
+ * (creditBalance, spendCredit) — jamais un job séparé.
  */
-export async function creditBalance(userId: string): Promise<number> {
-  const wallet = await prisma.creditWallet.findUnique({
+async function sweepExpiredCredits(userId: string, db: DbClient = prisma): Promise<void> {
+  const wallet = await db.creditWallet.findUnique({ where: { userId }, select: { id: true } });
+  if (!wallet) return;
+
+  const expired = await db.creditTransaction.findMany({
+    where: { walletId: wallet.id, remainingAmount: { gt: 0 }, expiresAt: { lte: new Date() } },
+    select: { id: true, remainingAmount: true },
+  });
+
+  for (const issuance of expired) {
+    const amount = issuance.remainingAmount as number;
+    const claimed = await db.creditTransaction.updateMany({
+      where: { id: issuance.id, remainingAmount: amount },
+      data: { remainingAmount: 0 },
+    });
+    if (claimed.count === 0) continue; // déjà balayée par un appel concurrent
+
+    await db.creditWallet.update({
+      where: { id: wallet.id },
+      data: { balance: { decrement: amount } },
+    });
+    await db.creditTransaction.create({
+      data: { walletId: wallet.id, amount: -amount, motif: "EXPIRATION" },
+    });
+  }
+}
+
+/**
+ * Solde de crédits restant (non expiré). L'ABSENCE de CreditWallet vaut
+ * solde 0 — la ligne n'est matérialisée qu'au premier mouvement réel (cf.
+ * issueCredit/spendCredit), même convention que verificationCreditsRemaining.
+ * Balaie d'abord les émissions expirées (cf. sweepExpiredCredits).
+ */
+export async function creditBalance(userId: string, db: DbClient = prisma): Promise<number> {
+  await sweepExpiredCredits(userId, db);
+  const wallet = await db.creditWallet.findUnique({
     where: { userId },
     select: { balance: true },
   });
@@ -71,6 +110,9 @@ export async function issueCredit(params: IssueCreditParams, db: DbClient = pris
       amount,
       motif,
       expiresAt: new Date(Date.now() + CREDIT_VALIDITY_DAYS * 24 * 60 * 60 * 1000),
+      // Part encore disponible de CETTE émission — décrémentée FIFO par
+      // spendCredit, remise à 0 par sweepExpiredCredits une fois expirée.
+      remainingAmount: amount,
       bookingId,
       referredUserId,
     },
@@ -103,6 +145,8 @@ export async function spendCredit(params: SpendCreditParams, db: DbClient = pris
   const { userId, amount, motif, bookingId } = params;
   if (amount <= 0) throw new Error("spendCredit: amount must be positive");
 
+  await sweepExpiredCredits(userId, db);
+
   // Matérialise d'abord la ligne à 0 si elle n'existe pas encore (no-op sinon),
   // pour que l'updateMany conditionné ci-dessous ait une ligne sur laquelle
   // s'appliquer dès le tout premier appel pour ce compte.
@@ -122,6 +166,29 @@ export async function spendCredit(params: SpendCreditParams, db: DbClient = pris
     where: { userId },
     select: { id: true },
   });
+
+  // Consommation FIFO des émissions non expirées les plus anciennes en
+  // premier (§CR4) — cohérent avec l'expiration : on consomme d'abord ce qui
+  // expirera le plus tôt. Purement du bookkeeping pour sweepExpiredCredits ;
+  // le solde agrégé ci-dessus reste la seule source de vérité pour "peut-on
+  // dépenser" (déjà garanti atomique par l'updateMany ci-dessus).
+  let toDraw = amount;
+  const issuances = await db.creditTransaction.findMany({
+    where: { walletId: wallet.id, remainingAmount: { gt: 0 } },
+    orderBy: { createdAt: "asc" },
+    select: { id: true, remainingAmount: true },
+  });
+  for (const issuance of issuances) {
+    if (toDraw <= 0) break;
+    const draw = Math.min(toDraw, issuance.remainingAmount as number);
+    if (draw <= 0) continue;
+    await db.creditTransaction.update({
+      where: { id: issuance.id },
+      data: { remainingAmount: { decrement: draw } },
+    });
+    toDraw -= draw;
+  }
+
   await db.creditTransaction.create({
     data: { walletId: wallet.id, amount: -amount, motif, bookingId },
   });
@@ -150,6 +217,45 @@ export function computeCreditApplication(params: {
   const commissionRoom = totalPrice - subtotal;
   const rateCap = Math.round(totalPrice * CREDIT_CHECKOUT_CAP_RATE);
   return Math.max(0, Math.min(balance, rateCap, commissionRoom));
+}
+
+/**
+ * Restitue le crédit dépensé sur une résa qui vient d'être annulée-remboursée
+ * (CROISSANCE_ROADMAP.md §CR4) — à appeler APRÈS que l'annulation est déjà
+ * actée (cancelBookingAction / hostCancelBookingAction), en effet best-effort
+ * hors transaction critique (même position que les notifications) : ne doit
+ * jamais faire échouer une annulation déjà commitée.
+ *
+ * No-op silencieux si aucune dépense de crédit n'est liée à cette résa
+ * (immense majorité des annulations), et idempotent (vérifie qu'aucun
+ * remboursement n'a déjà été émis pour cette résa) — sûr à appeler même en
+ * cas de rejeu. Réémet le montant exact via issueCredit (nouvelle émission,
+ * nouvelle fenêtre de 6 mois — pas de tentative de restaurer l'émission
+ * d'origine, qui peut avoir déjà expiré ou être partiellement consommée par
+ * ailleurs).
+ */
+export async function refundCreditForBooking(bookingId: string): Promise<void> {
+  const spend = await prisma.creditTransaction.findFirst({
+    where: {
+      bookingId,
+      motif: { in: ["UTILISATION_RESERVATION", "UTILISATION_SERVICE_HOTE"] },
+    },
+    select: { amount: true, wallet: { select: { userId: true } } },
+  });
+  if (!spend) return;
+
+  const alreadyRefunded = await prisma.creditTransaction.findFirst({
+    where: { bookingId, motif: "REMBOURSEMENT_RESERVATION_ANNULEE" },
+    select: { id: true },
+  });
+  if (alreadyRefunded) return;
+
+  await issueCredit({
+    userId: spend.wallet.userId,
+    amount: -spend.amount, // spend.amount est négatif (dépense) → montant positif réémis
+    motif: "REMBOURSEMENT_RESERVATION_ANNULEE",
+    bookingId,
+  });
 }
 
 /**

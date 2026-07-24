@@ -10,7 +10,11 @@ import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     property: { findUnique: vi.fn(), findFirst: vi.fn() },
-    creditWallet: { findUnique: vi.fn() },
+    creditWallet: { findUnique: vi.fn(), update: vi.fn() },
+    // sweepExpiredCredits (§CR4) : aucune émission à balayer par défaut dans
+    // ces tests CR1 — le comportement de la purge est couvert par
+    // credits.test.ts, pas ici.
+    creditTransaction: { findMany: vi.fn().mockResolvedValue([]), update: vi.fn(), updateMany: vi.fn() },
     $transaction: vi.fn(),
   },
 }));
@@ -107,11 +111,19 @@ function mockTx(opts: { walletUpdateManyCount: number; walletId?: string }) {
     booking: { updateMany: vi.fn().mockResolvedValue({ count: 0 }), create, update: vi.fn() },
     property: { findFirst: vi.fn().mockResolvedValue(null) },
     creditWallet: {
+      // sweepExpiredCredits (§CR4) : pas de wallet préexistant dans ce
+      // scénario CR1 → sweep no-op immédiat, cf. credits.test.ts pour la purge.
+      findUnique: vi.fn().mockResolvedValue(null),
       upsert: vi.fn().mockResolvedValue({ id: opts.walletId ?? "wallet-1" }),
       updateMany: vi.fn().mockResolvedValue({ count: opts.walletUpdateManyCount }),
       findUniqueOrThrow: vi.fn().mockResolvedValue({ id: opts.walletId ?? "wallet-1" }),
     },
-    creditTransaction: { create: vi.fn().mockResolvedValue({}) },
+    creditTransaction: {
+      create: vi.fn().mockResolvedValue({}),
+      findMany: vi.fn().mockResolvedValue([]),
+      update: vi.fn(),
+      updateMany: vi.fn(),
+    },
   };
   return { tx, create };
 }
