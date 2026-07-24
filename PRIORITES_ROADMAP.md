@@ -87,7 +87,7 @@ ligne en litige.
 | 7 | **CR0** — Fondations crédits (`CreditWallet`/`CreditTransaction`/`referralCode`) | P0 | CROISSANCE | ✅ PR #187 |
 | 8 | **IN2** — Adoption features (`SIMULATOR_USED`, `SHARE_CLICKED`, `SAVED_SEARCH_CREATED`, `MAP_INTERACTED`) | P1 | INSTRUMENTATION | ✅ PR #173 — 1ère touche d'acquisition (`ref`/UTM) différée à `CROISSANCE_ROADMAP.md` §CR0 (aucun consommateur avant le vrai modèle d'attribution) |
 | 9 | **G2** — Barre de complétude d'annonce | P1 | GROWTH | ✅ PR #179 |
-| 10 | **G1** — Simulateur de revenus | P1 | GROWTH | ❌ pas commencé — corrigé le 2026-07-24 : confondu à tort avec PR #179 (qui ne couvrait que G2), aucun code trouvé (`GROWTH_ROADMAP.md` le montre bien `❌`) |
+| 10 | **G1** — Simulateur de revenus | P1 | GROWTH | ✅ PR #191 — chantier choisi en mode orchestration autonome (`/loop`), délibérément indépendant de CR4/PM5 (en cours sur une autre session), aucun fichier credits/promo touché |
 
 ### Vague 3
 
