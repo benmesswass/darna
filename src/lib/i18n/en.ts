@@ -809,6 +809,17 @@ export const en: Dictionary = {
     facturesSuspendre: "Suspend account",
     facturesSuspendreConfirm:
       "Suspend this host's account for unpaid invoice? They won't be able to publish or receive bookings until reactivated.",
+    navFinancement: "Financing leads",
+    financementTitre: "Financing leads (business referral)",
+    financementSousTitre:
+      "Financing simulation requests left on for-sale listings. Capture only — no signed banking partner yet (MONETISATION_IMMO_ROADMAP.md §MI5).",
+    financementVide: "No financing leads yet.",
+    financementExporter: "Export as CSV",
+    financementColDate: "Date",
+    financementColAnnonce: "Listing",
+    financementColContact: "Contact",
+    financementColMontant: "Desired amount",
+    financementColMessage: "Message",
   },
   analytics: {
     titre: "Dashboard",
@@ -1546,6 +1557,16 @@ export const en: Dictionary = {
     envoye: "Your request has been sent to the advertiser.",
     envoyer: "Send request",
     ouWhatsapp: "or directly on",
+  },
+  financement: {
+    titre: "Request a financing simulation",
+    sousTitre:
+      "Leave your details: a banking partner may contact you to review your application.",
+    montantSouhaite: "Desired amount (TND)",
+    disclaimer:
+      "Darna does not calculate any monthly payment or rate — this request only shares your details for a personalized review.",
+    envoyer: "Send request",
+    envoye: "Your financing request has been recorded.",
   },
   bail: {
     titre: "Residential lease agreement",

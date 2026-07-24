@@ -36,7 +36,7 @@ ligne G9 par `✅ Voir CR0-CR2 (CROISSANCE_ROADMAP.md)`.
 | Item | Roadmap | Attend |
 |---|---|---|
 | **PSP9** | `PAIEMENT_SUR_PLACE_ROADMAP.md` | Ton arbitrage tarification en ligne/sur place — corrigé le 2026-07-24 : PR #157 (mergée) n'a documenté QUE la question ouverte, aucun code PSP9 n'existe, rien à merger — tout reste à écrire une fois l'arbitrage tranché |
-| **MI5** | `MONETISATION_IMMO_ROADMAP.md` | Partenariat bancaire externe non signé — le lead-capture (modèle `FinancingLead`) peut être codé en amont si tu veux avancer sans attendre |
+| **MI5** | `MONETISATION_IMMO_ROADMAP.md` | Partenariat bancaire externe non signé pour la monétisation réelle (commission) — le lead-capture est fait (✅ PR #197, mode orchestration autonome `/loop`, chantier indépendant), reste bloqué uniquement pour brancher un vrai partenaire |
 
 ## 🔧 Dette dépendances (ni bloqué sur toi, ni du code produit)
 
@@ -56,7 +56,7 @@ technique complet dans `TEST_AUTOMATION_ROADMAP.md` §11 — 5 PR fermées
 - `FEATURES_ROADMAP.md` — 100 %
 - `DESIGN_ROADMAP.md` — 100 %
 - `PAIEMENT_SUR_PLACE_ROADMAP.md` — PSP0-PSP7 ✅ (virement bancaire et ClicToPay explicitement écartés), ne reste que PSP9 (bloqué, voir ci-dessus)
-- `MONETISATION_IMMO_ROADMAP.md` — MI0-MI4/MI6 ✅, ne reste que MI5 (bloqué, voir ci-dessus)
+- `MONETISATION_IMMO_ROADMAP.md` — MI0-MI4/MI6 ✅, MI5 lead-capture ✅ (PR #197), ne reste que la monétisation réelle de MI5 (bloquée, voir ci-dessus)
 - `TEST_AUTOMATION_ROADMAP.md` — Phases 1-4 ✅ complètes. Phase 5 : k6/axe/ZAP ✅ livrés, ne reste qu'un optionnel jamais priorisé (snapshots visuels carte/annonce/RTL, P3)
 
 ---
@@ -121,7 +121,7 @@ ligne en litige.
 ### Optionnel / opportuniste (pas de fenêtre imposée)
 
 - **Snapshots visuels** (carte/annonce/RTL) — `TEST_AUTOMATION_ROADMAP.md` Phase 5, P3, jamais priorisé
-- **MI5 lead-capture** — `MONETISATION_IMMO_ROADMAP.md`, code amont possible avant partenariat signé
+- ~~MI5 lead-capture~~ — ✅ PR #197 (2026-07-24, mode orchestration autonome)
 
 ## Toile de fond permanente
 

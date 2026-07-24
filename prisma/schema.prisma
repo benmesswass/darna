@@ -89,6 +89,7 @@ model User {
   guestReviewsReceived             GuestReview[]             @relation("GuestReviewTarget")
   guestReviewsAuthored             GuestReview[]             @relation("GuestReviewAuthor")
   contactRequests                  ContactRequest[]
+  financingLeads                   FinancingLead[]
   favorites                        Favorite[]
   favoriteFolders                  FavoriteFolder[]
   auditLogs                        AuditLog[]
@@ -258,6 +259,7 @@ model Property {
   bookings        Booking[]
   reviews         Review[]
   contactRequests ContactRequest[]
+  financingLeads  FinancingLead[]
   favorites       Favorite[]
   views           PropertyView[]
   // Détails spécifiques par verticale (1:1, séparables physiquement). Vides
@@ -763,6 +765,31 @@ model ContactRequest {
   sender     User?    @relation(fields: [senderId], references: [id], onDelete: SetNull)
 
   @@index([propertyId])
+}
+
+// Apport d'affaires financement (MONETISATION_IMMO_ROADMAP.md §MI5) — capture
+// du lead UNIQUEMENT : la monétisation réelle (commission facturée à une
+// banque partenaire) dépend d'une convention externe non signée, hors scope
+// de ce dépôt. VENTE seulement (financement = prêt immobilier à l'achat,
+// n'a pas de sens pour une location). Même patron que ContactRequest.
+model FinancingLead {
+  id            String   @id @default(cuid())
+  name          String
+  email         String
+  phone         String
+  // Montant de financement souhaité (TND), optionnel — aide un futur
+  // partenaire bancaire à qualifier le lead, jamais exigé du prospect.
+  desiredAmount Int?
+  message       String?
+  createdAt     DateTime @default(now())
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  senderId   String?
+  sender     User?    @relation(fields: [senderId], references: [id], onDelete: SetNull)
+
+  @@index([propertyId])
+  @@index([createdAt])
 }
 
 model Favorite {
