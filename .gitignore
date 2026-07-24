@@ -64,6 +64,8 @@ CREDENTIALS.md
 !CLAUDE.md
 !.claude/
 !.agents/
+# ... mais jamais les permissions/overrides personnels (convention Claude Code : *.local.json = perso, pas partagé)
+.claude/settings.local.json
 
 # uploads locaux (V0) — fichiers utilisateurs jamais commités
 public/uploads/*
