@@ -878,6 +878,13 @@ export const ar: Dictionary = {
     annonceursActifs: "معلنون لديهم إعلان",
     annonceursActifsDesc: "نسبة المضيفين/الوكالات الذين نشروا",
 
+    sectionDecouverte: "مسار الاكتشاف",
+    decouverteDesc:
+      "قبل الحجز: بحث ← معاينة إعلان ← بداية حجز. مصدره أحداث المنتج (SEARCH_PERFORMED، LISTING_VIEWED، BOOKING_STARTED).",
+    funnelRecherches: "عمليات البحث",
+    funnelVues: "معاينات الإعلان",
+    funnelDebuts: "بدايات الحجز",
+
     sectionFunnel: "مسار الحجز",
     funnelDesc:
       "من الحجز المنشأ إلى الدفع المؤكَّد. المراحل تعكس جدول الحجوزات.",
@@ -889,6 +896,14 @@ export const ar: Dictionary = {
     funnelEnAttente: "قيد الانتظار",
     tauxConversion: "نسبة التحويل",
     tauxAbandon: "نسبة التخلي",
+
+    sectionAdoption: "تبنّي الميزات",
+    adoptionDesc: "الاستعمال الفعلي للميزات المتاحة، خلال الفترة المختارة.",
+    adoptionSimulateur: "استعمال محاكي المداخيل",
+    adoptionPartages: "مشاركات الإعلان",
+    adoptionCarte: "تفاعلات الخريطة",
+    adoptionAlertesCreees: "تنبيهات مُنشأة",
+    adoptionAlertesDeclenchees: "تنبيهات مُرسَلة",
 
     sectionRetention: "الاحتفاظ والتسرّب",
     retentionDesc:

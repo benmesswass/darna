@@ -223,6 +223,25 @@ export default async function AdminAnalyticsPage({
         </div>
       </section>
 
+      {/* ── Funnel de découverte (recherche → vue → début, §IN3) ────── */}
+      <section>
+        <SectionTitle>{t.sectionDecouverte}</SectionTitle>
+        <p className="mb-2 max-w-2xl text-sm text-body/60">{t.decouverteDesc}</p>
+        <p className="mb-5 text-xs font-semibold uppercase tracking-wide text-heading/70">
+          {t.surPeriode(t.periodeNom(period))}
+        </p>
+        <div className="rounded-2xl border border-ink/10 bg-surface p-5 shadow-sm">
+          <FunnelChart
+            steps={[
+              { label: t.funnelRecherches, count: a.discoveryFunnel.searches },
+              { label: t.funnelVues, count: a.discoveryFunnel.listingViews },
+              { label: t.funnelDebuts, count: a.discoveryFunnel.bookingStarted },
+              { label: t.funnelConfirmees, count: a.bookingFunnel.confirmed },
+            ]}
+          />
+        </div>
+      </section>
+
       {/* ── Funnel de réservation ───────────────────────────────────── */}
       <section>
         <SectionTitle>{t.sectionFunnel}</SectionTitle>
@@ -256,6 +275,28 @@ export default async function AdminAnalyticsPage({
               value={t.pourcent(a.bookingFunnel.abandonRate)}
             />
           </div>
+        </div>
+      </section>
+
+      {/* ── Adoption de fonctionnalités (§IN2/§IN3) ─────────────────── */}
+      <section>
+        <SectionTitle>{t.sectionAdoption}</SectionTitle>
+        <p className="mb-5 max-w-2xl text-sm text-body/60">{t.adoptionDesc}</p>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <StatCard
+            label={t.adoptionSimulateur}
+            value={fmtInt(a.adoption.simulatorUsed)}
+          />
+          <StatCard label={t.adoptionPartages} value={fmtInt(a.adoption.shareClicked)} />
+          <StatCard label={t.adoptionCarte} value={fmtInt(a.adoption.mapInteracted)} />
+          <StatCard
+            label={t.adoptionAlertesCreees}
+            value={fmtInt(a.adoption.savedSearchesCreated)}
+          />
+          <StatCard
+            label={t.adoptionAlertesDeclenchees}
+            value={fmtInt(a.adoption.alertsTriggered)}
+          />
         </div>
       </section>
 
