@@ -106,6 +106,15 @@ export const REFERRAL_SIGNUP_BONUS_TND = 15;
  */
 export const HOST_REFERRAL_BONUS_TND = 40;
 
+/**
+ * Crédit de bienvenue générique, SANS parrain (CROISSANCE_ROADMAP.md §CR3) —
+ * motif BIENVENUE_SPONTANE. Réservé aux comptes téléphone vérifié (anti-fake-
+ * account, réutilise le gate KYC existant). Jamais cumulé avec le bonus
+ * filleul (§CR1, BIENVENUE_PARRAINAGE) — un compte ne touche que l'un ou
+ * l'autre. Cf. grantWelcomeCreditIfEligible, src/lib/credits.ts.
+ */
+export const WELCOME_CREDIT_TND = 10;
+
 /** Plafond : au plus ce nombre de filleuls récompensés par parrain et par an glissant (§CR2). */
 export const HOST_REFERRAL_YEARLY_CAP = 5;
 

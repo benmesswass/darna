@@ -10,7 +10,8 @@ import { issueOtp, verifyOtp } from "@/lib/otp";
 import { composeE164, sendOtp } from "@/lib/otp-channel";
 import { encryptSensitive, hashCin } from "@/lib/crypto";
 import { kycMode } from "@/lib/modes";
-import { logAudit } from "@/lib/audit";
+import { logAudit, logStructured } from "@/lib/audit";
+import { grantWelcomeCreditIfEligible } from "@/lib/credits";
 
 export type KycFormState =
   | { error?: string; otp?: string; sent?: boolean; verified?: boolean; demo?: boolean }
@@ -98,6 +99,19 @@ export async function verifyPhoneOtpAction(
   // porté par kycStatus (étape CIN), pas par le simple flag téléphone.
   await prisma.user.update({ where: { id: user.id }, data: { phoneVerified: true } });
   await logAudit({ action: "PHONE_VERIFIED", userId: user.id, success: true });
+
+  // Crédit de bienvenue générique (§CR3) — best-effort, jamais bloquant pour
+  // la vérification déjà actée (même philosophie que le crédit filleul à
+  // l'inscription, §CR1).
+  try {
+    await grantWelcomeCreditIfEligible(user.id);
+  } catch (err) {
+    logStructured("error", "credits.welcome_grant_failed", {
+      userId: user.id,
+      error: (err as Error).message,
+    });
+  }
+
   revalidatePath("/dashboard");
   return { verified: true };
 }
