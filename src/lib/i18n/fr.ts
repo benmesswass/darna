@@ -876,6 +876,13 @@ export const fr = {
     annonceursActifs: "Annonceurs avec annonce",
     annonceursActifsDesc: "Part des hôtes/agences ayant publié",
 
+    sectionDecouverte: "Funnel de découverte",
+    decouverteDesc:
+      "En amont de la réservation : recherche → vue d'annonce → début de réservation. Sourcé des événements produit (SEARCH_PERFORMED, LISTING_VIEWED, BOOKING_STARTED).",
+    funnelRecherches: "Recherches",
+    funnelVues: "Vues d'annonce",
+    funnelDebuts: "Débuts de réservation",
+
     sectionFunnel: "Funnel de réservation",
     funnelDesc:
       "De la réservation créée au paiement confirmé. Les paliers reflètent la table des réservations.",
@@ -887,6 +894,15 @@ export const fr = {
     funnelEnAttente: "En attente",
     tauxConversion: "Taux de conversion",
     tauxAbandon: "Taux d'abandon",
+
+    sectionAdoption: "Adoption de fonctionnalités",
+    adoptionDesc:
+      "Usage réel des fonctionnalités déjà livrées, sur la période sélectionnée.",
+    adoptionSimulateur: "Simulateur de revenus utilisé",
+    adoptionPartages: "Partages d'annonce",
+    adoptionCarte: "Interactions carte",
+    adoptionAlertesCreees: "Alertes créées",
+    adoptionAlertesDeclenchees: "Alertes déclenchées",
 
     sectionRetention: "Rétention & churn",
     retentionDesc:

@@ -65,7 +65,7 @@
 | IN0 | Fondations : modèle `ProductEvent` + module `logProductEvent` + id visiteur anonyme | **P0** | ✅ | PR #160 — `ProductEvent` (migration `20260721082024_add_product_event`), `src/lib/product-events.ts`, cookie `darna-vid` (`src/middleware.ts`), `LISTING_VIEWED` câblé sur `ListingDetail.tsx`. `trackEvent` (client) déféré à IN2 — voir détail. |
 | IN1 | Funnel de découverte : recherche → vue annonce → début réservation | P1 | ✅ | PR #164 — `SEARCH_PERFORMED` câblé sur `searchSejours` (`resultCount` y compris 0), `BOOKING_STARTED` câblé sur la page `/annonce/[slug]/reserver`. `LISTING_VIEWED` déjà couvert par IN0. |
 | IN2 | Adoption des fonctionnalités déjà livrées (simulateur, partage, alertes, carte) + 1ère touche d'acquisition | P1 | ✅ | PR #171 — `SIMULATOR_USED` (Yield Advisor), `SHARE_CLICKED` (3 canaux), `SAVED_SEARCH_CREATED`, `MAP_INTERACTED` (drag + zoom, throttlé session). Server Action `trackEvent` enfin construite (2 vrais appelants client). 1ère touche d'acquisition **différée** — voir détail. |
-| IN3 | Panneaux funnel/adoption dans le dashboard admin existant | P1 | ❌ | — |
+| IN3 | Panneaux funnel/adoption dans le dashboard admin existant | P1 | ✅ | PR #193 — `getFounderAnalytics()` étendu en place (`src/lib/analytics.ts`, 500 lignes, sous le seuil de scission) : `discoveryFunnel` (recherches/vues/débuts de réservation, `ProductEvent` groupBy, chaîné visuellement jusqu'à `bookingFunnel.confirmed` déjà existant) + `adoption` (simulateur/partages/carte/alertes créées vs déclenchées — `Notification` type `ALERTE_NOUVELLE_ANNONCE`). **Aucun taux calculé sur le funnel de découverte** (ni vue/recherche, ni conversion globale) : constaté en test réel un ratio de 2400 % en mêlant compteurs `ProductEvent` temps réel et historique de réservations/seed — deux populations différentes, un taux aurait été arithmétiquement valide mais trompeur. Compteurs bruts + funnel visuel (`FunnelChart` déjà existant, réutilisé tel quel) suffisent. **Répartition ref/UTM non faite** — pas de données à afficher (1ère touche d'acquisition différée à `CROISSANCE_ROADMAP.md` §CR0, cf. `PRIORITES_ROADMAP.md`). i18n fr/en/ar. Vérifié en Playwright (Postgres local, compte `admin@darna.tn`) avec de vraies données générées (recherche, vue d'annonce, simulateur) : nouvelles sections affichées correctement, aucune régression sur les sections déjà livrées (north-star, verticales, acquisition, funnel réservation, cohortes, Wakil, événements récents). |
 | IN4 | Discipline continue : entrée checklist de revue `QA_ROADMAP.md` | P2 | ❌ | — |
 
 **Ordre d'exécution recommandé :** IN0 (prérequis, ~1j) → IN1 → IN2 → IN3 →
@@ -326,9 +326,8 @@ IN0 ~0,5-1 j · IN1 ~1 j · IN2 ~0,5-1 j · IN3 ~0,5-1 j · IN4 négligeable
 
 ---
 
-**Statut du chantier : IN0 (#160), IN1 (#164) et IN2 (#171) livrés — IN3/IN4
-restants.** Chantier transverse, indépendant de la chaîne `ANNULATION_HOTE_*`
-(déjà entièrement traversée) — ne s'y substitue pas et ne doit pas interrompre
-un P0 déjà en cours ailleurs. IN3 (panneaux funnel/adoption dans le dashboard
-admin existant) a maintenant de vraies données à afficher (funnel complet
-IN1 + adoption IN2) — c'est la suite naturelle.
+**Statut du chantier : IN0 (#160), IN1 (#164), IN2 (#171) et IN3 (#193)
+livrés — ne reste qu'IN4 (discipline continue, process pas du code).**
+Chantier transverse, indépendant de la chaîne `ANNULATION_HOTE_*` (déjà
+entièrement traversée) — ne s'y substitue pas et ne doit pas interrompre un P0
+déjà en cours ailleurs.

@@ -125,6 +125,37 @@ export type FounderAnalytics = {
     churned: number;
     cohorts: CohortRow[];
   };
+  /**
+   * Funnel de découverte (INSTRUMENTATION_ROADMAP.md §IN1/§IN3) : en amont de
+   * `bookingFunnel` (qui part de la réservation déjà créée en base). Sourcé
+   * uniquement de `ProductEvent` — mêmes 3 étapes que le catalogue IN1.
+   * Volontairement AUCUN taux calculé ici (ni vue/recherche, ni conversion
+   * globale jusqu'à `bookingFunnel.confirmed`) : une recherche peut mener à
+   * plusieurs vues (normal, pas un problème), et `confirmed` inclut tout
+   * l'historique/le seed, une population différente des recherches trackées
+   * en temps réel — un ratio entre ces compteurs serait arithmétiquement
+   * valide mais trompeur (constaté en test : 2400 % sur données de seed).
+   * Les compteurs bruts + le funnel visuel suffisent, sans chiffre fabriqué.
+   */
+  discoveryFunnel: {
+    searches: number;
+    listingViews: number;
+    bookingStarted: number;
+  };
+  /**
+   * Adoption de fonctionnalités déjà livrées (§IN2). `alertsTriggered` (table
+   * `Notification`, type `ALERTE_NOUVELLE_ANNONCE`) n'est volontairement PAS
+   * exprimé en taux par rapport à `savedSearchesCreated` : une même alerte
+   * enregistrée peut déclencher plusieurs notifications au fil du temps, un
+   * ratio serait trompeur — les deux compteurs bruts suffisent.
+   */
+  adoption: {
+    simulatorUsed: number;
+    shareClicked: number;
+    mapInteracted: number;
+    savedSearchesCreated: number;
+    alertsTriggered: number;
+  };
   wakil: {
     applicationsByStatus: Segment[];
     onSiteVerifications: number;
@@ -188,6 +219,8 @@ export async function getFounderAnalytics(
     onSiteVerifications,
     topWakilGroups,
     recentEventsRaw,
+    productEventGroups,
+    alertsTriggeredCount,
   ] = await Promise.all([
     prisma.property.count({ where: { status: "ACTIVE", verified: true } }),
     prisma.property.count({ where: { status: "ACTIVE" } }),
@@ -274,6 +307,16 @@ export async function getFounderAnalytics(
         user: { select: { name: true } },
       },
     }),
+    // ── Funnel de découverte + adoption (§IN3) — un seul groupBy pour tout
+    // le catalogue ProductEvent de la fenêtre, plutôt que 7 `count()` séparés.
+    prisma.productEvent.groupBy({
+      by: ["event"],
+      where: { ...inPeriod },
+      _count: { _all: true },
+    }),
+    prisma.notification.count({
+      where: { type: "ALERTE_NOUVELLE_ANNONCE", ...inPeriod },
+    }),
   ]);
 
   // ── Acquisition : série temporelle des inscriptions (fenêtre adaptative) ──
@@ -359,6 +402,13 @@ export async function getFounderAnalytics(
       activationRate: ratio(activated, signups),
     }));
 
+  // ── Funnel de découverte + adoption (§IN3) ──
+  const eventCount = (name: string) =>
+    productEventGroups.find((g) => g.event === name)?._count._all ?? 0;
+  const searches = eventCount("SEARCH_PERFORMED");
+  const listingViews = eventCount("LISTING_VIEWED");
+  const bookingStarted = eventCount("BOOKING_STARTED");
+
   // ── Réseau Wakil ──
   const wakilIds = topWakilGroups
     .map((g) => g.verifiedById)
@@ -411,6 +461,18 @@ export async function getFounderAnalytics(
       pending: pendingBookings,
       conversionRate: ratio(confirmed, created),
       abandonRate: ratio(cancelled + expiredBookings, created),
+    },
+    discoveryFunnel: {
+      searches,
+      listingViews,
+      bookingStarted,
+    },
+    adoption: {
+      simulatorUsed: eventCount("SIMULATOR_USED"),
+      shareClicked: eventCount("SHARE_CLICKED"),
+      mapInteracted: eventCount("MAP_INTERACTED"),
+      savedSearchesCreated: eventCount("SAVED_SEARCH_CREATED"),
+      alertsTriggered: alertsTriggeredCount,
     },
     retention: {
       travelersWhoBooked: activatedGuestIds.size,
