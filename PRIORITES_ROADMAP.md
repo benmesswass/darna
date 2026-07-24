@@ -96,7 +96,7 @@ ligne en litige.
 | 11 | **CR1** — Parcours voyageur crédits (page, application au checkout) | P0 | CROISSANCE | ✅ PR #188 |
 | 12 | **CR4 / PM5** — QA transverse crédits + promos | P0 | CROISSANCE | ✅ CR4 PR #189, PM5 confirmé 2026-07-24 (items PM3 reportés à PM3) |
 | 13 | **IN3** — Panneaux dashboard admin (funnel/adoption) | P1 | INSTRUMENTATION | ✅ PR #193 — indépendant de CR2/CROISSANCE (en cours), aucun fichier credits/promo touché |
-| 14 | **G3** — « Suggérer un logement » | P2 | GROWTH | Flux voyageur établi (post G1/G2) |
+| 14 | **G3** — « Suggérer un logement » | P2 | GROWTH | Prêt (G1+G2 livrés) — non pris en session autonome du 2026-07-24 (préféré G5, voir ligne 19) : nouveau modèle `HostLead` + migration + généralisation de `rebooking-discount.ts` + intégration au checkout, mécanisme de conversion lead→annonce vérifiée pas entièrement spécifié par la roadmap source — à cadrer avec Wassim avant implémentation |
 
 ### Vague 4 — extensions
 
@@ -106,7 +106,7 @@ ligne en litige.
 | 16 | **CR2** — Parrainage hôte | P1 | CROISSANCE | 🔧 PR #192 — détection+crédit faits, dépense sur vérif/boost/abonnement restante |
 | 17 | **CR3** — Crédit de bienvenue spontané | P2 | CROISSANCE | CR0 |
 | 18 | **G6** — Relance de réservation abandonnée | P1 | GROWTH | Tension « zéro cron » à trancher avec toi (voir fichier source) |
-| 19 | **G5** — Signaux de dynamique temps réel | P2 | GROWTH | IN1 (`BOOKING_STARTED` pour mesurer) |
+| 19 | **G5** — Signaux de dynamique temps réel | P2 | GROWTH | ✅ PR #194 — préféré à G3 (même priorité P2, prêt aussi depuis G1+G2 livrés) : G3 implique un nouveau modèle + une généralisation de `rebooking-discount.ts` + une intégration au checkout, plus risqué pour une itération autonome ; reste à faire dans une session dédiée |
 
 ### Vague 5 — campagnes, pilotage, rétention long terme
 

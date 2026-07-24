@@ -206,6 +206,13 @@ model Property {
   // ratingAvg null = aucun avis → relégué en fin de tri (nulls: "last").
   ratingAvg                 Float?
   ratingCount               Int       @default(0)
+  // Signal de dynamique (GROWTH_ROADMAP.md §G5) : compteur DÉNORMALISÉ de
+  // visiteurs uniques (dédupliqué par visiteur via PropertyView, jamais un
+  // simple hit-counter) — incrémenté par recordListingViewAction. Cumulatif
+  // depuis la publication (pas de fenêtre glissante ni de décroissance, donc
+  // pas de cron nécessaire) ; affiché seulement au-delà d'un seuil (jamais un
+  // chiffre gonflé pour un 1 ou 2).
+  viewCount                 Int       @default(0)
   surface                   Int?
   rooms                     Int?
   maxGuests                 Int?
@@ -252,6 +259,7 @@ model Property {
   reviews         Review[]
   contactRequests ContactRequest[]
   favorites       Favorite[]
+  views           PropertyView[]
   // Détails spécifiques par verticale (1:1, séparables physiquement). Vides
   // tant que les lectures ne sont pas branchées (cf. roadmap PR4/PR5).
   stay            StayDetails?
@@ -788,6 +796,22 @@ model FavoriteFolder {
   favorites Favorite[]
 
   @@index([userId])
+}
+
+// Dédup des vues d'annonce (GROWTH_ROADMAP.md §G5) : une ligne par (annonce,
+// visiteur) — la contrainte unique empêche un même visiteur d'incrémenter
+// Property.viewCount plusieurs fois (refresh, retour arrière…). anonId
+// (cookie darna-vid, posé par le middleware pour tout visiteur) plutôt que
+// userId : la dédup doit fonctionner pour les visiteurs anonymes aussi.
+model PropertyView {
+  id         String   @id @default(cuid())
+  anonId     String
+  createdAt  DateTime @default(now())
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, anonId])
 }
 
 model WakilApplication {
