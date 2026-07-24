@@ -20,6 +20,7 @@ import {
   CREDIT_VALIDITY_DAYS,
   HOST_REFERRAL_BONUS_TND,
   HOST_REFERRAL_YEARLY_CAP,
+  WELCOME_CREDIT_TND,
 } from "@/lib/config";
 import { completeElapsedBookings } from "@/lib/bookings";
 import type { CreditTransactionMotif } from "@/lib/constants";
@@ -379,4 +380,29 @@ export async function ensureReferralCode(userId: string): Promise<string> {
  */
 export async function findUserByReferralCode(code: string): Promise<{ id: string } | null> {
   return prisma.user.findUnique({ where: { referralCode: code }, select: { id: true } });
+}
+
+/**
+ * Crédit de bienvenue générique, SANS parrain (CROISSANCE_ROADMAP.md §CR3) —
+ * à appeler quand le téléphone vient d'être vérifié (réutilise le gate KYC
+ * existant, anti-fake-account). No-op silencieux si ce compte a déjà reçu
+ * UN QUELCONQUE bonus de bienvenue — celui-ci (`BIENVENUE_SPONTANE`) OU celui
+ * du parrainage (`BIENVENUE_PARRAINAGE`, §CR1) : jamais cumulés, un compte ne
+ * touche que l'un ou l'autre. Cette vérification sert aussi d'idempotence
+ * pour CE motif : contrairement à l'inscription (§CR1, un seul appel possible
+ * à la création du compte), la vérification téléphone peut repasser par ici
+ * plusieurs fois pour le même compte (changement de numéro → phoneVerified
+ * repasse à false puis true, cf. updateProfileAction / verifyPhoneOtpAction).
+ */
+export async function grantWelcomeCreditIfEligible(userId: string): Promise<void> {
+  const alreadyWelcomed = await prisma.creditTransaction.findFirst({
+    where: {
+      wallet: { userId },
+      motif: { in: ["BIENVENUE_PARRAINAGE", "BIENVENUE_SPONTANE"] },
+    },
+    select: { id: true },
+  });
+  if (alreadyWelcomed) return;
+
+  await issueCredit({ userId, amount: WELCOME_CREDIT_TND, motif: "BIENVENUE_SPONTANE" });
 }

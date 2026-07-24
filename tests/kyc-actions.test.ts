@@ -24,7 +24,8 @@ vi.mock("@/lib/crypto", () => ({
 }));
 vi.mock("@/lib/modes", () => ({ kycMode: vi.fn(() => "demo") }));
 vi.mock("@/lib/rate-limit", () => ({ assertRateLimit: vi.fn().mockResolvedValue(true) }));
-vi.mock("@/lib/audit", () => ({ logAudit: vi.fn() }));
+vi.mock("@/lib/audit", () => ({ logAudit: vi.fn(), logStructured: vi.fn() }));
+vi.mock("@/lib/credits", () => ({ grantWelcomeCreditIfEligible: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/lib/i18n/server", () => ({
   getT: vi.fn().mockResolvedValue({
@@ -42,6 +43,8 @@ import { requireUser } from "@/lib/session";
 import { verifyOtp } from "@/lib/otp";
 import { hashCin } from "@/lib/crypto";
 import { prisma } from "@/lib/prisma";
+import { grantWelcomeCreditIfEligible } from "@/lib/credits";
+import { logStructured } from "@/lib/audit";
 
 function fd(entries: Record<string, string>): FormData {
   const f = new FormData();
@@ -53,6 +56,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   (prisma.user.update as unknown as Mock).mockResolvedValue({});
   (prisma.user.findFirst as unknown as Mock).mockResolvedValue(null);
+  (grantWelcomeCreditIfEligible as unknown as Mock).mockResolvedValue(undefined);
 });
 
 describe("verifyPhoneOtpAction", () => {
@@ -74,6 +78,31 @@ describe("verifyPhoneOtpAction", () => {
 
     expect(res).toEqual({ error: "Code incorrect." });
     expect(prisma.user.update).not.toHaveBeenCalled();
+    expect(grantWelcomeCreditIfEligible).not.toHaveBeenCalled();
+  });
+
+  it("§CR3 : tente le crédit de bienvenue une fois le téléphone vérifié", async () => {
+    (requireUser as unknown as Mock).mockResolvedValue({ id: "u1", phoneVerified: false, kycStatus: "NON_VERIFIE" });
+    (verifyOtp as unknown as Mock).mockResolvedValue(true);
+
+    await verifyPhoneOtpAction(undefined, fd({ otp: "123456" }));
+
+    expect(grantWelcomeCreditIfEligible).toHaveBeenCalledWith("u1");
+  });
+
+  it("§CR3 : la vérification réussit MÊME SI le crédit de bienvenue échoue (best-effort)", async () => {
+    (requireUser as unknown as Mock).mockResolvedValue({ id: "u1", phoneVerified: false, kycStatus: "NON_VERIFIE" });
+    (verifyOtp as unknown as Mock).mockResolvedValue(true);
+    (grantWelcomeCreditIfEligible as unknown as Mock).mockRejectedValue(new Error("db down"));
+
+    const res = await verifyPhoneOtpAction(undefined, fd({ otp: "123456" }));
+
+    expect(res).toEqual({ verified: true });
+    expect(logStructured).toHaveBeenCalledWith(
+      "error",
+      "credits.welcome_grant_failed",
+      expect.objectContaining({ userId: "u1" })
+    );
   });
 });
 

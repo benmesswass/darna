@@ -41,6 +41,7 @@ import {
   creditBalance,
   ensureReferralCode,
   findUserByReferralCode,
+  grantWelcomeCreditIfEligible,
   issueCredit,
   refundCreditForBooking,
   settleHostReferralMilestones,
@@ -491,5 +492,44 @@ describe("findUserByReferralCode", () => {
   it("renvoie null pour un code inconnu", async () => {
     userFindUnique.mockResolvedValue(null);
     expect(await findUserByReferralCode("INCONNU")).toBeNull();
+  });
+});
+
+describe("grantWelcomeCreditIfEligible (§CR3)", () => {
+  it("émet le crédit de bienvenue si aucun bonus n'a jamais été accordé", async () => {
+    transactionFindFirst.mockResolvedValue(null);
+
+    await grantWelcomeCreditIfEligible("u1");
+
+    expect(transactionFindFirst).toHaveBeenCalledWith({
+      where: { wallet: { userId: "u1" }, motif: { in: ["BIENVENUE_PARRAINAGE", "BIENVENUE_SPONTANE"] } },
+      select: { id: true },
+    });
+    expect(walletUpsert).toHaveBeenCalledWith({
+      where: { userId: "u1" },
+      create: { userId: "u1", balance: 10 },
+      update: { balance: { increment: 10 } },
+    });
+    expect(transactionCreate).toHaveBeenCalledWith({
+      data: expect.objectContaining({ amount: 10, motif: "BIENVENUE_SPONTANE" }),
+    });
+  });
+
+  it("ne fait rien si le compte a déjà reçu le bonus filleul (§CR1) — jamais cumulé", async () => {
+    transactionFindFirst.mockResolvedValue({ id: "tx-parrainage" });
+
+    await grantWelcomeCreditIfEligible("u1");
+
+    expect(walletUpsert).not.toHaveBeenCalled();
+    expect(transactionCreate).not.toHaveBeenCalled();
+  });
+
+  it("ne fait rien si ce compte a déjà reçu ce même bonus (idempotence sur re-vérification téléphone)", async () => {
+    transactionFindFirst.mockResolvedValue({ id: "tx-spontane" });
+
+    await grantWelcomeCreditIfEligible("u1");
+
+    expect(walletUpsert).not.toHaveBeenCalled();
+    expect(transactionCreate).not.toHaveBeenCalled();
   });
 });
