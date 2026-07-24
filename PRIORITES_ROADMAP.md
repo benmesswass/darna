@@ -106,7 +106,7 @@ ligne en litige.
 | 16 | **CR2** — Parrainage hôte | P1 | CROISSANCE | 🔧 PR #192 — détection+crédit faits, dépense sur vérif/boost/abonnement restante |
 | 17 | **CR3** — Crédit de bienvenue spontané | P2 | CROISSANCE | CR0 |
 | 18 | **G6** — Relance de réservation abandonnée | P1 | GROWTH | Tension « zéro cron » à trancher avec toi (voir fichier source) |
-| 19 | **G5** — Signaux de dynamique temps réel | P2 | GROWTH | ✅ PR #194 — préféré à G3 (même priorité P2, prêt aussi depuis G1+G2 livrés) : G3 implique un nouveau modèle + une généralisation de `rebooking-discount.ts` + une intégration au checkout, plus risqué pour une itération autonome ; reste à faire dans une session dédiée |
+| 19 | **G5** — Signaux de dynamique temps réel | P2 | GROWTH | ✅ PR #195 — préféré à G3 (même priorité P2, prêt aussi depuis G1+G2 livrés) : G3 implique un nouveau modèle + une généralisation de `rebooking-discount.ts` + une intégration au checkout, plus risqué pour une itération autonome ; reste à faire dans une session dédiée |
 
 ### Vague 5 — campagnes, pilotage, rétention long terme
 
