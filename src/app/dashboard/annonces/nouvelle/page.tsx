@@ -3,13 +3,23 @@ import { redirect } from "next/navigation";
 import { getT } from "@/lib/i18n/server";
 import { getSessionUser } from "@/lib/session";
 import { immoEnabled, stayEnabled, kycGatingEnabled } from "@/lib/modes";
-import { TYPES_BY_VERTICAL, type PropertyType } from "@/lib/constants";
+import { resolveCity } from "@/lib/geo";
+import { PROPERTY_TYPES, TYPES_BY_VERTICAL, type PropertyType } from "@/lib/constants";
 import { PropertyForm } from "@/components/dashboard/PropertyForm";
 import { ShieldIcon } from "@/components/icons";
 
-export default async function NouvelleAnnoncePage() {
+export default async function NouvelleAnnoncePage({
+  searchParams,
+}: {
+  // Préremplissage depuis le simulateur de revenus public (GROWTH_ROADMAP.md §G1).
+  searchParams: Promise<{ ville?: string; type?: string }>;
+}) {
   const fr = await getT();
-  const user = await getSessionUser();
+  const [user, { ville, type }] = await Promise.all([getSessionUser(), searchParams]);
+  const defaultCity = ville ? (resolveCity(ville) ?? undefined) : undefined;
+  const defaultType = PROPERTY_TYPES.includes(type as PropertyType)
+    ? (type as PropertyType)
+    : undefined;
   if (!user) redirect("/connexion");
   if (user.role !== "HOTE" && user.role !== "AGENCE") {
     redirect("/dashboard/reservations");
@@ -54,7 +64,11 @@ export default async function NouvelleAnnoncePage() {
     <div>
       <h2 className="text-xl font-bold text-heading">{fr.dashboard.nouvelleAnnonce}</h2>
       <div className="mt-5 rounded-3xl bg-surface p-6 ring-1 ring-darna/10">
-        <PropertyForm allowedTypes={allowedTypes} />
+        <PropertyForm
+          allowedTypes={allowedTypes}
+          defaultCity={defaultCity}
+          defaultType={defaultType && allowedTypes.includes(defaultType) ? defaultType : undefined}
+        />
       </div>
     </div>
   );

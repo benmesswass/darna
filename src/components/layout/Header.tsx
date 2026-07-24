@@ -47,6 +47,7 @@ export async function Header() {
   const mobileItems = [
     ...primaryItems,
     { href: "/prix-du-marche", label: fr.nav.prixDuMarche },
+    { href: "/combien-gagner", label: fr.nav.simulateur },
     { href: "/diaspora", label: fr.nav.diaspora },
     { href: "/devenir-wakil", label: fr.nav.devenirWakil },
     user
@@ -79,6 +80,14 @@ export async function Header() {
               inactiveClassName="text-white/80 hover:bg-white/10 hover:text-white"
             >
               {fr.nav.prixDuMarche}
+            </NavLink>
+            <NavLink
+              href="/combien-gagner"
+              className="rounded-lg px-3 py-2 text-sm"
+              activeClassName="bg-white/10 font-semibold text-white"
+              inactiveClassName="text-white/80 hover:bg-white/10 hover:text-white"
+            >
+              {fr.nav.simulateur}
             </NavLink>
             <NavLink
               href="/diaspora"

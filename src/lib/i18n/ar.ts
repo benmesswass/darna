@@ -18,6 +18,7 @@ export const ar: Dictionary = {
     sejours: "إقامات",
     immobilier: "عقارات",
     prixDuMarche: "أسعار السوق",
+    simulateur: "قدّاش نكسب؟",
     diaspora: "تونسيو الخارج",
     devenirWakil: "ولّي وكيل",
     connexion: "تسجيل الدخول",
@@ -1594,6 +1595,39 @@ export const ar: Dictionary = {
     methodologie: "المنهجية",
     methodologieTexte:
       "معدلات بسيطة محسوبة على الإعلانات النشيطة وغير المنتهية في دارنا. الإعلانات بلا مساحة مذكورة مستثناة من حسابات المتر المربع. المؤشر يثرى كل ما تكبر المنصة.",
+  },
+  simulateur: {
+    titre: "قدّاش ممكن تكسب في دارنة؟",
+    sousTitre:
+      "تقدير مبني على أسعار حقيقية موجودة في المنصة — ماهوش رقم مختلق. تلاتة حقول، وتقدير تقريبي.",
+    ville: "المدينة",
+    villePlaceholder: "مثلا: الحمامات، سوسة، جربة…",
+    type: "نوع العقار",
+    voyageurs: "عدد النزلاء",
+    voyageursAide: "يُستعمل غير باش يعمر إعلانك مسبقا — ما يأثّرش في التقدير.",
+    surface: "المساحة (م²)",
+    surfaceRequisePourEstimation: "دخّل المساحة باش تقدر على تقدير الكراء أو ثمن البيع.",
+    cta: "قدّر مداخيلي",
+    resultatNuiteeTitre: "تقدير مداخيل الكراء (إقامات قصيرة)",
+    resultatNuiteeDetail: (ville: string, nuit: number) =>
+      `مبني على معدل الليلة في ${ville} (${nuit} د.ت) × 30 ليلة × نسبة إشغال بين 35% و60%.`,
+    resultatLocationTitre: "تقدير الكراء الشهري",
+    resultatLocationDetail: (gouvernorat: string, prixM2: number) =>
+      `مبني على معدل الكراء للمتر المربع في ولاية ${gouvernorat} (${prixM2} د.ت/م²).`,
+    resultatVenteTitre: "تقدير ثمن البيع",
+    resultatVenteDetail: (gouvernorat: string, prixM2: number) =>
+      `مبني على معدل السوم للمتر المربع في ولاية ${gouvernorat} (${prixM2} د.ت/م²).`,
+    parMois: "/ الشهر",
+    echantillon: (n: number) =>
+      n === 1 ? "مبني على إعلان واحد" : n === 2 ? "مبني على إعلانين" : `مبني على ${n} إعلانات`,
+    aucuneDonnee: "مازال ما فماش معطيات حقيقية كافية على هذه المنطقة.",
+    villesProches: "جرّب مدينة قريبة:",
+    ctaPublier: "أنشر إعلاني",
+    ctaPublierAide: "المدينة والنوع محطوطين مسبقا في الخطوة الجاية.",
+    methodologie: "منين جا هذا الرقم؟",
+    methodologieTexte:
+      "معدلات محسوبة على الإعلانات النشيطة وغير المنتهية في دارنة — نفس معطيات مؤشر دارنة للأسعار. حتى رقم ما نختلقوه: كي المعطيات مازالت قليلة على منطقة معينة، نقولوها بالصراحة.",
+    voirIndice: "شوف المؤشر الكامل للأسعار",
   },
   diaspora: {
     titre: "دارنا — تونسيو الخارج",

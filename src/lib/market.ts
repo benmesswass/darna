@@ -1,6 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { activeListingWhere } from "@/lib/listings";
 import { cached } from "@/lib/cache";
+import { getCity } from "@/lib/geo";
+import type { PropertyType } from "@/lib/constants";
+import { SUMMER_OCCUPANCY_RATE, SIMULATOR_OCCUPANCY_LOW, SIMULATOR_ESTIMATE_BAND } from "@/lib/config";
 
 export type M2Row = {
   label: string;
@@ -78,5 +81,68 @@ async function computeMarketIndexRaw() {
     vente: groupPerM2("VENTE"),
     location: groupPerM2("LOCATION"),
     nights,
+  };
+}
+
+export type RevenueEstimateUnit = "NUITEE" | "LOYER_MENSUEL" | "PRIX_VENTE";
+
+export type RevenueEstimate = {
+  /** false si aucune donnée réelle pour cette ville/gouvernorat (ou surface manquante). */
+  matched: boolean;
+  sampleSize: number;
+  monthlyLow: number | null;
+  monthlyHigh: number | null;
+  unit: RevenueEstimateUnit;
+};
+
+/**
+ * Simulateur public de revenus (GROWTH_ROADMAP.md §G1) — fourchette dérivée
+ * UNIQUEMENT de l'indice déjà calculé par computeMarketIndex() (mêmes agrégats
+ * que /prix-du-marche, mémoïsés 5 min) : aucune nouvelle requête lourde.
+ * `capacity` n'entre volontairement pas dans le calcul (l'indice n'est pas
+ * ventilé par capacité) — jamais de chiffre gonflé par une hypothèse non
+ * vérifiée ; la capacité saisie ne sert qu'à préremplir le CTA d'inscription.
+ */
+export async function estimateRevenue(input: {
+  city: string;
+  type: PropertyType;
+  surface?: number;
+}): Promise<RevenueEstimate> {
+  const { vente, location, nights } = await computeMarketIndex();
+  const unit: RevenueEstimateUnit =
+    input.type === "SEJOUR"
+      ? "NUITEE"
+      : input.type === "LOCATION"
+        ? "LOYER_MENSUEL"
+        : "PRIX_VENTE";
+
+  if (input.type === "SEJOUR") {
+    const row = nights.find((n) => n.label === input.city);
+    if (!row) {
+      return { matched: false, sampleSize: 0, monthlyLow: null, monthlyHigh: null, unit };
+    }
+    return {
+      matched: true,
+      sampleSize: row.count,
+      monthlyLow: Math.round(row.avgNight * 30 * SIMULATOR_OCCUPANCY_LOW),
+      monthlyHigh: Math.round(row.avgNight * 30 * SUMMER_OCCUPANCY_RATE),
+      unit,
+    };
+  }
+
+  const gouvernorat = getCity(input.city)?.gouvernorat;
+  const table = input.type === "LOCATION" ? location : vente;
+  const row = gouvernorat ? table.find((r) => r.label === gouvernorat) : undefined;
+  if (!row || !input.surface || input.surface <= 0) {
+    return { matched: false, sampleSize: row?.count ?? 0, monthlyLow: null, monthlyHigh: null, unit };
+  }
+
+  const base = row.avgPerM2 * input.surface;
+  return {
+    matched: true,
+    sampleSize: row.count,
+    monthlyLow: Math.round(base * (1 - SIMULATOR_ESTIMATE_BAND)),
+    monthlyHigh: Math.round(base * (1 + SIMULATOR_ESTIMATE_BAND)),
+    unit,
   };
 }

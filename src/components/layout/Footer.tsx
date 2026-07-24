@@ -46,6 +46,11 @@ export async function Footer() {
               </Link>
             </li>
             <li>
+              <Link href="/combien-gagner" className="text-white/80 hover:text-sand">
+                {fr.nav.simulateur}
+              </Link>
+            </li>
+            <li>
               <Link href="/diaspora" className="text-white/80 hover:text-sand">
                 {fr.nav.diaspora}
               </Link>
