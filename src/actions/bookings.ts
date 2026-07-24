@@ -24,6 +24,7 @@ import {
   computeRebookingDiscount,
   isRebookingDiscountValid,
 } from "@/lib/rebooking-discount";
+import { computeCreditApplication, creditBalance, spendCredit } from "@/lib/credits";
 import { initKonnectPayment, isKonnectEnabled, signKonnectWebhook } from "@/lib/konnect";
 import { hasOverdueHostInvoice } from "@/lib/host-invoicing";
 import {
@@ -64,6 +65,10 @@ const createSchema = z.object({
   // (claimRebookingDiscount), un token invalide/déjà utilisé est simplement
   // ignoré (pas d'erreur bloquante sur une réservation par ailleurs valide).
   discountToken: z.string().trim().min(1).optional(),
+  // Crédit parrainage/bienvenue (§CR1), opt-in — case à cocher du récapitulatif.
+  // Chaîne "true"/"false" (input hidden), jamais z.coerce.boolean() : Boolean("false")
+  // vaut true, ce qui inverserait silencieusement le choix du voyageur.
+  useCredits: z.enum(["true", "false"]).optional().default("false"),
 });
 
 /** Erreur interne signalant un conflit de disponibilité à l'intérieur de la transaction. */
@@ -111,6 +116,7 @@ export async function createBookingAction(
     voyageurs: formData.get("voyageurs"),
     paymentMode: formData.get("paymentMode") || undefined,
     discountToken: formData.get("discountToken") || undefined,
+    useCredits: formData.get("useCredits") || undefined,
   });
   if (!parsed.success) return { error: fr.booking.datesInvalides };
 
@@ -201,8 +207,17 @@ export async function createBookingAction(
     Date.now() + (wantsCash ? HOST_ACCEPTANCE_EXPIRY_MS : BOOKING_EXPIRY_MS)
   );
 
+  // Crédit parrainage/bienvenue (§CR1) : solde lu HORS transaction (aperçu),
+  // la dépense réelle est réclamée ATOMIQUEMENT dans la transaction ci-dessous
+  // (spendCredit(tx, …)) — un solde entre-temps épuisé par une autre requête
+  // concurrente échoue juste silencieusement (creditApplied reste 0), même
+  // tolérance que claimRebookingDiscount pour un token déjà consommé.
+  const wantsCredits = parsed.data.useCredits === "true";
+  const creditBalanceBefore = wantsCredits ? await creditBalance(user.id) : 0;
+
   let bookingId: string;
   let finalTotalPrice: number;
+  let creditApplied = 0;
 
   try {
     /**
@@ -261,6 +276,31 @@ export async function createBookingAction(
           totalPrice = Math.max(subtotal, fullTotalPrice - discount);
         }
       }
+
+      // Crédit parrainage/bienvenue (§CR1) : appliqué APRÈS la réduction
+      // ponctuelle éventuelle ci-dessus — computeCreditApplication replanche
+      // sur `totalPrice` déjà réduit, donc le plancher `subtotal` tient même
+      // si les deux mécanismes sont cumulés sur la même réservation. Dépense
+      // couplée à CETTE transaction (spendCredit(…, tx)) : si la réservation
+      // échoue plus bas (conflit de dispo), la dépense de crédit rollback avec.
+      if (wantsCredits && creditBalanceBefore > 0) {
+        const creditToApply = computeCreditApplication({
+          balance: creditBalanceBefore,
+          totalPrice,
+          subtotal,
+        });
+        if (creditToApply > 0) {
+          const spent = await spendCredit(
+            { userId: user.id, amount: creditToApply, motif: "UTILISATION_RESERVATION" },
+            tx
+          );
+          if (spent) {
+            totalPrice -= creditToApply;
+            creditApplied = creditToApply;
+          }
+        }
+      }
+
       // Acompte minimum dû en ligne, figé dès la création du hold (anti-bypass).
       // Sans objet en Rail 2 : zéro paiement en ligne, tout est dû cash à l'arrivée.
       const depositAmount = wantsCash ? 0 : computeDepositAmount(totalPrice, serviceFee);
@@ -331,8 +371,18 @@ export async function createBookingAction(
       nights,
       totalPrice: finalTotalPrice,
       paymentMode: wantsCash ? "SUR_PLACE" : "ESCROW",
+      creditApplied: creditApplied || undefined,
     },
   });
+
+  if (creditApplied > 0) {
+    await logAudit({
+      action: "CREDIT_APPLIED_AT_CHECKOUT",
+      userId: user.id,
+      success: true,
+      metadata: { bookingId, amount: creditApplied },
+    });
+  }
 
   // Rail 2 : l'hôte doit être notifié qu'une demande attend sa décision (pas
   // de paiement pour la lui signaler autrement).
@@ -354,6 +404,8 @@ export type BookingQuote =
       total: number;
       /** Réduction ponctuelle appliquée (§AH4), TND — absent si aucun token valide. */
       discount?: number;
+      /** Crédit qui SERAIT appliqué si useCredits (§CR1) — aperçu, rien n'est dépensé ici. */
+      creditApplied?: number;
     }
   | { ok: false; error: string };
 
@@ -363,6 +415,7 @@ const quoteSchema = z.object({
   depart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   voyageurs: z.coerce.number().int().min(1).max(30),
   discountToken: z.string().trim().min(1).optional(),
+  useCredits: z.boolean().optional(),
 });
 
 /**
@@ -378,6 +431,7 @@ export async function quoteBookingAction(input: {
   depart: string;
   voyageurs: number;
   discountToken?: string;
+  useCredits?: boolean;
 }): Promise<BookingQuote> {
   const fr = await getT();
   const parsed = quoteSchema.safeParse(input);
@@ -449,13 +503,15 @@ export async function quoteBookingAction(input: {
   const serviceFee = Math.round(subtotal * SERVICE_FEE_RATE);
   const fullTotal = subtotal + serviceFee;
 
-  // Réduction ponctuelle (§AH4) : APERÇU seulement (lecture seule, jamais
-  // consommée ici) — anonyme ou token invalide → devis normal sans erreur.
+  // Réduction ponctuelle (§AH4) et crédit (§CR1) : APERÇU seulement (lecture
+  // seule, rien n'est consommé ici — la dépense réelle est atomique dans
+  // createBookingAction) — anonyme ou invalide → devis normal sans erreur.
+  const user = await getSessionUser();
+
   let discount: number | undefined;
   let total = fullTotal;
-  if (parsed.data.discountToken) {
-    const user = await getSessionUser();
-    if (user && (await isRebookingDiscountValid(parsed.data.discountToken, user.id))) {
+  if (parsed.data.discountToken && user) {
+    if (await isRebookingDiscountValid(parsed.data.discountToken, user.id)) {
       const rawDiscount = computeRebookingDiscount(subtotal);
       total = Math.max(subtotal, fullTotal - rawDiscount);
       // §AHC5 — on renvoie la réduction RÉELLEMENT appliquée (fullTotal − total),
@@ -468,7 +524,23 @@ export async function quoteBookingAction(input: {
     }
   }
 
-  return { ok: true, nights, nightlyPrice, subtotal, serviceFee, total, discount };
+  // Solde lu UNIQUEMENT si le voyageur a coché « utiliser mes crédits » — la
+  // page a déjà son propre solde (fetché une fois, cf. page.tsx) pour
+  // afficher la case à cocher ; inutile de le relire ici à chaque devis si
+  // elle n'est pas cochée.
+  let creditApplied: number | undefined;
+  if (parsed.data.useCredits && user) {
+    const balance = await creditBalance(user.id);
+    if (balance > 0) {
+      const applied = computeCreditApplication({ balance, totalPrice: total, subtotal });
+      if (applied > 0) {
+        total -= applied;
+        creditApplied = applied;
+      }
+    }
+  }
+
+  return { ok: true, nights, nightlyPrice, subtotal, serviceFee, total, discount, creditApplied };
 }
 
 /** Montant choisi à la réservation : borné [acompte, total] côté serveur. */

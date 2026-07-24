@@ -372,6 +372,8 @@ export const fr = {
     captchaEchec: "Vérification anti-robot échouée. Veuillez réessayer.",
     emailDejaUtilise: "Impossible de créer le compte avec ces informations.",
     inscriptionReussie: "Compte créé ! Vous pouvez vous connecter.",
+    parrainageBanniere: (montant: number) =>
+      `Vous avez été invité·e sur Darna — ${montant} TND de crédit vous seront offerts dès votre inscription.`,
     motDePasseRegle: "8 caractères minimum",
     afficherMotDePasse: "Afficher le mot de passe",
     masquerMotDePasse: "Masquer le mot de passe",
@@ -422,6 +424,7 @@ export const fr = {
     alerteBudgetMin: (min: number) => `À partir de ${min} TND`,
     alerteBudgetMax: (max: number) => `Jusqu'à ${max} TND`,
     alerteBudgetLibre: "Tous budgets",
+    mesCredits: "Mes crédits",
     favoris: "Mes favoris",
     favorisSansDossier: "Sans dossier",
     favorisNbLogements: (n: number) =>
@@ -1177,6 +1180,8 @@ export const fr = {
       "Ils financent la vérification des annonces et la protection des paiements.",
     total: "Total à payer",
     reductionRelogement: "Réduction Darna",
+    utiliserCredits: (solde: number) => `Utiliser mes ${solde} TND de crédit`,
+    creditApplique: "Crédit utilisé",
     aucunFraisCache: "Aucun autre frais ne vous sera demandé. Jamais.",
     continuerPaiement: "Continuer vers le paiement",
     holdLabel: "Place gardée — paiement sous",
@@ -1903,6 +1908,42 @@ export const fr = {
     statutEnRetard: "En retard",
     vide: "Aucune facture pour le moment.",
     voirFacture: "Voir la facture",
+  },
+  credits: {
+    titre: "Mes crédits",
+    soldeLabel: "Solde disponible",
+    soldeAide:
+      "Utilisable au moment de payer une réservation, dans la limite de 30 % du total.",
+    parrainageTitre: "Parrainez, gagnez des crédits",
+    parrainageDesc: (montant: number) =>
+      `Partagez votre lien : chaque ami qui s'inscrit reçoit ${montant} TND offerts.`,
+    parrainerBouton: "Parrainer un ami",
+    parrainageMessage: (montant: number) =>
+      `Rejoins-moi sur Darna et reçois ${montant} TND de crédit offert à l'inscription !`,
+    codeLabel: "Votre code",
+    historiqueTitre: "Historique",
+    historiqueVide: "Aucun mouvement pour le moment.",
+    expireLe: (date: string) => `Expire le ${date}`,
+    motifLabel: (motif: string) => {
+      switch (motif) {
+        case "BIENVENUE_PARRAINAGE":
+          return "Bonus de bienvenue (parrainage)";
+        case "BIENVENUE_SPONTANE":
+          return "Crédit de bienvenue";
+        case "PARRAINAGE_FILLEUL_TERMINE":
+          return "Parrainage — filleul actif";
+        case "UTILISATION_RESERVATION":
+          return "Utilisé sur une réservation";
+        case "UTILISATION_SERVICE_HOTE":
+          return "Utilisé sur un service hôte";
+        case "EXPIRATION":
+          return "Crédit expiré";
+        case "AJUSTEMENT_ADMIN":
+          return "Ajustement";
+        default:
+          return motif;
+      }
+    },
   },
 };
 

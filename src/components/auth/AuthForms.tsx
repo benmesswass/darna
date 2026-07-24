@@ -13,6 +13,7 @@ import {
 import { useT } from "@/components/i18n/LocaleProvider";
 import { TurnstileWidget } from "@/components/auth/TurnstileWidget";
 import { COUNTRY_LABELS } from "@/lib/constants";
+import { REFERRAL_SIGNUP_BONUS_TND } from "@/lib/config";
 import { CheckIcon } from "@/components/icons";
 
 const inputClass =
@@ -366,10 +367,13 @@ export function RegisterForm({
   defaultRole = "VOYAGEUR",
   callbackUrl,
   captchaSiteKey = "",
+  refCode,
 }: {
   defaultRole?: string;
   callbackUrl?: string;
   captchaSiteKey?: string;
+  /** Code de parrainage déjà validé côté serveur (§CR1) — absent si aucun/invalide. */
+  refCode?: string;
 }) {
   const fr = useT();
   const router = useRouter();
@@ -406,6 +410,14 @@ export function RegisterForm({
   return (
     <form action={action} onSubmit={handleSubmit} className="space-y-4">
       <Feedback state={state} />
+      {refCode ? (
+        <>
+          <input type="hidden" name="ref" value={refCode} />
+          <p className="rounded-xl bg-sand/40 px-4 py-2.5 text-sm font-medium text-darna-dark">
+            {fr.auth.parrainageBanniere(REFERRAL_SIGNUP_BONUS_TND)}
+          </p>
+        </>
+      ) : null}
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold text-body/70">{fr.auth.nom}</span>
         <input

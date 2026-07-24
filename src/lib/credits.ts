@@ -13,9 +13,13 @@
  */
 
 import { randomBytes } from "node:crypto";
+import type { Prisma, PrismaClient } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { CREDIT_VALIDITY_DAYS } from "@/lib/config";
+import { CREDIT_CHECKOUT_CAP_RATE, CREDIT_VALIDITY_DAYS } from "@/lib/config";
 import type { CreditTransactionMotif } from "@/lib/constants";
+
+/** Client Prisma global OU transaction (ex. createBookingAction) — mêmes appels des deux côtés. */
+type DbClient = PrismaClient | Prisma.TransactionClient;
 
 /**
  * Solde de crédits restant. L'ABSENCE de CreditWallet vaut solde 0 — la ligne
@@ -46,18 +50,22 @@ export interface IssueCreditParams {
  * CREDIT_VALIDITY_DAYS — posé UNIQUEMENT ici, jamais recalculé ailleurs.
  * N'est PAS idempotent en soi : un appel = un mouvement. Le caller gate ses
  * propres doublons (cf. doc du module).
+ *
+ * `db` : client Prisma global (défaut) OU transaction en cours — passer `tx`
+ * quand l'émission doit être atomique avec une autre écriture de la même
+ * transaction (même convention que claimRebookingDiscount(tx, …)).
  */
-export async function issueCredit(params: IssueCreditParams): Promise<void> {
+export async function issueCredit(params: IssueCreditParams, db: DbClient = prisma): Promise<void> {
   const { userId, amount, motif, bookingId, referredUserId } = params;
   if (amount <= 0) throw new Error("issueCredit: amount must be positive");
 
-  const wallet = await prisma.creditWallet.upsert({
+  const wallet = await db.creditWallet.upsert({
     where: { userId },
     create: { userId, balance: amount },
     update: { balance: { increment: amount } },
   });
 
-  await prisma.creditTransaction.create({
+  await db.creditTransaction.create({
     data: {
       walletId: wallet.id,
       amount,
@@ -82,36 +90,66 @@ export interface SpendCreditParams {
  * qui pourrait passer sous zéro en cas de requêtes concurrentes — même
  * principe que consumeVerificationCredit (`updateMany` gardé par
  * `balance: { gte }`). Retourne `false` sans AUCUNE mutation si le solde est
- * insuffisant. Ne connaît PAS les règles de plafond checkout (30 %, plancher
- * serviceFee — CR1) : le caller les applique avant d'appeler cette primitive.
+ * insuffisant. Ne connaît PAS les règles de plafond checkout (cf.
+ * computeCreditApplication ci-dessous) : le caller applique le plafond avant
+ * d'appeler cette primitive.
+ *
+ * `db` : client Prisma global (défaut) OU transaction en cours — passer `tx`
+ * pour coupler atomiquement la dépense à la création de la réservation
+ * (même convention que claimRebookingDiscount(tx, …)) : si la réservation
+ * échoue/rollback, la dépense de crédit doit rollback avec elle.
  */
-export async function spendCredit(params: SpendCreditParams): Promise<boolean> {
+export async function spendCredit(params: SpendCreditParams, db: DbClient = prisma): Promise<boolean> {
   const { userId, amount, motif, bookingId } = params;
   if (amount <= 0) throw new Error("spendCredit: amount must be positive");
 
   // Matérialise d'abord la ligne à 0 si elle n'existe pas encore (no-op sinon),
   // pour que l'updateMany conditionné ci-dessous ait une ligne sur laquelle
   // s'appliquer dès le tout premier appel pour ce compte.
-  await prisma.creditWallet.upsert({
+  await db.creditWallet.upsert({
     where: { userId },
     create: { userId, balance: 0 },
     update: {},
   });
 
-  const result = await prisma.creditWallet.updateMany({
+  const result = await db.creditWallet.updateMany({
     where: { userId, balance: { gte: amount } },
     data: { balance: { decrement: amount } },
   });
   if (result.count === 0) return false;
 
-  const wallet = await prisma.creditWallet.findUniqueOrThrow({
+  const wallet = await db.creditWallet.findUniqueOrThrow({
     where: { userId },
     select: { id: true },
   });
-  await prisma.creditTransaction.create({
+  await db.creditTransaction.create({
     data: { walletId: wallet.id, amount: -amount, motif, bookingId },
   });
   return true;
+}
+
+/**
+ * Calcule le crédit RÉELLEMENT applicable à une réservation — pure, aucun
+ * accès base (même patron que computeRebookingDiscount). Deux planchers non
+ * négociables (préambule CROISSANCE_ROADMAP.md, cumulatifs avec toute autre
+ * remise déjà appliquée sur `totalPrice`, ex. RebookingDiscount) :
+ *  - jamais plus de CREDIT_CHECKOUT_CAP_RATE (30 %) du total ACTUEL (après
+ *    toute autre remise déjà appliquée) ;
+ *  - jamais au-delà de `totalPrice - subtotal` : la commission Darna peut
+ *    être intégralement absorbée, mais le prix hôte (`subtotal`) ne bouge
+ *    JAMAIS — ce reste-à-couvrir se réduit déjà mécaniquement si une autre
+ *    remise (ex. AH4) a été appliquée avant.
+ * Résultat toujours arrondi à l'entier TND (comme toutes les remises du projet).
+ */
+export function computeCreditApplication(params: {
+  balance: number;
+  totalPrice: number;
+  subtotal: number;
+}): number {
+  const { balance, totalPrice, subtotal } = params;
+  const commissionRoom = totalPrice - subtotal;
+  const rateCap = Math.round(totalPrice * CREDIT_CHECKOUT_CAP_RATE);
+  return Math.max(0, Math.min(balance, rateCap, commissionRoom));
 }
 
 /**

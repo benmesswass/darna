@@ -88,6 +88,22 @@ export const REBOOKING_DISCOUNT_VALIDITY_DAYS = 30;
 export const CREDIT_VALIDITY_DAYS = 182;
 
 /**
+ * Bonus filleul (parrainage voyageur, CROISSANCE_ROADMAP.md §CR1) — crédité
+ * IMMÉDIATEMENT à l'inscription via lien/code de parrainage valide, motif
+ * BIENVENUE_PARRAINAGE. Distinct du bonus parrain (§CR2, +40 TND, pas encore
+ * implémenté) et du crédit de bienvenue générique sans parrain (§CR3).
+ */
+export const REFERRAL_SIGNUP_BONUS_TND = 15;
+
+/**
+ * Part maximale du total qu'un crédit peut couvrir au checkout (§CR1) — le
+ * reste-à-couvrir (`totalPrice - subtotal`, cf. computeCreditApplication)
+ * protège de toute façon le prix hôte ; ce taux limite en plus combien du
+ * total le voyageur peut régler en crédit plutôt qu'en argent réel.
+ */
+export const CREDIT_CHECKOUT_CAP_RATE = 0.3;
+
+/**
  * Signal réputationnel « annulé par l'hôte » (ANNULATION_HOTE_CORRECTIFS
  * _ROADMAP.md §AHC7, benchmark Airbnb) : chaque annulation hôte apparaît
  * comme une entrée système dans les avis de l'ANNONCE concernée, dès la 1re

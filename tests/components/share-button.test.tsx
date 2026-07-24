@@ -35,7 +35,7 @@ describe("<ShareButton /> — instrumentation §IN2", () => {
 
     expect(trackEvent).toHaveBeenCalledWith({
       event: "SHARE_CLICKED",
-      metadata: { channel: "copy" },
+      metadata: { channel: "copy", context: "property" },
     });
   });
 
@@ -46,7 +46,7 @@ describe("<ShareButton /> — instrumentation §IN2", () => {
 
     expect(trackEvent).toHaveBeenCalledWith({
       event: "SHARE_CLICKED",
-      metadata: { channel: "whatsapp" },
+      metadata: { channel: "whatsapp", context: "property" },
     });
   });
 
@@ -57,10 +57,10 @@ describe("<ShareButton /> — instrumentation §IN2", () => {
     renderWithProviders(<ShareButton title="Villa Hammamet" url={URL} />);
     await userEvent.click(screen.getByRole("button", { name: fr.property.partager }));
 
-    expect(shareMock).toHaveBeenCalledWith({ title: "Villa Hammamet", url: URL });
+    expect(shareMock).toHaveBeenCalledWith({ title: "Villa Hammamet", text: undefined, url: URL });
     expect(trackEvent).toHaveBeenCalledWith({
       event: "SHARE_CLICKED",
-      metadata: { channel: "native" },
+      metadata: { channel: "native", context: "property" },
     });
   });
 
@@ -73,5 +73,30 @@ describe("<ShareButton /> — instrumentation §IN2", () => {
     await userEvent.click(screen.getByRole("button", { name: fr.property.partager }));
 
     expect(trackEvent).not.toHaveBeenCalled();
+  });
+});
+
+describe("<ShareButton /> — réutilisation parrainage (§CR1)", () => {
+  it("affiche le libellé personnalisé et distingue le contexte dans SHARE_CLICKED", async () => {
+    renderWithProviders(
+      <ShareButton title="Mes crédits" url={URL} label="Parrainer un ami" context="referral" />
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Parrainer un ami" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: fr.property.copierLien }));
+
+    expect(trackEvent).toHaveBeenCalledWith({
+      event: "SHARE_CLICKED",
+      metadata: { channel: "copy", context: "referral" },
+    });
+  });
+
+  it("utilise le message personnalisé dans le lien WhatsApp plutôt que le message d'annonce par défaut", async () => {
+    renderWithProviders(
+      <ShareButton title="Mes crédits" url={URL} message="Rejoins Darna, 15 TND offerts !" context="referral" />
+    );
+    await userEvent.click(screen.getByRole("button", { name: fr.property.partager }));
+
+    const whatsappLink = screen.getByRole("menuitem", { name: fr.property.whatsapp }) as HTMLAnchorElement;
+    expect(decodeURIComponent(whatsappLink.href)).toContain("Rejoins Darna, 15 TND offerts !");
   });
 });
