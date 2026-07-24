@@ -194,6 +194,20 @@ export const HOST_VERIFICATION_PRICE_TND = 20;
 /** Occupation estivale estimée pour le Yield Advisor. */
 export const SUMMER_OCCUPANCY_RATE = 0.6;
 
+/**
+ * Simulateur public de revenus (GROWTH_ROADMAP.md §G1) — borne basse d'occupation
+ * pour la fourchette séjour (scénario prudent). La borne haute réutilise
+ * SUMMER_OCCUPANCY_RATE ci-dessus (même hypothèse que le Yield Advisor).
+ */
+export const SIMULATOR_OCCUPANCY_LOW = 0.35;
+
+/**
+ * Simulateur public de revenus (§G1) — bande ± autour de la moyenne TND/m²
+ * pour la fourchette location/vente (l'indice n'est pas assez granulaire pour
+ * un intervalle calculé directement, contrairement à la nuitée séjour).
+ */
+export const SIMULATOR_ESTIMATE_BAND = 0.15;
+
 /** URL canonique du site (SEO). */
 export const SITE_URL = process.env.SITE_URL ?? "http://localhost:3000";
 

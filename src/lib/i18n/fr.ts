@@ -13,6 +13,7 @@ export const fr = {
     sejours: "Séjours",
     immobilier: "Immobilier",
     prixDuMarche: "Prix du marché",
+    simulateur: "Combien gagner ?",
     diaspora: "Tunisiens à l'étranger",
     devenirWakil: "Devenir Wakil",
     connexion: "Connexion",
@@ -1598,6 +1599,40 @@ export const fr = {
     methodologie: "Méthodologie",
     methodologieTexte:
       "Moyennes simples calculées sur les annonces actives et non expirées de Darna. Les annonces sans surface renseignée sont exclues des calculs au m². L'indice s'enrichit à mesure que la plateforme grandit.",
+  },
+  simulateur: {
+    titre: "Combien pourriez-vous gagner sur Darna ?",
+    sousTitre:
+      "Une estimation basée sur les prix réels déjà observés sur la plateforme — pas un chiffre inventé. Trois champs, une fourchette indicative.",
+    ville: "Ville",
+    villePlaceholder: "Ex. Hammamet, Sousse, Djerba…",
+    type: "Type de bien",
+    voyageurs: "Nombre de voyageurs",
+    voyageursAide:
+      "Sert uniquement à préremplir votre future annonce — n'influence pas l'estimation.",
+    surface: "Surface (m²)",
+    surfaceRequisePourEstimation:
+      "Indiquez la surface pour estimer le loyer ou le prix de vente.",
+    cta: "Estimer mes revenus",
+    resultatNuiteeTitre: "Revenu locatif estimé (séjours courte durée)",
+    resultatNuiteeDetail: (ville: string, nuit: number) =>
+      `Basé sur la nuitée moyenne à ${ville} (${nuit} TND) × 30 nuits × un taux d'occupation de 35 % à 60 %.`,
+    resultatLocationTitre: "Loyer mensuel estimé",
+    resultatLocationDetail: (gouvernorat: string, prixM2: number) =>
+      `Basé sur le loyer moyen au m² dans le gouvernorat de ${gouvernorat} (${prixM2} TND/m²).`,
+    resultatVenteTitre: "Prix de vente estimé",
+    resultatVenteDetail: (gouvernorat: string, prixM2: number) =>
+      `Basé sur le prix moyen au m² dans le gouvernorat de ${gouvernorat} (${prixM2} TND/m²).`,
+    parMois: "/ mois",
+    echantillon: (n: number) => (n === 1 ? "basé sur 1 annonce" : `basé sur ${n} annonces`),
+    aucuneDonnee: "Pas encore assez de données réelles pour cette zone.",
+    villesProches: "Essayez une ville proche :",
+    ctaPublier: "Publier mon annonce",
+    ctaPublierAide: "Ville et type déjà pré-remplis à l'étape suivante.",
+    methodologie: "D'où vient ce chiffre ?",
+    methodologieTexte:
+      "Moyennes calculées sur les annonces actives et non expirées de Darna — les mêmes agrégats que l'Indice Darna des prix. Aucune hypothèse gonflée : quand les données sont encore trop rares pour une zone, nous vous le disons plutôt que d'inventer un chiffre.",
+    voirIndice: "Voir tout l'indice des prix",
   },
   diaspora: {
     titre: "Darna — Tunisiens à l'étranger",

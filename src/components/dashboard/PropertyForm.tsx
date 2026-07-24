@@ -61,9 +61,15 @@ export function PropertyForm({
   // Types proposés à la création : restreints aux verticales activées (cf.
   // src/lib/modes.ts), calculés côté serveur par la page. Défaut : tous.
   allowedTypes = [...PROPERTY_TYPES],
+  // Préremplissage depuis le simulateur de revenus public (GROWTH_ROADMAP.md
+  // §G1, ?ville=&type=) — jamais utilisé en édition (initial prime toujours).
+  defaultCity,
+  defaultType,
 }: {
   initial?: PropertyFormInitial;
   allowedTypes?: PropertyType[];
+  defaultCity?: string;
+  defaultType?: PropertyType;
 }) {
   const fr = useT();
   const isEdit = Boolean(initial);
@@ -73,9 +79,12 @@ export function PropertyForm({
   );
   const formRef = useRef<HTMLFormElement>(null);
   const [type, setType] = useState<string>(
-    initial?.type ?? allowedTypes[0] ?? "SEJOUR"
+    initial?.type ??
+      (defaultType && allowedTypes.includes(defaultType) ? defaultType : undefined) ??
+      allowedTypes[0] ??
+      "SEJOUR"
   );
-  const [cityName, setCityName] = useState(initial?.city ?? "Tunis");
+  const [cityName, setCityName] = useState(initial?.city ?? defaultCity ?? "Tunis");
   const [address, setAddress] = useState(initial?.address ?? "");
   const [coords, setCoords] = useState<{ lat: number; lng: number }>({
     lat: initial?.latitude ?? 36.8065,

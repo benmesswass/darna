@@ -14,6 +14,7 @@ export const en: Dictionary = {
     sejours: "Stays",
     immobilier: "Real estate",
     prixDuMarche: "Market prices",
+    simulateur: "How much could I earn?",
     diaspora: "Tunisians abroad",
     devenirWakil: "Become a Wakil",
     connexion: "Sign in",
@@ -1575,6 +1576,39 @@ export const en: Dictionary = {
     methodologie: "Methodology",
     methodologieTexte:
       "Simple averages computed on Darna's active, non-expired listings. Listings without a specified area are excluded from per-m² calculations. The index grows richer as the platform grows.",
+  },
+  simulateur: {
+    titre: "How much could you earn on Darna?",
+    sousTitre:
+      "An estimate based on real prices already observed on the platform — not a made-up number. Three fields, one indicative range.",
+    ville: "City",
+    villePlaceholder: "E.g. Hammamet, Sousse, Djerba…",
+    type: "Property type",
+    voyageurs: "Number of guests",
+    voyageursAide:
+      "Only used to pre-fill your future listing — does not affect the estimate.",
+    surface: "Area (m²)",
+    surfaceRequisePourEstimation: "Enter the area to estimate the rent or sale price.",
+    cta: "Estimate my income",
+    resultatNuiteeTitre: "Estimated rental income (short-term stays)",
+    resultatNuiteeDetail: (ville: string, nuit: number) =>
+      `Based on the average nightly rate in ${ville} (${nuit} TND) × 30 nights × an occupancy rate of 35% to 60%.`,
+    resultatLocationTitre: "Estimated monthly rent",
+    resultatLocationDetail: (gouvernorat: string, prixM2: number) =>
+      `Based on the average rent per m² in ${gouvernorat} governorate (${prixM2} TND/m²).`,
+    resultatVenteTitre: "Estimated sale price",
+    resultatVenteDetail: (gouvernorat: string, prixM2: number) =>
+      `Based on the average price per m² in ${gouvernorat} governorate (${prixM2} TND/m²).`,
+    parMois: "/ month",
+    echantillon: (n: number) => (n === 1 ? "based on 1 listing" : `based on ${n} listings`),
+    aucuneDonnee: "Not enough real data for this area yet.",
+    villesProches: "Try a nearby city:",
+    ctaPublier: "Publish my listing",
+    ctaPublierAide: "City and type already pre-filled on the next step.",
+    methodologie: "Where does this number come from?",
+    methodologieTexte:
+      "Averages computed on Darna's active, non-expired listings — the same aggregates as the Darna price index. No inflated guesses: when data is still too scarce for an area, we tell you instead of making up a number.",
+    voirIndice: "See the full price index",
   },
   diaspora: {
     titre: "Darna — Tunisians abroad",
