@@ -91,7 +91,7 @@ jobs:
         # nous-mêmes juste après, avec actions/upload-artifact@v7 (l'API
         # actuelle, déjà éprouvée dans ci.yml).
         continue-on-error: true
-        uses: zaproxy/action-baseline@v0.12.0
+        uses: zaproxy/action-baseline@v0.15.0
         with:
           target: "http://localhost:3000"
           # Scan PASSIF uniquement (aucune attaque active) — cf. roadmap
