@@ -59,7 +59,7 @@ bas :
 | **E2E navigateur** | ❌ **Absent** | **Aucun Playwright**, aucun parcours signup→KYC→booking→paiement automatisé |
 | **Couverture mesurée** | ✅ **En place (Phase 1)** | `@vitest/coverage-v8` + seuils ratchet bloquants en CI (`src/lib`+`src/actions`) |
 | Sécurité automatisée | ⚠️ Partiel | Semgrep (SAST) + ZAP baseline (DAST, nightly) désormais en place ; reste **dep-scan structuré** au-delà de `npm audit` (Dependabot déjà actif) |
-| Performance / charge | ⚠️ Partiel | k6 sur `/sejours` (recherche), nightly/hebdo — **charge sur la fenêtre de course booking non couverte** (cf. §6.7) |
+| Performance / charge | ✅ Bon | k6 sur `/sejours` (recherche) + course booking (20 VUs concurrents), nightly/hebdo (cf. §6.7) |
 | Accessibilité | ❌ Absent | Aucun `axe`, site trilingue + RTL non testé |
 
 **Décision.** La plateforme est **« Beta-ready » côté logique métier**, mais
@@ -273,7 +273,7 @@ dépendre de l'ordre du seed.
   `zaproxy/action-baseline` (`.github/workflows/zap-baseline.yml`), scan
   PASSIF uniquement (aucune attaque active), contre un build de production
   (`next start`). Job isolé, **jamais sur PR** (workflow séparé de `ci.yml`,
-  même choix que `k6-load.yml`) : nightly/hebdo + `workflow_dispatch`.
+  même choix que `perf.yml`) : nightly/hebdo + `workflow_dispatch`.
   `fail_action: false` volontaire — seuils/faux positifs pas encore calibrés
   sur un vrai résultat, donc un rapport à examiner plutôt qu'un gate bloquant
   pour l'instant (à durcir une fois le bruit de fond connu).
@@ -289,7 +289,7 @@ dépendre de l'ordre du seed.
   d'upload), alors que le scan lui-même aboutit sans aucun problème.
   Correctif : `continue-on-error: true` sur l'étape ZAP + upload des rapports
   par nous-mêmes via `actions/upload-artifact@v4` (API actuelle, déjà
-  éprouvée dans `k6-load.yml`) au lieu de dépendre du mécanisme interne cassé
+  éprouvée dans `ci.yml`) au lieu de dépendre du mécanisme interne cassé
   de l'action.
   **Premiers résultats réels** (387 URLs scannées) : **0 `FAIL-NEW`**, 59
   règles passées, 8 catégories `WARN-NEW` (aucune bloquante) — CSP
@@ -309,29 +309,31 @@ dépendre de l'ordre du seed.
 - **Dependabot/Renovate** activé, `npm audit --audit-level=high` conservé.
 
 ### 6.7 Performance / charge (P2)
-- [x] **k6** sur `/sejours` (recherche) : p95 < 500 ms à charge cible (20 VUs
-  en rampe, 1 min de palier) contre un build de **production** (`next start`
-  — `next dev` fausserait les p95 par sa compilation à la demande). →
-  `tests/k6/search-load.js`, job isolé `.github/workflows/k6-load.yml`
-  (nightly/hebdo + `workflow_dispatch`, **jamais sur PR** — workflow séparé de
-  `ci.yml`, pas un simple `if:` sur un trigger partagé, pour éliminer tout
-  risque de déclenchement accidentel). Rapport : k6 n'a pas d'intégration
-  Allure mature (contrairement à Playwright) — `--summary-export` JSON natif
-  + `scripts/k6-summary.mjs` (même esprit que `scripts/ci-test-summary.mjs`
-  du job `build`) publié en `$GITHUB_STEP_SUMMARY`, JSON complet en artifact.
-  **La carte (Leaflet) est hors de portée** : rendu client, k6/http n'exécute
-  pas de JS navigateur.
-- [ ] **Charge sur la fenêtre de course booking** : N `createBookingAction`
-  simultanés → aucune double-réservation, latence bornée, pas de deadlock
-  Postgres non géré. **Non couvert par ce lot** — `createBookingAction` est
-  une Server Action Next.js (POST sur l'URL de la page avec un header
-  `Next-Action: <hash>` dérivé du build), pas une cible stable pour k6/http
-  contrairement à une route API classique. La CORRECTION sous concurrence
-  est déjà prouvée sous vraie transaction SERIALIZABLE par
-  `tests/integration/booking-concurrency.integration.test.ts` (Phase 1) — ce
-  qui manque ici est la caractérisation de la LATENCE sous charge concurrente
-  en écriture, pas la preuve de l'invariant. Suivi possible : `k6/browser`
-  (pilotage navigateur réel, plus lourd mais stable) ou un endpoint dédié.
+- [x] **k6** sur `/sejours` (recherche) : montée à 10 VUs, 40 annonces
+  seedées (`tests/perf/search-seed.ts`) pour un p95 réaliste. Seuil
+  p95 < 2000 ms — mesuré 1.31 s en pratique, contre un build **`next dev`**
+  (pas `next start` : limite connue, à revoir si le seuil devient trop
+  proche de la marge). → `tests/perf/search.js`, job isolé
+  `.github/workflows/perf.yml` (hebdo + `workflow_dispatch`, **jamais sur
+  PR** — workflow séparé de `ci.yml`, pas un simple `if:` sur un trigger
+  partagé). **La carte (Leaflet) est hors de portée** : rendu client, k6/http
+  n'exécute pas de JS navigateur.
+- [x] **Charge sur la fenêtre de course booking** : 20 requêtes
+  `createBookingAction` simultanées sur le même créneau → exactement une
+  seule réservation active en base, p95 < 1.5 s (mesuré 684 ms).
+  `createBookingAction` est une Server Action Next.js (RPC via header
+  `Next-Action` + FormData, pas une route REST) — pilotée par k6 via un
+  spike validé : capturer une vraie requête une fois (login Playwright réel
+  dans `tests/perf/booking-load-setup.ts`), puis la rejouer en HTTP brut
+  (l'id d'action capturé reste valide pour les appels suivants). →
+  `tests/perf/booking-load.js` + `booking-load-verify.ts`. La CORRECTION
+  sous concurrence était déjà prouvée sous vraie transaction SERIALIZABLE
+  par `tests/integration/booking-concurrency.integration.test.ts`
+  (Phase 1) — ce lot ajoute la caractérisation de la LATENCE sous charge
+  réelle, et a mis au jour un vrai bug : 4/20 requêtes perdantes
+  remontaient en 500 brut (abandon de transaction Postgres P2034 non
+  rattrapé) au lieu du message générique "dates indisponibles" — corrigé
+  dans `src/actions/bookings.ts`.
 - [ ] Budget perf front (Lighthouse CI optionnel) sur pages annonce/recherche.
 
 ### 6.8 Accessibilité (P2)
@@ -506,8 +508,13 @@ satisfont via leur rapport Allure.
       la main — déjà couverte au niveau UI par `tests/e2e/01-auth.spec.ts`).
 
 ### Phase 5 — Perf, a11y, DAST, visuel *(P2/P3, ~4-5 j)*
-- [x] k6 : recherche, seuils p95 — ✅ livré, cf. §6.7 pour le détail et la
-      portée (course booking explicitement non couverte par ce lot, cf. §6.7).
+- [x] k6 : recherche + course booking, seuils p95 — ✅ livré, cf. §6.7 pour le
+      détail. **Vrai gap corrigé en cours de route** : sous charge réelle, un
+      abandon de transaction Postgres (P2034, perdant de la course)
+      remontait en 500 brut au lieu du message générique "dates
+      indisponibles" — `catch` étendu dans `createBookingAction`
+      (`src/actions/bookings.ts`), le commentaire du code annonçait ce retry
+      comme prévu ("→ Phase 2") mais jamais implémenté.
 - [x] axe sur pages clés × 3 langues — `tests/e2e/10-a11y.spec.ts` (5 pages ×
       fr/en/ar, 15 tests, job `e2e` existant). Zéro violation serious/critical
       **hors `color-contrast`**, exclu du gate après un vrai finding

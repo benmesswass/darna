@@ -4,11 +4,11 @@ name: ZAP baseline (DAST)
 # (headers/CSP/cookies) — vérifie en boîte noire ce que §1 de QA_ROADMAP.md
 # affirme déjà en code (CSP par nonce, HSTS, X-Frame-Options DENY, nosniff).
 # JAMAIS sur push/pull_request : workflow séparé de ci.yml (même choix que
-# k6-load.yml), pas un `if:` sur un trigger partagé — zéro risque de
+# perf.yml), pas un `if:` sur un trigger partagé — zéro risque de
 # déclenchement accidentel sur une PR. Nightly/hebdo + workflow_dispatch.
 on:
   schedule:
-    - cron: "0 4 * * 1" # lundi 04:00 UTC (décalé du job k6, 03:00, même service Postgres)
+    - cron: "0 4 * * 1" # lundi 04:00 UTC
   workflow_dispatch:
 
 jobs:
@@ -89,7 +89,7 @@ jobs:
         # que les findings WARN/FAIL, pas cette erreur d'upload). On ne
         # dépend plus de son upload interne : on récupère les fichiers
         # nous-mêmes juste après, avec actions/upload-artifact@v4 (l'API
-        # actuelle, déjà éprouvée dans k6-load.yml).
+        # actuelle, déjà éprouvée dans ci.yml).
         continue-on-error: true
         uses: zaproxy/action-baseline@v0.12.0
         with:

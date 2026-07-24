@@ -299,12 +299,20 @@ export async function createBookingAction(
     bookingId = booking.id;
     finalTotalPrice = booking.totalPrice;
   } catch (err) {
-    if (err instanceof BookingConflictError) {
+    // P2034 : abandon de sérialisation Postgres — le perdant d'une course
+    // concurrente sur le MÊME créneau peut être rejeté par le moteur avant
+    // même que la vérification applicative (BookingConflictError) ne le
+    // voie. Confirmé sous charge réelle (tests/perf/booking-load.js) : sans
+    // cette garde, ce cas remontait en erreur 500 brute plutôt que le même
+    // message propre que le conflit applicatif — même issue utilisateur,
+    // même cause (quelqu'un d'autre a gagné la même fenêtre de réservation).
+    if (err instanceof BookingConflictError || (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2034")) {
       logStructured("warn", "booking.conflict", {
         propertyId: property.id,
         userId: user.id,
         checkIn: parsed.data.arrivee,
         checkOut: parsed.data.depart,
+        serializationAbort: !(err instanceof BookingConflictError),
       });
       return { error: fr.booking.datesIndisponibles };
     }
