@@ -80,7 +80,7 @@ jobs:
 
       - name: Upload rapport de couverture (artifact)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-report
           path: coverage/
@@ -154,7 +154,7 @@ jobs:
       - name: Upload rapport Allure (artifact)
         if: always()
         id: allure-artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: allure-report
           path: allure-report/
@@ -177,7 +177,7 @@ jobs:
 
       - name: Upload traces/vidéos Playwright (artifact)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-traces
           path: test-results/
@@ -240,7 +240,7 @@ jobs:
       - name: Upload rapport Allure (artifact)
         if: always()
         id: allure-artifact-api
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: allure-report-api
           path: allure-report-api/
@@ -257,7 +257,7 @@ jobs:
 
       - name: Upload traces (artifact)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: api-test-traces
           path: test-results/
