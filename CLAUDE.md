@@ -45,6 +45,20 @@ Quota de minutes GitHub Actions inclus (2000/mois) épuisé le 2026-07-22 ; rese
 
 **Après le 2026-07-31** : cette section est caduque — la supprimer et repasser au mécanisme `workflow_dispatch` à la demande (point 4 original : Claude lance `gh workflow run`, attend le résultat, ne propose le merge que si vert).
 
+## Mode orchestration autonome (décidé le 2026-07-24)
+
+Par défaut, le point 5 de « Workflow PR » ci-dessus s'applique **intégralement** : jamais de merge sans que Wassim dise explicitement « merge », PR par PR. Ce mode est une **exception ciblée et explicitement activée** — jamais le comportement par défaut d'une session qui démarre sans y être invitée.
+
+**Activation** : uniquement quand Wassim lance explicitement une orchestration autonome des chantiers déjà priorisés (typiquement le skill `/loop` en mode autonome, ou une Routine dédiée à cet effet). Une conversation normale, même si elle enchaîne plusieurs tâches dans le même tour, **n'active pas** ce mode — le point 5 par défaut s'applique tant que Wassim n'a pas explicitement démarré une orchestration.
+
+**Une fois activé, pour chaque chantier traité** :
+1. **Périmètre strict** : uniquement les tâches déjà listées dans `PRIORITES_ROADMAP.md` (ou la roadmap de chantier qu'il pointe), jamais une tâche inventée ou hors roadmap. **Sauter silencieusement** toute tâche marquée « ⛔ Bloqué sur toi » (attend un arbitrage produit de Wassim) — pas prête à exécuter, jamais un candidat au merge auto.
+2. **Rigueur de test inchangée** avant tout merge : rapport de test réel, tests fonctionnels + parcours réel (Playwright si UI), CI verte — ou son équivalent local pendant l'exception CI temporaire ci-dessus. Screenshots (§ Livraison & tests) même si personne ne les lit en direct : ils restent dans l'historique de la PR.
+3. **Merge automatique autorisé** dès que (2) est rempli — squash, sans attendre le mot « merge » de Wassim pour cette tâche précise. Roadmap(s) source(s) + `PRIORITES_ROADMAP.md` mis à jour (✅ + PR) **dans la même PR**, comme déjà exigé par la règle générale.
+4. **Notification** (message dans la conversation, pas seulement un commit silencieux) résumant ce qui a été fait — même si aucune action n'était requise de Wassim.
+5. **Un chantier à la fois** : jamais paralléliser deux tâches du même fichier `*_ROADMAP.md` (déjà la règle de `PRIORITES_ROADMAP.md`). Passer au suivant non coché dans l'ordre de priorité dès le précédent mergé.
+6. **Coup d'arrêt immédiat** si un chantier révèle une ambiguïté produit, un choix architectural significatif, ou touche une zone sensible (paiement, sécurité, migration de schéma) au-delà de ce que la roadmap source a déjà tranché — ne pas trancher seul, s'arrêter et attendre Wassim sur ce point précis, puis reprendre l'orchestration une fois débloqué.
+
 ## Stack et contraintes
 
 - Next.js 15 App Router + TypeScript strict + Tailwind 4 + Prisma/**PostgreSQL** + NextAuth credentials + zod.
