@@ -73,7 +73,7 @@ réduction affichée, jamais plus, sauf mode hybride).
 | PM2 | Nudge automatique : `ensurePromoSuggestionNotifications` (même idiome que `ensureExpiringSoonNotifications`, **aucun cron**) | P1 | ❌ | Déclencheur : annonce `ACTIVE` vérifiée depuis > 14 jours ET zéro résa `CONFIRMEE` dans les 21 prochains jours. Message : nuits vides + comparaison au prix moyen ville (réutilise `computeYield`/`avgNightCity`). Gain affiché = « ce que rapporte une nuit vendue en plus », **jamais un total prédit** (aucune donnée de conversion mesurée à ce jour). Dédup par `href` bucketé par mois (`?promo=2026-07`) → au plus un rappel par annonce par mois, même index unique partiel que l'existant. |
 | PM3 | Promo Darna (campagne plateforme, prix hôte intouché) | P1 | ❌ | Mécanisme **distinct** de PM0 : le prix hôte (`subtotal`) reste inchangé, la remise s'impute uniquement sur `serviceFee` — même principe que `RebookingDiscount`, généralisé à un objet `PromoCampaign` (filtre ville/gouvernorat/vertical, taux plafonné en config à ≤ 7,4 %, dates de validité, activée par un admin). Budget/portée toujours décidés consciemment par Wassim — jamais de déclenchement automatique d'une dépense réelle. |
 | PM4 | Dashboard admin d'aide à la décision pour PM3 | P2 | ❌ | Par ville : % d'annonces vérifiées actives sans résa confirmée sur 30 jours — objective le « quand » d'une campagne plutôt que deviner. Même esprit que le Yield Advisor, vue agrégée par zone. |
-| PM5 | QA/sécurité transverse — **à livrer AVEC chaque phase** (même règle que CR4) | P0 | ❌ | `promoPrice` toujours < `price` (non-bypass serveur) ; promo jamais applicable à une annonce non vérifiée/non active ; IDOR sur la config de promo (`requireOwnProperty`) ; campagne Darna (PM3) jamais sous le plancher `subtotal` (test miroir de `rebooking-discount.test.ts`) ; non-bypass du plafond de taux (~7,4 %) en config. |
+| PM5 | QA/sécurité transverse — **à livrer AVEC chaque phase** (même règle que CR4) | P0 | ✅ | Confirmé 2026-07-24 (passe de vérification, aucun nouveau code) : les 3 items applicables à PM0/PM1 sont déjà couverts par `tests/property-promo.test.ts` — `promoPrice` toujours < `price` non-bypass serveur, promo refusée sur annonce non vérifiée/non ACTIVE, IDOR sur la définition ET le retrait (`requireOwnProperty`). Les 2 items restants (« campagne Darna (PM3) jamais sous le plancher `subtotal` », « non-bypass du plafond de taux ~7,4 % ») portent sur PM3, pas encore construit — à livrer avec PM3 lui-même (même règle transverse), pas un trou de PM0/PM1. |
 
 ## Exécution (prioritisée)
 
@@ -86,7 +86,7 @@ réduction affichée, jamais plus, sauf mode hybride).
 4. ✅ CR1 — parcours voyageur (parrainage).
 
 **QA transverse dès le début (pas en fin de chantier) :**
-5. ✅ CR4 (crédits, PR #189) / ❌ PM5 (promos — probablement déjà couvert par les tests PM0/PM1 existants, mais pas encore fait de passe de vérification/confirmation dédiée).
+5. ✅ CR4 (crédits, PR #189) / ✅ PM5 (promos, confirmé 2026-07-24 — items PM3 reportés à PM3 lui-même).
 
 **Extensions :**
 6. ❌ PM2 — nudge automatique (dépend de PM0/PM1 livrés).
