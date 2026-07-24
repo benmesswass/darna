@@ -42,7 +42,7 @@ jobs:
       SITE_URL: http://localhost:3000
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v5
         with:
@@ -124,7 +124,7 @@ jobs:
       E2E_TEST_PASSWORD: e2e-ci-only-dummy-password-2026
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v5
         with:
@@ -213,7 +213,7 @@ jobs:
       SITE_URL: http://localhost:3000
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v5
         with:
@@ -269,7 +269,7 @@ jobs:
   semgrep:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-python@v5
         with:
