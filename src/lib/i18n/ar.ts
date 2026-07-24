@@ -493,6 +493,7 @@ export const ar: Dictionary = {
     verifWakilPrix: "ثمن التوثيق",
     verifWakilPayer: "خلّص التوثيق",
     verifWakilPayerSimulation: "خلّص التوثيق (تجربة)",
+    verifWakilCreditPret: "كريدي التوثيق موجود — وكيل باش يراجع هالإعلان قريب.",
     aucuneReservation: "حتى حجز للتوّ.",
     aucuneReservationCta: "لوّج على إقامتك الجاية في إعلاناتنا الموثّقة.",
     aucuneReservationHote: "حتى مسافر ما حجز إعلاناتك للتوّ.",

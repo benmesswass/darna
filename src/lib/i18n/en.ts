@@ -471,6 +471,7 @@ export const en: Dictionary = {
     verifWakilPrix: "Verification price",
     verifWakilPayer: "Pay for verification",
     verifWakilPayerSimulation: "Pay for verification (simulation)",
+    verifWakilCreditPret: "Verification credit ready — a Wakil will review this listing soon.",
     aucuneReservation: "No bookings yet.",
     aucuneReservationCta: "Find your next stay among our verified listings.",
     aucuneReservationHote: "No guest has booked your listings yet.",

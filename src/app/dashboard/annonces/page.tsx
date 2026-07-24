@@ -23,12 +23,10 @@ import { StarIcon } from "@/components/icons";
 import { SuccessCheck } from "@/components/ui/SuccessCheck";
 import { QuotaReachedModal } from "@/components/dashboard/QuotaReachedModal";
 import { HostVerificationPayButton } from "@/components/dashboard/HostVerificationPayButton";
+import { HostVerificationDemoPayButton } from "@/components/dashboard/HostVerificationDemoPayButton";
 import { activeListingsLimit, cheapestPlanForQuota, countActiveListings } from "@/lib/subscriptions";
 import { verificationCreditsRemaining } from "@/lib/verification-credits";
 import { settleVerificationCreditOrder } from "@/lib/verification-credit-payments";
-import {
-  payHostVerificationDemoAction,
-} from "@/actions/host-verification-payments";
 import { isKonnectEnabled } from "@/lib/konnect";
 import { HOST_VERIFICATION_PRICE_TND } from "@/lib/config";
 import { computeListingCompleteness } from "@/lib/listing-completeness";
@@ -74,6 +72,13 @@ export default async function MesAnnoncesPage({
   });
 
   const nowMs = Date.now();
+
+  // Un HOTE peut avoir PLUSIEURS annonces non vérifiées alors que le solde de
+  // crédits (partagé, cf. src/lib/verification-credits.ts) n'en couvre qu'une
+  // partie : ce compteur, incrémenté au fil du `.map()` ci-dessous, ne marque
+  // « crédit prêt » que sur les N premières annonces non vérifiées couvertes
+  // par `hostVerificationCredits` — jamais sur toutes en même temps.
+  let hostUnverifiedRank = 0;
 
   // Modale de quota (MONETISATION_IMMO_ROADMAP.md §MI2) : recalculée ICI,
   // fraîche, plutôt que reçue via l'URL (le signal `quotaAtteint=1` ne
@@ -201,6 +206,10 @@ export default async function MesAnnoncesPage({
             const canRepublish = (p.status !== "ACTIVE" && !isPending) || isExpired;
             const featured = isListingFeatured(p.featuredUntil);
             const canFeature = p.status === "ACTIVE" && !isExpired;
+            const needsHostVerificationPayment = user.role === "HOTE" && !p.verified;
+            const hostCreditReady =
+              needsHostVerificationPayment && (hostVerificationCredits ?? 0) > hostUnverifiedRank;
+            if (needsHostVerificationPayment) hostUnverifiedRank += 1;
             // Promo hôte (§PM1) : réservée aux annonces vérifiées ACTIVE ET
             // Séjour, comme setPropertyPromoAction — pas de promo sur du stock
             // non fiable, et un prix promo n'a de sens qu'à la nuitée.
@@ -367,23 +376,29 @@ export default async function MesAnnoncesPage({
                     </Link>
                   ) : null}
                   {/* Vérification Wakil payante (§MI3, HOTE uniquement) : à
-                      l'unité, jamais gratuite — cf. src/actions/host-verification-payments.ts. */}
-                  {user.role === "HOTE" && !p.verified ? (
+                      l'unité, jamais gratuite — cf. src/actions/host-verification-payments.ts.
+                      hostCreditReady (calculé plus haut via hostUnverifiedRank) masque
+                      prix/bouton dès qu'un crédit du solde est déjà réservé pour CETTE
+                      annonce, pour ne pas laisser l'hôte repayer/recliquer sans retour
+                      visible (cause des soldes qui s'empilent sans qu'aucune annonce ne
+                      passe vérifiée). */}
+                  {needsHostVerificationPayment ? (
                     <div className="w-full">
-                      <p className="mb-1 text-center text-[11px] text-body/50">
-                        {fr.dashboard.verifWakilPrix} : <Price amount={HOST_VERIFICATION_PRICE_TND} />
-                      </p>
-                      {konnectEnabled ? (
-                        <HostVerificationPayButton label={fr.dashboard.verifWakilPayer} />
+                      {hostCreditReady ? (
+                        <p className="rounded-xl bg-emerald-50 px-3 py-2 text-center text-[11px] font-semibold text-emerald-700">
+                          {fr.dashboard.verifWakilCreditPret}
+                        </p>
                       ) : (
-                        <form action={payHostVerificationDemoAction}>
-                          <button
-                            type="submit"
-                            className="w-full rounded-xl bg-amber-400 px-3.5 py-2 text-xs font-bold text-darna-dark hover:bg-amber-300"
-                          >
-                            {fr.dashboard.verifWakilPayerSimulation}
-                          </button>
-                        </form>
+                        <>
+                          <p className="mb-1 text-center text-[11px] text-body/50">
+                            {fr.dashboard.verifWakilPrix} : <Price amount={HOST_VERIFICATION_PRICE_TND} />
+                          </p>
+                          {konnectEnabled ? (
+                            <HostVerificationPayButton label={fr.dashboard.verifWakilPayer} />
+                          ) : (
+                            <HostVerificationDemoPayButton label={fr.dashboard.verifWakilPayerSimulation} />
+                          )}
+                        </>
                       )}
                     </div>
                   ) : null}
