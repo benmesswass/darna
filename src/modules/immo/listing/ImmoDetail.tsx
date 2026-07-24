@@ -3,6 +3,7 @@ import { markerPriceLabel } from "@/lib/format";
 import { PropertyCtas } from "@/components/property/PropertyCtas";
 import { ListingDetail } from "@/modules/core/listing/ListingDetail";
 import { ImmoContactSection } from "@/modules/immo/listing/ImmoContactSection";
+import { FinancingLeadSection } from "@/modules/immo/listing/FinancingLeadSection";
 import type {
   ListingData,
   ListingFavCtx,
@@ -40,7 +41,14 @@ export async function ImmoDetail({
       activeSection="immobilier"
       priceSuffix={priceSuffix}
       afterLocation={
-        isActive ? <ImmoContactSection property={property} user={user} /> : null
+        isActive ? (
+          <div className="space-y-8">
+            <ImmoContactSection property={property} user={user} />
+            {property.type === "VENTE" ? (
+              <FinancingLeadSection property={property} user={user} />
+            ) : null}
+          </div>
+        ) : null
       }
       cta={
         <PropertyCtas

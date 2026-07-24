@@ -825,6 +825,17 @@ export const ar: Dictionary = {
     facturesRelanceLe: (date: string) => `تفكّرنا نهار ${date}`,
     facturesSuspendre: "علّق الحساب",
     facturesSuspendreConfirm: "تعلّق حساب هذا المالك على فاتورة ما تخلصتش؟ ما ينجمش ينشر ولا يتقبل حجوزات حتى يترجع الحساب.",
+    navFinancement: "لُودات التمويل",
+    financementTitre: "لُودات التمويل (جلب الأعمال)",
+    financementSousTitre:
+      "طلبات محاكاة تمويل تحطّت في إعلانات البيع. مجرد تجميع — حتى شريك بنكي ما امضاش بعد (MONETISATION_IMMO_ROADMAP.md §MI5).",
+    financementVide: "حتى لود تمويل لحد الآن.",
+    financementExporter: "صدّر CSV",
+    financementColDate: "التاريخ",
+    financementColAnnonce: "الإعلان",
+    financementColContact: "الاتصال",
+    financementColMontant: "المبلغ المرغوب فيه",
+    financementColMessage: "الرسالة",
   },
   analytics: {
     titre: "لوحة القيادة",
@@ -1558,6 +1569,14 @@ export const ar: Dictionary = {
     envoye: "طلبك توصّل لصاحب الإعلان.",
     envoyer: "ابعث الطلب",
     ouWhatsapp: "ولا مباشرة على",
+  },
+  financement: {
+    titre: "اطلب محاكاة تمويل",
+    sousTitre: "خلّي معطياتك : شريك بنكي ينجم يتصل بيك باش يدرس ملفك.",
+    montantSouhaite: "المبلغ المرغوب فيه (د.ت)",
+    disclaimer: "دارنة ما تحسبش أي قسط ولا نسبة فائدة — هذا الطلب غير يبعث معطياتك لدراسة خاصة بيك.",
+    envoyer: "ابعث الطلب",
+    envoye: "طلب التمويل متاعك تسجّل.",
   },
   bail: {
     titre: "عقد كراء معدّ للسكنى",
