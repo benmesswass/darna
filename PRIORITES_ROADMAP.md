@@ -94,7 +94,7 @@ ligne en litige.
 | # | Tâche | Prio source | Roadmap | Dépend de |
 |---|---|---|---|---|
 | 11 | **CR1** — Parcours voyageur crédits (page, application au checkout) | P0 | CROISSANCE | ✅ PR #188 |
-| 12 | **CR4 / PM5** — QA transverse crédits + promos | P0 | CROISSANCE | Au fur et à mesure de CR0-CR1/PM0-PM1 — ne pas attendre la fin |
+| 12 | **CR4 / PM5** — QA transverse crédits + promos | P0 | CROISSANCE | ✅ CR4 PR #189 — PM5 (promos) reste à confirmer, probablement déjà couvert par les tests PM0/PM1 existants |
 | 13 | **IN3** — Panneaux dashboard admin (funnel/adoption) | P1 | INSTRUMENTATION | IN1 + IN2 (données à afficher) |
 | 14 | **G3** — « Suggérer un logement » | P2 | GROWTH | Flux voyageur établi (post G1/G2) |
 
