@@ -33,6 +33,7 @@ export function BookingPanel({
   verified,
   cashPaymentEligible,
   discountToken,
+  availableCredits,
 }: {
   slug: string;
   unavailable: string[];
@@ -49,6 +50,8 @@ export function BookingPanel({
    * confiance ici : quoteBookingAction et createBookingAction revérifient
    * tout de toute façon. Absent si aucun token valide. */
   discountToken?: string;
+  /** Solde de crédit (§CR1) — 0 si anonyme ou wallet vide. */
+  availableCredits: number;
 }) {
   const fr = useT();
   const locale = useLocale();
@@ -60,6 +63,7 @@ export function BookingPanel({
   const [quote, setQuote] = useState<BookingQuote | null>(null);
   const [pending, setPending] = useState(false);
   const [paymentMode, setPaymentMode] = useState<"ESCROW" | "SUR_PLACE">("ESCROW");
+  const [useCredits, setUseCredits] = useState(false);
 
   const summaryRef = useRef<HTMLDivElement>(null);
   const lastComplete = useRef<string>("");
@@ -75,18 +79,23 @@ export function BookingPanel({
     }
     let active = true;
     setPending(true);
-    quoteBookingAction({ slug, arrivee: checkIn, depart: checkOut, voyageurs, discountToken }).then(
-      (q) => {
-        if (active) {
-          setQuote(q);
-          setPending(false);
-        }
+    quoteBookingAction({
+      slug,
+      arrivee: checkIn,
+      depart: checkOut,
+      voyageurs,
+      discountToken,
+      useCredits,
+    }).then((q) => {
+      if (active) {
+        setQuote(q);
+        setPending(false);
       }
-    );
+    });
     return () => {
       active = false;
     };
-  }, [slug, checkIn, checkOut, voyageurs, discountToken]);
+  }, [slug, checkIn, checkOut, voyageurs, discountToken, useCredits]);
 
   // Sur mobile, amener le récapitulatif sous les yeux dès qu'une plage est
   // complète (sur desktop la carte est déjà sticky et visible).
@@ -217,6 +226,14 @@ export function BookingPanel({
                       </dd>
                     </div>
                   ) : null}
+                  {q.creditApplied ? (
+                    <div className="flex items-center justify-between text-emerald-700">
+                      <dt className="font-semibold">{fr.booking.creditApplique}</dt>
+                      <dd className="font-bold">
+                        −<Price amount={q.creditApplied} className="font-bold" />
+                      </dd>
+                    </div>
+                  ) : null}
                   <div className="flex items-center justify-between border-t border-darna/10 pt-3 text-base">
                     <dt className="font-bold text-heading">{fr.booking.total}</dt>
                     <dd>
@@ -227,6 +244,19 @@ export function BookingPanel({
               ) : (
                 <p className="mt-4 text-sm text-body/50">{fr.common.chargement}</p>
               )}
+
+              {/* Crédit parrainage/bienvenue (§CR1), opt-in — masqué si aucun solde. */}
+              {availableCredits > 0 ? (
+                <label className="mt-3 flex cursor-pointer items-center gap-2.5 rounded-xl bg-cream px-4 py-2.5 text-sm font-medium text-body">
+                  <input
+                    type="checkbox"
+                    checked={useCredits}
+                    onChange={(e) => setUseCredits(e.target.checked)}
+                    className="h-4 w-4 accent-darna"
+                  />
+                  {fr.booking.utiliserCredits(availableCredits)}
+                </label>
+              ) : null}
 
               <p className="mt-3 flex items-center gap-2 rounded-xl bg-cream px-4 py-2.5 text-xs font-medium text-darna-dark">
                 <ShieldIcon width={15} height={15} />
@@ -318,6 +348,7 @@ export function BookingPanel({
                 voyageurs={voyageurs}
                 paymentMode={cashPaymentEligible ? paymentMode : "ESCROW"}
                 discountToken={q.discount ? discountToken : undefined}
+                useCredits={Boolean(q.creditApplied)}
               />
             )
           ) : (

@@ -8,13 +8,14 @@ import { prisma } from "@/lib/prisma";
 import { signIn, signOut } from "@/lib/auth";
 import { assertRateLimit, clientIp } from "@/lib/rate-limit";
 import { verifyTurnstile } from "@/lib/turnstile";
-import { logAudit } from "@/lib/audit";
+import { logAudit, logStructured } from "@/lib/audit";
 import { safeCallbackUrl, defaultLandingPath } from "@/lib/redirect";
 import { issueOtp } from "@/lib/otp";
 import { issueResetToken, consumeResetToken } from "@/lib/reset-token";
 import { sendEmail, getEmailProvider } from "@/lib/mailer";
 import { isValidCountry } from "@/lib/constants";
-import { SITE_URL } from "@/lib/config";
+import { REFERRAL_SIGNUP_BONUS_TND, SITE_URL } from "@/lib/config";
+import { findUserByReferralCode, issueCredit } from "@/lib/credits";
 
 export type AuthFormState =
   | {
@@ -59,6 +60,10 @@ const registerSchema = z
     country: z.string().trim().max(60).optional().or(z.literal("")),
     // ADMIN ne peut pas être choisi à l'inscription — assigné manuellement en DB
     role: z.enum(["VOYAGEUR", "HOTE", "AGENCE"] as const),
+    // Code de parrainage (CROISSANCE_ROADMAP.md §CR1), optionnel — transmis
+    // via le lien de partage (?ref=CODE). Un code invalide/inconnu n'échoue
+    // JAMAIS l'inscription, il est simplement ignoré (cf. registerAction).
+    ref: z.string().trim().max(20).optional().or(z.literal("")),
   })
   // Marqueur dédié pour distinguer « mots de passe différents » des autres
   // erreurs de validation et afficher un message précis côté formulaire.
@@ -100,6 +105,7 @@ export async function registerAction(
     phone: formData.get("phone"),
     country: formData.get("country") ?? undefined,
     role: formData.get("role"),
+    ref: formData.get("ref") ?? undefined,
   });
   if (!parsed.success) {
     const mismatch = parsed.error.issues.some(
@@ -111,9 +117,13 @@ export async function registerAction(
     };
   }
 
-  const { name, email, password, phone, country, role } = parsed.data;
+  const { name, email, password, phone, country, role, ref } = parsed.data;
   // Pays validé contre le référentiel ; hors liste → null (jamais d'échec).
   const validCountry = country && isValidCountry(country) ? country : null;
+
+  // Parrainage (§CR1) : code résolu AVANT la création — un code invalide/
+  // inconnu vaut simplement absence de parrain, jamais une erreur bloquante.
+  const referrer = ref ? await findUserByReferralCode(ref) : null;
 
   const existing = await prisma.user.findUnique({ where: { email } });
 
@@ -133,15 +143,50 @@ export async function registerAction(
 
   const passwordHash = await bcrypt.hash(password, 12);
   const user = await prisma.user.create({
-    data: { name, email, passwordHash, phone: phone || null, country: validCountry, role },
+    data: {
+      name,
+      email,
+      passwordHash,
+      phone: phone || null,
+      country: validCountry,
+      role,
+      // Posé UNE SEULE FOIS, ici, à la création — jamais modifié ensuite
+      // (cf. schema.prisma, User.referredById).
+      referredById: referrer?.id,
+    },
   });
 
   await logAudit({
     action: "REGISTER",
     userId: user.id,
     success: true,
-    metadata: { role },
+    metadata: { role, referred: Boolean(referrer) },
   });
+
+  // Bonus filleul (§CR1), immédiat — jamais bloquant pour l'inscription (même
+  // philosophie que l'envoi d'e-mail ci-dessous : un échec ici ne doit
+  // JAMAIS empêcher le compte d'exister).
+  if (referrer) {
+    try {
+      await issueCredit({
+        userId: user.id,
+        amount: REFERRAL_SIGNUP_BONUS_TND,
+        motif: "BIENVENUE_PARRAINAGE",
+      });
+      await logAudit({
+        action: "REFERRAL_SIGNUP_CREDIT_ISSUED",
+        userId: user.id,
+        success: true,
+        metadata: { referrerId: referrer.id, amount: REFERRAL_SIGNUP_BONUS_TND },
+      });
+    } catch (err) {
+      logStructured("error", "referral.signup_credit_failed", {
+        userId: user.id,
+        error: (err as Error).message,
+      });
+      await logAudit({ action: "REFERRAL_SIGNUP_CREDIT_ISSUED", userId: user.id, success: false });
+    }
+  }
 
   // Vérification d'email : on émet et envoie le code dès l'inscription. En mode
   // démo (EMAIL_PROVIDER absent/mock), rien n'est réellement envoyé — la page

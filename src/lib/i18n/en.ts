@@ -371,6 +371,8 @@ export const en: Dictionary = {
     captchaEchec: "Anti-bot check failed. Please try again.",
     emailDejaUtilise: "Unable to create an account with this information.",
     inscriptionReussie: "Account created! You can now sign in.",
+    parrainageBanniere: (montant: number) =>
+      `You've been invited to Darna — you'll get ${montant} TND credit as soon as you sign up.`,
     motDePasseRegle: "8 characters minimum",
     afficherMotDePasse: "Show password",
     masquerMotDePasse: "Hide password",
@@ -421,6 +423,7 @@ export const en: Dictionary = {
     alerteBudgetMin: (min: number) => `From ${min} TND`,
     alerteBudgetMax: (max: number) => `Up to ${max} TND`,
     alerteBudgetLibre: "Any budget",
+    mesCredits: "My credits",
     favoris: "My favourites",
     favorisSansDossier: "No folder",
     favorisNbLogements: (n: number) =>
@@ -1160,6 +1163,8 @@ export const en: Dictionary = {
       "It funds listing verification and payment protection.",
     total: "Total to pay",
     reductionRelogement: "Darna discount",
+    utiliserCredits: (solde: number) => `Use my ${solde} TND credit`,
+    creditApplique: "Credit used",
     aucunFraisCache: "No other fee will ever be asked of you. Ever.",
     continuerPaiement: "Continue to payment",
     holdLabel: "Spot held — pay within",
@@ -1879,5 +1884,40 @@ export const en: Dictionary = {
     statutEnRetard: "Overdue",
     vide: "No invoices yet.",
     voirFacture: "View invoice",
+  },
+  credits: {
+    titre: "My credits",
+    soldeLabel: "Available balance",
+    soldeAide: "Usable when paying for a booking, capped at 30% of the total.",
+    parrainageTitre: "Refer friends, earn credit",
+    parrainageDesc: (montant: number) =>
+      `Share your link: every friend who signs up gets ${montant} TND free.`,
+    parrainerBouton: "Refer a friend",
+    parrainageMessage: (montant: number) =>
+      `Join me on Darna and get ${montant} TND credit free when you sign up!`,
+    codeLabel: "Your code",
+    historiqueTitre: "History",
+    historiqueVide: "No activity yet.",
+    expireLe: (date: string) => `Expires on ${date}`,
+    motifLabel: (motif: string) => {
+      switch (motif) {
+        case "BIENVENUE_PARRAINAGE":
+          return "Welcome bonus (referral)";
+        case "BIENVENUE_SPONTANE":
+          return "Welcome credit";
+        case "PARRAINAGE_FILLEUL_TERMINE":
+          return "Referral — friend active";
+        case "UTILISATION_RESERVATION":
+          return "Used on a booking";
+        case "UTILISATION_SERVICE_HOTE":
+          return "Used on a host service";
+        case "EXPIRATION":
+          return "Credit expired";
+        case "AJUSTEMENT_ADMIN":
+          return "Adjustment";
+        default:
+          return motif;
+      }
+    },
   },
 };

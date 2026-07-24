@@ -73,7 +73,10 @@ export type AuditAction =
   // Crédits de vérification Wakil (MONETISATION_IMMO_ROADMAP.md §MI3).
   | "VERIFICATION_CREDIT_PAYMENT_INITIATED"
   | "VERIFICATION_CREDIT_PAYMENT_FAILED"
-  | "VERIFICATION_CREDIT_PURCHASED";
+  | "VERIFICATION_CREDIT_PURCHASED"
+  // Programme de crédits parrainage/bienvenue (CROISSANCE_ROADMAP.md §CR1).
+  | "REFERRAL_SIGNUP_CREDIT_ISSUED"
+  | "CREDIT_APPLIED_AT_CHECKOUT";
 
 /**
  * Audit trail — chaque événement sensible est enregistré avec userId, IP et

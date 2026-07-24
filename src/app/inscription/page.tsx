@@ -6,16 +6,17 @@ import { getSessionUser } from "@/lib/session";
 import { safeCallbackUrl } from "@/lib/redirect";
 import { isCaptchaEnabled, turnstileSiteKey } from "@/lib/turnstile";
 import { RegisterForm } from "@/components/auth/AuthForms";
+import { findUserByReferralCode } from "@/lib/credits";
 
 export const metadata: Metadata = { title: frMeta.auth.inscriptionTitre };
 
 export default async function InscriptionPage({
   searchParams,
 }: {
-  searchParams: Promise<{ role?: string; callbackUrl?: string }>;
+  searchParams: Promise<{ role?: string; callbackUrl?: string; ref?: string }>;
 }) {
   const fr = await getT();
-  const { role, callbackUrl } = await searchParams;
+  const { role, callbackUrl, ref } = await searchParams;
   const cb = safeCallbackUrl(callbackUrl);
   const user = await getSessionUser();
   if (user) redirect(cb);
@@ -25,6 +26,12 @@ export default async function InscriptionPage({
 
   // CAPTCHA (dual-mode) : clé publique transmise au widget si le mode est actif.
   const captchaSiteKey = isCaptchaEnabled() ? turnstileSiteKey() : "";
+
+  // Parrainage (§CR1) : vérifié ICI (lecture seule) pour ne montrer la
+  // bannière/transmettre le code que s'il est réellement valide — même
+  // principe que discountToken sur la page de réservation. Un code
+  // invalide/inconnu est simplement ignoré (inscription normale).
+  const refCode = ref && (await findUserByReferralCode(ref)) ? ref : undefined;
 
   return (
     <div className="mx-auto max-w-md px-4 py-16 sm:px-6">
@@ -36,6 +43,7 @@ export default async function InscriptionPage({
           defaultRole={defaultRole}
           callbackUrl={callbackUrl ? cb : undefined}
           captchaSiteKey={captchaSiteKey}
+          refCode={refCode}
         />
       </div>
     </div>

@@ -394,6 +394,8 @@ export const ar: Dictionary = {
     captchaEchec: "فشل التحقق ضد الروبوتات. عاود من فضلك.",
     emailDejaUtilise: "ما نجمناش ننشئو الحساب بالمعطيات هاذي.",
     inscriptionReussie: "الحساب تعمل! تنجم تدخل توا.",
+    parrainageBanniere: (montant: number) =>
+      `تم دعوتك لدارنا — باش تتحصل على ${montant} TND كريدي مبين ما تسجل.`,
     motDePasseRegle: "8 أحرف كحد أدنى",
     afficherMotDePasse: "أظهر كلمة السر",
     masquerMotDePasse: "خبي كلمة السر",
@@ -444,6 +446,7 @@ export const ar: Dictionary = {
     alerteBudgetMin: (min: number) => `من ${min} دينار`,
     alerteBudgetMax: (max: number) => `لحد ${max} دينار`,
     alerteBudgetLibre: "كل الميزانيات",
+    mesCredits: "أرصدتي",
     favoris: "المفضّلة",
     favorisSansDossier: "بلا مجلّد",
     favorisNbLogements: (n: number) => `${n} مسكن`,
@@ -1178,6 +1181,8 @@ export const ar: Dictionary = {
     fraisServiceAide: "يموّل توثيق الإعلانات وحماية الخلاصات.",
     total: "المبلغ الجملي",
     reductionRelogement: "تخفيض دارنا",
+    utiliserCredits: (solde: number) => `استعمل ${solde} TND من الكريدي متاعي`,
+    creditApplique: "كريدي مستعمل",
     aucunFraisCache: "حتى معلوم آخر ما يتطلب منك. أبدًا.",
     continuerPaiement: "كمّل للخلاص",
     holdLabel: "بلاصتك محجوزة — خلّص في ظرف",
@@ -1897,5 +1902,40 @@ export const ar: Dictionary = {
     statutEnRetard: "متأخرة",
     vide: "ما فماش فواتير لحد الآن.",
     voirFacture: "شوف الفاتورة",
+  },
+  credits: {
+    titre: "أرصدتي",
+    soldeLabel: "الرصيد المتوفر",
+    soldeAide: "تنجم تستعملها كي تخلص حجز، بحد أقصى 30% من المجموع.",
+    parrainageTitre: "عرّف بأصحابك واربح كريدي",
+    parrainageDesc: (montant: number) =>
+      `شارك الرابط متاعك: كل صاحب يسجل يتحصل على ${montant} TND فري.`,
+    parrainerBouton: "عرّف بصاحبك",
+    parrainageMessage: (montant: number) =>
+      `انضم لدارنا وتحصل على ${montant} TND كريدي فري كي تسجل!`,
+    codeLabel: "الكود متاعك",
+    historiqueTitre: "التاريخ",
+    historiqueVide: "ما فماش حركة لحد الآن.",
+    expireLe: (date: string) => `يفوت في ${date}`,
+    motifLabel: (motif: string) => {
+      switch (motif) {
+        case "BIENVENUE_PARRAINAGE":
+          return "بونيس بيانوني (تعريف)";
+        case "BIENVENUE_SPONTANE":
+          return "كريدي بيانوني";
+        case "PARRAINAGE_FILLEUL_TERMINE":
+          return "تعريف — صاحبك فعّال";
+        case "UTILISATION_RESERVATION":
+          return "متسعمل في حجز";
+        case "UTILISATION_SERVICE_HOTE":
+          return "متسعمل في خدمة مضيف";
+        case "EXPIRATION":
+          return "كريدي فات وقتو";
+        case "AJUSTEMENT_ADMIN":
+          return "تعديل";
+        default:
+          return motif;
+      }
+    },
   },
 };

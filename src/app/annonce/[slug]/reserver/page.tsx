@@ -9,6 +9,7 @@ import { BookingPanel } from "@/components/booking/BookingPanel";
 import { ActiveSection } from "@/components/layout/ActiveSection";
 import { expandUnavailable } from "@/lib/availability";
 import { isRebookingDiscountValid } from "@/lib/rebooking-discount";
+import { creditBalance } from "@/lib/credits";
 import { getAnonId, logProductEvent } from "@/lib/product-events";
 
 export const metadata: Metadata = { title: frMeta.booking.titre };
@@ -97,6 +98,9 @@ export default async function ReserverPage({
       ? sp.promo
       : undefined;
 
+  // Crédit parrainage/bienvenue (§CR1) — 0 pour un visiteur anonyme.
+  const availableCredits = user ? await creditBalance(user.id) : 0;
+
   const maxGuests = property.stay?.maxGuests ?? 30;
   const voyageurs = Math.max(1, Math.min(maxGuests, Number(sp.voyageurs) || 1));
 
@@ -141,6 +145,7 @@ export default async function ReserverPage({
             property.cashPaymentEnabled && user?.kycStatus === "VERIFIE"
           )}
           discountToken={discountToken}
+          availableCredits={availableCredits}
         />
       )}
     </div>

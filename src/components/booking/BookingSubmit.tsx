@@ -12,6 +12,7 @@ export function BookingSubmit({
   voyageurs,
   paymentMode = "ESCROW",
   discountToken,
+  useCredits,
 }: {
   slug: string;
   arrivee: string;
@@ -22,6 +23,9 @@ export function BookingSubmit({
   /** Réduction ponctuelle (§AH4), déjà validée pour l'affichage — revérifiée
    * et consommée atomiquement côté serveur (createBookingAction). */
   discountToken?: string;
+  /** Crédit (§CR1) — déjà prévisualisé par le devis ; réappliqué et dépensé
+   * atomiquement côté serveur (createBookingAction), jamais confiance ici. */
+  useCredits?: boolean;
 }) {
   const fr = useT();
   const [state, action, pending] = useActionState<BookingFormState, FormData>(
@@ -44,6 +48,7 @@ export function BookingSubmit({
       {discountToken ? (
         <input type="hidden" name="discountToken" value={discountToken} />
       ) : null}
+      <input type="hidden" name="useCredits" value={useCredits ? "true" : "false"} />
       <button
         type="submit"
         disabled={pending}

@@ -39,6 +39,8 @@ export function buildDashboardLinks(user: SessionUser, fr: Dictionary): NavItem[
 
   links.push(
     { href: "/dashboard/messagerie", label: fr.messages.lien, icon: "MailIcon" },
+    // Universel (voyageur ET hôte, cf. §CR2 parrainage hôte) — pas de gating par rôle.
+    { href: "/dashboard/credits", label: fr.dashboard.mesCredits, icon: "CoinsIcon" },
     { href: "/dashboard/favoris", label: fr.dashboard.favoris, icon: "HeartIcon" },
     { href: "/dashboard/alertes", label: fr.dashboard.mesAlertes, icon: "BellIcon" },
     { href: "/dashboard/profil", label: fr.dashboard.monProfil, icon: "UserIcon" },

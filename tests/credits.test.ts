@@ -25,6 +25,7 @@ vi.mock("@/lib/prisma", () => ({
 }));
 
 import {
+  computeCreditApplication,
   creditBalance,
   ensureReferralCode,
   findUserByReferralCode,
@@ -162,6 +163,42 @@ describe("spendCredit", () => {
     const upsertOrder = walletUpsert.mock.invocationCallOrder[0];
     const updateManyOrder = walletUpdateMany.mock.invocationCallOrder[0];
     expect(upsertOrder).toBeLessThan(updateManyOrder);
+  });
+});
+
+describe("computeCreditApplication", () => {
+  it("plafonne à 30 % du total quand c'est la contrainte la plus stricte", () => {
+    // reste-à-couvrir (totalPrice - subtotal) = 400, largement au-dessus de
+    // 30 % du total (300) — c'est bien le taux qui plafonne ici, pas la
+    // commission (scénario synthétique, pas atteignable avec le taux de
+    // service réel de 8 % — cf. booking-credit-application.test.ts pour le
+    // cas réel où c'est systématiquement le reste-à-couvrir qui plafonne).
+    expect(
+      computeCreditApplication({ balance: 100000, totalPrice: 1000, subtotal: 600 })
+    ).toBe(300);
+  });
+
+  it("plafonne au reste-à-couvrir (jamais sous le subtotal) quand il est plus strict que 30 %", () => {
+    expect(
+      computeCreditApplication({ balance: 100000, totalPrice: 648, subtotal: 600 })
+    ).toBe(48);
+  });
+
+  it("plafonne au solde si c'est la contrainte la plus stricte", () => {
+    expect(computeCreditApplication({ balance: 10, totalPrice: 648, subtotal: 600 })).toBe(10);
+  });
+
+  it("renvoie 0 si le solde est nul", () => {
+    expect(computeCreditApplication({ balance: 0, totalPrice: 648, subtotal: 600 })).toBe(0);
+  });
+
+  it("ne renvoie jamais un montant négatif (totalPrice déjà planchéré à subtotal ailleurs)", () => {
+    expect(computeCreditApplication({ balance: 100, totalPrice: 600, subtotal: 600 })).toBe(0);
+  });
+
+  it("arrondit à l'entier TND", () => {
+    // 30 % de 333 = 99.9 → arrondi 100 ; reste-à-couvrir = 133, solde = 1000.
+    expect(computeCreditApplication({ balance: 1000, totalPrice: 333, subtotal: 200 })).toBe(100);
   });
 });
 

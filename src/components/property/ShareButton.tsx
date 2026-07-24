@@ -6,17 +6,28 @@ import { CheckIcon, LinkIcon, ShareIcon, WhatsAppIcon } from "@/components/icons
 import { trackEvent } from "@/actions/track-event";
 
 /**
- * Bouton « Partager » d'une fiche annonce : partage natif (navigator.share,
- * mobile) quand disponible, sinon menu déroulant Copier le lien / WhatsApp —
- * cible prioritaire diaspora qui partage en groupe familial WhatsApp.
+ * Bouton « Partager » : partage natif (navigator.share, mobile) quand
+ * disponible, sinon menu déroulant Copier le lien / WhatsApp — cible
+ * prioritaire diaspora qui partage en groupe familial WhatsApp. Réutilisé
+ * tel quel pour le parrainage (CROISSANCE_ROADMAP.md §CR1, `message`/
+ * `context` personnalisés) — même bouton, texte WhatsApp différent.
  */
 export function ShareButton({
   title,
   url,
+  message,
+  label,
+  context = "property",
   className = "",
 }: {
   title: string;
   url: string;
+  /** Texte WhatsApp — défaut : message de partage d'annonce (fr.property.partagerMessage). */
+  message?: string;
+  /** Libellé du bouton — défaut : fr.property.partager ("Partager"). */
+  label?: string;
+  /** Étiquette de l'événement SHARE_CLICKED (IN2) — distingue partage annonce/parrainage. */
+  context?: "property" | "referral";
   className?: string;
 }) {
   const fr = useT();
@@ -51,13 +62,13 @@ export function ShareButton({
   // (lien WhatsApp). Une perte occasionnelle (ex. navigation immédiate) est
   // acceptée, comme pour tout événement produit.
   function trackShare(channel: "native" | "copy" | "whatsapp") {
-    void trackEvent({ event: "SHARE_CLICKED", metadata: { channel } });
+    void trackEvent({ event: "SHARE_CLICKED", metadata: { channel, context } });
   }
 
   async function handleClick() {
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
-        await navigator.share({ title, url });
+        await navigator.share({ title, text: message, url });
         trackShare("native");
       } catch {
         // Annulation utilisateur (AbortError) — rien à faire, pas de mesure.
@@ -75,7 +86,7 @@ export function ShareButton({
   }
 
   const whatsappHref = `https://wa.me/?text=${encodeURIComponent(
-    `${fr.property.partagerMessage(title)} ${url}`
+    `${message ?? fr.property.partagerMessage(title)} ${url}`
   )}`;
 
   return (
@@ -88,7 +99,7 @@ export function ShareButton({
         className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-body/70 ring-1 ring-darna/15 transition hover:bg-darna/5"
       >
         <ShareIcon width={16} height={16} />
-        {fr.property.partager}
+        {label ?? fr.property.partager}
       </button>
 
       {open ? (
