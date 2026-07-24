@@ -4,11 +4,11 @@ name: ZAP baseline (DAST)
 # (headers/CSP/cookies) — vérifie en boîte noire ce que §1 de QA_ROADMAP.md
 # affirme déjà en code (CSP par nonce, HSTS, X-Frame-Options DENY, nosniff).
 # JAMAIS sur push/pull_request : workflow séparé de ci.yml (même choix que
-# k6-load.yml), pas un `if:` sur un trigger partagé — zéro risque de
+# perf.yml), pas un `if:` sur un trigger partagé — zéro risque de
 # déclenchement accidentel sur une PR. Nightly/hebdo + workflow_dispatch.
 on:
   schedule:
-    - cron: "0 4 * * 1" # lundi 04:00 UTC (décalé du job k6, 03:00, même service Postgres)
+    - cron: "0 4 * * 1" # lundi 04:00 UTC
   workflow_dispatch:
 
 jobs:
@@ -37,9 +37,9 @@ jobs:
       SITE_URL: http://localhost:3000
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -88,10 +88,10 @@ jobs:
         # dépréciée côté serveur — indépendant de fail_action (qui ne gouverne
         # que les findings WARN/FAIL, pas cette erreur d'upload). On ne
         # dépend plus de son upload interne : on récupère les fichiers
-        # nous-mêmes juste après, avec actions/upload-artifact@v4 (l'API
-        # actuelle, déjà éprouvée dans k6-load.yml).
+        # nous-mêmes juste après, avec actions/upload-artifact@v7 (l'API
+        # actuelle, déjà éprouvée dans ci.yml).
         continue-on-error: true
-        uses: zaproxy/action-baseline@v0.12.0
+        uses: zaproxy/action-baseline@v0.15.0
         with:
           target: "http://localhost:3000"
           # Scan PASSIF uniquement (aucune attaque active) — cf. roadmap
@@ -119,7 +119,7 @@ jobs:
         # Upload par nous-mêmes (API actuelle) plutôt que de dépendre de
         # l'upload interne cassé de l'action — cf. commentaire ci-dessus.
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: zap-report
           path: |

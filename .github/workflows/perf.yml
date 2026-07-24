@@ -1,0 +1,99 @@
+name: Perf (k6)
+
+# Job séparé de ci.yml (pas ajouté comme job supplémentaire dans le même
+# fichier) : un run de charge sur un runner GitHub Actions partagé n'est pas
+# un environnement stable pour un gate bloquant par PR — cohérent avec
+# TEST_AUTOMATION_ROADMAP.md §6.7 ("k6 charge — ✅ (ou hebdo)"). Ne tourne
+# donc jamais sur push/pull_request, uniquement sur schedule ou déclenchement
+# manuel — pas de risque de perturber les jobs build/e2e/api/semgrep.
+on:
+  schedule:
+    - cron: "0 2 * * 0" # dimanche 02:00 UTC
+  workflow_dispatch:
+
+jobs:
+  perf:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: darna
+          POSTGRES_USER: darna
+          POSTGRES_PASSWORD: darna
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U darna"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://darna:darna@localhost:5432/darna
+      DIRECT_URL: postgresql://darna:darna@localhost:5432/darna
+      AUTH_SECRET: ci-only-dummy-secret-do-not-use-in-prod
+      SITE_URL: http://localhost:3000
+      KYC_GATING: "off"
+      CAPTCHA_MODE: "off"
+      BASE_URL: http://localhost:3000
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Prisma generate
+        run: npx prisma generate
+
+      - name: Apply migrations
+        run: npx prisma migrate deploy
+
+      - name: Install Playwright (Chromium)
+        # booking-load-setup.ts se connecte via l'UI réelle (login), pas de
+        # navigateur nécessaire pour search.js.
+        run: npx playwright install --with-deps chromium
+
+      - name: Démarrer le serveur (arrière-plan)
+        run: nohup npm run dev > /tmp/dev.log 2>&1 &
+
+      - name: Attendre la disponibilité du serveur
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:3000/ > /dev/null && exit 0
+            sleep 2
+          done
+          echo "Serveur non prêt après 60s"
+          cat /tmp/dev.log
+          exit 1
+
+      - name: k6 — recherche (/sejours)
+        id: perf_search
+        run: npm run test:perf 2>&1 | tee /tmp/k6-search.log
+
+      - name: k6 — charge sur la réservation concurrente
+        id: perf_booking
+        run: npm run test:perf:booking 2>&1 | tee /tmp/k6-booking.log
+
+      - name: Résumé (page du run)
+        if: always()
+        run: |
+          {
+            echo "## 🚦 Rapport perf (k6)"
+            echo ""
+            echo "### Recherche (/sejours)"
+            echo '```'
+            tail -30 /tmp/k6-search.log
+            echo '```'
+            echo ""
+            echo "### Charge — réservation concurrente"
+            echo '```'
+            tail -30 /tmp/k6-booking.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

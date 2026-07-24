@@ -29,6 +29,7 @@ import { hasOverdueHostInvoice } from "@/lib/host-invoicing";
 import {
   sendBookingConfirmationEmail,
   sendBookingCancelledByHostEmail,
+  sendNewBookingHostEmail,
 } from "@/lib/notifications";
 import { computeBookingRefund } from "@/lib/cancellation";
 import {
@@ -38,6 +39,7 @@ import {
   notifyCashBookingDeclined,
   notifyCashBookingRequested,
   notifyGuestReviewReceived,
+  notifyNewBookingReceived,
   notifyReviewReceived,
 } from "@/lib/notification-center";
 import { isSuspended, applySuspension } from "@/lib/suspension";
@@ -297,12 +299,20 @@ export async function createBookingAction(
     bookingId = booking.id;
     finalTotalPrice = booking.totalPrice;
   } catch (err) {
-    if (err instanceof BookingConflictError) {
+    // P2034 : abandon de sérialisation Postgres — le perdant d'une course
+    // concurrente sur le MÊME créneau peut être rejeté par le moteur avant
+    // même que la vérification applicative (BookingConflictError) ne le
+    // voie. Confirmé sous charge réelle (tests/perf/booking-load.js) : sans
+    // cette garde, ce cas remontait en erreur 500 brute plutôt que le même
+    // message propre que le conflit applicatif — même issue utilisateur,
+    // même cause (quelqu'un d'autre a gagné la même fenêtre de réservation).
+    if (err instanceof BookingConflictError || (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2034")) {
       logStructured("warn", "booking.conflict", {
         propertyId: property.id,
         userId: user.id,
         checkIn: parsed.data.arrivee,
         checkOut: parsed.data.depart,
+        serializationAbort: !(err instanceof BookingConflictError),
       });
       return { error: fr.booking.datesIndisponibles };
     }
@@ -337,6 +347,8 @@ export type BookingQuote =
   | {
       ok: true;
       nights: number;
+      /** Prix/nuit RÉELLEMENT appliqué (promo hôte incluse) — affiché au récap, jamais recalculé côté client. */
+      nightlyPrice: number;
       subtotal: number;
       serviceFee: number;
       total: number;
@@ -456,7 +468,7 @@ export async function quoteBookingAction(input: {
     }
   }
 
-  return { ok: true, nights, subtotal, serviceFee, total, discount };
+  return { ok: true, nights, nightlyPrice, subtotal, serviceFee, total, discount };
 }
 
 /** Montant choisi à la réservation : borné [acompte, total] côté serveur. */
@@ -546,6 +558,8 @@ export async function confirmPaymentAction(formData: FormData): Promise<void> {
 
   await sendBookingConfirmationEmail(booking.id);
   await notifyBookingConfirmed(booking.id);
+  await sendNewBookingHostEmail(booking.id);
+  await notifyNewBookingReceived(booking.id);
 
   revalidatePath(`/reservation/${booking.id}/paiement`);
   revalidatePath("/dashboard/reservations");

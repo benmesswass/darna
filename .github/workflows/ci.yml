@@ -1,9 +1,15 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
-  pull_request:
+  workflow_dispatch:
+
+# Plus de déclenchement automatique (push/pull_request) : ci.yml ne tourne
+# plus que sur commande explicite (`gh workflow run` ou le bouton "Run
+# workflow"), typiquement juste avant un merge. Le groupe évite juste deux
+# déclenchements qui se chevaucheraient sur la même branche.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -36,9 +42,9 @@ jobs:
       SITE_URL: http://localhost:3000
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -74,7 +80,7 @@ jobs:
 
       - name: Upload rapport de couverture (artifact)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-report
           path: coverage/
@@ -118,9 +124,9 @@ jobs:
       E2E_TEST_PASSWORD: e2e-ci-only-dummy-password-2026
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -148,7 +154,7 @@ jobs:
       - name: Upload rapport Allure (artifact)
         if: always()
         id: allure-artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: allure-report
           path: allure-report/
@@ -171,7 +177,7 @@ jobs:
 
       - name: Upload traces/vidéos Playwright (artifact)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-traces
           path: test-results/
@@ -207,9 +213,9 @@ jobs:
       SITE_URL: http://localhost:3000
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -234,7 +240,7 @@ jobs:
       - name: Upload rapport Allure (artifact)
         if: always()
         id: allure-artifact-api
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: allure-report-api
           path: allure-report-api/
@@ -251,7 +257,7 @@ jobs:
 
       - name: Upload traces (artifact)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: api-test-traces
           path: test-results/
@@ -263,9 +269,9 @@ jobs:
   semgrep:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 

@@ -192,7 +192,7 @@ export function BookingPanel({
                 >
                   <div className="flex items-center justify-between">
                     <dt className="text-body/70">
-                      {fr.booking.prixNuit} × {fr.booking.nuits(q.nights)}
+                      <Price amount={q.nightlyPrice} /> × {fr.booking.nuits(q.nights)}
                     </dt>
                     <dd>
                       <Price amount={q.subtotal} className="font-semibold text-body" />

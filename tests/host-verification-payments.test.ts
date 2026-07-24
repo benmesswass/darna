@@ -97,7 +97,7 @@ describe("startHostVerificationPaymentAction", () => {
 describe("payHostVerificationDemoAction (démo)", () => {
   it("ne s'exécute JAMAIS quand Konnect est actif (exclusivité, pas de crédit gratuit)", async () => {
     isKonnectEnabledMock.mockReturnValue(true);
-    await payHostVerificationDemoAction();
+    await payHostVerificationDemoAction(undefined);
     expect(requireUserMock).not.toHaveBeenCalled();
     expect(walletUpsert).not.toHaveBeenCalled();
   });
@@ -105,7 +105,7 @@ describe("payHostVerificationDemoAction (démo)", () => {
   it("mode démo + HOTE : crédite exactement 1 vérification", async () => {
     isKonnectEnabledMock.mockReturnValue(false);
     requireUserMock.mockResolvedValue(HOST);
-    await payHostVerificationDemoAction();
+    await payHostVerificationDemoAction(undefined);
     expect(walletUpsert).toHaveBeenCalledWith({
       where: { userId: "host-A" },
       create: { userId: "host-A", balance: 1 },
@@ -119,7 +119,7 @@ describe("payHostVerificationDemoAction (démo)", () => {
   it("mode démo + AGENCE : no-op (l'agence utilise son propre système de lots)", async () => {
     isKonnectEnabledMock.mockReturnValue(false);
     requireUserMock.mockResolvedValue(AGENCY);
-    await payHostVerificationDemoAction();
+    await payHostVerificationDemoAction(undefined);
     expect(walletUpsert).not.toHaveBeenCalled();
   });
 });

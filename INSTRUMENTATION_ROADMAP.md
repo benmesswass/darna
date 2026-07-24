@@ -64,7 +64,7 @@
 |---|-------|------|--------|--------|
 | IN0 | Fondations : modèle `ProductEvent` + module `logProductEvent` + id visiteur anonyme | **P0** | ✅ | PR #160 — `ProductEvent` (migration `20260721082024_add_product_event`), `src/lib/product-events.ts`, cookie `darna-vid` (`src/middleware.ts`), `LISTING_VIEWED` câblé sur `ListingDetail.tsx`. `trackEvent` (client) déféré à IN2 — voir détail. |
 | IN1 | Funnel de découverte : recherche → vue annonce → début réservation | P1 | ✅ | PR #164 — `SEARCH_PERFORMED` câblé sur `searchSejours` (`resultCount` y compris 0), `BOOKING_STARTED` câblé sur la page `/annonce/[slug]/reserver`. `LISTING_VIEWED` déjà couvert par IN0. |
-| IN2 | Adoption des fonctionnalités déjà livrées (simulateur, partage, alertes, carte) + 1ère touche d'acquisition | P1 | ❌ | — |
+| IN2 | Adoption des fonctionnalités déjà livrées (simulateur, partage, alertes, carte) + 1ère touche d'acquisition | P1 | ✅ | PR #171 — `SIMULATOR_USED` (Yield Advisor), `SHARE_CLICKED` (3 canaux), `SAVED_SEARCH_CREATED`, `MAP_INTERACTED` (drag + zoom, throttlé session). Server Action `trackEvent` enfin construite (2 vrais appelants client). 1ère touche d'acquisition **différée** — voir détail. |
 | IN3 | Panneaux funnel/adoption dans le dashboard admin existant | P1 | ❌ | — |
 | IN4 | Discipline continue : entrée checklist de revue `QA_ROADMAP.md` | P2 | ❌ | — |
 
@@ -196,20 +196,52 @@ depuis un moment. Impossible aujourd'hui de savoir si ces investissements
 sont utilisés.
 
 **Décision — événements :**
-- `SIMULATOR_USED` — ville/gouvernorat saisis + recommandation retournée par
-  `computeYield`.
-- `SHARE_CLICKED` — canal (lien copié / WhatsApp / partage natif), depuis
-  `src/components/property/ShareButton.tsx`.
-- `SAVED_SEARCH_CREATED` — depuis `src/components/search/SaveSearchButton.tsx`
-  / `src/lib/saved-search.ts`.
-- `MAP_INTERACTED` — première interaction (zoom/pan) sur
-  `src/components/map/MapInner.tsx`, throttlée à un événement par session
-  pour ne pas exploser le volume sur une carte manipulée en continu.
-- Première touche d'acquisition : capturer `?ref=`/UTM à la première visite
-  dans les métadonnées associées à l'`anonId` — une seule écriture, pas de
-  re-tracking à chaque page. Prépare le programme de parrainage diaspora
-  (Top 20 #18 de l'audit, **pas encore construit**) et toute dépense
-  publicitaire (diaspora France) sans re-plomberie le jour venu.
+- `SIMULATOR_USED` — câblé dans `src/app/dashboard/yield/page.tsx` (Server
+  Component, comme `LISTING_VIEWED`/`SIMULATOR_USED`), `propertyCount` +
+  `recommendations` (tableau des recommandations retournées par
+  `computeYield`) en metadata. **Ajusté à l'implémentation** : la page
+  n'a pas de champ « ville/gouvernorat » saisi par l'hôte — l'analyse porte
+  automatiquement sur toutes ses annonces. Logué uniquement si
+  `properties.length > 0` (un état vide n'est pas un usage réel).
+- `SAVED_SEARCH_CREATED` — câblé dans `saveSearchAction`
+  (`src/actions/saved-search.ts`, Server Action déjà existante), après la
+  création réussie uniquement (jamais sur doublon/validation échouée).
+- `SHARE_CLICKED` et `MAP_INTERACTED` sont **purement client**
+  (`ShareButton.tsx` : `navigator.share`/clipboard/lien WhatsApp ;
+  `MapInner.tsx` : Leaflet, `ssr:false`) — premiers vrais appelants de la
+  Server Action `trackEvent` déférée depuis IN0 :
+  `src/actions/track-event.ts`, catalogue restreint
+  (`CLIENT_EVENT_NAMES`, sous-ensemble de `PRODUCT_EVENT_NAMES` — un
+  événement server-only comme `BOOKING_STARTED` reste impossible à forger
+  depuis le client), `zod`, `metadata` plafonnée (2 Ko), rate-limitée
+  (`src/lib/rate-limit.ts`, clé `anonId`/IP).
+  - `SHARE_CLICKED` : canal capturé (`native`/`copy`/`whatsapp`), jamais
+    loggé sur annulation du partage natif (`AbortError`). Appel
+    fire-and-forget (non-awaité) — accepté de perdre l'événement WhatsApp si
+    la navigation coupe la requête en vol, même logique best-effort que le
+    reste du chantier.
+  - `MAP_INTERACTED` : **correction à l'implémentation** — écouter
+    `zoomstart`/`movestart` (comme envisagé initialement) aurait déclenché
+    un faux positif à **chaque** chargement de page, Leaflet émettant ces
+    événements aussi pour le `setView`/`fitBounds` **programmatique** déjà
+    fait par `AutoResize` au montage. Écoute `dragstart` (jamais émis
+    programmatiquement) + clic réel sur les boutons de zoom (mêmes nœuds DOM
+    que `ZoomFocusFix`). Throttle via `sessionStorage` (pas de cookie dédié)
+    — une session peut traverser plusieurs cartes (résultats de recherche
+    PUIS fiche annonce) sans compter plusieurs événements.
+
+**Périmètre réduit à l'implémentation : 1ère touche d'acquisition
+(`?ref=`/UTM) différée**, pas construite dans cette PR. Contrairement aux 4
+événements ci-dessus, elle n'a **aucun consommateur concret aujourd'hui** (le
+programme de parrainage diaspora n'existe pas encore) et sa plomberie est
+plus intrusive qu'il n'y paraît : le seul point où **toute** page d'atterrissage
+peut être captée est le middleware (Edge) — qui n'a **pas accès à Prisma**
+(la même contrainte qui a façonné le cookie `darna-vid` en IN0). Une capture
+correcte demanderait un cookie dédié + une lecture différée par le premier
+événement serveur, pour un gain nul tant que rien ne consomme la donnée.
+À construire **avec** `CROISSANCE_ROADMAP.md` §CR0 (fondations
+`referralCode`), qui définira le vrai modèle d'attribution — même discipline
+que la note ci-dessous sur `REFERRAL_SIGNUP`.
 
 **Note.** `REFERRAL_SIGNUP` et `LISTING_COMPLETION_VIEWED` — cités en exemple
 dans la discussion d'origine — ne sont **pas** dans ce chantier : ils
@@ -218,9 +250,21 @@ parrainage, score de complétion d'annonce). Règle proposée pour IN4:
 l'événement s'ajoute **dans la même PR** que la fonctionnalité qui le
 justifie, jamais en avance sur du code qui n'existe pas.
 
-**Tests.** Chaque déclencheur UI écrit l'événement attendu (assertion
-`logProductEvent`/`trackEvent` appelé, en complément des tests composants
-existants).
+**Tests.** `tests/track-event.test.ts` (7) : catalogue client restreint
+(rejette `BOOKING_STARTED`), rejet metadata surdimensionnée/entrée invalide,
+résolution userId/anonId serveur, rate-limit (clé anonId puis repli IP).
+`tests/components/share-button.test.tsx` (4) : les 3 canaux + non-mesure sur
+annulation native. `tests/saved-search-events.test.ts` (3) : événement sur
+succès uniquement. Pas de test unitaire pour `MapInner`/Yield Advisor —
+même précédent que `PropertyMap` (Leaflet mocké en jsdom, `tests/components/
+property-map.test.tsx`) et que `ListingDetail` en IN0 : validés par smoke
+test réel plutôt que simulés. **Vérifié en direct** (Postgres local + seed +
+`npm run dev`, compte `hote@darna.tn`) : Yield Advisor (13 annonces) →
+`SIMULATOR_USED` correct ; recherche Hammamet + création d'alerte →
+`SAVED_SEARCH_CREATED` correct ; fiche annonce → partage « Copier le lien »
+→ `SHARE_CLICKED` (`channel: copy`) ; carte — clic zoom **et** drag (testés
+séparément) → `MAP_INTERACTED` ; une 2ᵉ interaction dans la même session ne
+duplique pas l'événement (throttle vérifié).
 
 ### IN3 — [P1] Panneaux dans le dashboard admin existant
 
@@ -282,8 +326,9 @@ IN0 ~0,5-1 j · IN1 ~1 j · IN2 ~0,5-1 j · IN3 ~0,5-1 j · IN4 négligeable
 
 ---
 
-**Statut du chantier : IN0 (#160) et IN1 (#164) livrés, IN2 à IN4 restants.**
-Chantier transverse, indépendant de la chaîne `ANNULATION_HOTE_*` (déjà
-entièrement traversée) — ne s'y substitue pas et ne doit pas interrompre un
-P0 déjà en cours ailleurs. IN2 (adoption des fonctionnalités déjà livrées +
-1ère touche d'acquisition) est la suite naturelle.
+**Statut du chantier : IN0 (#160), IN1 (#164) et IN2 (#171) livrés — IN3/IN4
+restants.** Chantier transverse, indépendant de la chaîne `ANNULATION_HOTE_*`
+(déjà entièrement traversée) — ne s'y substitue pas et ne doit pas interrompre
+un P0 déjà en cours ailleurs. IN3 (panneaux funnel/adoption dans le dashboard
+admin existant) a maintenant de vraies données à afficher (funnel complet
+IN1 + adoption IN2) — c'est la suite naturelle.

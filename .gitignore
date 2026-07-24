@@ -20,6 +20,9 @@
 /playwright-report/
 /test-results/
 
+# perf (k6) — contexte de session généré à chaque run (jeton vivant)
+/tests/perf/.booking-load-context.json
+
 # next.js
 /.next/
 /out/
