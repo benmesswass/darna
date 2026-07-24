@@ -90,10 +90,24 @@ export const CREDIT_VALIDITY_DAYS = 182;
 /**
  * Bonus filleul (parrainage voyageur, CROISSANCE_ROADMAP.md §CR1) — crédité
  * IMMÉDIATEMENT à l'inscription via lien/code de parrainage valide, motif
- * BIENVENUE_PARRAINAGE. Distinct du bonus parrain (§CR2, +40 TND, pas encore
- * implémenté) et du crédit de bienvenue générique sans parrain (§CR3).
+ * BIENVENUE_PARRAINAGE. Distinct du bonus parrain (§CR2, cf.
+ * HOST_REFERRAL_BONUS_TND) et du crédit de bienvenue générique sans parrain
+ * (§CR3).
  */
 export const REFERRAL_SIGNUP_BONUS_TND = 15;
+
+/**
+ * Bonus parrain (parrainage hôte, CROISSANCE_ROADMAP.md §CR2) — ≈ 2×
+ * HOST_VERIFICATION_PRICE_TND. Crédité au PARRAIN (motif
+ * PARRAINAGE_FILLEUL_TERMINE) quand le FILLEUL débloque le jalon : 1ère
+ * annonce vérifiée ACTIVE + 1ère résa TERMINEE (pas seulement CONFIRMEE —
+ * ferme la boucle réserver-puis-annuler). Cf. settleHostReferralMilestones,
+ * src/lib/credits.ts.
+ */
+export const HOST_REFERRAL_BONUS_TND = 40;
+
+/** Plafond : au plus ce nombre de filleuls récompensés par parrain et par an glissant (§CR2). */
+export const HOST_REFERRAL_YEARLY_CAP = 5;
 
 /**
  * Part maximale du total qu'un crédit peut couvrir au checkout (§CR1) — le

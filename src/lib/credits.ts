@@ -15,7 +15,13 @@
 import { randomBytes } from "node:crypto";
 import type { Prisma, PrismaClient } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { CREDIT_CHECKOUT_CAP_RATE, CREDIT_VALIDITY_DAYS } from "@/lib/config";
+import {
+  CREDIT_CHECKOUT_CAP_RATE,
+  CREDIT_VALIDITY_DAYS,
+  HOST_REFERRAL_BONUS_TND,
+  HOST_REFERRAL_YEARLY_CAP,
+} from "@/lib/config";
+import { completeElapsedBookings } from "@/lib/bookings";
 import type { CreditTransactionMotif } from "@/lib/constants";
 
 /** Client Prisma global OU transaction (ex. createBookingAction) — mêmes appels des deux côtés. */
@@ -256,6 +262,83 @@ export async function refundCreditForBooking(bookingId: string): Promise<void> {
     motif: "REMBOURSEMENT_RESERVATION_ANNULEE",
     bookingId,
   });
+}
+
+/**
+ * Parrainage hôte (CROISSANCE_ROADMAP.md §CR2) — vérifie si l'un des filleuls
+ * de ce parrain vient de remplir le jalon (1ère annonce vérifiée `ACTIVE` +
+ * 1ère résa `TERMINEE` — pas seulement `CONFIRMEE`, ferme la boucle
+ * réserver-puis-annuler) et crédite `HOST_REFERRAL_BONUS_TND` si oui.
+ *
+ * Lazy, appelée à la lecture de `/dashboard/credits` — même esprit que
+ * `settleVerificationCreditOrder`/`settleSubscriptionPayment` : scopée à la
+ * page la plus directement concernée plutôt qu'un hook global sur chaque
+ * page dashboard (la quasi-totalité des comptes n'ont aucun filleul).
+ *
+ * Idempotent : un filleul n'est jamais récompensé deux fois (vérifié via
+ * `CreditTransaction.referredUserId`, posé par CR0 exactement pour cet
+ * usage) — et plafonné à `HOST_REFERRAL_YEARLY_CAP` par an glissant.
+ *
+ * Périmètre volontairement limité à la détection + crédit du parrain : ne
+ * rend PAS encore ce crédit dépensable sur vérification Wakil / boost à la
+ * une / abonnement (reste du texte §CR2) — cf. note de la roadmap, chantier
+ * séparé (touche 3 flux de paiement Konnect déjà en prod + un cas de
+ * couverture à 100% par crédit qui doit contourner Konnect, pas quelque
+ * chose à greffer à la hâte sur du code de paiement qui fonctionne déjà).
+ */
+export async function settleHostReferralMilestones(referrerId: string): Promise<void> {
+  // Complète d'abord les résas dont le séjour est passé (même idiome que
+  // partout ailleurs) — sans ça, le jalon pourrait ne jamais se déclencher
+  // si aucune autre page n'a appelé completeElapsedBookings entre-temps.
+  await completeElapsedBookings();
+
+  const oneYearAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
+  const rewardedThisYear = await prisma.creditTransaction.count({
+    where: {
+      wallet: { userId: referrerId },
+      motif: "PARRAINAGE_FILLEUL_TERMINE",
+      createdAt: { gte: oneYearAgo },
+    },
+  });
+  if (rewardedThisYear >= HOST_REFERRAL_YEARLY_CAP) return;
+
+  const alreadyRewarded = await prisma.creditTransaction.findMany({
+    where: { wallet: { userId: referrerId }, motif: "PARRAINAGE_FILLEUL_TERMINE" },
+    select: { referredUserId: true },
+  });
+  const alreadyRewardedIds = alreadyRewarded
+    .map((t) => t.referredUserId)
+    .filter((id): id is string => id !== null);
+
+  const candidates = await prisma.user.findMany({
+    where: { referredById: referrerId, id: { notIn: alreadyRewardedIds } },
+    select: { id: true },
+  });
+
+  let remainingSlots = HOST_REFERRAL_YEARLY_CAP - rewardedThisYear;
+  for (const filleul of candidates) {
+    if (remainingSlots <= 0) break;
+
+    const hasVerifiedActiveListing = await prisma.property.findFirst({
+      where: { ownerId: filleul.id, verified: true, status: "ACTIVE" },
+      select: { id: true },
+    });
+    if (!hasVerifiedActiveListing) continue;
+
+    const hasCompletedBooking = await prisma.booking.findFirst({
+      where: { property: { ownerId: filleul.id }, status: "TERMINEE" },
+      select: { id: true },
+    });
+    if (!hasCompletedBooking) continue;
+
+    await issueCredit({
+      userId: referrerId,
+      amount: HOST_REFERRAL_BONUS_TND,
+      motif: "PARRAINAGE_FILLEUL_TERMINE",
+      referredUserId: filleul.id,
+    });
+    remainingSlots -= 1;
+  }
 }
 
 /**

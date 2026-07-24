@@ -4,7 +4,7 @@ import { fr as frMeta } from "@/lib/i18n/fr";
 import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
-import { creditBalance, ensureReferralCode } from "@/lib/credits";
+import { creditBalance, ensureReferralCode, settleHostReferralMilestones } from "@/lib/credits";
 import { REFERRAL_SIGNUP_BONUS_TND, SITE_URL } from "@/lib/config";
 import { Price } from "@/components/currency/Price";
 import { ShareButton } from "@/components/property/ShareButton";
@@ -21,6 +21,11 @@ export default async function CreditsPage() {
   const fr = await getT();
   const user = await getSessionUser();
   if (!user) redirect("/connexion");
+
+  // Parrainage hôte (§CR2) : jalon vérifié/crédité AVANT la lecture du solde
+  // ci-dessous (séquentiel, pas dans le Promise.all — sinon course avec
+  // creditBalance qui pourrait lire juste avant que ce crédit soit posé).
+  await settleHostReferralMilestones(user.id);
 
   const [balance, referralCode, transactions] = await Promise.all([
     creditBalance(user.id),
