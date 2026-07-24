@@ -260,6 +260,13 @@ export const fr = {
     surface: (m: number) => `${m} m²`,
     pieces: (n: number) => (n === 1 ? "1 pièce" : `${n} pièces`),
     capacite: (n: number) => (n === 1 ? "1 voyageur" : `${n} voyageurs`),
+    activiteVues: (n: number) => `${n} personnes ont consulté cette annonce récemment`,
+    activiteDerniereResa: (jours: number) =>
+      jours === 0
+        ? "Réservée aujourd'hui"
+        : jours === 1
+          ? "Réservée hier"
+          : `Dernière réservation il y a ${jours} jours`,
     reserver: "Réserver",
     contacter: "Contacter",
     whatsapp: "WhatsApp",

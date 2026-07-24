@@ -257,3 +257,13 @@ export const MESSAGE_FLAG_SUSPENSION_THRESHOLD = 4;
  * Modèle volontairement souple : on éduque avant de bannir.
  */
 export const SUSPENSION_DURATIONS_DAYS = [3, 14];
+
+/**
+ * Signal de dynamique temps réel sur la fiche annonce (GROWTH_ROADMAP.md §G5) :
+ * seuils PROVISOIRES sous lesquels le signal reste masqué — jamais un chiffre
+ * gonflé pour un 1 ou 2, cohérent avec le positionnement anti-bullshit (même
+ * esprit que SUPER_HOST_MIN_REVIEWS).
+ */
+export const LISTING_ACTIVITY_MIN_VIEWS = 3;
+/** Une dernière réservation trop ancienne n'est plus un signal de dynamique. */
+export const LISTING_ACTIVITY_RECENT_BOOKING_DAYS = 30;

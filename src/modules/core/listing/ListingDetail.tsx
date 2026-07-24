@@ -18,11 +18,13 @@ import { PromoPrice } from "@/components/property/PromoPrice";
 import { isPropertyPromoActive } from "@/lib/listings";
 import {
   CheckIcon,
+  ClockIcon,
   DoorIcon,
   MapPinIcon,
   RulerIcon,
   ShieldIcon,
   StarIcon,
+  UsersIcon,
 } from "@/components/icons";
 import { RatingStars } from "@/components/property/RatingStars";
 import { ReviewsSection } from "@/components/property/ReviewsSection";
@@ -36,6 +38,11 @@ import { blendedRatingStats } from "@/lib/rating";
 import { favoritePropFor } from "@/lib/favorites";
 import { getAnonId, logProductEvent } from "@/lib/product-events";
 import { getSessionUser } from "@/lib/session";
+import {
+  computeListingActivitySignal,
+  getLastConfirmedBookingDate,
+} from "@/lib/listing-activity";
+import { ListingActivityTracker } from "@/components/property/ListingActivityTracker";
 import { Caracteristique } from "@/modules/core/listing/Caracteristique";
 import type {
   ListingData,
@@ -122,11 +129,24 @@ export async function ListingDetail({
     });
   }
 
+  // Signal de dynamique temps réel (GROWTH_ROADMAP.md §G5) — « dernière
+  // réservation » n'a de sens que pour SEJOUR (LOCATION/VENTE = mise en
+  // relation, pas de réservation).
+  const lastBookedAt =
+    isActive && property.type === "SEJOUR"
+      ? await getLastConfirmedBookingDate(property.id)
+      : null;
+  const activitySignal = computeListingActivitySignal({
+    viewCount: property.viewCount,
+    lastBookedAt,
+  });
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
       <JsonLd data={buildPropertyJsonLd(property)} />
       {/* Garde la nav + l'accent sur la bonne verticale (route hors-section). */}
       <ActiveSection name={activeSection} />
+      {isActive ? <ListingActivityTracker propertyId={property.id} /> : null}
       {isPending ? (
         <div className="mb-6 rounded-2xl bg-amber-50 border border-amber-200 px-5 py-4 text-sm font-medium text-amber-800">
           {fr.property.annonceEnAttente}
@@ -395,6 +415,23 @@ export async function ListingDetail({
               className="text-2xl font-bold text-heading"
             />
             {belowPrice}
+
+            {activitySignal.viewCount || activitySignal.lastBookedDaysAgo !== null ? (
+              <div className="mt-3 space-y-1.5">
+                {activitySignal.viewCount ? (
+                  <p className="flex items-center gap-1.5 text-xs font-medium text-body/60">
+                    <UsersIcon width={14} height={14} className="shrink-0 text-darna" />
+                    {fr.property.activiteVues(activitySignal.viewCount)}
+                  </p>
+                ) : null}
+                {activitySignal.lastBookedDaysAgo !== null ? (
+                  <p className="flex items-center gap-1.5 text-xs font-medium text-body/60">
+                    <ClockIcon width={14} height={14} className="shrink-0 text-darna" />
+                    {fr.property.activiteDerniereResa(activitySignal.lastBookedDaysAgo)}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
 
             {cta}
 

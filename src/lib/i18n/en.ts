@@ -259,6 +259,13 @@ export const en: Dictionary = {
     surface: (m: number) => `${m} m²`,
     pieces: (n: number) => (n === 1 ? "1 room" : `${n} rooms`),
     capacite: (n: number) => (n === 1 ? "1 guest" : `${n} guests`),
+    activiteVues: (n: number) => `${n} people viewed this listing recently`,
+    activiteDerniereResa: (jours: number) =>
+      jours === 0
+        ? "Booked today"
+        : jours === 1
+          ? "Booked yesterday"
+          : `Last booked ${jours} days ago`,
     reserver: "Book",
     contacter: "Contact",
     whatsapp: "WhatsApp",

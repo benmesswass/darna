@@ -282,6 +282,13 @@ export const ar: Dictionary = {
       n === 1 ? "بيت واحد" : n === 2 ? "بيتين" : `${n} بيوت`,
     capacite: (n: number) =>
       n === 1 ? "مسافر واحد" : n === 2 ? "مسافرين اثنين" : `${n} مسافرين`,
+    activiteVues: (n: number) => `${n} شخص شافوا هذا الإعلان مؤخرا`,
+    activiteDerniereResa: (jours: number) =>
+      jours === 0
+        ? "تحجزت اليوم"
+        : jours === 1
+          ? "تحجزت البارح"
+          : `آخر حجز من ${jours} يوم`,
     reserver: "احجز",
     contacter: "اتصل",
     whatsapp: "واتساب",
