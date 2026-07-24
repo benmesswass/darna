@@ -225,6 +225,22 @@ export const VERIFICATION_CREDIT_PACKS = [
 ] as const;
 export type VerificationCreditPackKey = (typeof VERIFICATION_CREDIT_PACKS)[number]["key"];
 
+/**
+ * Motifs d'un mouvement du ledger `CreditTransaction` (programme de crédits
+ * parrainage/bienvenue, CROISSANCE_ROADMAP.md §CR0). Émissions vs dépenses
+ * distinguées par le signe de `amount`, pas par le motif — cf. src/lib/credits.ts.
+ */
+export const CREDIT_TRANSACTION_MOTIFS = [
+  "BIENVENUE_PARRAINAGE",
+  "BIENVENUE_SPONTANE",
+  "PARRAINAGE_FILLEUL_TERMINE",
+  "UTILISATION_RESERVATION",
+  "UTILISATION_SERVICE_HOTE",
+  "EXPIRATION",
+  "AJUSTEMENT_ADMIN",
+] as const;
+export type CreditTransactionMotif = (typeof CREDIT_TRANSACTION_MOTIFS)[number];
+
 export const CANCEL_POLICIES = ["FLEXIBLE", "MODEREE", "FERME", "STRICTE"] as const;
 export type CancelPolicy = (typeof CANCEL_POLICIES)[number];
 

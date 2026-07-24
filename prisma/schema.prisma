@@ -28,50 +28,50 @@ datasource db {
 }
 
 model User {
-  id               String    @id @default(cuid())
-  email            String    @unique
-  passwordHash     String
-  name             String
-  phone            String?
-  image            String? // Photo de profil — URL locale /uploads (cf. src/lib/uploads.ts)
-  role             String    @default("VOYAGEUR") // VOYAGEUR | HOTE | AGENCE | ADMIN
-  phoneVerified    Boolean   @default(false)
+  id                      String    @id @default(cuid())
+  email                   String    @unique
+  passwordHash            String
+  name                    String
+  phone                   String?
+  image                   String? // Photo de profil — URL locale /uploads (cf. src/lib/uploads.ts)
+  role                    String    @default("VOYAGEUR") // VOYAGEUR | HOTE | AGENCE | ADMIN
+  phoneVerified           Boolean   @default(false)
   // PR5 — vérification e-mail distincte du KYC téléphonique.
-  emailVerified    Boolean   @default(false)
-  kycStatus        String    @default("NON_VERIFIE") // NON_VERIFIE | EN_ATTENTE | VERIFIE | DEMO_VERIFIE
+  emailVerified           Boolean   @default(false)
+  kycStatus               String    @default("NON_VERIFIE") // NON_VERIFIE | EN_ATTENTE | VERIFIE | DEMO_VERIFIE
   // CIN saisie au KYC. Chiffrée au repos (AES-256-GCM) dès KYC_ENC_KEY défini ;
   // OBLIGATOIRE en KYC_MODE=production (boot fail-fast). Cf. src/lib/crypto.ts.
-  cin              String?
+  cin                     String?
   // Empreinte déterministe de la CIN (hashCin) — index UNIQUE : interdit deux
   // comptes avec la même CIN, sans exposer le numéro. Cf. src/lib/crypto.ts.
-  cinHash          String?   @unique
+  cinHash                 String?   @unique
   // PR2 — Wakil : agent vérifié sur le terrain.
-  isWakil          Boolean   @default(false)
+  isWakil                 Boolean   @default(false)
   // Incrémenté à chaque changement de mot de passe : invalide les JWT précédents.
-  tokenVersion     Int       @default(0)
+  tokenVersion            Int       @default(0)
   // Suspension anti-bypass : posée quand l'utilisateur dépasse le seuil de
   // tentatives de partage de coordonnées hors plateforme (cf. messages). Un
   // compte suspendu ne peut plus réserver ni envoyer de messages ; un admin
   // peut le réactiver. Cf. MESSAGE_FLAG_SUSPENSION_THRESHOLD.
-  suspended        Boolean   @default(false)
-  suspendedAt      DateTime?
+  suspended               Boolean   @default(false)
+  suspendedAt             DateTime?
   // Suspension PROGRESSIVE : `suspendedUntil` = fin de la suspension temporaire
   // (null + suspended=true = suspension indéfinie, levée par un admin).
   // `suspensionCount` = nombre de suspensions subies → palier de durée croissant
   // (cf. SUSPENSION_DURATIONS_DAYS). Une suspension est ACTIVE si suspended ET
   // (suspendedUntil null OU suspendedUntil > now) — cf. src/lib/suspension.ts.
-  suspendedUntil   DateTime?
-  suspensionCount  Int       @default(0)
+  suspendedUntil          DateTime?
+  suspensionCount         Int       @default(0)
   // Motif de la DERNIÈRE suspension (MESSAGE_BYPASS | BOOKING_NO_SHOW |
   // HOST_CANCELLED_BOOKING, cf. SuspensionReason dans src/lib/suspension.ts) —
   // permet au bandeau « Pourquoi ? » (dashboard/layout.tsx) d'expliquer la
   // VRAIE raison plutôt qu'un texte générique. Null = jamais suspendu, ou
   // suspendu avant l'introduction de ce champ (bascule sur le texte legacy).
-  suspensionReason String?
+  suspensionReason        String?
   // Pays de résidence déclaré à l'inscription (libellé FR, cf. PHONE_COUNTRIES) —
   // clé du pilotage diaspora (north-star marketing : cible France). Null tant
   // que non renseigné (comptes historiques ou inscription sans choix).
-  country          String?
+  country                 String?
   // Défi "Hôte Zéro Faille" (GROWTH_ROADMAP.md §G4) : date de la dernière
   // réclamation du boost offert au mérite (badge Super-Hôte — dérivé, jamais
   // stocké, cf. isSuperHost() dans src/lib/super-host.ts). Une réclamation
@@ -79,45 +79,61 @@ model User {
   // "cycle" ici, contrairement à Subscription.freeBoostUsedAt (MI4, réservé
   // aux abonnements AGENCE).
   superHostBoostClaimedAt DateTime?
-  createdAt        DateTime  @default(now())
+  createdAt               DateTime  @default(now())
 
-  properties               Property[]
-  bookings                 Booking[]
-  messages                 Message[]
-  reviews                  Review[]
+  properties                       Property[]
+  bookings                         Booking[]
+  messages                         Message[]
+  reviews                          Review[]
   // Avis « hôte → voyageur » (F1) : reçus par ce voyageur / rédigés par cet hôte.
-  guestReviewsReceived     GuestReview[]             @relation("GuestReviewTarget")
-  guestReviewsAuthored     GuestReview[]             @relation("GuestReviewAuthor")
-  contactRequests          ContactRequest[]
-  favorites                Favorite[]
-  favoriteFolders          FavoriteFolder[]
-  auditLogs                AuditLog[]
+  guestReviewsReceived             GuestReview[]             @relation("GuestReviewTarget")
+  guestReviewsAuthored             GuestReview[]             @relation("GuestReviewAuthor")
+  contactRequests                  ContactRequest[]
+  favorites                        Favorite[]
+  favoriteFolders                  FavoriteFolder[]
+  auditLogs                        AuditLog[]
   // Événements produit (INSTRUMENTATION_ROADMAP.md §IN0) — sibling d'auditLogs.
-  productEvents            ProductEvent[]
-  otpChallenges            OtpChallenge[]
-  passwordResetTokens      PasswordResetToken[]
+  productEvents                    ProductEvent[]
+  otpChallenges                    OtpChallenge[]
+  passwordResetTokens              PasswordResetToken[]
   // Centre de notifications in-app (F9) : réservation confirmée/annulée, avis
   // reçu, annonce bientôt expirée.
-  notifications            Notification[]
+  notifications                    Notification[]
   // Alertes de recherche sauvegardée (F7) : ville + budget.
-  savedSearches            SavedSearch[]
+  savedSearches                    SavedSearch[]
   // PR1 — back-relation : annonces vérifiées par cet utilisateur (admin/wakil).
-  verifiedProperties       Property[]                @relation("PropertyVerifiedBy")
+  verifiedProperties               Property[]                @relation("PropertyVerifiedBy")
   // PR2 — candidatures Wakil liées à ce compte.
-  wakilApplications        WakilApplication[]
+  wakilApplications                WakilApplication[]
   // PR2 — candidatures Wakil revues par cet admin.
-  reviewedApplications     WakilApplication[]        @relation("WakilApplicationReviewer")
+  reviewedApplications             WakilApplication[]        @relation("WakilApplicationReviewer")
   // Rail 2 (PAIEMENT_SUR_PLACE_ROADMAP.md) : factures de commission dues par
   // cet utilisateur en tant qu'hôte de réservations SUR_PLACE.
-  hostInvoices             HostInvoice[]
+  hostInvoices                     HostInvoice[]
   // Achats de mise en avant (« à la une », MONETISATION_IMMO_ROADMAP.md §MI0).
-  featuredOrders           FeaturedOrder[]
+  featuredOrders                   FeaturedOrder[]
   // Abonnement agence (MONETISATION_IMMO_ROADMAP.md §MI1) — au plus un par compte.
-  subscription             Subscription?
+  subscription                     Subscription?
   // Solde de crédits de vérification Wakil (MONETISATION_IMMO_ROADMAP.md §MI3)
   // — au plus un par compte.
-  verificationWallet       VerificationWallet?
-  verificationCreditOrders VerificationCreditOrder[]
+  verificationWallet               VerificationWallet?
+  verificationCreditOrders         VerificationCreditOrder[]
+  // Programme de crédits parrainage/bienvenue (CROISSANCE_ROADMAP.md §CR0) :
+  // code de parrainage unique, généré paresseusement au premier partage (cf.
+  // ensureReferralCode, src/lib/credits.ts) — jamais régénéré une fois posé.
+  referralCode                     String?                   @unique
+  // Parrain de CE compte, posé UNE SEULE FOIS à l'inscription (jamais
+  // modifiable ensuite) — null si inscrit sans code de parrainage.
+  referredById                     String?
+  referredBy                       User?                     @relation("UserReferrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referrals                        User[]                    @relation("UserReferrals")
+  // Solde de crédits parrainage/bienvenue — au plus un par compte, même
+  // convention lazy que verificationWallet ci-dessus.
+  creditWallet                     CreditWallet?
+  // Mouvements du ledger crédit où CE compte est le filleul concerné
+  // (motif PARRAINAGE_FILLEUL_TERMINE) — distinct du wallet ci-dessus, qui
+  // appartient au PARRAIN crédité.
+  creditTransactionsAsReferredUser CreditTransaction[]       @relation("CreditTransactionReferredUser")
 }
 
 // Défi OTP de vérification KYC ou email : code haché (jamais en clair) + TTL +
@@ -377,10 +393,14 @@ model Booking {
   guestId    String
   guest      User     @relation(fields: [guestId], references: [id], onDelete: Cascade)
 
-  review      Review?
-  guestReview GuestReview?
-  messages    Message[]
-  hostInvoice HostInvoice?
+  review             Review?
+  guestReview        GuestReview?
+  messages           Message[]
+  hostInvoice        HostInvoice?
+  // Dépenses de crédit liées à CETTE résa (motifs UTILISATION_RESERVATION /
+  // _SERVICE_HOTE, CROISSANCE_ROADMAP.md §CR0) — informationnel uniquement,
+  // jamais utilisé pour recalculer un solde (cf. CreditTransaction).
+  creditTransactions CreditTransaction[]
 
   @@index([propertyId, status])
   @@index([guestId])
@@ -481,6 +501,60 @@ model VerificationWallet {
 
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Programme de crédits parrainage/bienvenue (CROISSANCE_ROADMAP.md §CR0) :
+// solde TND par utilisateur, créé PARESSEUSEMENT — même convention que
+// VerificationWallet ci-dessus : l'ABSENCE de ligne vaut solde 0, la ligne
+// n'est matérialisée qu'à la toute première émission de crédit. Cf.
+// src/lib/credits.ts (issueCredit/spendCredit/creditBalance).
+model CreditWallet {
+  id        String   @id @default(cuid())
+  balance   Int      @default(0) // TND
+  updatedAt DateTime @updatedAt
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  transactions CreditTransaction[]
+}
+
+// Ledger APPEND-ONLY des mouvements de crédit (CROISSANCE_ROADMAP.md §CR0) :
+// une ligne PAR mouvement, jamais de mise à jour a posteriori. Le signe de
+// `amount` porte le sens (positif = émission, négatif = dépense/expiration) —
+// `motif` ne fait que documenter l'origine, cf. CREDIT_TRANSACTION_MOTIFS
+// (src/lib/constants.ts). `expiresAt` n'est renseigné QUE pour les émissions ;
+// une dépense ou une expiration n'expire pas elle-même. `bookingId`/
+// `referredUserId` documentent l'origine quand applicable, jamais utilisés
+// pour recalculer un solde : la source de vérité est CreditWallet.balance,
+// mis à jour ATOMIQUEMENT en même temps que cette ligne (cf. issueCredit/
+// spendCredit — même principe transactionnel que settleFeaturedOrder).
+model CreditTransaction {
+  id        String    @id @default(cuid())
+  amount    Int // TND — positif (émission) ou négatif (dépense/expiration)
+  // BIENVENUE_PARRAINAGE | BIENVENUE_SPONTANE | PARRAINAGE_FILLEUL_TERMINE |
+  // UTILISATION_RESERVATION | UTILISATION_SERVICE_HOTE | EXPIRATION | AJUSTEMENT_ADMIN
+  // Cf. CREDIT_TRANSACTION_MOTIFS (src/lib/constants.ts).
+  motif     String
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  walletId String
+  wallet   CreditWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  // Réservation concernée par une dépense (UTILISATION_RESERVATION /
+  // _SERVICE_HOTE) — null pour une émission. SetNull (pas Cascade) : le
+  // mouvement de ledger survit à la suppression de la résa qui l'a motivé.
+  bookingId String?
+  booking   Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+
+  // Filleul concerné par un crédit de parrainage (PARRAINAGE_FILLEUL_TERMINE)
+  // — null sinon. SetNull : le mouvement survit à la suppression du compte filleul.
+  referredUserId String?
+  referredUser   User?   @relation("CreditTransactionReferredUser", fields: [referredUserId], references: [id], onDelete: SetNull)
+
+  @@index([walletId, createdAt])
+  @@index([expiresAt]) // expiration paresseuse, même principe que featuredUntil
 }
 
 // Achat d'un lot de crédits de vérification Wakil via Konnect
