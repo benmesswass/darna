@@ -30,6 +30,21 @@ Jamais livrer du code sans dire à Wassim comment le vérifier. Si une migration
 6. **Améliorations sur une PR déjà ouverte** : si une PR existe déjà (ex. #40) et que Wassim demande des améliorations/corrections dessus, **ne PAS créer une nouvelle PR** — pousser les modifications sur la **même branche** (donc la même PR). On ne crée une nouvelle branche/PR que pour un chantier distinct.
 7. **Contexte remote** : Claude Code tourne dans un conteneur cloud — il ne peut PAS écrire directement dans le projet PyCharm local de Wassim. Les changements arrivent sur la machine via `git pull` après merge sur `main`.
 
+## ⏳ Exception temporaire CI — quota GitHub Actions (expire 2026-07-31)
+
+Quota de minutes GitHub Actions inclus (2000/mois) épuisé le 2026-07-22 ; reset **~2026-07-31** (cf. `INFRA_ROADMAP.md` note 5). Cause racine corrigée et mergée le 2026-07-23 (`7ebf4b9`, PR #182) : `ci.yml` est passé en `workflow_dispatch`-only (plus de run automatique sur chaque push).
+
+**Jusqu'au 2026-07-31, remplace le point 4 (« Surveiller la CI ») de la section Workflow PR ci-dessus** — la CI ne tourne plus seule, donc pour CHAQUE merge de PR darna :
+1. Rappeler à Wassim de lancer les checks en local d'abord — ne jamais supposer que c'est déjà fait, même si non demandé.
+2. Toujours donner en premier la commande de checkout de la bonne branche (vérifier que le worktree cible est clean avant).
+3. Donner les commandes exactes, miroir des jobs de `ci.yml` :
+   - **build** : `npm run lint` · `npx tsc --noEmit` · `npm run test:coverage` · `npm run build` · `npm audit --audit-level=high`
+   - **e2e** : `npx playwright install --with-deps chromium` (si pas déjà installé) · `npm run test:e2e`
+   - **api** : `npm run test:api`
+   - **semgrep** : `pip install semgrep` (une fois) · `semgrep --config=p/security-audit --config=p/secrets --config=p/typescript --config=p/react --config=p/nextjs --exclude=node_modules --exclude=.next --exclude=tests --exclude="*.test.ts" --error --metrics=off src/`
+
+**Après le 2026-07-31** : cette section est caduque — la supprimer et repasser au mécanisme `workflow_dispatch` à la demande (point 4 original : Claude lance `gh workflow run`, attend le résultat, ne propose le merge que si vert).
+
 ## Stack et contraintes
 
 - Next.js 15 App Router + TypeScript strict + Tailwind 4 + Prisma/**PostgreSQL** + NextAuth credentials + zod.
