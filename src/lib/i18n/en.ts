@@ -862,6 +862,13 @@ export const en: Dictionary = {
     annonceursActifs: "Listers with a listing",
     annonceursActifsDesc: "Share of hosts/agencies who published",
 
+    sectionDecouverte: "Discovery funnel",
+    decouverteDesc:
+      "Upstream of the booking: search → listing view → booking start. Sourced from product events (SEARCH_PERFORMED, LISTING_VIEWED, BOOKING_STARTED).",
+    funnelRecherches: "Searches",
+    funnelVues: "Listing views",
+    funnelDebuts: "Booking starts",
+
     sectionFunnel: "Booking funnel",
     funnelDesc:
       "From created booking to confirmed payment. Steps reflect the bookings table.",
@@ -873,6 +880,14 @@ export const en: Dictionary = {
     funnelEnAttente: "Pending",
     tauxConversion: "Conversion rate",
     tauxAbandon: "Abandon rate",
+
+    sectionAdoption: "Feature adoption",
+    adoptionDesc: "Real usage of already-shipped features, over the selected period.",
+    adoptionSimulateur: "Revenue simulator used",
+    adoptionPartages: "Listing shares",
+    adoptionCarte: "Map interactions",
+    adoptionAlertesCreees: "Alerts created",
+    adoptionAlertesDeclenchees: "Alerts triggered",
 
     sectionRetention: "Retention & churn",
     retentionDesc:
