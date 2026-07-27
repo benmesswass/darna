@@ -17,6 +17,7 @@ import {
 import { sendHostInvoiceReminderEmail } from "@/lib/notifications";
 import { activeListingsLimit, countActiveListings } from "@/lib/subscriptions";
 import { consumeVerificationCredit } from "@/lib/verification-credits";
+import { issueCredit } from "@/lib/credits";
 
 export type AdminActionState = { error?: string; success?: string } | undefined;
 
@@ -429,4 +430,97 @@ export async function suspendHostForInvoiceAction(formData: FormData): Promise<v
   });
 
   revalidatePath("/dashboard/admin/factures");
+}
+
+// ── L5.2 — Remboursement des frais après annulation ────────────────────────
+// L'API Konnect n'a pas de remboursement programmatique (CLAUDE.md §AHC8) :
+// le règlement reste un geste ADMIN, en crédits Darna (préféré, instantané)
+// ou en virement manuel (fallback). Les deux actions sont idempotentes
+// (updateMany conditionné à refundPaidAt: null) — un double clic ne règle
+// jamais deux fois le même remboursement.
+
+const refundBookingIdSchema = z.object({ bookingId: z.string().cuid() });
+
+/**
+ * Marque un remboursement de frais réglé PAR VIREMENT MANUEL — fallback quand
+ * la créditation (creditRefundAction) n'est pas souhaitée (ex. voyageur sans
+ * compte actif, ou qui demande explicitement un vrai virement).
+ */
+export async function markRefundPaidAction(formData: FormData): Promise<void> {
+  const actor = await requireAdmin();
+  const parsed = refundBookingIdSchema.safeParse({ bookingId: formData.get("bookingId") });
+  if (!parsed.success) return;
+
+  const booking = await prisma.booking.findUnique({
+    where: { id: parsed.data.bookingId },
+    select: { id: true, refundAmount: true, refundPaidAt: true },
+  });
+  if (!booking || !booking.refundAmount || booking.refundPaidAt) return;
+
+  const updated = await prisma.booking.updateMany({
+    where: { id: booking.id, refundPaidAt: null },
+    data: { refundPaidAt: new Date() },
+  });
+  if (updated.count === 0) return; // déjà réglé entre-temps (double clic)
+
+  await logAudit({
+    action: "REFUND_MARKED",
+    userId: actor.id,
+    success: true,
+    metadata: { bookingId: booking.id, refundAmount: booking.refundAmount, method: "virement" },
+  });
+
+  revalidatePath("/dashboard/admin/remboursements");
+}
+
+/**
+ * Règle un remboursement de frais EN CRÉDITS Darna — alternative À PRIVILÉGIER
+ * (instantané, zéro virement) quand le voyageur a un compte actif. Créditer
+ * et marquer réglé dans LA MÊME transaction : jamais l'un sans l'autre.
+ */
+export async function creditRefundAction(formData: FormData): Promise<void> {
+  const actor = await requireAdmin();
+  const parsed = refundBookingIdSchema.safeParse({ bookingId: formData.get("bookingId") });
+  if (!parsed.success) return;
+
+  const booking = await prisma.booking.findUnique({
+    where: { id: parsed.data.bookingId },
+    select: { id: true, guestId: true, refundAmount: true, refundPaidAt: true },
+  });
+  if (!booking || !booking.refundAmount || booking.refundPaidAt) return;
+
+  const settled = await prisma.$transaction(async (tx) => {
+    const res = await tx.booking.updateMany({
+      where: { id: booking.id, refundPaidAt: null },
+      data: { refundPaidAt: new Date() },
+    });
+    if (res.count === 0) return false; // déjà réglé entre-temps (double clic)
+
+    await issueCredit(
+      {
+        userId: booking.guestId,
+        amount: booking.refundAmount as number,
+        motif: "REMBOURSEMENT_FRAIS_ANNULATION",
+        bookingId: booking.id,
+      },
+      tx
+    );
+    return true;
+  });
+  if (!settled) return;
+
+  await logAudit({
+    action: "REFUND_MARKED",
+    userId: actor.id,
+    success: true,
+    metadata: {
+      bookingId: booking.id,
+      refundAmount: booking.refundAmount,
+      method: "credit",
+      creditedUserId: booking.guestId,
+    },
+  });
+
+  revalidatePath("/dashboard/admin/remboursements");
+  revalidatePath("/dashboard/credits");
 }

@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  computeRefund,
-  computeBookingRefund,
-  cancellationSchedule,
-  freeCancellationCutoff,
-} from "@/lib/cancellation";
+import { computeRefund, cancellationSchedule, freeCancellationCutoff } from "@/lib/cancellation";
 
 const DAY_MS = 86_400_000;
 function daysFromNow(n: number) {
@@ -105,39 +100,41 @@ describe("computeRefund — arrondi", () => {
   });
 });
 
-describe("computeBookingRefund — commission rendue seulement si gratuit", () => {
-  const amountPaid = 1000;
-  const serviceFee = 80;
+describe("computeRefund — assiette = amountPaid (§L5.2, jamais de soustraction de commission)", () => {
+  // Avant §L5.2, un appelant dédié (computeBookingRefund, supprimé) recalait la
+  // commission dans un remboursement à 100 %. Depuis le modèle commission-only
+  // (§L5.1), amountPaid EST déjà les frais (jamais le loyer) : computeRefund
+  // s'applique directement dessus, sans logique spéciale.
+  const amountPaid = 45; // frais Darna réellement encaissés pour cette résa
 
-  it("annulation gratuite (100 %) → remboursement INTÉGRAL, commission comprise", () => {
-    const r = computeBookingRefund(amountPaid, serviceFee, daysFromNow(2), "FLEXIBLE", OLD);
+  it("annulation gratuite (100 %) → remboursement intégral de amountPaid", () => {
+    const r = computeRefund(amountPaid, daysFromNow(2), "FLEXIBLE", OLD);
     expect(r.refundRate).toBe(1);
-    expect(r.refundAmount).toBe(1000);
+    expect(r.refundAmount).toBe(45);
   });
 
-  it("grâce 24 h → remboursement intégral, commission comprise", () => {
+  it("grâce 24 h → remboursement intégral de amountPaid", () => {
     const justBooked = new Date(Date.now() - 2 * 60 * 60 * 1000);
-    const r = computeBookingRefund(amountPaid, serviceFee, daysFromNow(20), "STRICTE", justBooked);
+    const r = computeRefund(amountPaid, daysFromNow(20), "STRICTE", justBooked);
     expect(r.grace).toBe(true);
-    expect(r.refundAmount).toBe(1000);
+    expect(r.refundAmount).toBe(45);
   });
 
-  it("annulation partielle (50 %) → commission acquise, 50 % du reste seulement", () => {
-    // base = 1000 − 80 = 920 ; 50 % = 460. La commission n'est pas rendue.
-    const r = computeBookingRefund(amountPaid, serviceFee, daysFromNow(20), "STRICTE", OLD);
+  it("annulation partielle (50 %) → 50 % de amountPaid", () => {
+    const r = computeRefund(amountPaid, daysFromNow(20), "STRICTE", OLD);
     expect(r.refundRate).toBe(0.5);
-    expect(r.refundAmount).toBe(460);
+    expect(r.refundAmount).toBe(23); // 22.5 → arrondi 23
   });
 
-  it("aucun remboursement (0 %) → rien, commission acquise", () => {
-    const r = computeBookingRefund(amountPaid, serviceFee, daysFromNow(3), "STRICTE", OLD);
+  it("aucun remboursement (0 %) → rien", () => {
+    const r = computeRefund(amountPaid, daysFromNow(3), "STRICTE", OLD);
     expect(r.refundRate).toBe(0);
     expect(r.refundAmount).toBe(0);
   });
 
-  it("acompte = commission, annulation gratuite → rembourse l'acompte entier", () => {
-    const r = computeBookingRefund(80, 80, daysFromNow(2), "FLEXIBLE", OLD);
-    expect(r.refundAmount).toBe(80);
+  it("Rail 2 (SUR_PLACE) : amountPaid = 0 → jamais rien à rembourser, quelle que soit la politique", () => {
+    const r = computeRefund(0, daysFromNow(2), "FLEXIBLE", OLD);
+    expect(r.refundAmount).toBe(0);
   });
 });
 

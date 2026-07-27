@@ -8,7 +8,7 @@ import { nextSuspensionDays } from "@/lib/suspension";
 import { completeElapsedBookings } from "@/lib/bookings";
 import { formatDateShortFr } from "@/lib/format";
 import { Price } from "@/components/currency/Price";
-import { computeBookingRefund } from "@/lib/cancellation";
+import { computeRefund } from "@/lib/cancellation";
 import { contactRevealState, type ContactGate } from "@/lib/contact-reveal";
 import type { CancelPolicy } from "@/lib/constants";
 import { CancelBookingButton } from "@/components/booking/CancelBookingButton";
@@ -414,9 +414,8 @@ export default async function MesReservationsPage() {
                   <CancelBookingButton
                     bookingId={b.id}
                     refundAmount={
-                      computeBookingRefund(
+                      computeRefund(
                         b.amountPaid,
-                        b.serviceFee,
                         b.checkIn,
                         b.property.cancelPolicy as CancelPolicy,
                         b.createdAt
@@ -428,8 +427,12 @@ export default async function MesReservationsPage() {
                   <div className="space-y-0.5 text-[11px] text-body/50">
                     <p>{fr.dashboard.cancelledAt(formatDateShortFr(b.cancelledAt))}</p>
                     {b.refundAmount != null && b.refundAmount > 0 ? (
-                      <p className="font-semibold text-emerald-700">
-                        {fr.dashboard.rembourseLabel(b.refundAmount)}
+                      <p
+                        className={`font-semibold ${b.refundPaidAt ? "text-emerald-700" : "text-amber-700"}`}
+                      >
+                        {b.refundPaidAt
+                          ? fr.dashboard.rembourseLabel(b.refundAmount)
+                          : fr.dashboard.rembourseEnCoursLabel(b.refundAmount)}
                       </p>
                     ) : null}
                   </div>

@@ -79,7 +79,9 @@ export type AuditAction =
   | "CREDIT_APPLIED_AT_CHECKOUT"
   // Socle scheduler (LANCEMENT_ROADMAP.md §L3.1) — un tick = une entrée,
   // metadata { results } résume le statut de chaque job exécuté.
-  | "JOB_TICK";
+  | "JOB_TICK"
+  // Remboursement des frais après annulation (LANCEMENT_ROADMAP.md §L5.2).
+  | "REFUND_MARKED";
 
 /**
  * Audit trail — chaque événement sensible est enregistré avec userId, IP et

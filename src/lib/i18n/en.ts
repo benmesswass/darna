@@ -561,6 +561,7 @@ export const en: Dictionary = {
       montant > 0 ? `Refund: ${montant} TND` : "No refund under this policy",
     cancelledAt: (date: string) => `Cancelled on ${date}`,
     rembourseLabel: (montant: number) => `Refunded: ${montant} TND`,
+    rembourseEnCoursLabel: (montant: number) => `Refund of ${montant} TND in progress`,
     noterVoyageur: "Rate this guest",
     avisVoyageurEnvoye: "Review submitted — thank you!",
     votreAvisSurCeVoyageur: "Your review of this guest:",
@@ -811,6 +812,22 @@ export const en: Dictionary = {
     facturesSuspendre: "Suspend account",
     facturesSuspendreConfirm:
       "Suspend this host's account for unpaid invoice? They won't be able to publish or receive bookings until reactivated.",
+    navRemboursements: "Refunds",
+    remboursementsTitre: "Refunds due (Darna fees)",
+    remboursementsSousTitre:
+      "Konnect has no automatic refund: each row awaits a manual settlement — in Darna credits (instant, preferred) or by bank transfer.",
+    remboursementsTotalDu: "Total due",
+    remboursementsVide: "No refunds pending.",
+    remboursementsColVoyageur: "Guest",
+    remboursementsColAnnonce: "Listing",
+    remboursementsColMontant: "Amount",
+    remboursementsColAnnule: "Cancelled on",
+    remboursementsCrediter: "Credit the account",
+    remboursementsCrediterConfirm:
+      "Credit this amount to the guest's account? Instant and irreversible action.",
+    remboursementsMarquerVirement: "Mark settled (transfer)",
+    remboursementsMarquerVirementConfirm:
+      "Confirm that the manual transfer for this amount has been made?",
     navFinancement: "Financing leads",
     financementTitre: "Financing leads (business referral)",
     financementSousTitre:
