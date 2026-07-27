@@ -32,7 +32,7 @@ vi.mock("@/lib/mailer", () => ({
   sendEmail: vi.fn(),
   getEmailProvider: vi.fn(),
 }));
-vi.mock("@/lib/config", () => ({ SITE_URL: "https://darna.tn", SERVICE_FEE_RATE: 0.08 }));
+vi.mock("@/lib/config", () => ({ SITE_URL: "https://darna.tn", SERVICE_FEE_RATE: 0.1 }));
 
 vi.mock("@/lib/i18n/server", () => ({
   getT: vi.fn().mockResolvedValue({

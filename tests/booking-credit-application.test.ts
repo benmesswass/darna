@@ -2,7 +2,8 @@
  * CR1 (CROISSANCE_ROADMAP.md) — application du solde de crédit au checkout :
  * aperçu au devis (quoteBookingAction, lecture seule) et dépense atomique à la
  * création (createBookingAction, couplée à la transaction de réservation).
- * Plafonds non négociables : jamais plus de 30 % du total, jamais au-delà du
+ * Plafonds non négociables (§L5.1) : jamais plus de 100 % des FRAIS Darna
+ * restants (jamais du total, que Darna ne touche plus), jamais au-delà du
  * reste-à-couvrir (`totalPrice - subtotal`) — le prix hôte ne bouge jamais.
  */
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
@@ -71,7 +72,7 @@ function ymd(offset: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-// 300 TND/nuit × 2 nuits = subtotal 600, serviceFee 48 (8 %), fullTotal 648.
+// 300 TND/nuit × 2 nuits = subtotal 600, serviceFee 60 (10 %), fullTotal 660.
 function baseProperty(overrides: Partial<Record<string, unknown>> = {}) {
   return {
     id: "clproperty000000000000001",
@@ -143,7 +144,7 @@ describe("quoteBookingAction — aperçu crédit (§CR1)", () => {
 
     const quote = await quoteBookingAction(quoteInput());
 
-    expect(quote).toMatchObject({ ok: true, total: 648, creditApplied: undefined });
+    expect(quote).toMatchObject({ ok: true, total: 660, creditApplied: undefined });
     expect(walletFindUnique).not.toHaveBeenCalled();
   });
 
@@ -152,26 +153,26 @@ describe("quoteBookingAction — aperçu crédit (§CR1)", () => {
 
     const quote = await quoteBookingAction(quoteInput(true));
 
-    expect(quote).toMatchObject({ ok: true, total: 648, creditApplied: undefined });
+    expect(quote).toMatchObject({ ok: true, total: 660, creditApplied: undefined });
     expect(walletFindUnique).not.toHaveBeenCalled();
   });
 
-  it("applique le crédit disponible, plafonné au reste-à-couvrir (totalPrice - subtotal = 48, toujours < 30 % du total ici)", async () => {
+  it("applique le crédit disponible, plafonné au reste-à-couvrir (totalPrice - subtotal = 60 = 100 % des frais)", async () => {
     getSessionUserMock.mockResolvedValue(verifiedGuest);
     walletFindUnique.mockResolvedValue({ balance: 200 });
 
     const quote = await quoteBookingAction(quoteInput(true));
 
-    expect(quote).toMatchObject({ ok: true, total: 648 - 48, creditApplied: 48 });
+    expect(quote).toMatchObject({ ok: true, total: 660 - 60, creditApplied: 60 });
   });
 
-  it("plafonne au solde réel si inférieur au plafond de 30 %", async () => {
+  it("plafonne au solde réel si inférieur au plafond (100 % des frais)", async () => {
     getSessionUserMock.mockResolvedValue(verifiedGuest);
     walletFindUnique.mockResolvedValue({ balance: 15 });
 
     const quote = await quoteBookingAction(quoteInput(true));
 
-    expect(quote).toMatchObject({ ok: true, total: 648 - 15, creditApplied: 15 });
+    expect(quote).toMatchObject({ ok: true, total: 660 - 15, creditApplied: 15 });
   });
 
   it("ne descend jamais sous le subtotal (prix hôte protégé), même avec un solde énorme", async () => {
@@ -180,8 +181,8 @@ describe("quoteBookingAction — aperçu crédit (§CR1)", () => {
 
     const quote = await quoteBookingAction(quoteInput(true));
 
-    // Plancher = subtotal (600) → crédit max = totalPrice - subtotal = 48 (= serviceFee entier).
-    expect(quote).toMatchObject({ ok: true, total: 600, creditApplied: 48 });
+    // Plancher = subtotal (600) → crédit max = totalPrice - subtotal = 60 (= serviceFee entier).
+    expect(quote).toMatchObject({ ok: true, total: 600, creditApplied: 60 });
   });
 });
 
@@ -195,17 +196,17 @@ describe("createBookingAction — dépense crédit atomique (§CR1)", () => {
     });
     (tx.booking.create as unknown as Mock).mockResolvedValue({
       id: "clbooking0000000000000001",
-      totalPrice: 648 - 48,
+      totalPrice: 660 - 60,
     });
 
     await createBookingAction(undefined, bookingForm("true"));
 
     expect(tx.creditWallet.updateMany).toHaveBeenCalledWith({
-      where: { userId: GUEST_ID, balance: { gte: 48 } },
-      data: { balance: { decrement: 48 } },
+      where: { userId: GUEST_ID, balance: { gte: 60 } },
+      data: { balance: { decrement: 60 } },
     });
     expect((tx.booking.create as unknown as Mock).mock.calls[0][0].data).toMatchObject({
-      totalPrice: 648 - 48,
+      totalPrice: 660 - 60,
     });
   });
 
@@ -213,23 +214,23 @@ describe("createBookingAction — dépense crédit atomique (§CR1)", () => {
     walletFindUnique.mockResolvedValue({ balance: 300 });
     const { tx, create } = mockTx({ walletUpdateManyCount: 1 });
     txRun.mockImplementation(async (cb: (tx: unknown) => Promise<unknown>) => cb(tx));
-    create.mockResolvedValue({ id: "clbooking0000000000000001", totalPrice: 648 });
+    create.mockResolvedValue({ id: "clbooking0000000000000001", totalPrice: 660 });
 
     await createBookingAction(undefined, bookingForm("false"));
 
     expect(tx.creditWallet.updateMany).not.toHaveBeenCalled();
-    expect(create.mock.calls[0][0].data).toMatchObject({ totalPrice: 648 });
+    expect(create.mock.calls[0][0].data).toMatchObject({ totalPrice: 660 });
   });
 
   it("laisse totalPrice inchangé si la dépense échoue (solde épuisé entre-temps, count=0)", async () => {
     walletFindUnique.mockResolvedValue({ balance: 300 }); // aperçu optimiste hors tx
     const { tx, create } = mockTx({ walletUpdateManyCount: 0 }); // mais la dépense réelle échoue
     txRun.mockImplementation(async (cb: (tx: unknown) => Promise<unknown>) => cb(tx));
-    create.mockResolvedValue({ id: "clbooking0000000000000001", totalPrice: 648 });
+    create.mockResolvedValue({ id: "clbooking0000000000000001", totalPrice: 660 });
 
     await createBookingAction(undefined, bookingForm("true"));
 
-    expect(create.mock.calls[0][0].data).toMatchObject({ totalPrice: 648 });
+    expect(create.mock.calls[0][0].data).toMatchObject({ totalPrice: 660 });
     expect(tx.creditTransaction.create).not.toHaveBeenCalled();
   });
 });

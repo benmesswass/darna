@@ -398,12 +398,12 @@ describe("quoteBookingAction — réduction affichée = réduction appliquée (�
   }
 
   it("plafonné : le champ discount vaut la baisse RÉELLE du total, pas le brut", async () => {
-    // subtotal 500 · serviceFee 40 (8 %) · fullTotal 540. Le brut vaut 50 mais
+    // subtotal 500 · serviceFee 50 (10 %) · fullTotal 550. Le brut vaut 60 mais
     // le total est plancherné à subtotal (500) : la réduction n'ampute que la
-    // commission → économie réelle 40, pas 50. Le devis doit renvoyer 40.
+    // commission → économie réelle 50, pas 60. Le devis doit renvoyer 50.
     getSessionUserMock.mockResolvedValue({ id: "guest-1" });
     isDiscountValidMock.mockResolvedValue(true);
-    computeDiscountMock.mockReturnValue(50);
+    computeDiscountMock.mockReturnValue(60);
     propertyFindFirst.mockResolvedValue(null); // aucun conflit de dispo
     propertyFindUnique.mockResolvedValue({
       id: PROPERTY_ID,
@@ -423,12 +423,12 @@ describe("quoteBookingAction — réduction affichée = réduction appliquée (�
       discountToken: "signed.token",
     });
 
-    expect(result).toMatchObject({ ok: true, subtotal: 500, serviceFee: 40 });
+    expect(result).toMatchObject({ ok: true, subtotal: 500, serviceFee: 50 });
     if (result.ok) {
-      expect(result.discount).toBe(40); // baisse réelle, pas 50
-      expect(result.total).toBe(500); // fullTotal 540 − 40
+      expect(result.discount).toBe(50); // baisse réelle, pas 60
+      expect(result.total).toBe(500); // fullTotal 550 − 50
       // Cohérence : le bandeau (−discount) == baisse effective du total.
-      expect(540 - result.total).toBe(result.discount);
+      expect(550 - result.total).toBe(result.discount);
     }
   });
 });

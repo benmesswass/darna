@@ -7,7 +7,7 @@ import bcrypt from "bcryptjs";
 import { getCity } from "../src/lib/geo";
 import { buildPropertySlug } from "../src/lib/slug";
 import { verticalOfType, CANCEL_POLICIES, STAY_KINDS } from "../src/lib/constants";
-import { computeDepositAmount } from "../src/lib/config";
+import { computeDepositAmount, SERVICE_FEE_RATE } from "../src/lib/config";
 import { hashCin } from "../src/lib/crypto";
 
 const prisma = new PrismaClient();
@@ -1206,8 +1206,9 @@ async function main() {
     const proprete = clamp15(r.rating + ((r.daysAgoCheckIn % 3) - 1));
     const communication = clamp15(r.rating + ((r.comment.length % 3) - 1));
     const conformite = clamp15(r.rating + ((r.nights % 3) - 1));
-    const serviceFee = Math.round(target.price * r.nights * 0.08);
+    const serviceFee = Math.round(target.price * r.nights * SERVICE_FEE_RATE);
     const totalPrice = target.price * r.nights + serviceFee;
+    const depositAmount = computeDepositAmount(serviceFee);
 
     const booking = await prisma.booking.create({
       data: {
@@ -1219,11 +1220,11 @@ async function main() {
         nightlyPrice: target.price,
         serviceFee,
         totalPrice,
-        depositAmount: computeDepositAmount(totalPrice, serviceFee),
-        // Séjour passé : réglé en totalité (historique cohérent pour les avis).
-        amountPaid: totalPrice,
+        depositAmount,
+        // Modèle commission-only (§L5.1) : seuls les frais Darna transitent en
+        // ligne — le loyer a été réglé cash à l'hôte, à l'arrivée (hors système).
+        amountPaid: depositAmount,
         status: "TERMINEE",
-        escrow: "LIBERE",
         // Payé quelques jours avant l'arrivée (réaliste pour un séjour).
         paidAt: new Date(checkIn.getTime() - 3 * DAY),
       },
@@ -1251,9 +1252,9 @@ async function main() {
   // Réservation confirmée à venir pour le voyageur démo (visible dans « Mes réservations »).
   const villaHammamet = sejours[0];
   const nights = 5;
-  const fee = Math.round(villaHammamet.price * nights * 0.08);
+  const fee = Math.round(villaHammamet.price * nights * SERVICE_FEE_RATE);
   const villaTotal = villaHammamet.price * nights + fee;
-  const villaDeposit = computeDepositAmount(villaTotal, fee);
+  const villaDeposit = computeDepositAmount(fee);
   const villaBooking = await prisma.booking.create({
     data: {
       propertyId: villaHammamet.id,
@@ -1265,13 +1266,13 @@ async function main() {
       serviceFee: fee,
       totalPrice: villaTotal,
       depositAmount: villaDeposit,
-      // Démo du gating : seul l'acompte minimum a été réglé en ligne ; le solde
-      // se paie en cash à l'arrivée. Arrivée dans 20 j → politique MODÉRÉE :
-      // les coordonnées directes restent VERROUILLÉES jusqu'à J-5 (cf. Phase 1),
-      // la coordination se fait en attendant via la messagerie interne.
+      // Démo commission-only (§L5.1) : les frais Darna sont réglés en ligne ;
+      // le loyer se règle intégralement en espèces à l'arrivée. Arrivée dans
+      // 20 j → politique MODÉRÉE : les coordonnées directes restent
+      // VERROUILLÉES jusqu'à J-5 (cf. Phase 1), la coordination se fait en
+      // attendant via la messagerie interne.
       amountPaid: villaDeposit,
       status: "CONFIRMEE",
-      escrow: "EN_SEQUESTRE",
       paidAt: daysAgo(3),
     },
   });

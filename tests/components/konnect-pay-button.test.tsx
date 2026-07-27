@@ -40,22 +40,20 @@ afterEach(() => {
 });
 
 describe("<KonnectPayButton />", () => {
-  it("affiche le libellé de paiement et transmet bookingId + payAmount", async () => {
+  it("affiche le libellé de paiement et transmet bookingId (montant déterminé serveur, §L5.1)", async () => {
     startMock.mockResolvedValue({});
-    const { container } = renderWithProviders(
-      <KonnectPayButton bookingId="bk-1" payAmount={340} />
-    );
+    const { container } = renderWithProviders(<KonnectPayButton bookingId="bk-1" />);
 
     expect(
       screen.getByRole("button", { name: fr.booking.payerKonnect })
     ).toBeInTheDocument();
     expect(container.querySelector('input[name="bookingId"]')).toHaveValue("bk-1");
-    expect(container.querySelector('input[name="payAmount"]')).toHaveValue("340");
+    expect(container.querySelector('input[name="payAmount"]')).toBeNull();
   });
 
   it("affiche l'erreur serveur en zone d'alerte", async () => {
     startMock.mockResolvedValue({ error: "Montant invalide." });
-    renderWithProviders(<KonnectPayButton bookingId="bk-1" payAmount={340} />);
+    renderWithProviders(<KonnectPayButton bookingId="bk-1" />);
 
     await userEvent.click(screen.getByRole("button"));
 
@@ -66,7 +64,7 @@ describe("<KonnectPayButton />", () => {
 
   it("redirige vers payUrl côté client quand le paiement s'initialise", async () => {
     startMock.mockResolvedValue({ payUrl: "https://pay.konnect.test/xyz" });
-    renderWithProviders(<KonnectPayButton bookingId="bk-1" payAmount={340} />);
+    renderWithProviders(<KonnectPayButton bookingId="bk-1" />);
 
     await userEvent.click(screen.getByRole("button"));
 

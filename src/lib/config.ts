@@ -4,40 +4,18 @@
 export const EUR_TO_TND = 3.4;
 
 /** Frais de service Darna sur les séjours (transparents, affichés au récap). */
-export const SERVICE_FEE_RATE = 0.08;
+export const SERVICE_FEE_RATE = 0.1;
 
 /**
- * Acompte MINIMUM réglé en ligne à la réservation (borne basse, % du total).
- * Anti-bypass : aucune coordonnée n'est partagée avant qu'au moins cet acompte
- * soit payé. La commission Darna (serviceFee) y est ENTIÈREMENT contenue — le
- * revenu plateforme est donc garanti dès le premier dinar encaissé en ligne.
+ * Montant dû EN LIGNE pour un séjour (TND, entier) — modèle « commission-only »
+ * (LANCEMENT_ROADMAP.md §L5.1, 2026-07-27) : Darna n'encaisse plus JAMAIS le
+ * loyer, seulement ses propres frais. Le montant en ligne est donc FIXE et
+ * égal aux frais — plus de plancher `DEPOSIT_MIN_RATE`/choix voyageur (ancien
+ * modèle, cf. historique git). Le loyer intégral se règle en espèces à
+ * l'hôte, à l'arrivée.
  */
-export const DEPOSIT_MIN_RATE = 0.1;
-
-/**
- * Acompte minimum dû EN LIGNE pour un séjour (TND, entier). Borne basse du
- * montant que le voyageur peut choisir de régler : `max(10 % du total,
- * commission Darna)` — garantit que la commission est toujours encaissée — et
- * jamais au-dessus du total. Calculé/figé côté serveur à la création du hold.
- */
-export function computeDepositAmount(totalPrice: number, serviceFee: number): number {
-  const min = Math.max(Math.ceil(totalPrice * DEPOSIT_MIN_RATE), serviceFee);
-  return Math.min(min, totalPrice);
-}
-
-/**
- * Clampe un montant de paiement CHOISI par le voyageur dans l'intervalle
- * autorisé `[depositAmount, totalPrice]`. Jamais de confiance au client : un
- * montant sous l'acompte est remonté au minimum, au-dessus du total ramené au
- * total, et une valeur non finie retombe sur l'acompte. Toujours arrondi.
- */
-export function clampPayAmount(
-  payAmount: number,
-  depositAmount: number,
-  totalPrice: number
-): number {
-  if (!Number.isFinite(payAmount)) return depositAmount;
-  return Math.min(Math.max(Math.round(payAmount), depositAmount), totalPrice);
+export function computeDepositAmount(serviceFee: number): number {
+  return serviceFee;
 }
 
 /**
@@ -119,12 +97,14 @@ export const WELCOME_CREDIT_TND = 10;
 export const HOST_REFERRAL_YEARLY_CAP = 5;
 
 /**
- * Part maximale du total qu'un crédit peut couvrir au checkout (§CR1) — le
- * reste-à-couvrir (`totalPrice - subtotal`, cf. computeCreditApplication)
- * protège de toute façon le prix hôte ; ce taux limite en plus combien du
- * total le voyageur peut régler en crédit plutôt qu'en argent réel.
+ * Part maximale des FRAIS DARNA (pas du total, §L5.1 — le loyer n'appartient
+ * plus jamais à Darna) qu'un crédit peut couvrir au checkout (§CR1) — un
+ * crédit ne réduit que l'argent de Darna, jamais le prix hôte. `100 %` :
+ * décision Wassim 2026-07-27, le plancher réel reste de toute façon
+ * `totalPrice - subtotal` (cf. computeCreditApplication) ; le taux existe
+ * pour resserrer ce plafond plus tard si besoin (anti-abus).
  */
-export const CREDIT_CHECKOUT_CAP_RATE = 0.3;
+export const CREDIT_CHECKOUT_CAP_RATE = 1;
 
 /**
  * Signal réputationnel « annulé par l'hôte » (ANNULATION_HOTE_CORRECTIFS

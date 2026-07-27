@@ -568,18 +568,20 @@ export const en: Dictionary = {
     revenus: "Earnings",
     revenusTitre: "My earnings",
     revenusSousTitre:
-      "The guest pays when booking; Darna holds the amount and pays it out to you once their stay is over. That protected-payment guarantee is what reassures guests and drives bookings.",
+      "Guests pay you the rent in cash on arrival — Darna never touches it. This page recaps your net rent: already collected, or upcoming.",
     revenusTotal: "Confirmed earnings",
-    revenusEnAttente: "Awaiting payout",
-    revenusVerse: "Already paid out",
+    revenusEnAttente: "Due on arrival",
+    revenusVerse: "Already collected",
     revenusAucun: "No earnings yet.",
     revenusAucunCta:
-      "As soon as a guest pays for a booking, the amount appears here — awaiting payout, then paid out after they check out.",
-    revenusBadgeEnAttente: "Awaiting payout",
-    revenusBadgeVerse: "Paid out",
+      "As soon as a booking is confirmed, your net rent appears here — due on arrival, then counted once the stay is over.",
+    revenusBadgeEnAttente: "Due on arrival",
+    revenusBadgeVerse: "Collected",
     revenusVersementPrevu: (date: string) =>
-      `Paid out after the guest checks out (${date})`,
-    revenusVerseApres: (date: string) => `Paid out — stay ended on ${date}`,
+      `Cash due on the guest's arrival, ${date}`,
+    revenusVerseApres: (date: string) => `Collected — stay ended on ${date}`,
+    revenusFraisInfo: (amount: string) =>
+      `Includes ${amount} of Darna service fees already paid online by your guests — separate from your rent above.`,
   },
   annonceForm: {
     titre: "Listing title",
@@ -1273,15 +1275,9 @@ export const en: Dictionary = {
     // ── Deposit gating (anti-bypass): choosing how much to pay now ─────────
     totalSejour: "Stay total",
     payerMaintenant: "You pay now",
-    montantAPayer: "How much would you like to pay now?",
+    montantAPayer: "Booking fee due now",
     montantAPayerAide:
-      "Pay at least the deposit (10%) online — the Darna commission is included. You can pay more, up to the full amount; the rest is settled in cash to the host on arrival.",
-    acompteMin: "Minimum deposit",
-    raccourciAcompte: (pct: number) => `Deposit (${pct}%)`,
-    raccourciMoitie: "Half",
-    raccourciTotalite: "Full amount",
-    pourcentDuTotal: (pct: number) => `${pct}% of total`,
-    dontCommission: "incl. Darna commission",
+      "The only amount paid online: Darna's service fee, included in the total. The rent is paid in full, in cash, to the host on arrival.",
     soldeArrivee: "Balance to pay in cash on arrival",
     soldeArriveeAide:
       "You pay the remainder directly to the host, in cash, on the day you arrive.",

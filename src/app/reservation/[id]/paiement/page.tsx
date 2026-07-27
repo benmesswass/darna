@@ -349,12 +349,11 @@ export default async function PaiementPage({
             </ul>
           </div>
 
-          {/* Choix du montant à régler maintenant (acompte → total) + paiement.
-              Le serveur reborne toujours dans [acompte, total]. */}
+          {/* Paiement des frais Darna (montant fixe, §L5.1) — le loyer se
+              règle intégralement en espèces à l'hôte, à l'arrivée. */}
           <DepositPayment
             bookingId={booking.id}
             totalPrice={booking.totalPrice}
-            serviceFee={booking.serviceFee}
             depositAmount={booking.depositAmount}
             konnectEnabled={konnectEnabled}
           />

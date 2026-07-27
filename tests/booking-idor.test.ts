@@ -118,7 +118,7 @@ describe("confirmPaymentAction (paiement mock) — IDOR", () => {
 
     expect(bookingUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({ status: "CONFIRMEE", escrow: "EN_SEQUESTRE" }),
+        data: expect.objectContaining({ status: "CONFIRMEE" }),
       })
     );
   });

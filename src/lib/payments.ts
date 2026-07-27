@@ -18,7 +18,7 @@ import { sendBookingConfirmationEmail, sendNewBookingHostEmail } from "@/lib/not
 import { notifyBookingConfirmed, notifyNewBookingReceived } from "@/lib/notification-center";
 
 export type SettleResult =
-  | "CONFIRMEE" // payée et sous séquestre
+  | "CONFIRMEE" // frais Darna réglés
   | "EN_ATTENTE" // paiement pas encore abouti côté Konnect
   | "ANNULEE" // réservation expirée / annulée
   | "INTROUVABLE" // aucune réservation pour cette référence
@@ -45,8 +45,10 @@ export async function settleKonnectBooking(
       status: true,
       expiresAt: true,
       totalPrice: true,
-      // Montant ATTENDU pour CE paiement (choix du voyageur, clampé et figé à
-      // l'init côté serveur). Source de vérité de la vérif du montant reçu.
+      serviceFee: true,
+      // Montant ATTENDU pour CE paiement (les frais Darna, figés à l'init
+      // côté serveur — §L5.1, plus aucun choix voyageur). Source de vérité
+      // de la vérif du montant reçu.
       amountPaid: true,
       paymentRef: true,
     },
@@ -80,11 +82,13 @@ export async function settleKonnectBooking(
   if (payment.status !== "completed") return "EN_ATTENTE";
 
   // Contrôle d'intégrité : on ne confirme JAMAIS si le montant réellement reçu
-  // est inférieur au montant ATTENDU pour ce paiement — le choix du voyageur
-  // figé à l'init (amountPaid), PAS le total. Filet : si aucun montant attendu
-  // n'a été mémorisé (cas anormal), on retombe sur le total dû. Recalcul en
-  // millimes côté serveur.
-  const expectedTND = booking.amountPaid > 0 ? booking.amountPaid : booking.totalPrice;
+  // est inférieur au montant ATTENDU pour ce paiement — les frais Darna figés
+  // à l'init (amountPaid), JAMAIS le total (§L5.1 : Darna n'encaisse plus le
+  // loyer, un fallback sur totalPrice attendrait un montant que le voyageur
+  // n'a jamais accepté de payer en ligne). Filet : si aucun montant attendu
+  // n'a été mémorisé (cas anormal), on retombe sur les frais recalculés.
+  // Recalcul en millimes côté serveur.
+  const expectedTND = booking.amountPaid > 0 ? booking.amountPaid : booking.serviceFee;
   const expectedMillimes = tndToMillimes(expectedTND);
   if (payment.reachedAmount < expectedMillimes) {
     logStructured("warn", "konnect.amount_mismatch", {
@@ -123,7 +127,8 @@ export async function settleKonnectBooking(
     where: { id: booking.id, status: "EN_ATTENTE" },
     data: {
       status: "CONFIRMEE",
-      escrow: "EN_SEQUESTRE",
+      // escrow NON posé (§L5.1) : Darna n'encaisse plus le loyer, l'état
+      // escrow reste inerte (AUCUN) — cf. src/lib/bookings.ts.
       expiresAt: null,
       paidAt: new Date(),
     },

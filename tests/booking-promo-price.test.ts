@@ -108,7 +108,7 @@ describe("quoteBookingAction — prix promo (§PM0)", () => {
 
     const quote = await quoteBookingAction(quoteInput());
 
-    expect(quote).toMatchObject({ ok: true, subtotal: 600, serviceFee: 48 }); // 300 * 2 nuits
+    expect(quote).toMatchObject({ ok: true, subtotal: 600, serviceFee: 60 }); // 300 * 2 nuits
   });
 
   it("utilise le prix promo quand actif et l'annonce vérifiée", async () => {
@@ -118,7 +118,7 @@ describe("quoteBookingAction — prix promo (§PM0)", () => {
 
     const quote = await quoteBookingAction(quoteInput());
 
-    expect(quote).toMatchObject({ ok: true, subtotal: 400, serviceFee: 32 }); // 200 * 2 nuits
+    expect(quote).toMatchObject({ ok: true, subtotal: 400, serviceFee: 40 }); // 200 * 2 nuits
   });
 
   it("ignore une promo expirée (lazy-expiry, aucun cron)", async () => {
@@ -147,7 +147,7 @@ describe("createBookingAction — prix promo (§PM0)", () => {
     propertyFindUnique.mockResolvedValue(
       baseProperty({ promoPrice: 200, promoUntil: new Date(Date.now() + DAY) })
     );
-    const create = vi.fn().mockResolvedValue({ id: "clbooking0000000000000001", totalPrice: 432 });
+    const create = vi.fn().mockResolvedValue({ id: "clbooking0000000000000001", totalPrice: 440 });
     txRun.mockImplementation(async (cb: (tx: unknown) => Promise<unknown>) =>
       cb({
         booking: { updateMany: vi.fn().mockResolvedValue({ count: 0 }), create, update: vi.fn() },
@@ -159,8 +159,8 @@ describe("createBookingAction — prix promo (§PM0)", () => {
 
     expect(create.mock.calls[0][0].data).toMatchObject({
       nightlyPrice: 200,
-      serviceFee: 32,
-      totalPrice: 432,
+      serviceFee: 40,
+      totalPrice: 440,
     });
   });
 
@@ -172,7 +172,7 @@ describe("createBookingAction — prix promo (§PM0)", () => {
         verified: false,
       })
     );
-    const create = vi.fn().mockResolvedValue({ id: "clbooking0000000000000001", totalPrice: 648 });
+    const create = vi.fn().mockResolvedValue({ id: "clbooking0000000000000001", totalPrice: 660 });
     txRun.mockImplementation(async (cb: (tx: unknown) => Promise<unknown>) =>
       cb({
         booking: { updateMany: vi.fn().mockResolvedValue({ count: 0 }), create, update: vi.fn() },

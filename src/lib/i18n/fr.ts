@@ -577,18 +577,20 @@ export const fr = {
     revenus: "Revenus",
     revenusTitre: "Mes revenus",
     revenusSousTitre:
-      "Le voyageur paie à la réservation ; Darna conserve le montant et vous le verse une fois son séjour terminé. C'est la garantie « paiement protégé » qui rassure les voyageurs et fait réserver.",
+      "Le voyageur vous règle le loyer en espèces à l'arrivée — Darna ne le touche jamais. Cette page récapitule votre loyer net : déjà encaissé, ou à venir.",
     revenusTotal: "Revenus confirmés",
-    revenusEnAttente: "En attente de versement",
-    revenusVerse: "Déjà versé",
+    revenusEnAttente: "À encaisser à l'arrivée",
+    revenusVerse: "Déjà encaissé",
     revenusAucun: "Aucun revenu pour le moment.",
     revenusAucunCta:
-      "Dès qu'un voyageur paie une réservation, le montant apparaît ici — en attente de versement, puis versé après son départ.",
-    revenusBadgeEnAttente: "En attente de versement",
-    revenusBadgeVerse: "Versé",
+      "Dès qu'une réservation est confirmée, votre loyer net apparaît ici — à encaisser à l'arrivée, puis comptabilisé une fois le séjour terminé.",
+    revenusBadgeEnAttente: "À encaisser à l'arrivée",
+    revenusBadgeVerse: "Encaissé",
     revenusVersementPrevu: (date: string) =>
-      `Versement après le départ du voyageur (${date})`,
-    revenusVerseApres: (date: string) => `Versé — séjour terminé le ${date}`,
+      `À encaisser en espèces à l'arrivée du voyageur, le ${date}`,
+    revenusVerseApres: (date: string) => `Encaissé — séjour terminé le ${date}`,
+    revenusFraisInfo: (amount: string) =>
+      `Dont ${amount} de frais de service Darna déjà réglés en ligne par vos voyageurs — hors de votre loyer ci-dessus.`,
   },
   annonceForm: {
     titre: "Titre de l'annonce",
@@ -1291,18 +1293,12 @@ export const fr = {
     annulationConfirmee: "Votre réservation a été annulée.",
     annulationHoteConfirmee:
       "Réservation annulée. Le voyageur a été intégralement remboursé et votre annonce sera temporairement invisible.",
-    // ── Gating acompte (anti-bypass) : choix du montant à régler ──────────
+    // ── Paiement des frais Darna, montant fixe (§L5.1) ─────────────────────
     totalSejour: "Total du séjour",
     payerMaintenant: "Vous payez maintenant",
-    montantAPayer: "Combien souhaitez-vous régler maintenant ?",
+    montantAPayer: "Frais de réservation à régler maintenant",
     montantAPayerAide:
-      "Réglez en ligne au minimum l'acompte (10 %) — la commission Darna y est incluse. Vous pouvez payer davantage, jusqu'à la totalité ; le reste se règle en espèces à l'hôte, à l'arrivée.",
-    acompteMin: "Acompte minimum",
-    raccourciAcompte: (pct: number) => `Acompte (${pct} %)`,
-    raccourciMoitie: "La moitié",
-    raccourciTotalite: "La totalité",
-    pourcentDuTotal: (pct: number) => `${pct} % du total`,
-    dontCommission: "dont commission Darna",
+      "Seul montant réglé en ligne : les frais de service Darna, inclus dans le total. Le loyer se règle intégralement en espèces à l'hôte, à votre arrivée.",
     soldeArrivee: "Solde à régler en cash à l'arrivée",
     soldeArriveeAide:
       "Vous payez le reste directement à l'hôte, en espèces, le jour de votre arrivée.",
