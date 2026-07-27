@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 // Nonces CSP sont gérés par src/middleware.ts (générés par requête).
 // Ce fichier positionne les headers statiques qui ne nécessitent pas de nonce.
@@ -40,4 +41,13 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
 };
 
-export default nextConfig;
+// LANCEMENT_ROADMAP.md §L4.2 — no-op sans SENTRY_DSN (aucun build-time
+// upload de source maps tenté : org/project/authToken volontairement absents
+// tant que le projet Sentry n'existe pas, cf. ⛔ W8 ; à compléter une fois le
+// DSN réel obtenu). tunnelRoute proxie les events via /monitoring (same-
+// origin) — pas besoin d'élargir la CSP à un domaine tiers pour autant
+// (connect-src 'self' suffit déjà, cf. src/middleware.ts).
+export default withSentryConfig(nextConfig, {
+  silent: true,
+  tunnelRoute: "/monitoring",
+});

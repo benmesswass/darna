@@ -106,6 +106,15 @@ const envSchema = z
     // Requis si CAPTCHA_MODE=turnstile (cf. superRefine). La site key est publique.
     TURNSTILE_SECRET_KEY: z.string().optional(),
     NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().optional(),
+
+    // L4.2 (LANCEMENT_ROADMAP.md) — Sentry, actif seulement si défini (défaut
+    // démo sûr, comme tous les modes). Le DSN n'est pas un secret par
+    // conception Sentry (il ne permet qu'ENVOYER des events, jamais de les
+    // lire) — NEXT_PUBLIC_SENTRY_DSN est donc la même valeur que SENTRY_DSN,
+    // dupliquée pour être inlinée côté client (cf. superRefine : les deux
+    // doivent être posées ensemble).
+    SENTRY_DSN: z.string().url().optional(),
+    NEXT_PUBLIC_SENTRY_DSN: z.string().url().optional(),
   })
   .superRefine((e, ctx) => {
     // Au moins une verticale doit rester active : un site sans Séjours NI Immo
@@ -217,6 +226,17 @@ const envSchema = z
         code: z.ZodIssueCode.custom,
         message:
           "CAPTCHA_MODE=turnstile requiert TURNSTILE_SECRET_KEY et NEXT_PUBLIC_TURNSTILE_SITE_KEY.",
+      });
+    }
+
+    // L4.2 — Sentry : les deux variables doivent être posées ENSEMBLE (même
+    // valeur des deux côtés) — sinon Sentry actif côté serveur mais aveugle
+    // côté client (ou l'inverse), silencieusement.
+    if (Boolean(e.SENTRY_DSN) !== Boolean(e.NEXT_PUBLIC_SENTRY_DSN)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "SENTRY_DSN et NEXT_PUBLIC_SENTRY_DSN doivent être définis ensemble (ou aucun des deux), avec la même valeur.",
       });
     }
 
