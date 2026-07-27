@@ -31,7 +31,7 @@ import {
   sendBookingCancelledByHostEmail,
   sendNewBookingHostEmail,
 } from "@/lib/notifications";
-import { computeBookingRefund } from "@/lib/cancellation";
+import { computeRefund } from "@/lib/cancellation";
 import {
   notifyBookingCancelled,
   notifyBookingCancelledByHost,
@@ -956,7 +956,6 @@ export async function cancelBookingAction(
       guestId: true,
       status: true,
       checkIn: true,
-      serviceFee: true,
       amountPaid: true,
       createdAt: true,
       property: { select: { slug: true, cancelPolicy: true } },
@@ -969,12 +968,12 @@ export async function cancelBookingAction(
   if (booking.status !== "CONFIRMEE")
     return { error: fr.booking.annulationImpossible };
 
-  // Annulation gratuite (politique ou grâce 24 h) → remboursement intégral,
-  // commission comprise. Sinon la commission Darna reste acquise et seul
-  // (encaissé − commission) suit la politique. Cf. computeBookingRefund.
-  const { refundAmount } = computeBookingRefund(
+  // Assiette = les frais Darna réellement encaissés en ligne (§L5.2 — jamais
+  // le loyer, que Darna ne touche plus). En Rail 2 (SUR_PLACE), amountPaid
+  // vaut 0 : rien n'est jamais remboursable ici, cohérent avec l'absence de
+  // paiement en ligne. Fenêtres/paliers inchangés, cf. computeRefund.
+  const { refundAmount } = computeRefund(
     booking.amountPaid,
-    booking.serviceFee,
     booking.checkIn,
     booking.property.cancelPolicy as CancelPolicy,
     booking.createdAt

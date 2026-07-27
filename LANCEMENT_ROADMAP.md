@@ -310,7 +310,7 @@ poser `OBSERVABILITY_WEBHOOK_URL` en staging/prod.
 | # | Tâche | Prio | Statut |
 |---|---|---|---|
 | L5.1 | Prix & paiement : frais 10 %, paiement en ligne = frais uniquement | P0 | ✅ PR #209 |
-| L5.2 | Politiques d'annulation portées sur les FRAIS + écran admin « Remboursements dus » | P0 | ❌ |
+| L5.2 | Politiques d'annulation portées sur les FRAIS + écran admin « Remboursements dus » | P0 | ✅ PR #211 |
 | L5.3 | Garantie non-conformité : signalement < 24 h → remboursement des frais | P0 | ❌ |
 | L5.4 | Garantie no-show hôte : indemnité 100 % des frais, plafonnée | P1 | ❌ |
 | L5.5 | Refonte wording : « zéro acompte au propriétaire » (i18n ×3 + e-mails + CGU + README) | P0 | ❌ |
@@ -364,31 +364,44 @@ frais ; Rail 2 inchangé ; mise à jour des tests existants qui encodent 8 %
 ou l'acompte 10 %-du-total (`deposit.test.ts`, `bookings.test.ts`,
 `booking-credit-application.test.ts`…).
 
-### L5.2 — Annulation & remboursements (sur les frais)
+### L5.2 — Annulation & remboursements (sur les frais) ✅ PR #211
 
-**Décisions tranchées** : les politiques portent désormais sur les FRAIS
-(le loyer n'étant jamais versé d'avance, il n'y a plus rien d'autre à
-rembourser) : FLEXIBLE = frais remboursés à 100 % jusqu'à J-2 avant
-check-in · MODÉRÉE = J-7 · STRICTE = non remboursables · annulation HÔTE =
-toujours 100 % (+ mécanismes AH existants inchangés : blocage d'annonce,
-réduction re-réservation, relogement). Adapter `src/lib/cancellation.ts`
-(les fenêtres existent déjà — c'est l'assiette qui change :
-`refundAmount` = part des frais, jamais du loyer).
+**Décisions tranchées, confirmées avec Wassim le 2026-07-27 (question posée
+sur l'ambiguïté du texte initial ci-dessous)** : les politiques portent
+désormais sur les FRAIS (le loyer n'étant jamais versé d'avance, il n'y a
+plus rien d'autre à rembourser) — **les fenêtres/seuils restent EXACTEMENT
+INCHANGÉS** (FLEXIBLE = J-1, MODÉRÉE = J-5, FERME = J-30 puis 50 % à J-7,
+STRICTE = 50 % à J-14 — **FERME conservée**, une 4e politique toujours
+sélectionnable par les hôtes, absente par oubli du texte initial) : seule
+l'assiette change, jamais les seuils. `src/lib/cancellation.ts` simplifié :
+`computeBookingRefund` (carve-out commission séparé) supprimé —
+`computeRefund` s'applique directement sur `amountPaid` (qui EST déjà les
+frais depuis §L5.1, jamais le loyer ; vaut 0 en Rail 2 SUR_PLACE → jamais
+rien à rembourser dans ce cas, cohérent).
 
 Comme l'API Konnect n'a pas de remboursement programmatique, le
-remboursement des frais reste un **virement manuel de l'argent de Darna** :
-nouvelle page admin `/dashboard/admin/remboursements` listant les
-réservations avec `refundAmount` non null et `refundPaidAt` null (nouveau
-champ `Booking.refundPaidAt DateTime?`), bouton « Marquer remboursé »
-(server action ADMIN-only, AuditLog `REFUND_MARKED`, idempotente).
-Alternative à privilégier quand le voyageur a un compte actif : proposer le
-remboursement **en crédits Darna** (ledger `CreditWallet` existant, motif
-`REMBOURSEMENT_RESERVATION_ANNULEE` déjà défini) — instantané, zéro
-virement ; le virement manuel reste le fallback si le voyageur le demande.
+remboursement des frais reste un règlement **ADMIN manuel** :
+`/dashboard/admin/remboursements` liste les réservations avec `refundAmount`
+non null et `refundPaidAt` null (nouveau champ `Booking.refundPaidAt
+DateTime?`) — deux actions ADMIN-only idempotentes (AuditLog
+`REFUND_MARKED`) : `creditRefundAction` (crédit Darna, **préféré**,
+instantané, crédite + marque réglé dans la MÊME transaction) et
+`markRefundPaidAction` (virement manuel, fallback). `creditRefundAction`
+utilise un motif de crédit **distinct**, `REMBOURSEMENT_FRAIS_ANNULATION`
+(pas `REMBOURSEMENT_RESERVATION_ANNULEE` comme envisagé initialement — ce
+dernier motif existant sert à restituer un crédit DÉPENSÉ par le voyageur
+§CR4, une opération différente ; réutiliser le même motif aurait cassé
+l'idempotence de l'un ou l'autre sur une même réservation touchée par les
+deux mécanismes). Statut visible côté voyageur sur `/dashboard/reservations`
+(« Remboursement en cours » tant que `refundPaidAt` est null, « Remboursé »
+une fois réglé).
 
-**Tests** : fenêtres par politique ; assiette = frais ; idempotence du
-marquage ; IDOR ; crédit vs virement. QA_ROADMAP : section « Remboursement
-des frais » (règle des surfaces sensibles).
+**Tests** : fenêtres par politique (inchangées) ; assiette = `amountPaid`
+(jamais le loyer) ; idempotence des deux actions de règlement ; non-collision
+de motif avec §CR4. QA_ROADMAP §6.6 « Refund test suite ». Vérifié en
+conditions réelles (Postgres local, Playwright : annulation voyageur →
+190 TND affichés → créditation admin → wallet crédité, ligne disparue du
+tableau de bord admin, statut voyageur passé à « Remboursé »).
 
 ### L5.3 — Garantie non-conformité (la promesse de confiance V1)
 
@@ -539,10 +552,12 @@ un barème non validé.
       `startKonnectPaymentAction` (montant initié = frais uniquement). — L5.1
 - [x] `src/lib/payments.ts` : `settleKonnectBooking` (montant attendu = frais) ;
       `confirmPaymentAction` (démo) simule le paiement des FRAIS. — L5.1
-- [ ] `src/lib/cancellation.ts` : assiette `refundAmount` = frais (fenêtres
-      J-2/J-7 inchangées). — reste à faire par L5.2 (hors périmètre L5.1,
-      volontairement : l'assiette `amountPaid - serviceFee` dégénère déjà
-      sans risque à 0 en attendant, cf. PR #209).
+- [x] `src/lib/cancellation.ts` : assiette `refundAmount` = `amountPaid`
+      (= les frais depuis §L5.1, jamais le loyer), fenêtres/seuils par
+      politique INCHANGÉS (FLEXIBLE J-1, MODÉRÉE J-5, FERME J-30/J-7,
+      STRICTE J-14) — `computeBookingRefund` (carve-out commission séparé,
+      devenu inutile) supprimé, `computeRefund` s'applique directement sur
+      `amountPaid`. — L5.2, PR #211
 - [x] `src/lib/credits.ts` (`computeCreditApplication`) : plafonné aux frais. — L5.1
 - [x] Transitions `escrow` : plus AUCUNE écriture depuis l'UI/actions (états
       inertes, commentaire « V2 » posé) ; `src/lib/host-invoicing.ts` :
@@ -598,7 +613,7 @@ un barème non validé.
 **Données & tests (chaque L5.x + clôture)** :
 - [x] `prisma/seed.ts` : réservations seedées (montants, `depositAmount`,
       états `escrow`, réservations démo « versées »). — L5.1, PR #209
-- [ ] Tests unitaires encodant 8 % / acompte 10 %-du-total :
+- [x] Tests unitaires encodant 8 % / acompte 10 %-du-total :
       `deposit.test.ts`, `bookings.test.ts`, `payments.test.ts`,
       `cancellation.test.ts`, `booking-credit-application.test.ts`,
       `booking-promo-price.test.ts`, `rebooking-discount.test.ts`,
@@ -606,7 +621,8 @@ un barème non validé.
       calcule un total). — **PR #209 : tout fait sauf `cancellation.test.ts`**
       (`bookings.test.ts`/`cash-booking.test.ts`/`contact-reveal.test.ts`
       vérifiés inchangés à raison — leurs scénarios ne dépendent pas du
-      taux) ; `cancellation.test.ts` reste à L5.2 avec le fichier qu'il teste.
+      taux) ; `cancellation.test.ts` fait avec le fichier qu'il teste — L5.2,
+      PR #211 (+ nouveau `admin-refunds.test.ts` pour les deux actions admin).
 - [ ] `tests/e2e` (parcours réservation/paiement) + `tests/api`.
 - [ ] `tests/perf` (k6 `booking-load*` : montants/étapes de paiement).
 

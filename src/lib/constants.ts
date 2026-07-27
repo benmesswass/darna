@@ -241,6 +241,12 @@ export const CREDIT_TRANSACTION_MOTIFS = [
   // Restitution (CROISSANCE_ROADMAP.md §CR4) : la résa qui avait consommé du
   // crédit est annulée-remboursée — le crédit dépensé est réémis.
   "REMBOURSEMENT_RESERVATION_ANNULEE",
+  // Remboursement des FRAIS Darna après annulation (LANCEMENT_ROADMAP.md §L5.2),
+  // posé par un admin via /dashboard/admin/remboursements — DISTINCT de
+  // REMBOURSEMENT_RESERVATION_ANNULEE ci-dessus (qui restitue un crédit
+  // DÉPENSÉ, jamais de l'argent réel) : motif séparé pour ne jamais confondre
+  // les deux idempotences (même bookingId possible sur les deux à la fois).
+  "REMBOURSEMENT_FRAIS_ANNULATION",
 ] as const;
 export type CreditTransactionMotif = (typeof CREDIT_TRANSACTION_MOTIFS)[number];
 

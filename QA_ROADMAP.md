@@ -463,6 +463,34 @@ shared by the server action and the `/dashboard/annonces/[id]/a-la-une` UI.
 | Plan shape | Exactly one plan (`PRO`) has `freeBoostPerCycle: true` | Locks the current business decision; a future plan change must touch this test | ✅ `agency-plans.test.ts` | Demo |
 | Happy path | Eligible Pro agency claims on an eligible active listing | `featuredUntil` extended by `FEATURED_DURATION_DAYS` (cumulative if already featured), `PROPERTY_FEATURED` audit with `provider: "subscription_perk"`, redirect to `/dashboard/annonces?alaune=1` | ✅ `free-boost-claim.test.ts` + live Playwright proof (before/after screenshots: no banner → green claim banner → redirect with extended boost visible on `/dashboard/annonces` → banner replaced by "already used this cycle" note on revisit) | Demo |
 
+### 6.6 Refund test suite (remboursement des frais, LANCEMENT_ROADMAP.md §L5.2)
+
+Unlike §6.1-6.5 there is **no Konnect settlement here** — the Konnect API has
+no programmatic refund (verified, cf. CLAUDE.md §AHC8), so `Booking.refundAmount`
+(computed by `computeRefund`, `src/lib/cancellation.ts`, on `amountPaid` only —
+never the loyer, that Darna doesn't touch since the commission-only model,
+§L5.1) is settled by an ADMIN-only manual action:
+`creditRefundAction` (crédit Darna, préféré) or `markRefundPaidAction`
+(virement manuel, fallback), `src/actions/admin.ts`. Both mark
+`Booking.refundPaidAt`, conditioned on `refundPaidAt: null` — same idempotency
+pattern as the payment settlements above, but admin-triggered instead of
+webhook-triggered. `creditRefundAction` uses a DISTINCT credit motif
+(`REMBOURSEMENT_FRAIS_ANNULATION`) from CR4's `REMBOURSEMENT_RESERVATION_ANNULEE`
+(restitution d'un crédit DÉPENSÉ, jamais de l'argent réel) — même `bookingId`
+possible sur les deux, jamais le même motif.
+
+| Scenario | Test to create | Expected guarantee | Status | Phase |
+|----------|----------------|---------------------|--------|-------|
+| Assiette = frais, jamais le loyer | `computeRefund` appelé directement sur `amountPaid` (plus de carve-out commission séparé, `computeBookingRefund` supprimé) | Un remboursement à 100 % rend exactement `amountPaid`, jamais plus | ✅ `cancellation.test.ts` | Demo |
+| Rail 2 non-remboursable en ligne | Annulation d'une résa `SUR_PLACE` (`amountPaid = 0`) | `refundAmount` toujours 0, quelle que soit la politique — cohérent, rien n'a transité en ligne | ✅ `cancellation.test.ts` | Demo |
+| Idempotence (virement) | Deux appels `markRefundPaidAction` sur la même résa | Seul le premier pose `refundPaidAt` + audit ; le second est un no-op silencieux (`updateMany` count 0) | ✅ `admin-refunds.test.ts` | Demo |
+| Idempotence (crédit) | Deux appels `creditRefundAction` sur la même résa | Seul le premier crédite le wallet + pose `refundPaidAt`, dans LA MÊME transaction ; le second n'émet aucun crédit | ✅ `admin-refunds.test.ts` | Demo |
+| État incohérent | Action appelée sur une résa sans `refundAmount` (jamais annulée, ou politique 0 %) | Rejetée avant toute écriture | ✅ `admin-refunds.test.ts` | Demo |
+| Non-collision de motif | `refundCreditForBooking` (§CR4) et `creditRefundAction` (§L5.2) sur la même résa | Motifs distincts (`REMBOURSEMENT_RESERVATION_ANNULEE` vs `REMBOURSEMENT_FRAIS_ANNULATION`) — l'idempotence de l'un ne masque jamais l'autre | ⚠️ motifs distincts posés en code, pas de test dédié à la coexistence des deux sur une même résa | Demo |
+| Admin-only | `markRefundPaidAction`/`creditRefundAction` appelées par un non-admin | Rejetée par `requireAdmin` (déjà couvert génériquement, `permissions-gates.test.ts`) | ✅ `permissions-gates.test.ts` (générique) | Demo |
+| Statut voyageur | `/dashboard/reservations` après annulation | « Remboursement en cours » (ambre) tant que `refundPaidAt` est `null`, « Remboursé » (vert) une fois réglé — jamais le même libellé pour les deux états | ✅ vérifié en direct (Playwright + Postgres local, capture avant/après créditation) | Demo |
+| Reconciliation | Aucune — pas de source externe à réconcilier (le règlement est un geste admin, pas un webhook) | N/A par construction | — | — |
+
 ---
 
 ## 7. Auth test suite

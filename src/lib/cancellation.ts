@@ -60,10 +60,14 @@ export function freeCancellationCutoff(
 /**
  * Calcule le montant remboursable selon la politique et le délai restant.
  *
- * ⚠️ `refundableBase` est le montant SUR LEQUEL porte le remboursement, déjà
- * net de la part NON REMBOURSABLE. Pour un séjour Darna, l'appelant passe
- * `amountPaid − serviceFee` : la commission Darna contenue dans l'acompte ne se
- * rembourse jamais (cut garanti). La politique s'applique ensuite à cette base.
+ * ⚠️ `refundableBase` (LANCEMENT_ROADMAP.md §L5.2) = le montant EFFECTIVEMENT
+ * réglé en ligne pour cette réservation (`booking.amountPaid`) — jamais le
+ * loyer, que Darna ne touche plus depuis le modèle commission-only (§L5.1) :
+ * il n'y a donc plus rien d'autre à rembourser que les frais Darna réellement
+ * encaissés. En Rail 2 (SUR_PLACE), `amountPaid` vaut 0 → rien n'est jamais
+ * remboursable ici (cohérent : aucun paiement en ligne n'a eu lieu). Les
+ * fenêtres/paliers ci-dessous sont INCHANGÉS depuis avant §L5.1 — seule
+ * l'assiette a changé (décision produit du 2026-07-27).
  *
  * Grâce 24 h (standard du marché) : annulation dans les 24 h suivant la
  * réservation = 100 % de la base remboursé quelle que soit la politique, À
@@ -106,34 +110,4 @@ export function computeRefund(
     refundAmount: Math.round(refundableBase * refundRate),
     grace: false,
   };
-}
-
-/**
- * Remboursement d'une réservation Darna, règle « commission rendue UNIQUEMENT
- * si l'annulation est gratuite ».
- *
- *  • Annulation GRATUITE (taux 100 %, politique ou grâce 24 h) → remboursement
- *    INTÉGRAL, commission Darna comprise : le « gratuit » est réellement gratuit.
- *  • Annulation hors délai gratuit (taux partiel / nul) → la commission Darna
- *    reste acquise (cut garanti, anti-bypass) et seul `amountPaid − serviceFee`
- *    suit le taux de la politique.
- *
- * `amountPaid` = montant réellement encaissé ; `serviceFee` = commission Darna.
- */
-export function computeBookingRefund(
-  amountPaid: number,
-  serviceFee: number,
-  checkIn: Date,
-  policy: CancelPolicy,
-  bookingCreatedAt: Date,
-  now = new Date()
-): RefundResult {
-  const refundableBase = Math.max(0, amountPaid - serviceFee);
-  const result = computeRefund(refundableBase, checkIn, policy, bookingCreatedAt, now);
-
-  // Annulation gratuite : on rembourse TOUT, commission comprise.
-  if (result.refundRate === 1) {
-    return { ...result, refundAmount: Math.max(0, amountPaid) };
-  }
-  return result;
 }

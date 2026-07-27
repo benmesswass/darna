@@ -379,15 +379,22 @@ model Booking {
   // Date de règlement : posée quand le paiement est confirmé (fonds sous
   // séquestre). Null tant que la réservation n'est pas payée.
   paidAt                   DateTime?
-  // Annulation : date + montant remboursable figé au moment de l'annulation.
+  // Annulation : date + montant remboursable (frais Darna uniquement depuis
+  // §L5.2, jamais le loyer — cf. src/lib/cancellation.ts) figé au moment de
+  // l'annulation.
   cancelledAt              DateTime?
   refundAmount             Int? // TND ; null si non annulée ou politique 0 %
+  // Date de règlement RÉEL du remboursement (virement manuel OU crédit Darna,
+  // §L5.2 — l'API Konnect n'a pas de remboursement programmatique, cf. CLAUDE.md
+  // §AHC8) — posée par l'admin via /dashboard/admin/remboursements. Null tant
+  // qu'un refundAmount est dû mais non encore réglé.
+  refundPaidAt             DateTime?
   // Annulation À L'INITIATIVE DE L'HÔTE (ANNULATION_HOTE_ROADMAP.md), distincte
   // d'une annulation voyageur (cancelBookingAction) : posée UNIQUEMENT par
   // hostCancelBookingAction, jamais par le voyageur. Remboursement TOUJOURS
-  // intégral dans ce cas (cf. refundAmount = totalPrice), et hostCancelBlockDays
-  // trace le palier de blocage d'annonce appliqué (indépendant d'un futur
-  // changement du barème).
+  // intégral dans ce cas (cf. refundAmount = amountPaid, jamais totalPrice —
+  // §AHC1), et hostCancelBlockDays trace le palier de blocage d'annonce
+  // appliqué (indépendant d'un futur changement du barème).
   cancelledByHostAt        DateTime?
   hostCancelBlockDays      Int?
   // Geste commercial (ANNULATION_HOTE_ROADMAP.md §AH4) : id de la NOUVELLE

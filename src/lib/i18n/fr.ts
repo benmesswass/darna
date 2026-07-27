@@ -570,6 +570,7 @@ export const fr = {
       montant > 0 ? `Remboursement : ${montant} TND` : "Aucun remboursement selon la politique",
     cancelledAt: (date: string) => `Annulée le ${date}`,
     rembourseLabel: (montant: number) => `Remboursé : ${montant} TND`,
+    rembourseEnCoursLabel: (montant: number) => `Remboursement de ${montant} TND en cours`,
     noterVoyageur: "Noter ce voyageur",
     avisVoyageurEnvoye: "Avis envoyé — merci !",
     votreAvisSurCeVoyageur: "Votre avis sur ce voyageur :",
@@ -824,6 +825,22 @@ export const fr = {
     facturesSuspendre: "Suspendre le compte",
     facturesSuspendreConfirm:
       "Suspendre ce compte hôte pour facture impayée ? Il ne pourra plus publier ni recevoir de réservations jusqu'à réactivation.",
+    navRemboursements: "Remboursements",
+    remboursementsTitre: "Remboursements dus (frais Darna)",
+    remboursementsSousTitre:
+      "Konnect n'a pas de remboursement automatique : chaque ligne attend un règlement manuel — en crédits Darna (instantané, à privilégier) ou par virement.",
+    remboursementsTotalDu: "Total dû",
+    remboursementsVide: "Aucun remboursement en attente.",
+    remboursementsColVoyageur: "Voyageur",
+    remboursementsColAnnonce: "Annonce",
+    remboursementsColMontant: "Montant",
+    remboursementsColAnnule: "Annulée le",
+    remboursementsCrediter: "Créditer le compte",
+    remboursementsCrediterConfirm:
+      "Créditer ce montant sur le compte du voyageur ? Action instantanée et irréversible.",
+    remboursementsMarquerVirement: "Marquer réglé (virement)",
+    remboursementsMarquerVirementConfirm:
+      "Confirmer que le virement manuel a bien été effectué pour ce montant ?",
     navFinancement: "Leads financement",
     financementTitre: "Leads financement (apport d'affaires)",
     financementSousTitre:
