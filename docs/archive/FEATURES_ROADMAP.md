@@ -1,5 +1,11 @@
 # Darna — Features Roadmap
 
+> 📦 **Archivée le 2026-07-27 — chantier clos à 100 %.** Déplacée dans
+> `docs/archive/` (`LANCEMENT_ROADMAP.md` §L1.2) pour garder la racine du repo
+> lisible. Conservée pour l'historique — ne plus y ajouter de tâche ;
+> nouvelles idées produit générales → `QA_ROADMAP.md` ou une roadmap de
+> chantier dédiée active.
+>
 > **Référence permanente.** Ce document liste les fonctionnalités manquantes ou
 > incomplètes de Darna comparées à une plateforme de réservation en ligne
 > mature (Airbnb/Booking-like), établies lors de la revue produit du

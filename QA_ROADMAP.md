@@ -116,12 +116,12 @@ that never double-charges." The guards exist in code; the demo gap is that the
 | D5 | **Mock payment exclusivity**: `confirmPaymentAction` (demo escrow) refuses to run when Konnect is enabled | **P1** | A real booking being "confirmed" without real money | Prevents demo/real mode confusion (`bookings.ts:311`). |
 | D6 | **Price integrity**: server ignores any client-supplied price; total is recomputed from `nights × nightlyPrice + serviceFee` | **P1** | Amount manipulation at booking time | Confirms the "prices always recalculated server-side" invariant. |
 | D7 | **Upload rejection E2E-lite**: a polyglot/oversized/wrong-magic file is rejected by the action (not only the lib) | **P2** | Malicious upload reaching disk/S3 | `storage.test.ts` covers the lib; this proves the action wires it. |
-| D8 | **Host cancellation IDOR**: host B cannot `hostCancelBookingAction` on host A's property/booking | **P0** | Tampering with another host's reservations (fake cancellation, forced refund/suspension against a rival) | `ANNULATION_HOTE_ROADMAP.md` §AH7. Test: `tests/host-cancellation-security.test.ts`. |
+| D8 | **Host cancellation IDOR**: host B cannot `hostCancelBookingAction` on host A's property/booking | **P0** | Tampering with another host's reservations (fake cancellation, forced refund/suspension against a rival) | `docs/archive/ANNULATION_HOTE_ROADMAP.md` §AH7. Test: `tests/host-cancellation-security.test.ts`. |
 | D9 | **Host cancellation idempotence**: a 2nd cancel attempt on an already-`ANNULEE` booking (explicit status check + `updateMany` race guard) does not double-apply the listing block or the account suspension | **P0** | Double-punishment / suspension counter drift under double-click or concurrent requests | Test: `tests/host-cancellation-security.test.ts`. |
 | D10 | **Host cancellation block-tier non-bypass**: the blocking duration (3/15/30 days) is recomputed server-side from `booking.checkIn` — the form only sends `bookingId`, no client-controlled tier | **P1** | A host forcing the shortest block regardless of real notice given | Test: `tests/host-cancellation-security.test.ts`. |
 | D11 | **Blocked listing unreachable via direct link**: `createBookingAction` AND `quoteBookingAction` both refuse a booking on a listing still under `cancelBlockedUntil`, even when the search filter is bypassed by guessing/bookmarking the URL | **P0** | A blocked (reputationally sanctioned) listing still taking real bookings | Found via live testing that `quoteBookingAction` was missing the check (quote looked valid, only the final submit rejected it) — fixed in the same pass. Test: `tests/host-cancellation-security.test.ts`. |
 | D12 | **Rebooking discount token security**: usage-once (atomic `updateMany` re-check), bound to the correct guest only, rejects a tampered signature, expires after `REBOOKING_DISCOUNT_VALIDITY_DAYS` | **P1** | A discount replayed on multiple bookings, or transferred/guessed by another account | Test: `tests/rebooking-discount.test.ts`. |
-| D13 | **Host cancellation atomicity**: the critical core (booking flip → listing block → account suspension) runs inside a single Serializable `$transaction` — a failure after the `ANNULEE` flip rolls back instead of leaving a partial, non-recoverable state (idempotence guard would otherwise block any retry from applying the missing block/suspension) | **P0** | A booking stuck `ANNULEE` with no listing block and no suspension, forever un-retriable — a host cancels with zero reputational/visibility penalty | `ANNULATION_HOTE_CORRECTIFS_ROADMAP.md` §AHC2. Notification/e-mail/audit stay best-effort outside the tx. Test: `tests/host-cancellation-security.test.ts` (rollback on `property.update` failure). |
+| D13 | **Host cancellation atomicity**: the critical core (booking flip → listing block → account suspension) runs inside a single Serializable `$transaction` — a failure after the `ANNULEE` flip rolls back instead of leaving a partial, non-recoverable state (idempotence guard would otherwise block any retry from applying the missing block/suspension) | **P0** | A booking stuck `ANNULEE` with no listing block and no suspension, forever un-retriable — a host cancels with zero reputational/visibility penalty | `docs/archive/ANNULATION_HOTE_CORRECTIFS_ROADMAP.md` §AHC2. Notification/e-mail/audit stay best-effort outside the tx. Test: `tests/host-cancellation-security.test.ts` (rollback on `property.update` failure). |
 
 > **Scope discipline:** do **not** add CSRF/SSRF/E2E/load tests for the demo —
 > they are documented in §5/§4 for Beta/Production. Adding them now violates
@@ -237,7 +237,7 @@ work is due.
 | `isWakil` promotion only via admin review | unit | ✅ | Demo | P0 | Unauthorized trust role |
 | Role change re-evaluated on next request (fresh session) | integration | ❌ | Beta | P1 | Stale elevated session |
 
-### 4.13 Product instrumentation / analytics (`INSTRUMENTATION_ROADMAP.md` §IN0–IN2)
+### 4.13 Product instrumentation / analytics (`docs/archive/INSTRUMENTATION_ROADMAP.md` §IN0–IN2)
 | Test | Type | Status | Phase | Prio | Risk covered |
 |------|------|--------|-------|------|--------------|
 | `trackEvent` action: zod validation, client event-name allowlist, rate-limit | unit | ✅ (`tests/track-event.test.ts`) | Demo | P2 | Forged/arbitrary event names or userId spoofing from client |
@@ -585,7 +585,7 @@ checkout → setup-node 22 → npm ci → prisma generate → prisma migrate dep
 - [ ] No copy-paste duplication of a guard/validation (extract & reuse).
 - [ ] Naming/idiom matches surrounding code; i18n keys added in **all three** dictionaries.
 - [ ] Tests added/updated for the changed behavior; **QA_ROADMAP.md updated** if a sensitive surface changed.
-- [ ] New user-visible product feature emits its `ProductEvent`(s) in the **same PR** (see `INSTRUMENTATION_ROADMAP.md` §IN4) — same discipline as the audit-log rule above for sensitive surfaces.
+- [ ] New user-visible product feature emits its `ProductEvent`(s) in the **same PR** (see `docs/archive/INSTRUMENTATION_ROADMAP.md` §IN4) — same discipline as the audit-log rule above for sensitive surfaces.
 
 **Performance**
 - [ ] No **N+1** (use `include`/`select`, batch); list queries hit an index.

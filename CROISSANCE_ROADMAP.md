@@ -32,7 +32,7 @@
 >
 > **Règle de maintenance :** dès qu'une tâche est livrée (mergée), cocher la
 > case, passer son statut à `✅` et noter le(s) fichier(s)/PR. Compagnon de
-> `FEATURES_ROADMAP.md`, `QA_ROADMAP.md`, `MONETISATION_IMMO_ROADMAP.md` —
+> `docs/archive/FEATURES_ROADMAP.md`, `QA_ROADMAP.md`, `MONETISATION_IMMO_ROADMAP.md` —
 > ne jamais laisser ce fichier dériver de l'état réel du code.
 
 - **Légende statut :** `❌` pas commencé · `🔧` en cours · `✅` fait (préciser fichier/PR).
@@ -103,6 +103,6 @@ réduction affichée, jamais plus, sauf mode hybride).
 ---
 
 _Voir aussi `MONETISATION_IMMO_ROADMAP.md` (patron `VerificationWallet`/
-`FeaturedOrder` réutilisé ici), `FEATURES_ROADMAP.md` (F8 `ShareButton`, F9
+`FeaturedOrder` réutilisé ici), `docs/archive/FEATURES_ROADMAP.md` (F8 `ShareButton`, F9
 centre de notifications), `QA_ROADMAP.md` (section dédiée à ajouter dès
 CR4/PM5 livrés)._

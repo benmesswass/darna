@@ -36,7 +36,7 @@
 >
 > **Règle de maintenance :** dès qu'une tâche est livrée (mergée), cocher la
 > case, passer son statut à `✅` et noter le(s) fichier(s)/PR. Compagnon de
-> `FEATURES_ROADMAP.md`, `DESIGN_ROADMAP.md`, `QA_ROADMAP.md` — ne jamais
+> `docs/archive/FEATURES_ROADMAP.md`, `docs/archive/DESIGN_ROADMAP.md`, `QA_ROADMAP.md` — ne jamais
 > laisser ce fichier dériver de l'état réel du code.
 
 - **Légende statut :** `❌` pas commencé · `🔧` en cours · `✅` fait (préciser fichier/PR).
@@ -222,7 +222,7 @@ critique :
   (§0bis), donc l'effet incitatif réel du levier prix est probablement plus
   faible qu'il ne semble sur le papier.
 - **Comment mesurer, concrètement** : pas besoin du chantier `ProductEvent`
-  (`INSTRUMENTATION_ROADMAP.md`, IN0-IN4, non démarré) — `paymentMode` est
+  (`docs/archive/INSTRUMENTATION_ROADMAP.md`, IN0-IN4, non démarré) — `paymentMode` est
   déjà un champ persisté sur `Booking` depuis PSP1. Un `prisma.booking.groupBy({
   by: ["paymentMode"] })` de plus dans `getFounderAnalytics()`
   (`src/lib/analytics.ts`, même pattern que les groupBy déjà en place),
@@ -273,7 +273,7 @@ tranché.
 **Extension proposée, pas encore arbitrée :**
 9. ❌ PSP9 — tarification différenciée par mode de paiement (réduction en ligne / prix de référence sur place) — cf. section « Question produit » dédiée. Ne pas commencer sans décision explicite de Wassim.
 
-**PSP0 à PSP8 sont livrées.** PSP9 est une extension proposée le 2026-07-21, en attente d'arbitrage business avant tout développement (cf. section dédiée ci-dessus). Voir `FEATURES_ROADMAP.md`, `DESIGN_ROADMAP.md` et `QA_ROADMAP.md` pour les prochaines priorités produit générales.
+**PSP0 à PSP8 sont livrées.** PSP9 est une extension proposée le 2026-07-21, en attente d'arbitrage business avant tout développement (cf. section dédiée ci-dessus). Voir `docs/archive/FEATURES_ROADMAP.md`, `docs/archive/DESIGN_ROADMAP.md` et `QA_ROADMAP.md` pour les prochaines priorités produit générales.
 
 ---
 
