@@ -191,6 +191,18 @@ export const PAYMENT_RECONCILIATION_STALE_MINUTES = 30;
  * pendant laquelle une relance est encore pertinente.
  */
 export const BOOKING_ABANDON_REMINDER_WINDOW_HOURS = 24;
+
+/**
+ * Détection de spike d'échecs de connexion (LANCEMENT_ROADMAP.md §L4.3) —
+ * compteur GLOBAL (tous utilisateurs/IP confondus, distinct du rate limiting
+ * par IP de src/lib/rate-limit.ts) : un volume anormal d'échecs sur une courte
+ * fenêtre peut signaler une attaque distribuée (credential stuffing) que le
+ * rate limiting par IP seul ne détecte pas (chaque IP reste sous son propre
+ * seuil). Alerte observabilité une seule fois par fenêtre (au moment où le
+ * seuil est franchi), pas à chaque échec suivant.
+ */
+export const LOGIN_FAILURE_SPIKE_WINDOW_MINUTES = 5;
+export const LOGIN_FAILURE_SPIKE_THRESHOLD = 20;
 /**
  * Palier gratuit (sans abonnement ACTIF) : nombre d'annonces actives
  * autorisées pour un compte AGENCE avant que la souscription (§MI1/MI2) ne

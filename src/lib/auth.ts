@@ -5,6 +5,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { logStructured } from "@/lib/audit";
+import { trackLoginFailure } from "@/lib/login-failure-tracking";
 
 const credentialsSchema = z.object({
   email: z.string().email().max(200),
@@ -49,19 +50,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           // rejeté instantanément par bcrypt et la défense serait inopérante.
           // Faux positif Semgrep assumé : hash factice de leurre, jamais un vrai secret.
           await bcrypt.compare(parsed.data.password, "$2b$12$f/0oq4Vt.wjtcqw76TM1DONwSQqoVa/lcI0H/3sTvjhBSBTJBjYHG"); // nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash
-          logStructured("warn", "auth.login_failure", {
-            reason: "user_not_found",
-            email: parsed.data.email,
-          });
+          await trackLoginFailure({ reason: "user_not_found", email: parsed.data.email });
           return null;
         }
 
         const valid = await bcrypt.compare(parsed.data.password, user.passwordHash);
         if (!valid) {
-          logStructured("warn", "auth.login_failure", {
-            reason: "invalid_password",
-            userId: user.id,
-          });
+          await trackLoginFailure({ reason: "invalid_password", userId: user.id });
           return null;
         }
 
