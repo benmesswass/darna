@@ -1086,6 +1086,16 @@ export const fr = {
       `<p><a href="${p.url}" style="display:inline-block;background:#b91c1c;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">Régler la facture</a></p>` +
       `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Le logement vérifié.</p>` +
       `</div>`,
+    bookingAbandonReminderSujet: (titre: string) =>
+      `Darna — votre réservation pour ${titre} vous attend`,
+    bookingAbandonReminderHtml: (p: { guestName: string; propertyTitle: string; url: string }) =>
+      `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
+      `<h1 style="color:#0f4c7c;font-size:20px">Votre réservation vous attend</h1>` +
+      `<p>Bonjour ${p.guestName},</p>` +
+      `<p>Vous n'avez pas finalisé votre réservation pour « <strong>${p.propertyTitle}</strong> ». Elle est toujours disponible si vous souhaitez reprendre là où vous en étiez.</p>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f4c7c;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">Reprendre ma réservation</a></p>` +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Le logement vérifié.</p>` +
+      `</div>`,
     newMessageSujet: (titre: string) => `Darna — nouveau message · ${titre}`,
     newMessageHtml: (p: {
       recipientName: string;
@@ -1439,6 +1449,8 @@ export const fr = {
       `Vous avez reçu une nouvelle réservation pour « ${titre} ».`,
     annonceIncomplete: (titre: string) =>
       `Votre annonce « ${titre} » a encore des cases à cocher — complétez-la pour mieux convertir.`,
+    reservationAbandonnee: (titre: string) =>
+      `Votre réservation pour « ${titre} » n'a pas été finalisée — elle est toujours disponible si vous souhaitez reprendre.`,
     annoncePromoSuggeree: (titre: string) =>
       `« ${titre} » a des nuits vides dans les prochaines semaines — comparez votre prix à la moyenne de la ville : une promo ponctuelle peut suffire à vendre une nuit de plus.`,
   },

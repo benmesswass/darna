@@ -1070,6 +1070,16 @@ export const en: Dictionary = {
       `<p><a href="${p.url}" style="display:inline-block;background:#b91c1c;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">Pay the invoice</a></p>` +
       `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Verified stays.</p>` +
       `</div>`,
+    bookingAbandonReminderSujet: (titre: string) =>
+      `Darna — your booking for ${titre} is waiting for you`,
+    bookingAbandonReminderHtml: (p: { guestName: string; propertyTitle: string; url: string }) =>
+      `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
+      `<h1 style="color:#0f4c7c;font-size:20px">Your booking is waiting for you</h1>` +
+      `<p>Hi ${p.guestName},</p>` +
+      `<p>You didn't finish booking “<strong>${p.propertyTitle}</strong>”. It's still available if you'd like to pick up where you left off.</p>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f4c7c;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">Resume my booking</a></p>` +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Verified housing.</p>` +
+      `</div>`,
     newMessageSujet: (titre: string) => `Darna — new message · ${titre}`,
     newMessageHtml: (p: {
       recipientName: string;
@@ -1418,6 +1428,8 @@ export const en: Dictionary = {
       `Your listing "${titre}" still has boxes to check — complete it to convert better.`,
     annoncePromoSuggeree: (titre: string) =>
       `“${titre}” has empty nights coming up in the next few weeks — compare your price to the city average: a short-term promo could be enough to sell one more night.`,
+    reservationAbandonnee: (titre: string) =>
+      `Your booking for “${titre}” wasn't completed — it's still available if you'd like to pick up where you left off.`,
   },
   alaUne: {
     titre: "Feature your listing",

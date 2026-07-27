@@ -58,6 +58,8 @@ export function notificationMessage(
       return fr.notifications.annonceIncomplete(n.propertyTitle ?? "");
     case "ANNONCE_PROMO_SUGGEREE":
       return fr.notifications.annoncePromoSuggeree(n.propertyTitle ?? "");
+    case "RESERVATION_ABANDONNEE":
+      return fr.notifications.reservationAbandonnee(n.propertyTitle ?? "");
     default:
       return "";
   }
