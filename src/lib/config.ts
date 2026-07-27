@@ -177,6 +177,13 @@ export const FEATURED_PRICE_TND = 29;
 
 /** Durée d'un cycle d'abonnement agence (MONETISATION_IMMO_ROADMAP.md §MI2). */
 export const SUBSCRIPTION_DURATION_DAYS = 30;
+
+/**
+ * Réconciliation Konnect↔local (LANCEMENT_ROADMAP.md §L3.2) : un paiement
+ * encore local "en attente" au-delà de ce délai déclenche une revérification
+ * auprès de Konnect (webhook potentiellement manqué).
+ */
+export const PAYMENT_RECONCILIATION_STALE_MINUTES = 30;
 /**
  * Palier gratuit (sans abonnement ACTIF) : nombre d'annonces actives
  * autorisées pour un compte AGENCE avant que la souscription (§MI1/MI2) ne

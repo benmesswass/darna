@@ -1,4 +1,5 @@
 import { logAudit, logStructured } from "@/lib/audit";
+import { reconcileKonnectPayments } from "@/lib/jobs/konnect-reconciliation";
 
 /**
  * Socle scheduler (LANCEMENT_ROADMAP.md §L3.1) — amendement au principe
@@ -48,16 +49,16 @@ export async function runJobList(jobList: Job[]): Promise<JobResult[]> {
 }
 
 /**
- * Registre des jobs réels — vide pour l'instant (L3.1 = socle uniquement).
- * Pour en ajouter un : écrire une fonction pure et idempotente dans
- * src/lib/jobs/<nom>.ts, puis l'enregistrer ici (premier job réel : L3.2,
- * réconciliation Konnect↔local).
+ * Registre des jobs réels. Pour en ajouter un : écrire une fonction pure et
+ * idempotente dans src/lib/jobs/<nom>.ts, puis l'enregistrer ici.
  *
  * Pas de verrou distribué au départ (le cron Vercel ne se chevauche pas à
  * 15 min pour des jobs de quelques secondes) — si un job devient long,
  * ajouter un verrou Redis `SET NX PX` ici avant d'itérer.
  */
-const jobs: Job[] = [];
+const jobs: Job[] = [
+  { name: "konnect-reconciliation", run: reconcileKonnectPayments },
+];
 
 export async function runJobs(): Promise<JobResult[]> {
   return runJobList(jobs);
