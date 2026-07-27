@@ -20,6 +20,9 @@ export const PRODUCT_EVENT_NAMES = [
   "SHARE_CLICKED",
   "SAVED_SEARCH_CREATED",
   "MAP_INTERACTED",
+  // Relance de réservation abandonnée (§L3.3/G6) — mesure la reprise via
+  // BOOKING_STARTED/BOOKING_CREATED existants après cet événement.
+  "BOOKING_ABANDON_REMINDED",
 ] as const;
 export type ProductEventName = (typeof PRODUCT_EVENT_NAMES)[number];
 

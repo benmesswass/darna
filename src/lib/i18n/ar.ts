@@ -1086,6 +1086,16 @@ export const ar: Dictionary = {
       `<p><a href="${p.url}" style="display:inline-block;background:#b91c1c;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">خلّص الفاتورة</a></p>` +
       `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — السكن المضمون.</p>` +
       `</div>`,
+    bookingAbandonReminderSujet: (titre: string) =>
+      `Darna — الحجز متاعك لـ ${titre} باقي يستناك`,
+    bookingAbandonReminderHtml: (p: { guestName: string; propertyTitle: string; url: string }) =>
+      `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937" dir="rtl">` +
+      `<h1 style="color:#0f4c7c;font-size:20px">الحجز متاعك باقي يستناك</h1>` +
+      `<p>أهلا ${p.guestName}،</p>` +
+      `<p>ما كمّلتش الحجز متاع « <strong>${p.propertyTitle}</strong> ». مازالت متوفرة إذا حبّيت ترجع تكمّل.</p>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f4c7c;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">نكمّل الحجز متاعي</a></p>` +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — السكن الموثّق.</p>` +
+      `</div>`,
     newMessageSujet: (titre: string) => `Darna — رسالة جديدة · ${titre}`,
     newMessageHtml: (p: {
       recipientName: string;
@@ -1432,6 +1442,8 @@ export const ar: Dictionary = {
       `الإعلان متاعك « ${titre} » مازال فيه حاجات ناقصة — كمّلو باش يبيع أحسن.`,
     annoncePromoSuggeree: (titre: string) =>
       `الإعلان متاعك « ${titre} » عندو ليالي فارغة في الجمعات الجايّة — قارن السعر متاعك بمعدل المدينة، بروموسيون صغيّر ينجم يبيع ليلة زايدة.`,
+    reservationAbandonnee: (titre: string) =>
+      `الحجز متاعك لـ « ${titre} » ما كمّلتوش — مازال موجود إذا حبّيت ترجع تكمّل فيه.`,
   },
   alaUne: {
     titre: "حطّ إعلانك في الواجهة",

@@ -172,6 +172,43 @@ export async function sendBookingCancelledByHostEmail(bookingId: string): Promis
   }
 }
 
+/**
+ * Relance une réservation abandonnée (LANCEMENT_ROADMAP.md §L3.3 /
+ * GROWTH_ROADMAP.md §G6) — appelée par le job
+ * src/lib/jobs/booking-abandon-reminder.ts, jamais par une action utilisateur.
+ */
+export async function sendBookingAbandonReminderEmail(bookingId: string, url: string): Promise<void> {
+  try {
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      select: {
+        guest: { select: { email: true, name: true } },
+        property: { select: { title: true } },
+      },
+    });
+
+    if (!booking) {
+      logStructured("warn", "notif.booking_abandon_reminder_not_found", { bookingId });
+      return;
+    }
+
+    await sendEmail({
+      to: booking.guest.email,
+      subject: frMail.email.bookingAbandonReminderSujet(booking.property.title),
+      html: frMail.email.bookingAbandonReminderHtml({
+        guestName: booking.guest.name,
+        propertyTitle: booking.property.title,
+        url,
+      }),
+    });
+  } catch (err) {
+    logStructured("error", "notif.booking_abandon_reminder_failed", {
+      bookingId,
+      error: (err as Error).message,
+    });
+  }
+}
+
 /** Échappe le HTML d'un extrait de message inséré dans le corps de l'e-mail. */
 function escapeHtml(s: string): string {
   return s

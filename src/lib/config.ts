@@ -184,6 +184,13 @@ export const SUBSCRIPTION_DURATION_DAYS = 30;
  * auprès de Konnect (webhook potentiellement manqué).
  */
 export const PAYMENT_RECONCILIATION_STALE_MINUTES = 30;
+
+/**
+ * Relance de réservation abandonnée (LANCEMENT_ROADMAP.md §L3.3 /
+ * GROWTH_ROADMAP.md §G6) : fenêtre après l'expiration du hold EN_ATTENTE
+ * pendant laquelle une relance est encore pertinente.
+ */
+export const BOOKING_ABANDON_REMINDER_WINDOW_HOURS = 24;
 /**
  * Palier gratuit (sans abonnement ACTIF) : nombre d'annonces actives
  * autorisées pour un compte AGENCE avant que la souscription (§MI1/MI2) ne

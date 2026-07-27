@@ -706,7 +706,7 @@ model GuestReview {
 // de la locale courante (cf. src/lib/notification-text.ts).
 model Notification {
   id            String    @id @default(cuid())
-  type          String // RESERVATION_CONFIRMEE | RESERVATION_ANNULEE | AVIS_RECU | AVIS_HOTE_RECU | ANNONCE_EXPIRE_BIENTOT | ALERTE_NOUVELLE_ANNONCE
+  type          String // RESERVATION_CONFIRMEE | RESERVATION_ANNULEE | AVIS_RECU | AVIS_HOTE_RECU | ANNONCE_EXPIRE_BIENTOT | ALERTE_NOUVELLE_ANNONCE | RESERVATION_ABANDONNEE
   propertyTitle String?
   href          String?
   readAt        DateTime?
@@ -723,6 +723,12 @@ model Notification {
   //    20260707170000_add_host_invoice_reminder_notif (§PSP5)
   //  - ANNONCE_INCOMPLETE — migration
   //    20260722000000_add_incomplete_listing_notification (§G2)
+  //  - RESERVATION_ABANDONNEE — migration
+  //    20260727103800_add_reservation_abandonnee_notification
+  //    (LANCEMENT_ROADMAP.md §L3.3 / GROWTH_ROADMAP.md §G6). href inclut
+  //    `?resa=<bookingId>` pour que la clé (userId, href) reste unique PAR
+  //    RÉSERVATION — un même voyageur peut abandonner deux réservations
+  //    différentes sur la MÊME annonce sans que la 2e relance soit bloquée.
   // Ne PAS les supprimer via `migrate dev` sans les recréer manuellement
   // (cf. src/lib/notification-center.ts).
 
