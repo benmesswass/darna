@@ -270,10 +270,12 @@ dépendre de l'ordre du seed.
   `JsonLd.tsx`, détection secrets, patterns injection/SSRF.
 - [x] **DAST ZAP baseline** nightly (Beta+) : CSP par nonce présente, HSTS,
   `X-Frame-Options DENY`, nosniff, cookies `HttpOnly/Secure/SameSite`. →
-  `zaproxy/action-baseline` (`.github/workflows/zap-baseline.yml`), scan
-  PASSIF uniquement (aucune attaque active), contre un build de production
+  `zaproxy/action-baseline` (job `zap-baseline` de `.github/workflows/nightly.yml`
+  depuis `LANCEMENT_ROADMAP.md` §L2.1, anciennement `zap-baseline.yml` dédié),
+  scan PASSIF uniquement (aucune attaque active), contre un build de production
   (`next start`). Job isolé, **jamais sur PR** (workflow séparé de `ci.yml`,
-  même choix que `perf.yml`) : nightly/hebdo + `workflow_dispatch`.
+  même fichier que `semgrep`/`perf`) : nightly (03:00 UTC, quotidien) +
+  `workflow_dispatch`.
   `fail_action: false` volontaire — seuils/faux positifs pas encore calibrés
   sur un vrai résultat, donc un rapport à examiner plutôt qu'un gate bloquant
   pour l'instant (à durcir une fois le bruit de fond connu).
@@ -313,11 +315,12 @@ dépendre de l'ordre du seed.
   seedées (`tests/perf/search-seed.ts`) pour un p95 réaliste. Seuil
   p95 < 2000 ms — mesuré 1.31 s en pratique, contre un build **`next dev`**
   (pas `next start` : limite connue, à revoir si le seuil devient trop
-  proche de la marge). → `tests/perf/search.js`, job isolé
-  `.github/workflows/perf.yml` (hebdo + `workflow_dispatch`, **jamais sur
-  PR** — workflow séparé de `ci.yml`, pas un simple `if:` sur un trigger
-  partagé). **La carte (Leaflet) est hors de portée** : rendu client, k6/http
-  n'exécute pas de JS navigateur.
+  proche de la marge). → `tests/perf/search.js`, job isolé `perf` de
+  `.github/workflows/nightly.yml` (`LANCEMENT_ROADMAP.md` §L2.1, anciennement
+  `perf.yml` dédié) — nightly (03:00 UTC, quotidien) + `workflow_dispatch`,
+  **jamais sur PR** — workflow séparé de `ci.yml`, pas un simple `if:` sur un
+  trigger partagé. **La carte (Leaflet) est hors de portée** : rendu client,
+  k6/http n'exécute pas de JS navigateur.
 - [x] **Charge sur la fenêtre de course booking** : 20 requêtes
   `createBookingAction` simultanées sur le même créneau → exactement une
   seule réservation active en base, p95 < 1.5 s (mesuré 684 ms).
@@ -575,7 +578,8 @@ place.
 ## 11. Dette technique — dépendances majeures bloquées (2026-07-24)
 
 > Revue exhaustive des PR Dependabot ouvertes (build/tsc/lint/test/e2e/api en
-> local, quota GitHub Actions épuisé oblige — cf. exception CI de `CLAUDE.md`).
+> local, quota GitHub Actions épuisé oblige — l'exception CI temporaire alors
+> en vigueur dans `CLAUDE.md`, close depuis par `LANCEMENT_ROADMAP.md` §L2.1).
 > Chaque bump majeur testé individuellement avant merge ; ceux listés ici ont
 > échoué pour un motif technique précis, pas par prudence générique.
 

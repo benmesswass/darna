@@ -25,25 +25,10 @@ Jamais livrer du code sans dire à Wassim comment le vérifier. Si une migration
 1. **Jamais de push direct sur `main`** — toujours travailler sur une branche feature.
 2. **Après chaque push de branche** : ouvrir une Pull Request via `mcp__github__create_pull_request`.
 3. **Tests fonctionnels obligatoires avant de proposer le merge** : pour chaque PR ouverte, Claude exécute lui-même les tests fonctionnels nécessaires (pas seulement `tsc`/lint/tests unitaires) — base de données locale, migration/seed si le schéma change, parcours réel de l'app (navigateur/Playwright quand c'est possible) pour le(s) chemin(s) que la PR modifie. Claude donne ensuite à Wassim un **rapport de test** clair (ce qui a été testé, comment, résultat obtenu). **Attendre la validation explicite de Wassim sur ce rapport** avant de considérer la PR prête pour merge.
-4. **Surveiller la CI** : attendre que tous les checks GitHub Actions soient verts.
+4. **Surveiller la CI** : pyramide en 3 niveaux (`LANCEMENT_ROADMAP.md` §L2.1, `.github/workflows/ci.yml` + `nightly.yml`). Niveau 1 `fast` (lint + typecheck + tests sans couverture) tourne automatiquement sur chaque push/màj de PR (hors PR *.md/docs, ignorées). Avant de proposer un merge, déclencher le niveau 2 — coverage + build + audit + e2e + api — en posant le label `ready-to-merge` sur la PR (ou via `workflow_dispatch`). Le niveau 3 (`nightly.yml` : semgrep + ZAP + k6) tourne chaque nuit sur `main`, hors chemin de merge d'une PR. « CI verte » = `fast` ET les jobs du niveau 2 tous verts sur le commit de tête.
 5. **JAMAIS de merge dans `main` sans la validation explicite de Wassim — MÊME SI la CI est verte.** Claude ne merge jamais de lui-même : il pousse la branche, ouvre la PR, fournit le rapport de test (point 3), signale que la CI est verte, et **attend que Wassim dise explicitement « merge »**. Et **JAMAIS de merge même si Wassim approuve TANT QUE la CI n'est pas verte.** Trois conditions cumulatives : (a) rapport de test fourni ET validé par Wassim, (b) validation explicite de Wassim pour le merge, ET (c) CI verte. Merge en squash via `mcp__github__merge_pull_request` (merge_method: "squash") uniquement quand ces conditions sont réunies.
 6. **Améliorations sur une PR déjà ouverte** : si une PR existe déjà (ex. #40) et que Wassim demande des améliorations/corrections dessus, **ne PAS créer une nouvelle PR** — pousser les modifications sur la **même branche** (donc la même PR). On ne crée une nouvelle branche/PR que pour un chantier distinct.
 7. **Contexte remote** : Claude Code tourne dans un conteneur cloud — il ne peut PAS écrire directement dans le projet PyCharm local de Wassim. Les changements arrivent sur la machine via `git pull` après merge sur `main`.
-
-## ⏳ Exception temporaire CI — quota GitHub Actions (expire 2026-07-31)
-
-Quota de minutes GitHub Actions inclus (2000/mois) épuisé le 2026-07-22 ; reset **~2026-07-31** (cf. `INFRA_ROADMAP.md` note 5). Cause racine corrigée et mergée le 2026-07-23 (`7ebf4b9`, PR #182) : `ci.yml` est passé en `workflow_dispatch`-only (plus de run automatique sur chaque push).
-
-**Jusqu'au 2026-07-31, remplace le point 4 (« Surveiller la CI ») de la section Workflow PR ci-dessus** — la CI ne tourne plus seule, donc pour CHAQUE merge de PR darna :
-1. Rappeler à Wassim de lancer les checks en local d'abord — ne jamais supposer que c'est déjà fait, même si non demandé.
-2. Toujours donner en premier la commande de checkout de la bonne branche (vérifier que le worktree cible est clean avant).
-3. Donner les commandes exactes, miroir des jobs de `ci.yml` :
-   - **build** : `npm run lint` · `npx tsc --noEmit` · `npm run test:coverage` · `npm run build` · `npm audit --audit-level=high`
-   - **e2e** : `npx playwright install --with-deps chromium` (si pas déjà installé) · `npm run test:e2e`
-   - **api** : `npm run test:api`
-   - **semgrep** : `pip install semgrep` (une fois) · `semgrep --config=p/security-audit --config=p/secrets --config=p/typescript --config=p/react --config=p/nextjs --exclude=node_modules --exclude=.next --exclude=tests --exclude="*.test.ts" --error --metrics=off src/`
-
-**Après le 2026-07-31** : cette section est caduque — la supprimer et repasser au mécanisme `workflow_dispatch` à la demande (point 4 original : Claude lance `gh workflow run`, attend le résultat, ne propose le merge que si vert).
 
 ## Mode orchestration autonome (décidé le 2026-07-24)
 
@@ -53,7 +38,7 @@ Par défaut, le point 5 de « Workflow PR » ci-dessus s'applique **intégraleme
 
 **Une fois activé, pour chaque chantier traité** :
 1. **Périmètre strict** : uniquement les tâches déjà listées dans `PRIORITES_ROADMAP.md` (ou la roadmap de chantier qu'il pointe), jamais une tâche inventée ou hors roadmap. **Sauter silencieusement** toute tâche marquée « ⛔ Bloqué sur toi » (attend un arbitrage produit de Wassim) — pas prête à exécuter, jamais un candidat au merge auto.
-2. **Rigueur de test inchangée** avant tout merge : rapport de test réel, tests fonctionnels + parcours réel (Playwright si UI), CI verte — ou son équivalent local pendant l'exception CI temporaire ci-dessus. Screenshots (§ Livraison & tests) même si personne ne les lit en direct : ils restent dans l'historique de la PR.
+2. **Rigueur de test inchangée** avant tout merge : rapport de test réel, tests fonctionnels + parcours réel (Playwright si UI), CI verte (label `ready-to-merge` posé pour déclencher le niveau 2 — voir « Workflow PR » point 4 — puis attendre `fast` ET `full`/`e2e`/`api` verts sur le commit de tête ; équivalent local seulement si la CI GitHub Actions est elle-même indisponible). Screenshots (§ Livraison & tests) même si personne ne les lit en direct : ils restent dans l'historique de la PR.
 3. **Merge automatique autorisé** dès que (2) est rempli — squash, sans attendre le mot « merge » de Wassim pour cette tâche précise. Roadmap(s) source(s) + `PRIORITES_ROADMAP.md` mis à jour (✅ + PR) **dans la même PR**, comme déjà exigé par la règle générale.
 4. **Notification** (message dans la conversation, pas seulement un commit silencieux) résumant ce qui a été fait — même si aucune action n'était requise de Wassim.
 5. **Un chantier à la fois** : jamais paralléliser deux tâches du même fichier `*_ROADMAP.md` (déjà la règle de `PRIORITES_ROADMAP.md`). Passer au suivant non coché dans l'ordre de priorité dès le précédent mergé.
