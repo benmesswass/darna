@@ -17,6 +17,7 @@ import { prisma } from "@/lib/prisma";
 import { getKonnectPayment, tndToMillimes } from "@/lib/konnect";
 import { FEATURED_DURATION_DAYS } from "@/lib/config";
 import { logAudit, logStructured } from "@/lib/audit";
+import { captureError } from "@/lib/observability";
 
 export type SettleFeaturedResult =
   | "PAYEE" // réglé (effet appliqué ou déjà appliqué)
@@ -67,6 +68,7 @@ export async function settleFeaturedOrder(
       orderId: order.id,
       error: (err as Error).message,
     });
+    await captureError(err, { event: "konnect.featured_settle_fetch_failed", orderId: order.id });
     return "ERREUR";
   }
 
@@ -79,6 +81,11 @@ export async function settleFeaturedOrder(
   const expectedMillimes = tndToMillimes(order.amount);
   if (payment.reachedAmount < expectedMillimes) {
     logStructured("warn", "konnect.featured_amount_mismatch", {
+      orderId: order.id,
+      expectedMillimes,
+      reachedAmount: payment.reachedAmount,
+    });
+    await captureError(new Error("konnect.featured_amount_mismatch"), {
       orderId: order.id,
       expectedMillimes,
       reachedAmount: payment.reachedAmount,

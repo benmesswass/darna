@@ -15,6 +15,7 @@
 import { prisma } from "@/lib/prisma";
 import { getKonnectPayment, tndToMillimes } from "@/lib/konnect";
 import { logAudit, logStructured } from "@/lib/audit";
+import { captureError } from "@/lib/observability";
 
 export type SettleInvoiceResult =
   | "PAYEE" // réglée
@@ -55,6 +56,7 @@ export async function settleHostInvoice(
       invoiceId: invoice.id,
       error: (err as Error).message,
     });
+    await captureError(err, { event: "konnect.host_invoice_settle_fetch_failed", invoiceId: invoice.id });
     return "ERREUR";
   }
 
@@ -67,6 +69,11 @@ export async function settleHostInvoice(
   const expectedMillimes = tndToMillimes(invoice.amount);
   if (payment.reachedAmount < expectedMillimes) {
     logStructured("warn", "konnect.host_invoice_amount_mismatch", {
+      invoiceId: invoice.id,
+      expectedMillimes,
+      reachedAmount: payment.reachedAmount,
+    });
+    await captureError(new Error("konnect.host_invoice_amount_mismatch"), {
       invoiceId: invoice.id,
       expectedMillimes,
       reachedAmount: payment.reachedAmount,

@@ -4,6 +4,7 @@ import { settleKonnectBooking } from "@/lib/payments";
 import { isKonnectEnabled, verifyKonnectWebhook } from "@/lib/konnect";
 import { rateLimit } from "@/lib/rate-limit";
 import { logStructured } from "@/lib/audit";
+import { captureError } from "@/lib/observability";
 
 /**
  * Webhook Konnect — appelé en **GET** par Konnect après un paiement, avec
@@ -48,6 +49,7 @@ export async function GET(request: NextRequest) {
   // règlement à partir d'un payment_ref connu mais non signé.
   if (!bid || !sig || !verifyKonnectWebhook(bid, sig)) {
     logStructured("warn", "konnect.webhook_bad_signature", { paymentRef, bid });
+    await captureError(new Error("konnect.webhook_bad_signature"), { paymentRef, bid });
     return NextResponse.json({ error: "invalid signature" }, { status: 401 });
   }
 

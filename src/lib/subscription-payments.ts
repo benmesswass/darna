@@ -20,6 +20,7 @@ import { getKonnectPayment, tndToMillimes } from "@/lib/konnect";
 import { SUBSCRIPTION_DURATION_DAYS, FREE_VERIFICATION_CREDITS } from "@/lib/config";
 import { agencyPlan } from "@/lib/subscriptions";
 import { logAudit, logStructured } from "@/lib/audit";
+import { captureError } from "@/lib/observability";
 
 export type SettleSubscriptionResult =
   | "ACTIF" // réglé (effet appliqué ou déjà appliqué)
@@ -55,6 +56,10 @@ export async function settleSubscriptionPayment(
       subscriptionId: subscription.id,
       plan: subscription.plan,
     });
+    await captureError(new Error("konnect.subscription_unknown_plan"), {
+      subscriptionId: subscription.id,
+      plan: subscription.plan,
+    });
     return "ERREUR";
   }
 
@@ -65,6 +70,10 @@ export async function settleSubscriptionPayment(
     logStructured("error", "konnect.subscription_settle_fetch_failed", {
       subscriptionId: subscription.id,
       error: (err as Error).message,
+    });
+    await captureError(err, {
+      event: "konnect.subscription_settle_fetch_failed",
+      subscriptionId: subscription.id,
     });
     return "ERREUR";
   }
@@ -77,6 +86,11 @@ export async function settleSubscriptionPayment(
   const expectedMillimes = tndToMillimes(plan.priceTND);
   if (payment.reachedAmount < expectedMillimes) {
     logStructured("warn", "konnect.subscription_amount_mismatch", {
+      subscriptionId: subscription.id,
+      expectedMillimes,
+      reachedAmount: payment.reachedAmount,
+    });
+    await captureError(new Error("konnect.subscription_amount_mismatch"), {
       subscriptionId: subscription.id,
       expectedMillimes,
       reachedAmount: payment.reachedAmount,

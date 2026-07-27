@@ -13,6 +13,7 @@
 import { prisma } from "@/lib/prisma";
 import { getKonnectPayment, tndToMillimes } from "@/lib/konnect";
 import { logAudit, logStructured } from "@/lib/audit";
+import { captureError } from "@/lib/observability";
 import { sendBookingConfirmationEmail, sendNewBookingHostEmail } from "@/lib/notifications";
 import { notifyBookingConfirmed, notifyNewBookingReceived } from "@/lib/notification-center";
 
@@ -70,6 +71,7 @@ export async function settleKonnectBooking(
       bookingId: booking.id,
       error: (err as Error).message,
     });
+    await captureError(err, { event: "konnect.settle_fetch_failed", bookingId: booking.id });
     return "ERREUR";
   }
 
@@ -86,6 +88,11 @@ export async function settleKonnectBooking(
   const expectedMillimes = tndToMillimes(expectedTND);
   if (payment.reachedAmount < expectedMillimes) {
     logStructured("warn", "konnect.amount_mismatch", {
+      bookingId: booking.id,
+      expectedMillimes,
+      reachedAmount: payment.reachedAmount,
+    });
+    await captureError(new Error("konnect.amount_mismatch"), {
       bookingId: booking.id,
       expectedMillimes,
       reachedAmount: payment.reachedAmount,

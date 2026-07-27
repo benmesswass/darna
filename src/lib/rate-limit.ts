@@ -19,6 +19,9 @@ const MAX_ATTEMPTS = 5;
 type Bucket = { count: number; resetAt: number };
 const buckets = new Map<string, Bucket>();
 
+type Counter = { count: number; resetAt: number };
+const counters = new Map<string, Counter>();
+
 export async function clientIp(): Promise<string> {
   // CAS PROD SÉCURISÉ — derrière un proxy de confiance qui POSE lui-même
   // l'en-tête d'IP (Cloudflare / Nginx / Vercel). C'est la seule configuration
@@ -97,4 +100,40 @@ export async function rateLimit(action: string, key: string): Promise<boolean> {
 
 export async function assertRateLimit(action: string): Promise<boolean> {
   return rateLimit(action, await clientIp());
+}
+
+/**
+ * Compteur fenêtré générique (LANCEMENT_ROADMAP.md §L4.3 — détection de spike,
+ * ex. échecs de connexion) — incrémente et retourne le nombre de hits dans la
+ * fenêtre `windowMs`, SANS seuil de blocage (contrairement à `rateLimit`) :
+ * c'est à l'appelant de décider du seuil d'alerte. Même dualité Redis
+ * (distribué, compteur partagé entre instances)/in-memory (fallback) que
+ * `rateLimit`, mais fenêtre et espace de clés propres à l'appelant (préfixe
+ * `wc:` distinct de `rl:` — objectif différent : compter, pas limiter).
+ */
+export async function incrementWindowedCounter(key: string, windowMs: number): Promise<number> {
+  const redis = getRedis();
+  if (redis) {
+    try {
+      const redisKey = `wc:${key}`;
+      const count = await redis.incr(redisKey);
+      if (count === 1) await redis.pexpire(redisKey, windowMs);
+      return count;
+    } catch (err) {
+      logStructured("warn", "windowed_counter.redis_fallback", {
+        key,
+        message: (err as Error).message,
+      });
+      // Tombe sur le fallback in-memory ci-dessous.
+    }
+  }
+
+  const nowMs = Date.now();
+  const counter = counters.get(key);
+  if (!counter || counter.resetAt < nowMs) {
+    counters.set(key, { count: 1, resetAt: nowMs + windowMs });
+    return 1;
+  }
+  counter.count += 1;
+  return counter.count;
 }

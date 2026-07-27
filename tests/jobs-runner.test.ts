@@ -6,11 +6,14 @@
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 
 vi.mock("@/lib/audit", () => ({ logAudit: vi.fn(), logStructured: vi.fn() }));
+vi.mock("@/lib/observability", () => ({ captureError: vi.fn() }));
 
 import { runJobList, type Job } from "@/lib/jobs/runner";
 import { logAudit } from "@/lib/audit";
+import { captureError } from "@/lib/observability";
 
 const logAuditMock = logAudit as unknown as Mock;
+const captureErrorMock = captureError as unknown as Mock;
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -81,5 +84,18 @@ describe("runJobList", () => {
     const results = await runJobList([weirdJob]);
 
     expect(results).toEqual([{ name: "weird", ok: false, error: "nope" }]);
+  });
+
+  it("alerte l'observabilité (L4.3) quand un job échoue, mais pas quand il réussit", async () => {
+    const okJob: Job = { name: "ok", run: vi.fn().mockResolvedValue(undefined) };
+    const failingJob: Job = { name: "failing", run: vi.fn().mockRejectedValue(new Error("boom")) };
+
+    await runJobList([okJob, failingJob]);
+
+    expect(captureErrorMock).toHaveBeenCalledTimes(1);
+    expect(captureErrorMock).toHaveBeenCalledWith(expect.any(Error), {
+      event: "job.tick.failure",
+      job: "failing",
+    });
   });
 });

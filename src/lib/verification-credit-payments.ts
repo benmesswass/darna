@@ -17,6 +17,7 @@ import { prisma } from "@/lib/prisma";
 import { getKonnectPayment, tndToMillimes } from "@/lib/konnect";
 import { FREE_VERIFICATION_CREDITS } from "@/lib/config";
 import { logAudit, logStructured } from "@/lib/audit";
+import { captureError } from "@/lib/observability";
 
 export type SettleVerificationCreditResult =
   | "PAYEE" // réglé (crédit appliqué ou déjà appliqué)
@@ -67,6 +68,10 @@ export async function settleVerificationCreditOrder(
       orderId: order.id,
       error: (err as Error).message,
     });
+    await captureError(err, {
+      event: "konnect.verification_credit_settle_fetch_failed",
+      orderId: order.id,
+    });
     return "ERREUR";
   }
 
@@ -79,6 +84,11 @@ export async function settleVerificationCreditOrder(
   const expectedMillimes = tndToMillimes(order.amount);
   if (payment.reachedAmount < expectedMillimes) {
     logStructured("warn", "konnect.verification_credit_amount_mismatch", {
+      orderId: order.id,
+      expectedMillimes,
+      reachedAmount: payment.reachedAmount,
+    });
+    await captureError(new Error("konnect.verification_credit_amount_mismatch"), {
       orderId: order.id,
       expectedMillimes,
       reachedAmount: payment.reachedAmount,

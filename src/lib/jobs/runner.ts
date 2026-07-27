@@ -1,4 +1,5 @@
 import { logAudit, logStructured } from "@/lib/audit";
+import { captureError } from "@/lib/observability";
 import { reconcileKonnectPayments } from "@/lib/jobs/konnect-reconciliation";
 import { remindAbandonedBookings } from "@/lib/jobs/booking-abandon-reminder";
 import { remindHostInvoices } from "@/lib/jobs/host-invoice-reminder";
@@ -43,6 +44,7 @@ export async function runJobList(jobList: Job[]): Promise<JobResult[]> {
       const error = err instanceof Error ? err.message : String(err);
       results.push({ name: job.name, ok: false, error });
       logStructured("error", "job.tick.failure", { job: job.name, error });
+      await captureError(err, { event: "job.tick.failure", job: job.name });
     }
   }
 
