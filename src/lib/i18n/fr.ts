@@ -822,6 +822,17 @@ export const fr = {
     facturesSuspendre: "Suspendre le compte",
     facturesSuspendreConfirm:
       "Suspendre ce compte hôte pour facture impayée ? Il ne pourra plus publier ni recevoir de réservations jusqu'à réactivation.",
+    navFinancement: "Leads financement",
+    financementTitre: "Leads financement (apport d'affaires)",
+    financementSousTitre:
+      "Demandes de simulation de financement laissées sur des annonces en vente. Capture uniquement — aucun partenaire bancaire signé à ce stade (MONETISATION_IMMO_ROADMAP.md §MI5).",
+    financementVide: "Aucun lead financement pour le moment.",
+    financementExporter: "Exporter en CSV",
+    financementColDate: "Date",
+    financementColAnnonce: "Annonce",
+    financementColContact: "Contact",
+    financementColMontant: "Montant souhaité",
+    financementColMessage: "Message",
   },
   // Tableau de bord founder — suivi d'adoption (ADMIN uniquement)
   analytics: {
@@ -1573,6 +1584,16 @@ export const fr = {
     envoye: "Votre demande a été transmise à l'annonceur.",
     envoyer: "Envoyer la demande",
     ouWhatsapp: "ou directement sur",
+  },
+  financement: {
+    titre: "Demander une simulation de financement",
+    sousTitre:
+      "Laissez vos coordonnées : un partenaire bancaire pourra vous recontacter pour étudier votre dossier.",
+    montantSouhaite: "Montant souhaité (TND)",
+    disclaimer:
+      "Darna ne calcule aucune mensualité ni taux — cette demande transmet vos coordonnées pour une étude personnalisée.",
+    envoyer: "Envoyer la demande",
+    envoye: "Votre demande de financement a été enregistrée.",
   },
   bail: {
     titre: "Contrat de bail à usage d'habitation",

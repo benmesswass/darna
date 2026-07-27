@@ -65,7 +65,8 @@ export function buildDashboardLinks(user: SessionUser, fr: Dictionary): NavItem[
     links.push(
       { href: "/dashboard/admin/wakils", label: fr.admin.navWakils, icon: "UsersIcon" },
       { href: "/dashboard/admin/signalements", label: fr.admin.navSignalements, icon: "ShieldIcon" },
-      { href: "/dashboard/admin/factures", label: fr.admin.navFactures, icon: "CoinsIcon" }
+      { href: "/dashboard/admin/factures", label: fr.admin.navFactures, icon: "CoinsIcon" },
+      { href: "/dashboard/admin/financement", label: fr.admin.navFinancement, icon: "BuildingIcon" }
     );
   }
 
