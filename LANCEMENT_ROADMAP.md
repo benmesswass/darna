@@ -42,6 +42,33 @@ maintenir ; l'effort bascule sur la mise en ligne. Exceptions : G6 (relance
 d'abandon) est intégrée ici (L3.3) car son blocage architectural est levé par
 ce chantier ; un bugfix sur l'existant reste toujours autorisé.
 
+## 💰 Modèle de paiement V1 — décisions actées (Wassim, 2026-07-27)
+
+Ces décisions sont **tranchées** — aucune session ne les rouvre (spec complète
+en §L5) :
+
+1. **Commission-only** : Darna n'encaisse en ligne QUE ses propres frais de
+   service — **10 % du loyer, ajoutés au-dessus du prix hôte** (l'hôte touche
+   100 % de son prix, en cash à l'arrivée). Aucun fonds de tiers ne transite
+   jamais par Darna → hors du champ des services de paiement (à confirmer W4).
+   Exemple : séjour 1 000 TND → voyageur paie 100 TND en ligne (confirmation
+   instantanée) + 1 000 TND cash à l'hôte ; Darna garde 100 TND.
+2. **Remboursement des frais** : FLEXIBLE = remboursables jusqu'à J-2 ·
+   MODÉRÉE = J-7 · STRICTE = non remboursables · **toujours 100 %** si
+   annulation hôte ou non-conformité signalée < 24 h après le check-in.
+3. **Garantie no-show hôte** : indemnité = **100 % des frais encaissés**,
+   plafonnée, versée sur le revenu propre de Darna (jamais l'argent du
+   voyageur).
+4. **Paiement 100 % en ligne (séquestre réel) = V2**, conditionné à l'avis
+   juridique W4 — les états `escrow` du schéma sont conservés inertes,
+   réactivables sans migration.
+5. **Voyageur 100 % cash (zéro paiement en ligne)** : c'est le Rail 2
+   existant (`SUR_PLACE`), inchangé — possible UNIQUEMENT si l'hôte l'a activé
+   (`cashPaymentEnabled`), avec acceptation manuelle de l'hôte + KYC CIN
+   vérifié, commission facturée à l'hôte a posteriori (`HostInvoice`). Pas
+   d'indemnité no-show sur ce rail (rien d'encaissé pour la financer ;
+   l'hôte l'a choisi en connaissance).
+
 ## ⛔ Bloqué sur Wassim (à débloquer en parallèle des tâches codables)
 
 | # | Action | Nécessaire pour | Détail |
@@ -49,7 +76,7 @@ ce chantier ; un bugfix sur l'existant reste toujours autorisé.
 | W1 | Créer les comptes : **Vercel** (app), **Neon** (PostgreSQL), **Upstash** (Redis), **Cloudflare R2** (S3), **Resend** (e-mail) — tous en free tier | L6 | Choix déjà tranchés, cf. L6.1. Renseigner les secrets dans Vercel (staging + prod), jamais dans le dépôt |
 | W2 | Domaine : viser `darna.tn` (registrar tunisien, délais) avec fallback `darna-immo.com`/`.co` si blocage | L6 | `SITE_URL` doit être définitif avant l'ouverture publique (SEO, HSTS, webhook Konnect) |
 | W3 | Décision : **rendre le dépôt public** (minutes Actions illimitées gratuites) ou rester privé | L2 | Recommandation AUDIT_V2 : public (aucun secret commité, `CREDENTIALS.md` gitignoré, atout crédibilité). L2 fonctionne dans les deux cas |
-| W4 | **Consultation avocat d'affaires tunisien** : (a) statut des fonds détenus pour compte de tiers / agrément BCT, (b) statut fiscal de la location saisonnière | L5 | La dépense au meilleur ROI du projet (AUDIT_V2 §R3). Quelques centaines de TND |
+| W4 | **Consultation avocat d'affaires tunisien** — périmètre mis à jour (modèle commission-only) : (a) confirmer que n'encaisser QUE ses propres frais + facturer la commission Rail 2 à l'hôte n'est PAS un service de paiement (loi 2016-48/BCT), (b) TVA sur les frais de service, (c) CGU : clauses remboursement des frais / garantie non-conformité / indemnité no-show / litige loyer bilatéral, (d) statut fiscal de la location saisonnière, (e) cadrage du futur séquestre V2 (agrément ou partenaire) | L5, V2 | La dépense au meilleur ROI du projet (AUDIT_V2 §R3). Quelques centaines de TND |
 | W5 | Clés **Turnstile réelles** (dashboard Cloudflare, widget Managed, gratuit) | L6 | Les clés de test actuelles valident tout et ne protègent RIEN (cf. TODO-PRODUCTION) |
 | W6 | Créer le projet **Google Cloud OAuth** (écran de consentement + client ID/secret) | L8 | Gratuit, 15 min. Le code L8 se développe et se teste avant avec des clés de dev |
 | W7 | **Terrain** : liste de 30 hôtes cibles (Hammamet–Nabeul–Sousse), premières vraies annonces, premier candidat Wakil | L10 | Le seul travail que le code ne peut pas faire — c'est l'actif défendable |
@@ -255,59 +282,164 @@ poser `OBSERVABILITY_WEBHOOK_URL` en staging/prod.
 
 ---
 
-## L5 — Vérité financière : séquestre honnête, payout manuel outillé (P0)
+## L5 — Bascule « commission-only » : Darna n'encaisse QUE ses frais (P0)
+
+> **Remplace l'ancien chantier « payout manuel outillé »** (décision Wassim du
+> 2026-07-27, cf. §Modèle de paiement en tête de fichier). Il n'y a PLUS de
+> payout du loyer à outiller : Darna ne détient plus jamais l'argent de
+> l'hôte. Ce chantier bascule le produit vers ce modèle, de bout en bout.
 
 | # | Tâche | Prio | Statut |
 |---|---|---|---|
-| L5.1 | Wording séquestre honnête (i18n ×3) | P0 | ❌ |
-| L5.2 | RIB hôte (chiffré) + écran admin « Versements & remboursements dus » | P0 | ❌ |
-| L5.3 | Runbook payout/remboursement manuel (`docs/RUNBOOK_PAIEMENTS.md`) | P0 | ❌ |
-| L5.4 | ⛔ W4 — avis juridique BCT + fiscal | P0 | ❌ 🧑 WASSIM |
+| L5.1 | Prix & paiement : frais 10 %, paiement en ligne = frais uniquement | P0 | ❌ |
+| L5.2 | Politiques d'annulation portées sur les FRAIS + écran admin « Remboursements dus » | P0 | ❌ |
+| L5.3 | Garantie non-conformité : signalement < 24 h → remboursement des frais | P0 | ❌ |
+| L5.4 | Garantie no-show hôte : indemnité 100 % des frais, plafonnée | P1 | ❌ |
+| L5.5 | Refonte wording : « zéro acompte au propriétaire » (i18n ×3 + e-mails + CGU + README) | P0 | ❌ |
+| L5.6 | ⛔ W4 — avis juridique (périmètre mis à jour, voir tableau ⛔) | P0 | ❌ 🧑 WASSIM |
 
-**Pourquoi (contexte complet pour session future)** : l'argent Konnect
-encaissé reste sur le wallet Darna ; `escrow="LIBERE"` est un flag sans
-virement ; l'API Konnect n'a AUCUN endpoint de payout ni de remboursement
-(vérifié — cf. CLAUDE.md §Paiement Konnect et §AHC8 : ne PAS coder de faux
-appel API). La promesse « votre argent est protégé » doit être tenue par un
-**process manuel réel, outillé et audité** — c'est crédible ; un séquestre
-automatique fictif ne l'est pas.
+**Contexte complet pour session future** : l'ancien modèle encaissait via
+Konnect un acompte `max(10 %, commission)` — donc de l'argent appartenant à
+l'hôte — sur le wallet Darna, sans API de virement sortant ni de
+remboursement (vérifié, cf. CLAUDE.md §AHC8 : ne jamais coder de faux appel).
+Détenir des fonds de tiers = services de paiement (loi 2016-48, BCT) = ce
+qu'on refuse d'être en V1. Le nouveau modèle supprime le problème à la
+racine : **chaque dinar encaissé en ligne appartient à Darna**. Le revenu ne
+change pas (Darna n'a jamais gagné plus que ses frais) ; il monte même de
+8 % → 10 %.
 
-**L5.1 — décisions tranchées** : partout où l'UI implique un virement
-automatique (page annonce, checkout, `/dashboard/revenus`, e-mails), passer au
-wording : « fonds conservés en sécurité par Darna, reversés à l'hôte sous
-24-48 h après le check-in ». C'est VRAI même en manuel. Ne pas retirer le mot
-« séquestre » (le concept est exact : fonds tenus par un tiers), retirer
-toute promesse de délai « instantané »/« automatique ».
+### L5.1 — Prix & paiement
 
-**L5.2 — décisions tranchées** :
-- Nouveau champ `User.payoutRib String?` — **chiffré au repos** via le même
-  mécanisme que la CIN (`src/lib/crypto.ts`, AES-256-GCM dès `KYC_ENC_KEY`),
-  saisi dans `/dashboard/profil` (hôtes/agences uniquement), jamais affiché en
-  clair sauf à l'admin sur l'écran ci-dessous. zod : 20 chiffres (RIB
-  tunisien), stocké normalisé sans espaces.
-- Nouveaux champs `Booking.payoutAt DateTime?` et `Booking.refundPaidAt
-  DateTime?` (horodatage du versement/remboursement MANUEL effectif —
-  distincts d'`escrow`, qui reste l'état logique).
-- Nouvelle page admin `/dashboard/admin/paiements` : (a) réservations
-  `escrow="EN_SEQUESTRE"` dont `checkIn` + 24 h est passé et `payoutAt` null
-  → montant dû à l'hôte = `amountPaid - serviceFee`, RIB déchiffré, bouton
-  « Marquer versé » (server action : pose `payoutAt` + `escrow="LIBERE"` +
-  AuditLog `PAYOUT_MARKED`) ; (b) réservations annulées avec `refundAmount`
-  non null et `refundPaidAt` null → bouton « Marquer remboursé » (idem,
-  `REFUND_MARKED`). Autorisation : ADMIN uniquement, revérifiée serveur.
-- La libération LAZY existante d'escrow (si elle existe dans le code) est
-  subordonnée à ce nouvel écran : vérifier comment `escrow` passe à `LIBERE`
-  aujourd'hui et faire de l'action admin la seule voie en mode Konnect réel
-  (en mode démo, le comportement actuel reste inchangé).
+**Décisions tranchées** :
+- `SERVICE_FEE_RATE` : `0.08` → `0.10` (`src/lib/config.ts`). Les frais
+  restent calculés sur le **subtotal** (loyer = nuitée × nuits, après promo
+  hôte éventuelle) et ajoutés AU-DESSUS — l'hôte touche 100 % de son prix.
+- `computeDepositAmount` retourne désormais **exactement `serviceFee`**
+  (supprimer le plancher `DEPOSIT_MIN_RATE` 10 % du total — c'est lui qui
+  créait la détention de fonds de tiers). `clampPayAmount` : le montant en
+  ligne devient FIXE = `serviceFee` (plus de choix « payer plus ») —
+  simplifier `DepositPayment.tsx` en conséquence (plus de curseur/choix de
+  montant : un seul montant affiché, les frais).
+- La confirmation reste **instantanée** au paiement des frais (comportement
+  actuel inchangé) ; le gating contact (`src/lib/contact-reveal.ts` :
+  CONFIRMEE + fin de fenêtre d'annulation gratuite) reste valable tel quel.
+- Les états `escrow` du schéma sont **conservés mais inertes** (aucune
+  suppression, aucun nouveau code dessus) — réactivables en V2. L'UI ne doit
+  plus jamais parler de « séquestre » (cf. L5.5). Le mode
+  `PAYMENT_MODE=demo` simule le paiement des FRAIS (plus un faux séquestre).
+- **Crédits & gestes commerciaux ne peuvent réduire QUE l'argent de Darna** :
+  `computeCreditApplication` (crédits CR1) et la réduction de re-réservation
+  (`rebooking-discount.ts`) doivent se replafonner sur `serviceFee` (jamais
+  sur le loyer, que Darna ne touche plus). Revoir `CREDIT_CHECKOUT_CAP_RATE`
+  en conséquence (le plafond 30 % du total n'a plus de sens — nouveau
+  plafond : 100 % des frais). Mettre à jour `CROISSANCE_ROADMAP.md` si des
+  montants y sont documentés.
+- Rail 2 `SUR_PLACE` : **inchangé** (acceptation hôte, KYC CIN,
+  `HostInvoice`). Seule évolution mécanique : la commission facturée à
+  l'hôte suit le nouveau taux de 10 %.
 
-**Tests** : chiffrement RIB, IDOR (un non-admin ne voit rien), idempotence du
-marquage, montants (payout = `amountPaid - serviceFee`, jamais négatif).
-QA_ROADMAP : ajouter la section « Payout manuel » (règle des surfaces
-sensibles).
+**Tests** : frais = 10 % du subtotal ; acompte = frais exactement ; clamp
+fixe ; crédits plafonnés aux frais ; réduction re-réservation plafonnée aux
+frais ; Rail 2 inchangé ; mise à jour des tests existants qui encodent 8 %
+ou l'acompte 10 %-du-total (`deposit.test.ts`, `bookings.test.ts`,
+`booking-credit-application.test.ts`…).
 
-**L5.3** : runbook pas-à-pas (fréquence quotidienne, réconciliation L3.2 à
-vérifier d'abord, virement bancaire depuis le compte Darna, marquage dans
-l'admin, que faire en cas d'écart). Public : Wassim en tant qu'opérateur.
+### L5.2 — Annulation & remboursements (sur les frais)
+
+**Décisions tranchées** : les politiques portent désormais sur les FRAIS
+(le loyer n'étant jamais versé d'avance, il n'y a plus rien d'autre à
+rembourser) : FLEXIBLE = frais remboursés à 100 % jusqu'à J-2 avant
+check-in · MODÉRÉE = J-7 · STRICTE = non remboursables · annulation HÔTE =
+toujours 100 % (+ mécanismes AH existants inchangés : blocage d'annonce,
+réduction re-réservation, relogement). Adapter `src/lib/cancellation.ts`
+(les fenêtres existent déjà — c'est l'assiette qui change :
+`refundAmount` = part des frais, jamais du loyer).
+
+Comme l'API Konnect n'a pas de remboursement programmatique, le
+remboursement des frais reste un **virement manuel de l'argent de Darna** :
+nouvelle page admin `/dashboard/admin/remboursements` listant les
+réservations avec `refundAmount` non null et `refundPaidAt` null (nouveau
+champ `Booking.refundPaidAt DateTime?`), bouton « Marquer remboursé »
+(server action ADMIN-only, AuditLog `REFUND_MARKED`, idempotente).
+Alternative à privilégier quand le voyageur a un compte actif : proposer le
+remboursement **en crédits Darna** (ledger `CreditWallet` existant, motif
+`REMBOURSEMENT_RESERVATION_ANNULEE` déjà défini) — instantané, zéro
+virement ; le virement manuel reste le fallback si le voyageur le demande.
+
+**Tests** : fenêtres par politique ; assiette = frais ; idempotence du
+marquage ; IDOR ; crédit vs virement. QA_ROADMAP : section « Remboursement
+des frais » (règle des surfaces sensibles).
+
+### L5.3 — Garantie non-conformité (la promesse de confiance V1)
+
+**Décisions tranchées** : bouton « Signaler un problème à l'arrivée » sur la
+réservation, disponible de `checkIn` à `checkIn + 24 h`, réservé au voyageur
+de la réservation (authz serveur) : motif libre + catégorie (zod), un seul
+signalement par réservation. Le signalement N'EST PAS un remboursement
+automatique : il ouvre un dossier visible dans l'admin (statut
+RECU/VALIDE/REJETE), l'admin valide → `refundAmount` = 100 % des frais →
+circuit L5.2. Notification hôte + voyageur (types existants du centre de
+notifications). Émettre le `ProductEvent` correspondant (discipline IN4).
+Darna n'arbitre QUE ses propres frais (exposition max = 10 % du séjour) —
+le litige sur le loyer reste bilatéral hôte↔voyageur (CGU, cf. L5.5).
+
+**Tests** : fenêtre 24 h ; unicité ; IDOR ; flux admin ; audit.
+
+### L5.4 — Garantie no-show hôte (P1 — peut suivre le lancement de peu)
+
+**Décisions tranchées** : si le voyageur ne se présente pas (réservation
+CONFIRMEE, non annulée, no-show déclaré par l'hôte entre `checkIn` et
+`checkIn + 48 h`, un seul par réservation), Darna verse à l'hôte une
+indemnité = **100 % des frais encaissés** sur cette réservation — sur le
+REVENU PROPRE de Darna (jamais un transfert de l'argent du voyageur : c'est
+ce qui rend le mécanisme légalement anodin, c'est une indemnité
+contractuelle). **Plafond anti-abus : 3 indemnités par hôte par mois
+glissant** (constante, provisoire — à ajuster sur données réelles).
+Versement par défaut **en crédits Darna** (`CreditWallet`, nouveau motif
+`INDEMNITE_NO_SHOW` à ajouter à `CREDIT_TRANSACTION_MOTIFS`, dépensables sur
+boost/vérifications/abonnement — la dépense côté hôte existe déjà, motif
+`UTILISATION_SERVICE_HOTE`) ; virement manuel en option sur demande. Le
+no-show déclaré alimente la suspension progressive voyageur existante
+(`BOOKING_NO_SHOW` est déjà un motif de `SuspensionReason`). Frais du
+voyageur non remboursés dans ce cas (cohérent L5.2).
+
+**Tests** : fenêtre ; unicité ; plafond mensuel ; crédit émis via
+`issueCredit` (atomique, ledger) ; suspension voyageur ; IDOR.
+
+### L5.5 — Refonte wording : « Zéro acompte au propriétaire »
+
+**Pourquoi** : `src/lib/i18n/fr.ts` promet aujourd'hui la garde des fonds
+(« Votre argent est protégé » l.31, « Darna le conserve … et ne le verse à
+l'hôte qu'après votre départ » l.1247, « bloqué en séquestre » l.1300,
+e-mails l.989/1017, blocs confiance l.67-69, 536, 580, 1245-1252, 1266,
+1339, 1394, 1690, 1801…). TOUT ce champ lexical doit disparaître — il décrit
+le modèle V2, pas la V1 — au profit de la nouvelle promesse, qui est le
+message anti-arnaque le plus radical du marché :
+
+> **« Ne versez jamais d'acompte à un propriétaire. Sur Darna, vous ne payez
+> en ligne que les frais de réservation — remboursés si l'annonce n'est pas
+> conforme. Le séjour se règle sur place, dans un logement vérifié
+> physiquement, auprès d'un hôte à l'identité vérifiée. »**
+
+**Étapes** : hero home (« Votre argent est protégé » → « Zéro acompte au
+propriétaire ») ; blocs confiance ; checkout (« frais de service, seul
+paiement en ligne — le séjour se règle sur place ») ; e-mails de
+confirmation ; dashboard hôte (« le voyageur a payé les frais Darna, il
+vous règle à l'arrivée ; garantie no-show incluse ») ; CGU (les clauses
+« mise en relation »/« intermédiaire » l.1780/1813 deviennent VRAIES —
+ajouter les clauses : remboursement des frais, garantie non-conformité,
+indemnité no-show, litige loyer bilatéral) ; page `/diaspora` (l.1690 :
+retirer la promesse séquestre, la remplacer par « vous ne risquez que les
+frais » + mention V2 à venir) ; `README.md` §Limites ; **les trois
+dictionnaires** (`fr`/`en`/`ar`), captures avant/après des pages touchées.
+`aucunFraisCache` (« Aucun autre frais ne vous sera demandé. Jamais. »)
+reste vrai et doit rester affiché — le total sur place est annoncé dès le
+récap.
+
+**Ne PAS faire** : garder un seul écran qui parle encore de séquestre/fonds
+conservés (grep exhaustif `séquestre|sequestre|protégé|conserve` sur les 3
+dictionnaires en fin de tâche) ; toucher aux clés `metadata`/SEO autrement
+que via `frMeta` (convention projet).
 
 ---
 
@@ -502,8 +634,8 @@ montrer à un hôte : simulateur de revenus, vérification gratuite au lancement
 
 ## Récapitulatif des priorités
 
-- **P0 (conditionnent la mise en ligne)** : L1 → L2 → L3.1/L3.2 → L5.1/L5.2/L5.3 → L6 (+ W1-W5)
-- **P1 (avant de vrais utilisateurs)** : L3.3 → L4 → L7 → L8 → L10.1/L10.2 (+ W4 impérativement avant tout argent réel)
+- **P0 (conditionnent la mise en ligne)** : L1 → L2 → L3.1/L3.2 → L5.1/L5.2/L5.3/L5.5 → L6 (+ W1-W5)
+- **P1 (avant de vrais utilisateurs)** : L3.3 → L4 → L5.4 → L7 → L8 → L10.1/L10.2 (+ W4 impérativement avant tout argent réel)
 - **P2 (avant campagne d'acquisition)** : L3.4 → L9
 
 ## Pointeur de continuation

@@ -77,6 +77,15 @@ comptables (l'API Konnect n'a AUCUN endpoint de remboursement — vérifié,
 cf. CLAUDE.md §AHC8). Question d'agrément BCT (fonds de tiers) non traitée.
 La promesse centrale « votre argent est protégé » n'est pas tenue par le flux
 financier. Risque existentiel dès le premier dinar réel.
+**→ TRANCHÉ le 2026-07-27 (session avec Wassim)** : modèle
+**« commission-only »** en V1 — Darna n'encaisse en ligne que ses frais
+(10 % du loyer, au-dessus du prix hôte), le loyer se règle 100 % sur place,
+zéro fonds de tiers ; garanties de confiance sans détention d'argent
+(remboursement des frais par politique, garantie non-conformité 24 h,
+indemnité no-show hôte = 100 % des frais plafonnée, pénalités d'annulation
+hôte déjà codées) ; le séquestre/paiement intégral en ligne devient la **V2**,
+conditionnée à l'avis juridique. Spec exécutable : `LANCEMENT_ROADMAP.md`
+§« Modèle de paiement V1 » + §L5.
 
 **R4 — CI.** Quota Actions épuisé le 22/07, `ci.yml` en dispatch-only, rituel
 de checks manuels par merge (~20 min) qui sera sauté. Cause racine non résolue :

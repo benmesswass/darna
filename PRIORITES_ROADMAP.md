@@ -50,7 +50,7 @@ ligne G9 par `✅ Voir CR0-CR2 (CROISSANCE_ROADMAP.md)`.
 
 | Item | Roadmap | Attend |
 |---|---|---|
-| **PSP9** | `PAIEMENT_SUR_PLACE_ROADMAP.md` | Ton arbitrage tarification en ligne/sur place — corrigé le 2026-07-24 : PR #157 (mergée) n'a documenté QUE la question ouverte, aucun code PSP9 n'existe, rien à merger — tout reste à écrire une fois l'arbitrage tranché |
+| **PSP9** | `PAIEMENT_SUR_PLACE_ROADMAP.md` | Ton arbitrage tarification en ligne/sur place — corrigé le 2026-07-24 : PR #157 (mergée) n'a documenté QUE la question ouverte, aucun code PSP9 n'existe, rien à merger. **Recadré le 2026-07-27 par le modèle commission-only (`LANCEMENT_ROADMAP.md` §L5)** : les deux rails coûtent désormais le même total au voyageur (frais 10 % payés en ligne en rail standard, facturés à l'hôte en Rail 2) et le no-show est traité par l'indemnité L5.4 — PSP9 est probablement **sans objet** ; à requalifier (ou clore) après livraison de L5 |
 | **MI5** | `MONETISATION_IMMO_ROADMAP.md` | Partenariat bancaire externe non signé pour la monétisation réelle (commission) — le lead-capture est fait (✅ PR #197, mode orchestration autonome `/loop`, chantier indépendant), reste bloqué uniquement pour brancher un vrai partenaire |
 
 ## 🔧 Dette dépendances (ni bloqué sur toi, ni du code produit)
