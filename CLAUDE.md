@@ -52,12 +52,14 @@ Par défaut, le point 5 de « Workflow PR » ci-dessus s'applique **intégraleme
 - Server Actions plutôt qu'API routes. Leaflet uniquement en import dynamique `ssr: false`.
 - « Enums » String contraints par `src/lib/constants.ts` + zod (héritage SQLite, conservé pour la souplesse).
 - Sécurité ajoutée : CSP par nonce (`src/middleware.ts`), audit trail (`src/lib/audit.ts` + modèle `AuditLog`), réservations EN_ATTENTE expirant à 15 min, transaction anti double-réservation.
+- **Scheduler (amendement du 2026-07-27, `LANCEMENT_ROADMAP.md` §L3.1)** : **zéro cron pour l'ÉTAT** (lazy-expiry conservée partout — `expiresAt`, `featuredUntil`, `promoUntil`, crédits FIFO, retard de facture dérivé — NE JAMAIS réécrire ces mécanismes en jobs), **un scheduler pour les ACTIONS SORTANTES** (e-mail/notification, comparaison avec un système externe type Konnect, purge). Véhicule : Vercel Cron → `/api/jobs/tick` (`vercel.json`, toutes les 15 min), protégé par `CRON_SECRET`. Chaque job = fonction pure idempotente enregistrée dans `src/lib/jobs/runner.ts`.
 
 ## Fichiers clés (carte des composants)
 
 - **Carte / map (Leaflet)** : `src/components/map/PropertyMap.tsx` (wrapper, import dynamique `ssr: false`) → `src/components/map/MapInner.tsx` (rendu réel). C'est *la carte*.
 - **Carte annonce / vignette** : `src/components/property/PropertyCard.tsx`.
 - Géo & translittération villes : `src/lib/geo.ts` (`resolveCity()`). Constantes/« enums » : `src/lib/constants.ts`. CSP nonce : `src/middleware.ts`. Audit : `src/lib/audit.ts`.
+- Scheduler : `src/app/api/jobs/tick/route.ts` (endpoint appelé par Vercel Cron) → `src/lib/jobs/runner.ts` (registre + exécution isolée par job) → `src/lib/jobs/<nom>.ts` (un fichier par job).
 - i18n : `src/lib/i18n/server.ts` (`getT`), `src/components/i18n/LocaleProvider.tsx` (`useT`), dictionnaires `src/lib/i18n/{fr,en,ar}.ts`.
 - Navigation flottante précédent/suivant (site entier) : `src/components/layout/HistoryNav.tsx`, ancrée `fixed bottom-4 start-4` — délibérément **jamais en haut** (une position en haut chevauche systématiquement le H1 des pages). **Règle durable** : avant d'ajouter/déplacer un contrôle flottant (`fixed`/`sticky`), vérifier qu'il ne recouvre aucun texte ni aucun autre bouton sur les pages concernées (capture d'écran à l'appui) — un seul autre élément flotte en bas sur le site, `MessagesNotifier` (`bottom-4 end-4`), garder les deux sur des côtés opposés.
 

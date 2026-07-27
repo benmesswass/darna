@@ -95,6 +95,12 @@ const envSchema = z
     // Observabilité erreurs : POST opt-in des exceptions (cf. src/lib/observability.ts).
     OBSERVABILITY_WEBHOOK_URL: z.string().url().optional(),
 
+    // L3.1 (LANCEMENT_ROADMAP.md) — secret du endpoint /api/jobs/tick (Vercel
+    // Cron envoie `Authorization: Bearer ${CRON_SECRET}` automatiquement quand
+    // la variable existe). Requis (boot fail-fast) dès qu'un mode réel est
+    // actif — cf. superRefine ci-dessous.
+    CRON_SECRET: z.string().min(32, "CRON_SECRET doit faire au moins 32 caractères").optional(),
+
     // CAPTCHA anti-robot : absent/"off" (aucun, défaut) | "turnstile" (Cloudflare).
     CAPTCHA_MODE: z.enum(["off", "turnstile"]).optional(),
     // Requis si CAPTCHA_MODE=turnstile (cf. superRefine). La site key est publique.
@@ -211,6 +217,16 @@ const envSchema = z
         code: z.ZodIssueCode.custom,
         message:
           "CAPTCHA_MODE=turnstile requiert TURNSTILE_SECRET_KEY et NEXT_PUBLIC_TURNSTILE_SITE_KEY.",
+      });
+    }
+
+    // L3.1 — scheduler : secret obligatoire dès qu'un mode réel est actif
+    // (sinon /api/jobs/tick tournerait à découvert en prod réelle).
+    if (anyRealMode && !e.CRON_SECRET) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "Un mode réel actif (PAYMENT_MODE=konnect / KYC_MODE=production / STORAGE_MODE=s3) requiert CRON_SECRET (protège /api/jobs/tick).",
       });
     }
 
