@@ -1416,6 +1416,8 @@ export const en: Dictionary = {
       `You received a new booking for “${titre}”.`,
     annonceIncomplete: (titre: string) =>
       `Your listing "${titre}" still has boxes to check — complete it to convert better.`,
+    annoncePromoSuggeree: (titre: string) =>
+      `“${titre}” has empty nights coming up in the next few weeks — compare your price to the city average: a short-term promo could be enough to sell one more night.`,
   },
   alaUne: {
     titre: "Feature your listing",
