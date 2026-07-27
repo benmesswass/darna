@@ -22,6 +22,21 @@
   source (même règle que le reste du projet) — sinon ce fichier dérive et
   devient trompeur pour la prochaine session qui le lit.
 
+## 🚀 CHANTIER PRIORITAIRE ACTIF — `LANCEMENT_ROADMAP.md` (2026-07-27)
+
+**Décision Wassim du 2026-07-27** (audit CTO complet : `AUDIT_V2.md`) : la
+priorité absolue passe à la **mise en production de la V1** —
+`LANCEMENT_ROADMAP.md` (infra, CI, scheduler, vérité financière, monitoring,
+RGPD, onboarding, mobile, GTM). **« suivant » / « enchaîne » = première tâche
+non cochée de `LANCEMENT_ROADMAP.md` (ordre L1 → L10)**, avant toute autre
+roadmap.
+
+**🧊 Gel des features growth** tant que ce chantier n'est pas clos : les
+vagues 4-5 ci-dessous (PM2, PM3, CR5, G7, CR6, fin de CR2) sont **suspendues**
+— y compris en mode orchestration autonome. Exceptions : G6 est intégrée au
+chantier lancement (§L3.3) ; bugfix sur l'existant toujours autorisé. Le dégel
+se fait via le pointeur de continuation en fin de `LANCEMENT_ROADMAP.md`.
+
 ## 🔔 Correction apportée avant priorisation
 
 **Doublon G9 / CR0-CR2.** `GROWTH_ROADMAP.md` (G9, parrainage bidirectionnel)

@@ -1,0 +1,524 @@
+# Darna — Roadmap LANCEMENT : de la démo locale à la première production
+
+> **Chantier actif prioritaire** (décision Wassim du 2026-07-27, sur la base
+> d'`AUDIT_V2.md`). Objectif : une première version de démonstration **en
+> production réelle** — solide, crédible, démontrable — en maximisant l'impact
+> à temps de dev limité.
+>
+> **Ce fichier est autoporteur.** Il est écrit pour qu'une session Claude
+> future (y compris avec un modèle moins capable) puisse exécuter chaque tâche
+> **sans relire l'audit ni ré-arbitrer les choix** : chaque tâche liste le
+> pourquoi, les décisions DÉJÀ TRANCHÉES (ne pas les rouvrir), les fichiers
+> concernés, les étapes, ce qu'il ne faut PAS faire, et les critères
+> d'acceptation. En cas de doute réel non couvert ici : s'arrêter et demander
+> à Wassim (règle « coup d'arrêt » de CLAUDE.md), ne jamais improviser sur le
+> paiement, la sécurité ou le schéma.
+
+## Comment utiliser ce fichier
+
+- Une tâche = une session = une PR (mêmes conventions que les autres
+  roadmaps : branche feature, jamais de push sur `main`, rapport de test +
+  captures Playwright pour toute tâche UI, bloc « Comment tester », i18n dans
+  les TROIS dictionnaires, mise à jour de `QA_ROADMAP.md` si une surface
+  sensible change, et cocher ✅ ici + noter la PR **dans la même PR**).
+- **Ordre d'exécution = ordre des sections L1 → L10.** Les tâches d'une même
+  section s'enchaînent une par une. « suivant » / « enchaîne » sur ce chantier
+  = première tâche non cochée dans l'ordre.
+- Les items marqués **🧑 WASSIM** demandent une action humaine (création de
+  compte, paiement, terrain, juridique) : Claude prépare tout ce qui est
+  préparable (docs, scripts, code), signale précisément quoi faire, et passe à
+  la tâche codable suivante sans bloquer.
+- Priorités : `P0` (conditionne la mise en ligne) · `P1` (avant ouverture à de
+  vrais utilisateurs) · `P2` (avant toute campagne d'acquisition).
+
+## 🧊 GEL DES FEATURES GROWTH (décision actée, 2026-07-27)
+
+**Tant que ce chantier n'est pas clos**, aucune nouvelle tâche des vagues 4-5
+de `PRIORITES_ROADMAP.md` (PM2, PM3, CR5, G7, CR6, fin de CR2) ni aucune
+feature produit hors de ce fichier ne doit être lancée — y compris en mode
+orchestration autonome. Raison (AUDIT_V2 §R2) : chaque feature growth
+construite sans utilisateur réel est invérifiable et ajoute de la surface à
+maintenir ; l'effort bascule sur la mise en ligne. Exceptions : G6 (relance
+d'abandon) est intégrée ici (L3.3) car son blocage architectural est levé par
+ce chantier ; un bugfix sur l'existant reste toujours autorisé.
+
+## ⛔ Bloqué sur Wassim (à débloquer en parallèle des tâches codables)
+
+| # | Action | Nécessaire pour | Détail |
+|---|---|---|---|
+| W1 | Créer les comptes : **Vercel** (app), **Neon** (PostgreSQL), **Upstash** (Redis), **Cloudflare R2** (S3), **Resend** (e-mail) — tous en free tier | L6 | Choix déjà tranchés, cf. L6.1. Renseigner les secrets dans Vercel (staging + prod), jamais dans le dépôt |
+| W2 | Domaine : viser `darna.tn` (registrar tunisien, délais) avec fallback `darna-immo.com`/`.co` si blocage | L6 | `SITE_URL` doit être définitif avant l'ouverture publique (SEO, HSTS, webhook Konnect) |
+| W3 | Décision : **rendre le dépôt public** (minutes Actions illimitées gratuites) ou rester privé | L2 | Recommandation AUDIT_V2 : public (aucun secret commité, `CREDENTIALS.md` gitignoré, atout crédibilité). L2 fonctionne dans les deux cas |
+| W4 | **Consultation avocat d'affaires tunisien** : (a) statut des fonds détenus pour compte de tiers / agrément BCT, (b) statut fiscal de la location saisonnière | L5 | La dépense au meilleur ROI du projet (AUDIT_V2 §R3). Quelques centaines de TND |
+| W5 | Clés **Turnstile réelles** (dashboard Cloudflare, widget Managed, gratuit) | L6 | Les clés de test actuelles valident tout et ne protègent RIEN (cf. TODO-PRODUCTION) |
+| W6 | Créer le projet **Google Cloud OAuth** (écran de consentement + client ID/secret) | L8 | Gratuit, 15 min. Le code L8 se développe et se teste avant avec des clés de dev |
+| W7 | **Terrain** : liste de 30 hôtes cibles (Hammamet–Nabeul–Sousse), premières vraies annonces, premier candidat Wakil | L10 | Le seul travail que le code ne peut pas faire — c'est l'actif défendable |
+| W8 | Créer le projet **Sentry** (free tier) et fournir le DSN | L4 | Le code L4 se prépare avant, s'active dès le DSN posé |
+
+---
+
+## L1 — Vérité documentaire (P0 — quick win, à faire en premier)
+
+| # | Tâche | Prio | Statut |
+|---|---|---|---|
+| L1.1 | Réécrire `README.md` pour refléter le produit réel | P0 | ✅ PR d'ouverture du chantier |
+| L1.2 | Bandeau de péremption sur `AUDIT_V1.md` (✅ PR d'ouverture) + archivage des roadmaps closes dans `docs/archive/` (❌) | P0 | 🔧 partiel |
+
+### L1.1 — README
+
+**Pourquoi** : le README actuel annonce « Prisma + SQLite », « interface en
+français uniquement », « photos placeholders », « aucune clé API » — tout est
+périmé et **sous-vend** le produit. C'est le document le plus lu par un tiers
+(investisseur, candidat, partenaire).
+
+**Étapes** : réécrire `README.md` : stack réelle (Next.js 15, TypeScript
+strict, Tailwind 4, Prisma/**PostgreSQL**, NextAuth, zod, Redis optionnel,
+Konnect optionnel, S3 optionnel, trilingue FR/EN/AR RTL) ; fonctionnalités
+réelles (messagerie, annulations, paiement sur place, monétisation,
+crédits, instrumentation, dashboards admin) ; limites honnêtes (payout
+manuel — cf. L5, EUR statique, KYC sans provider doc) ; lancement local
+inchangé ; lien démo en ligne dès que L6 est fait. Garder le tableau
+positionnement (il est bon). **Ne PAS** : inventer des features, promettre un
+séquestre automatique.
+
+**Acceptation** : plus aucune mention de SQLite / « français uniquement » /
+« aucune clé API » ; un lecteur externe comprend l'état réel en 3 minutes.
+
+### L1.2 — Archivage
+
+**Étapes** : (a) bandeau en tête d'`AUDIT_V1.md` : « ⚠️ État au 2026-06-24,
+largement dépassé — voir `AUDIT_V2.md` » ; (b) créer `docs/archive/`, y
+déplacer les roadmaps 100 % closes (`ANNULATION_HOTE_ROADMAP.md`,
+`ANNULATION_HOTE_CORRECTIFS_ROADMAP.md`, `FEATURES_ROADMAP.md`,
+`DESIGN_ROADMAP.md`, `INSTRUMENTATION_ROADMAP.md`) avec un en-tête « clos
+le … » ; (c) corriger toute référence cassée (grep les noms de fichiers dans
+`*.md` et `CLAUDE.md`). **Ne PAS** archiver `QA_ROADMAP.md`,
+`TODO-BETA/PRODUCTION` (vivants), ni les roadmaps avec items ouverts
+(GROWTH, CROISSANCE, PAIEMENT_SUR_PLACE, MONETISATION_IMMO,
+TEST_AUTOMATION). Mettre à jour les chemins dans `CLAUDE.md` (§Roadmaps).
+
+---
+
+## L2 — CI de nouveau automatique (P0)
+
+| # | Tâche | Prio | Statut |
+|---|---|---|---|
+| L2.1 | Pyramide de jobs CI (rapide sur push, lourd à la demande, sécurité en nightly) | P0 | ❌ |
+
+**Pourquoi** : quota Actions épuisé le 22/07 → `ci.yml` en dispatch-only →
+le filet de tests ne protège plus (rituel manuel de ~20 min/merge, qui sera
+sauté). Même après le reset du 31/07, l'ancien découpage re-brûlera le quota
+en 3 semaines. Le mode orchestration autonome N'EST PAS sain sans CI.
+
+**Décisions tranchées** :
+- **Niveau 1 (chaque push/PR)** : un job `fast` = `npm run lint` +
+  `npx tsc --noEmit` + `vitest run` (sans coverage) — cible < 5 min avec
+  cache npm (`actions/setup-node` + `cache: npm`).
+- **Niveau 2 (avant merge)** : job `full` = coverage + build + audit + e2e +
+  api — déclenché par `workflow_dispatch` OU par le label de PR
+  `ready-to-merge` (`pull_request: types: [labeled]` + condition sur le nom
+  du label). La règle de merge devient : merge uniquement si `fast` ET `full`
+  verts sur le commit de tête.
+- **Niveau 3 (nightly, `schedule: cron "0 3 * * *"`)** : semgrep + ZAP
+  baseline + k6 smoke — sur `main` uniquement.
+- `paths-ignore: ["**/*.md", "docs/**"]` sur les niveaux 1-2 (une grosse part
+  des PR du projet sont des PR de roadmap : zéro CI consommée pour ça).
+- Budget : ~4 min × pushes + full à la demande ≈ tenable sous 2000 min/mois
+  même en privé. Si W3 = dépôt public : minutes illimitées, garder quand même
+  la pyramide (vitesse de feedback).
+
+**Fichiers** : `.github/workflows/ci.yml` (refonte), `zap-baseline.yml` et
+`perf.yml` (fusion dans le nightly ou déclencheur schedule), `CLAUDE.md`
+(remplacer la section « ⏳ Exception temporaire CI » par le nouveau
+fonctionnement — elle est caduque dès L2.1 mergée).
+
+**Ne PAS faire** : supprimer des tests pour aller plus vite ; réactiver
+build+e2e sur chaque push ; laisser la section CI temporaire dans CLAUDE.md.
+
+**Acceptation** : un push de branche déclenche `fast` automatiquement ; un
+label `ready-to-merge` déclenche `full` ; le nightly existe ; CLAUDE.md à jour.
+
+---
+
+## L3 — Socle scheduler + premiers jobs (P0 — prérequis de L4, L5, L7)
+
+| # | Tâche | Prio | Statut |
+|---|---|---|---|
+| L3.1 | Socle `/api/jobs/tick` (Vercel Cron, secret, idempotence, audit) | P0 | ❌ |
+| L3.2 | Job : réconciliation Konnect↔local | P0 | ❌ |
+| L3.3 | Job : relance de réservation abandonnée (G6, GROWTH_ROADMAP) | P1 | ❌ |
+| L3.4 | Job : rappels automatiques de factures hôte (PSP5) | P2 | ❌ |
+
+### L3.1 — Socle
+
+**Pourquoi / décision d'architecture actée** : le principe « zéro cron » du
+projet est AMENDÉ (décision 2026-07-27) en : **« zéro cron pour l'ÉTAT
+(lazy-expiry conservée partout), un scheduler pour les ACTIONS SORTANTES »**
+(envoyer un e-mail/notification, comparer avec un système externe, purger des
+lignes). La lazy-expiry existante (`expiresAt`, `featuredUntil`, `promoUntil`,
+crédits FIFO, retard de facture dérivé) ne change PAS et ne doit PAS être
+réécrite en jobs. Documenter cet amendement dans `CLAUDE.md` (§Stack et
+contraintes) dans la même PR — sinon une session future « corrigera » le
+scheduler en croyant appliquer la convention.
+
+**Décisions tranchées** :
+- Véhicule : **Vercel Cron** (gratuit, inclus hobby) → `vercel.json` avec
+  `{"crons": [{"path": "/api/jobs/tick", "schedule": "*/15 * * * *"}]}`.
+- Route `src/app/api/jobs/tick/route.ts` (GET) protégée par
+  `CRON_SECRET` (env, validé par `src/lib/env.ts` fail-fast si un mode réel
+  est actif ; Vercel envoie `Authorization: Bearer ${CRON_SECRET}`
+  automatiquement quand la variable existe). 401 sinon. En dev/local : appel
+  manuel `curl` (documenter dans `.env.example`).
+- Chaque job = fonction pure dans `src/lib/jobs/<nom>.ts`, **idempotente**
+  (rejouable sans double effet — même discipline que les settlements),
+  résultat loggé via `logStructured` + `AuditLog` (action `JOB_TICK`), erreurs
+  attrapées job par job (un job qui échoue n'empêche pas les autres).
+- Pas de verrou distribué au départ (le cron Vercel ne se chevauche pas à
+  15 min pour des jobs de quelques secondes) — noter dans le code que si un
+  job devient long, ajouter un verrou Redis `SET NX PX`.
+
+**Tests** : unitaires par job (idempotence = appeler deux fois, vérifier un
+seul effet) + test du 401 sans secret.
+
+### L3.2 — Réconciliation Konnect
+
+**Pourquoi** : TODO-PRODUCTION « Reconciliation job: detect Konnect↔local
+state drift; alert; never silent loss » — c'est la garantie « zéro perte de
+fonds » de la promesse séquestre.
+
+**Étapes** : pour chaque `Booking`/`HostInvoice`/`FeaturedOrder`/
+`Subscription`/`VerificationCreditOrder` avec `paymentRef` non null et statut
+local encore en attente depuis > 30 min : appeler `getKonnectPayment()` ; si
+Konnect dit « payé » mais local dit « en attente » → appeler le settlement
+idempotent existant correspondant (`settleKonnectBooking`,
+`settleFeaturedOrder`, etc.) et logger `warn` (drift rattrapé) ; si
+impossible à régler → alerte via `notifyObservability`
+(`src/lib/observability.ts`). Ne JAMAIS marquer payé sans revérification du
+montant (les settlements existants le font déjà — les réutiliser, ne pas
+réécrire).
+
+**Ne PAS faire** : de nouveau code de règlement ; toucher aux webhooks.
+
+### L3.3 — Relance d'abandon (G6)
+
+**Pourquoi** : P1 de `GROWTH_ROADMAP.md`, gelé sur l'arbitrage « zéro cron »
+— levé par L3.1. Levier de conversion le plus documenté du secteur.
+
+**Étapes** : job qui sélectionne les `Booking` `status="EN_ATTENTE"` avec
+`expiresAt` dépassé depuis < 24 h, sans relance déjà envoyée → une
+`Notification` in-app (nouveau type `RESERVATION_ABANDONNEE`, index unique
+partiel comme les types existants, cf. commentaire du modèle `Notification`)
++ e-mail via `src/lib/mailer.ts` avec lien direct vers l'annonce. Marquage
+anti-double-envoi : l'existence de la Notification du type pour ce
+`href`/booking SUFFIT (pas de nouveau champ sur Booking). i18n ×3. Émettre le
+`ProductEvent` `BOOKING_ABANDON_REMINDED` (discipline IN4).
+KPI (mesure ultérieure) : reprise après relance via `BOOKING_STARTED`/
+`BOOKING_CREATED` existants. Cocher G6 dans `GROWTH_ROADMAP.md` (même PR).
+
+### L3.4 — Rappels factures (PSP5)
+
+Job : `HostInvoice` `EN_ATTENTE` avec `dueAt` proche (< 3 j) ou dépassé →
+notifications `FACTURE_BIENTOT_DUE`/`FACTURE_EN_RETARD` (types et index
+uniques partiels EXISTENT déjà, migration `20260707170000…` — le job ne fait
+que déclencher ce que la lecture paresseuse déclenchait au petit bonheur).
+Cocher la partie « relances automatiques » de PSP5 dans
+`PAIEMENT_SUR_PLACE_ROADMAP.md`.
+
+---
+
+## L4 — Monitoring & observabilité de production (P1)
+
+| # | Tâche | Prio | Statut |
+|---|---|---|---|
+| L4.1 | Endpoint `/api/health` + monitoring d'uptime | P1 | ❌ |
+| L4.2 | Sentry (erreurs serveur + client) compatible CSP nonce | P1 | ❌ (code préparable ; activation ⛔ W8) |
+| L4.3 | Alertes métier via `OBSERVABILITY_WEBHOOK_URL` | P1 | ❌ |
+
+**L4.1** : route GET `src/app/api/health/route.ts` → `{ ok, db, redis, mode }`
+(un `SELECT 1` Prisma, un `PING` Redis si configuré, le mode paiement actif —
+JAMAIS de secret ni de version détaillée dans la réponse). 🧑 WASSIM :
+brancher UptimeRobot/Better Stack (free) sur `/` et `/api/health`, alerte
+e-mail/Telegram.
+
+**L4.2 — décisions tranchées** : `@sentry/nextjs`, activé seulement si
+`SENTRY_DSN` défini (défaut démo sûr, comme tous les modes) ; utiliser
+`tunnelRoute` (proxy first-party, ex. `/monitoring`) pour rester compatible
+CSP par nonce et adblockers — NE PAS élargir la CSP à des domaines tiers si le
+tunnel suffit ; `tracesSampleRate: 0.1` max (free tier) ; scrubber : jamais de
+CIN/e-mail/téléphone dans les breadcrumbs (configurer `beforeSend`).
+
+**L4.3** : brancher `notifyObservability` sur les événements critiques s'il ne
+l'est pas déjà : `konnect.webhook_bad_signature`, échec de settlement, spike
+d'échecs de connexion (compteur fenêtré simple via rate-limit lib), échec d'un
+job L3. 🧑 WASSIM : créer le webhook (canal Telegram/Slack/Discord perso) et
+poser `OBSERVABILITY_WEBHOOK_URL` en staging/prod.
+
+---
+
+## L5 — Vérité financière : séquestre honnête, payout manuel outillé (P0)
+
+| # | Tâche | Prio | Statut |
+|---|---|---|---|
+| L5.1 | Wording séquestre honnête (i18n ×3) | P0 | ❌ |
+| L5.2 | RIB hôte (chiffré) + écran admin « Versements & remboursements dus » | P0 | ❌ |
+| L5.3 | Runbook payout/remboursement manuel (`docs/RUNBOOK_PAIEMENTS.md`) | P0 | ❌ |
+| L5.4 | ⛔ W4 — avis juridique BCT + fiscal | P0 | ❌ 🧑 WASSIM |
+
+**Pourquoi (contexte complet pour session future)** : l'argent Konnect
+encaissé reste sur le wallet Darna ; `escrow="LIBERE"` est un flag sans
+virement ; l'API Konnect n'a AUCUN endpoint de payout ni de remboursement
+(vérifié — cf. CLAUDE.md §Paiement Konnect et §AHC8 : ne PAS coder de faux
+appel API). La promesse « votre argent est protégé » doit être tenue par un
+**process manuel réel, outillé et audité** — c'est crédible ; un séquestre
+automatique fictif ne l'est pas.
+
+**L5.1 — décisions tranchées** : partout où l'UI implique un virement
+automatique (page annonce, checkout, `/dashboard/revenus`, e-mails), passer au
+wording : « fonds conservés en sécurité par Darna, reversés à l'hôte sous
+24-48 h après le check-in ». C'est VRAI même en manuel. Ne pas retirer le mot
+« séquestre » (le concept est exact : fonds tenus par un tiers), retirer
+toute promesse de délai « instantané »/« automatique ».
+
+**L5.2 — décisions tranchées** :
+- Nouveau champ `User.payoutRib String?` — **chiffré au repos** via le même
+  mécanisme que la CIN (`src/lib/crypto.ts`, AES-256-GCM dès `KYC_ENC_KEY`),
+  saisi dans `/dashboard/profil` (hôtes/agences uniquement), jamais affiché en
+  clair sauf à l'admin sur l'écran ci-dessous. zod : 20 chiffres (RIB
+  tunisien), stocké normalisé sans espaces.
+- Nouveaux champs `Booking.payoutAt DateTime?` et `Booking.refundPaidAt
+  DateTime?` (horodatage du versement/remboursement MANUEL effectif —
+  distincts d'`escrow`, qui reste l'état logique).
+- Nouvelle page admin `/dashboard/admin/paiements` : (a) réservations
+  `escrow="EN_SEQUESTRE"` dont `checkIn` + 24 h est passé et `payoutAt` null
+  → montant dû à l'hôte = `amountPaid - serviceFee`, RIB déchiffré, bouton
+  « Marquer versé » (server action : pose `payoutAt` + `escrow="LIBERE"` +
+  AuditLog `PAYOUT_MARKED`) ; (b) réservations annulées avec `refundAmount`
+  non null et `refundPaidAt` null → bouton « Marquer remboursé » (idem,
+  `REFUND_MARKED`). Autorisation : ADMIN uniquement, revérifiée serveur.
+- La libération LAZY existante d'escrow (si elle existe dans le code) est
+  subordonnée à ce nouvel écran : vérifier comment `escrow` passe à `LIBERE`
+  aujourd'hui et faire de l'action admin la seule voie en mode Konnect réel
+  (en mode démo, le comportement actuel reste inchangé).
+
+**Tests** : chiffrement RIB, IDOR (un non-admin ne voit rien), idempotence du
+marquage, montants (payout = `amountPaid - serviceFee`, jamais négatif).
+QA_ROADMAP : ajouter la section « Payout manuel » (règle des surfaces
+sensibles).
+
+**L5.3** : runbook pas-à-pas (fréquence quotidienne, réconciliation L3.2 à
+vérifier d'abord, virement bancaire depuis le compte Darna, marquage dans
+l'admin, que faire en cas d'écart). Public : Wassim en tant qu'opérateur.
+
+---
+
+## L6 — Infrastructure : staging + production (P0)
+
+| # | Tâche | Prio | Statut |
+|---|---|---|---|
+| L6.1 | `INFRA_ROADMAP.md` réel + configuration du dépôt pour Vercel | P0 | ❌ |
+| L6.2 | ⛔ W1/W2 — provisionner comptes + domaine, déployer staging puis prod | P0 | ❌ 🧑 WASSIM (checklist fournie par L6.1) |
+| L6.3 | Smoke tests Playwright contre staging + correctifs prod-only | P0 | ❌ (après L6.2) |
+
+**Décisions d'hébergement tranchées (ne pas rouvrir)** :
+- **Vercel** pour l'app : le projet est déjà 100 % compatible (App Router,
+  middleware CSP, `.vercel` gitignoré) et Vercel Cron porte L3. Alternative
+  Railway/Fly notée mais NON retenue (Cron + DX + free tier).
+- **Neon** pour PostgreSQL : `DATABASE_URL` = pooler, `DIRECT_URL` = direct —
+  le schéma et `.env.example` documentent déjà exactement ce split. Backups
+  PITR inclus.
+- **Upstash Redis** (rate limiting distribué — indispensable en serverless :
+  le fallback mémoire de `src/lib/rate-limit.ts` est quasi inopérant
+  multi-instance).
+- **Cloudflare R2** pour `STORAGE_MODE=s3` (compatible S3 via `aws4fetch`
+  déjà en dépendance, egress gratuit).
+- **Resend** : `EMAIL_PROVIDER=resend` (déjà codé).
+- **Deux environnements** : `staging` (Konnect **sandbox**, `KYC_MODE=demo`,
+  seed démo, Turnstile clés test, robots `noindex`) et `production` (données
+  réelles uniquement — PAS de seed —, Turnstile clés réelles ⛔ W5,
+  `TRUSTED_PROXY=true`, `KYC_ENC_KEY` posé, `CRON_SECRET` posé).
+
+**L6.1 (codable maintenant)** : écrire `INFRA_ROADMAP.md` (architecture,
+matrice des variables d'env par environnement — reprendre la liste complète
+de `.env.example` —, procédure de déploiement, procédure de rollback Vercel,
+procédure de restauration de backup Neon À TESTER UNE FOIS, checklist
+pas-à-pas pour W1/W2 cliquable par un humain) ; ajouter `vercel.json` (crons
+L3) ; vérifier que `next build` passe sans DB au build OU documenter la
+variable de build (le sitemap lit la DB — vérifier le comportement et le
+documenter) ; robots/noindex conditionnel staging (`SITE_URL` ≠ prod).
+`CLAUDE.md` référence déjà `INFRA_ROADMAP.md` — la référence redevient vraie.
+
+**L6.3** : une fois staging en ligne : dérouler la suite e2e existante contre
+staging (`PLAYWRIGHT_BASE_URL` ou config dédiée), corriger ce que la prod
+révèle (CSP+HTTPS réels, cookies `Secure`, webhook Konnect sandbox enfin
+joignable de bout en bout — vérifier le chemin NOMINAL webhook, pas seulement
+le filet `?konnect=success`). Rapport + captures obligatoires.
+
+---
+
+## L7 — RGPD / ePrivacy pour la cible diaspora (P1)
+
+| # | Tâche | Prio | Statut |
+|---|---|---|---|
+| L7.1 | Mise en conformité `darna-vid` (régime « exemption mesure d'audience » CNIL) | P1 | ❌ |
+| L7.2 | Purges de rétention automatisées (job L3) | P1 | ❌ (dépend L3.1) |
+| L7.3 | Export des données + suppression de compte | P1 | ❌ |
+
+**Pourquoi** : cible marketing n°1 = diaspora **France** = utilisateurs
+RGPD/CNIL. Or le bandeau actuel (`src/components/legal/CookieConsent.tsx`)
+est purement informatif — « Accepter » et « Refuser » écrivent le même cookie
+et ne changent RIEN — pendant que le middleware pose `darna-vid` à tout
+visiteur pour alimenter `ProductEvent`/`PropertyView` (mesure d'audience).
+Un « Refuser » sans effet est pire que pas de bandeau : c'est une déclaration
+inexacte, l'inverse du positionnement honnêteté.
+
+**Décision tranchée (option a — préserver l'instrumentation)** : viser le
+régime d'**exemption de consentement « mesure d'audience » de la CNIL** plutôt
+que le consentement bloquant : finalité strictement limitée à la mesure
+interne (pas de recoupement, pas de tiers, pas de cross-site — c'est déjà le
+cas : première partie, zéro script tiers), durée de vie du cookie ≤ 13 mois,
+rétention des données ≤ 25 mois. Le bandeau redevient alors honnête en
+version INFORMATIVE (un seul bouton « OK » + lien confidentialité), à
+condition que L7.2 rende les durées vraies.
+
+**L7.1** : `darna-vid` posé avec `Max-Age` 13 mois (vérifier
+`src/middleware.ts`) ; bandeau simplifié en informatif exact (retirer le faux
+« Refuser », i18n ×3) ; page `/confidentialite` réécrite pour décrire la
+réalité : `darna-vid` (finalité, durée), `ProductEvent` (25 mois), AuditLog
+(sécurité, durée L7.2), CIN chiffrée, Konnect, Resend, droits + contact.
+
+**L7.2 (jobs L3)** : purge `ProductEvent` > 25 mois ; purge `AuditLog`
+> 13 mois (le TODO-PRODUCTION exige ≥ 90 j de rétention sécurité — 13 mois
+les respecte largement) ; purge `PropertyView` > 13 mois (la dédup de
+`viewCount` perd juste sa mémoire au-delà — acceptable, décision actée) ;
+purge `PasswordResetToken`/`OtpChallenge` expirés. Tests d'idempotence.
+Cocher les lignes correspondantes de `QA_ROADMAP.md`/`TODO-PRODUCTION.md`.
+
+**L7.3** : server action « Exporter mes données » (JSON : profil, annonces,
+réservations, avis, messages envoyés, mouvements de crédits — PAS les données
+d'autrui : les messages REÇUS n'incluent que le corps, pas les métadonnées de
+l'expéditeur au-delà du nom) + « Supprimer mon compte » (page profil,
+confirmation par mot de passe, re-auth) : suppression du User — les cascades
+et `SetNull` du schéma ont été CONÇUS pour survivre à ça (vérifier
+notamment : ledger crédits `SetNull`, AuditLog `SetNull` conservé pour la
+sécurité — le documenter dans la page confidentialité). Blocage si
+réservation active non terminée. AuditLog `ACCOUNT_DELETED` (sans PII).
+Tests : IDOR, cascade complète, blocage résa active.
+
+---
+
+## L8 — Friction d'entrée : inscription sans rôle + Google OAuth (P1)
+
+| # | Tâche | Prio | Statut |
+|---|---|---|---|
+| L8.1 | Supprimer le choix de rôle à l'inscription (« Devenir hôte » a posteriori) | P1 | ❌ |
+| L8.2 | Provider Google OAuth (NextAuth) | P1 | ❌ (dev possible ; prod ⛔ W6) |
+
+**L8.1 — décisions tranchées** : tout nouveau compte naît `VOYAGEUR` (défaut
+schéma déjà en place) ; le formulaire d'inscription perd le sélecteur de
+rôle ; nouvelle server action `becomeHostAction` (upgrade VOYAGEUR→HOTE, ou
+→AGENCE via un choix à CE moment-là) appelée depuis une page « Devenir hôte »
+/ le dashboard ; les gates existants par rôle ne changent PAS ; un compte
+HOTE/AGENCE existant ne change pas. Mass-assignment : le rôle reste
+évidemment hors des champs zod du profil (règle QA existante). Mesure :
+émettre `ROLE_UPGRADED` (ProductEvent) ; le funnel d'inscription IN1 mesurera
+l'effet. i18n ×3, captures avant/après.
+
+**L8.2 — décisions tranchées** :
+- Provider **Google uniquement** (pas de Facebook/Apple à ce stade).
+- Migration : `User.passwordHash` devient **nullable** ; le login credentials
+  REJETTE explicitement un compte à `passwordHash null` avec le message
+  générique habituel (anti-énumération) ; l'inscription credentials reste
+  inchangée.
+- **Liaison de comptes** : autoriser la liaison automatique par e-mail
+  UNIQUEMENT pour Google (Google vérifie la propriété de l'e-mail — le
+  scénario de takeover « attaquant contrôlant un compte Google avec l'e-mail
+  de la victime » est impossible par construction). Documenter ce raisonnement
+  en commentaire. Un compte créé via Google a `emailVerified=true` d'office.
+- `tokenVersion` : inchangé (les JWT continuent de fonctionner) ; « changer le
+  mot de passe » masqué pour les comptes sans mot de passe (proposer « définir
+  un mot de passe » plus tard — HORS scope L8, ne pas le construire).
+- Rate limiting : le flux OAuth passe par Google, pas par `authorize` — ne pas
+  essayer de le rate-limiter côté Darna.
+- Tests : matrice login (credentials OK, credentials sur compte Google-only →
+  générique, Google nouveau compte, Google e-mail existant → liaison),
+  `tokenVersion` inchangé, mass-assignment. QA_ROADMAP : section auth mise à
+  jour. E2E : le flux Google réel n'est pas automatisable simplement — mock au
+  niveau du provider en test, parcours réel vérifié manuellement en staging.
+
+---
+
+## L9 — Mobile réel : contraste WCAG, PWA, budget perf (P2)
+
+| # | Tâche | Prio | Statut |
+|---|---|---|---|
+| L9.1 | Chantier tokens de contraste + réactivation du gate axe `color-contrast` | P2 | ❌ |
+| L9.2 | PWA minimale (manifest + SW de cache statique) | P2 | ❌ |
+| L9.3 | Budget perf Lighthouse (nightly) + session device réel | P2 | ❌ (device 🧑 WASSIM) |
+
+**L9.1** : la spec existe déjà dans `TODO-PRODUCTION.md` §Accessibility :
+recalibrer `--color-body` / l'échelle d'opacité dans `src/app/globals.css`
+pour que `text-body/60`-équivalent atteigne ≥ 4.5:1 sur `#faf7f1` et blanc,
+et `text-white/50`-équivalent ≥ 4.5:1 sur le footer sombre ; puis réactiver
+`color-contrast` dans le gate bloquant de `tests/e2e/10-a11y.spec.ts`.
+Approche : introduire des tokens sémantiques (`text-muted`, `text-subtle`) et
+remplacer mécaniquement les variantes d'opacité — PAS de retouche
+composant par composant à l'œil. Captures avant/après sur ~6 pages clés
+(règle projet), lumière ET sombre si le thème sombre existe.
+
+**L9.2 — décisions tranchées** : manifest (nom, icônes 192/512 générées
+depuis le logo, `display: standalone`, thème sable) + service worker MINIMAL :
+cache-first sur `/_next/static` et icônes, network-first sur les pages,
+JAMAIS de cache sur `/api` ni les server actions. Pas de mode offline. Le SW
+doit être servi avec le bon scope et ne pas casser la CSP (pas de
+`unsafe-eval`).
+
+**L9.3** : job nightly Lighthouse CI (mobile, throttling) sur `/`, `/sejours`,
+une page annonce — seuils : LCP < 2.5 s, CLS < 0.1 (warning, pas bloquant au
+début). Session device réel (Android milieu de gamme, 4G) : parcours complet
+FR puis AR/RTL — rapport écrit + captures.
+
+---
+
+## L10 — GTM : offre réelle + kit de démo (P1 — majoritairement 🧑 WASSIM)
+
+| # | Tâche | Prio | Statut |
+|---|---|---|---|
+| L10.1 | Script de démo investisseur/partenaire + vidéo 3 min | P1 | ❌ (après L6) |
+| L10.2 | Argumentaire hôte (one-pager) autour du simulateur G1 + Yield Advisor | P1 | ❌ |
+| L10.3 | ⛔ W7 — 20-30 annonces réelles vérifiées, 1-2 Wakils réels | P0 (business) | ❌ 🧑 WASSIM |
+
+**L10.1** : dérouler et documenter LE parcours montré à un tiers : recherche
+translittérée (« 7ammamet ») → carte → annonce vérifiée → réservation →
+paiement Konnect sandbox → messagerie → avis → dashboard admin analytics —
+en FR puis en AR/RTL, sur staging, au téléphone. Corriger uniquement ce qui
+casse CE chemin. Livrer : `docs/DEMO_SCRIPT.md` + captures + vidéo.
+
+**L10.2** : document/print (pas une nouvelle feature !) que Wassim peut
+montrer à un hôte : simulateur de revenus, vérification gratuite au lancement
+(`FREE_VERIFICATION_CREDITS`), séquestre, zéro commission immo. S'appuyer sur
+`.agents/product-marketing.md`.
+
+---
+
+## Récapitulatif des priorités
+
+- **P0 (conditionnent la mise en ligne)** : L1 → L2 → L3.1/L3.2 → L5.1/L5.2/L5.3 → L6 (+ W1-W5)
+- **P1 (avant de vrais utilisateurs)** : L3.3 → L4 → L7 → L8 → L10.1/L10.2 (+ W4 impérativement avant tout argent réel)
+- **P2 (avant campagne d'acquisition)** : L3.4 → L9
+
+## Pointeur de continuation
+
+**⏳ EN ATTENTE** — À la clôture de ce chantier (toutes phases ✅ et mise en
+production effective), passer ce pointeur à **➡️ ACTIF** vers
+`PRIORITES_ROADMAP.md` : le **gel des features growth est alors levé**, et
+« suivant » / « enchaîne » reprend la queue des vagues 4-5 (PM2, PM3, CR5,
+G7, CR6, fin de CR2) — en les repriorisant d'abord à la lumière des premières
+données réelles (c'est tout l'intérêt d'avoir lancé avant de continuer à
+construire).
+
+---
+
+_Créé le 2026-07-27 à partir d'`AUDIT_V2.md` (audit CTO complet — y lire les
+justifications détaillées de chaque décision). Même discipline que les autres
+roadmaps : cocher ici + dans `PRIORITES_ROADMAP.md` dans la même PR que la
+livraison._
