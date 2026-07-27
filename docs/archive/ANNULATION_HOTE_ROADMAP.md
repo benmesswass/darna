@@ -1,5 +1,9 @@
 # Darna — Annulation à l'initiative de l'hôte : Roadmap
 
+> 📦 **Archivée le 2026-07-27 — chantier clos à 100 % (AH0→AH7 ✅).** Déplacée
+> dans `docs/archive/` (`LANCEMENT_ROADMAP.md` §L1.2) pour garder la racine du
+> repo lisible. Conservée pour l'historique — ne plus y ajouter de tâche.
+>
 > **Référence permanente de ce chantier.** Aujourd'hui, `cancelBookingAction`
 > (`src/actions/bookings.ts`) ne permet qu'au **voyageur** d'annuler sa propre
 > réservation (`booking.guestId !== user.id` → refus). Aucun mécanisme

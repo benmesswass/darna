@@ -1,5 +1,10 @@
 # Darna — Annulation hôte : correctifs & durcissement (post-analyse)
 
+> 📦 **Archivée le 2026-07-27 — chantier clos à 100 % (AHC1→AHC8 ✅, clos
+> 2026-07-08).** Déplacée dans `docs/archive/` (`LANCEMENT_ROADMAP.md` §L1.2)
+> pour garder la racine du repo lisible. Conservée pour l'historique — ne
+> plus y ajouter de tâche.
+>
 > **Référence permanente de ce sous-chantier.** Le chantier initial
 > (`ANNULATION_HOTE_ROADMAP.md`, phases AH0→AH7) est **livré et mergé**. Cette
 > roadmap regroupe les défauts relevés lors de l'**analyse critique du code du

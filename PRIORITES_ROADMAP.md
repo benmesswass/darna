@@ -2,7 +2,7 @@
 
 > Document de pilotage transverse, généré le 2026-07-21. Consolide et priorise
 > les tâches ouvertes de `GROWTH_ROADMAP.md`, `CROISSANCE_ROADMAP.md`,
-> `INSTRUMENTATION_ROADMAP.md`, `PAIEMENT_SUR_PLACE_ROADMAP.md`,
+> `docs/archive/INSTRUMENTATION_ROADMAP.md`, `PAIEMENT_SUR_PLACE_ROADMAP.md`,
 > `MONETISATION_IMMO_ROADMAP.md`, `TEST_AUTOMATION_ROADMAP.md` et
 > `QA_ROADMAP.md`. **Ne remplace aucun de ces fichiers** — chacun reste la
 > référence détaillée (specs, fichiers concernés, tests) pour sa tâche. Celui-ci
@@ -67,9 +67,9 @@ technique complet dans `TEST_AUTOMATION_ROADMAP.md` §11 — 5 PR fermées
 
 ## ✅ Chantiers clos ou quasi (rien d'urgent)
 
-- `ANNULATION_HOTE_ROADMAP.md` + `ANNULATION_HOTE_CORRECTIFS_ROADMAP.md` — 100 %, clos 2026-07-08
-- `FEATURES_ROADMAP.md` — 100 %
-- `DESIGN_ROADMAP.md` — 100 %
+- `docs/archive/ANNULATION_HOTE_ROADMAP.md` + `docs/archive/ANNULATION_HOTE_CORRECTIFS_ROADMAP.md` — 100 %, clos 2026-07-08
+- `docs/archive/FEATURES_ROADMAP.md` — 100 %
+- `docs/archive/DESIGN_ROADMAP.md` — 100 %
 - `PAIEMENT_SUR_PLACE_ROADMAP.md` — PSP0-PSP7 ✅ (virement bancaire et ClicToPay explicitement écartés), ne reste que PSP9 (bloqué, voir ci-dessus)
 - `MONETISATION_IMMO_ROADMAP.md` — MI0-MI4/MI6 ✅, MI5 lead-capture ✅ (PR #197), ne reste que la monétisation réelle de MI5 (bloquée, voir ci-dessus)
 - `TEST_AUTOMATION_ROADMAP.md` — Phases 1-4 ✅ complètes. Phase 5 : k6/axe/ZAP ✅ livrés, ne reste qu'un optionnel jamais priorisé (snapshots visuels carte/annonce/RTL, P3)
@@ -131,7 +131,7 @@ ligne en litige.
 | 21 | **CR5 / PM4** — Dashboards exposition/décision | P1/P2 | CROISSANCE | CR0-CR3/PM0-PM3 |
 | 22 | **G7** — Fidélité voyageur cumulative | P2 | GROWTH | Historique de réservations réel |
 | 23 | **CR6** — Leviers de rentabilité long terme | P2 | CROISSANCE | Données réelles disponibles |
-| 24 | **IN4** — Discipline continue (checklist `QA_ROADMAP.md`) | P2 | INSTRUMENTATION | ✅ PR #196 — `INSTRUMENTATION_ROADMAP.md` clos à 100 % (IN0-IN4) |
+| 24 | **IN4** — Discipline continue (checklist `QA_ROADMAP.md`) | P2 | INSTRUMENTATION | ✅ PR #196 — `docs/archive/INSTRUMENTATION_ROADMAP.md` clos à 100 % (IN0-IN4) |
 
 ### Optionnel / opportuniste (pas de fenêtre imposée)
 

@@ -107,7 +107,7 @@ en §L5) :
 | # | Tâche | Prio | Statut |
 |---|---|---|---|
 | L1.1 | Réécrire `README.md` pour refléter le produit réel | P0 | ✅ PR d'ouverture du chantier |
-| L1.2 | Bandeau de péremption sur `AUDIT_V1.md` (✅ PR d'ouverture) + archivage des roadmaps closes dans `docs/archive/` (❌) | P0 | 🔧 partiel |
+| L1.2 | Bandeau de péremption sur `AUDIT_V1.md` (✅ PR d'ouverture) + archivage des roadmaps closes dans `docs/archive/` (✅) | P0 | ✅ PR #200 |
 
 ### L1.1 — README
 

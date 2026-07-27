@@ -620,5 +620,5 @@ Dependabot les reproposera de lui-même dès qu'une version compatible sort.
 ---
 
 *Document vivant — mis à jour à chaque phase livrée. Propriétaire : rôle Test
-Lead / QA. Complémentaire de `QA_ROADMAP.md`, `FEATURES_ROADMAP.md`,
-`DESIGN_ROADMAP.md`.*
+Lead / QA. Complémentaire de `QA_ROADMAP.md`, `docs/archive/FEATURES_ROADMAP.md`,
+`docs/archive/DESIGN_ROADMAP.md`.*

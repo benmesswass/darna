@@ -39,7 +39,7 @@
 >
 > **Règle de maintenance :** dès qu'une tâche est livrée (mergée), cocher la
 > case, passer son statut à `✅` et noter le(s) fichier(s)/PR. Compagnon de
-> `FEATURES_ROADMAP.md`, `DESIGN_ROADMAP.md`, `QA_ROADMAP.md`,
+> `docs/archive/FEATURES_ROADMAP.md`, `docs/archive/DESIGN_ROADMAP.md`, `QA_ROADMAP.md`,
 > `PAIEMENT_SUR_PLACE_ROADMAP.md` — ne jamais laisser ce fichier dériver de
 > l'état réel du code.
 

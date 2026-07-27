@@ -1,5 +1,10 @@
 # Darna — Instrumentation produit (analytics & funnel)
 
+> 📦 **Archivée le 2026-07-27 — chantier clos à 100 % (IN0→IN4 ✅, cf. PR
+> #196).** Déplacée dans `docs/archive/` (`LANCEMENT_ROADMAP.md` §L1.2) pour
+> garder la racine du repo lisible. Conservée pour l'historique — ne plus y
+> ajouter de tâche.
+>
 > **Référence permanente de ce chantier.** Origine : `AUDIT_V1.md` (revue du
 > 2026-07-01), section Analytics — « Funnel analytics produit (events,
 > cohortes) | 🔴 Absent — aucune instrumentation produit » — repris en item
