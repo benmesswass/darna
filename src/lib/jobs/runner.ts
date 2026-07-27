@@ -1,6 +1,7 @@
 import { logAudit, logStructured } from "@/lib/audit";
 import { reconcileKonnectPayments } from "@/lib/jobs/konnect-reconciliation";
 import { remindAbandonedBookings } from "@/lib/jobs/booking-abandon-reminder";
+import { remindHostInvoices } from "@/lib/jobs/host-invoice-reminder";
 
 /**
  * Socle scheduler (LANCEMENT_ROADMAP.md §L3.1) — amendement au principe
@@ -60,6 +61,7 @@ export async function runJobList(jobList: Job[]): Promise<JobResult[]> {
 const jobs: Job[] = [
   { name: "konnect-reconciliation", run: reconcileKonnectPayments },
   { name: "booking-abandon-reminder", run: remindAbandonedBookings },
+  { name: "host-invoice-reminder", run: remindHostInvoices },
 ];
 
 export async function runJobs(): Promise<JobResult[]> {
