@@ -29,17 +29,23 @@ beforeEach(() => {
   vi.useRealTimers();
 });
 
-describe("computeRebookingDiscount — taux et plafond", () => {
-  it("10 % sous le plafond (1000 TND → 100 TND)", () => {
-    expect(computeRebookingDiscount(1000)).toBe(100);
+describe("computeRebookingDiscount — taux et plafonds (§L5.1 : jamais au-delà des frais)", () => {
+  it("10 % sous le plafond (1000 TND → 100 TND), quand les frais le permettent", () => {
+    expect(computeRebookingDiscount(1000, 200)).toBe(100);
   });
 
-  it("plafonné à 150 TND au-delà (2000 TND → 150 TND, pas 200)", () => {
-    expect(computeRebookingDiscount(2000)).toBe(150);
+  it("plafonné à 150 TND au-delà (2000 TND → 150 TND, pas 200), quand les frais le permettent", () => {
+    expect(computeRebookingDiscount(2000, 300)).toBe(150);
   });
 
   it("arrondit au TND le plus proche", () => {
-    expect(computeRebookingDiscount(333)).toBe(33); // 33.3 → 33
+    expect(computeRebookingDiscount(333, 100)).toBe(33); // 33.3 → 33
+  });
+
+  it("ne dépasse JAMAIS les frais Darna de la nouvelle réservation, même sous les autres plafonds", () => {
+    // 10 % de 2000 = 200, plafond TND = 150 — mais les frais de la nouvelle
+    // résa ne sont que 15 : Darna ne peut offrir plus qu'elle n'encaisse.
+    expect(computeRebookingDiscount(2000, 15)).toBe(15);
   });
 });
 

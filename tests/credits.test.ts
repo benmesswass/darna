@@ -421,19 +421,18 @@ describe("settleHostReferralMilestones (§CR2)", () => {
   });
 });
 
-describe("computeCreditApplication", () => {
-  it("plafonne à 30 % du total quand c'est la contrainte la plus stricte", () => {
-    // reste-à-couvrir (totalPrice - subtotal) = 400, largement au-dessus de
-    // 30 % du total (300) — c'est bien le taux qui plafonne ici, pas la
-    // commission (scénario synthétique, pas atteignable avec le taux de
-    // service réel de 8 % — cf. booking-credit-application.test.ts pour le
-    // cas réel où c'est systématiquement le reste-à-couvrir qui plafonne).
+describe("computeCreditApplication (§L5.1 : plafond = 100 % des FRAIS restants, jamais du total)", () => {
+  it("le plafond de taux (100 % des frais) ne peut jamais être plus strict que le reste-à-couvrir, par construction", () => {
+    // reste-à-couvrir (totalPrice - subtotal) = 400 = commissionRoom ; le
+    // plafond de taux vaut exactement 100 % de CE reste-à-couvrir (400), donc
+    // les deux contraintes coïncident toujours — contrairement à l'ancien
+    // modèle (30 % du TOTAL) où le taux pouvait plafonner plus tôt.
     expect(
       computeCreditApplication({ balance: 100000, totalPrice: 1000, subtotal: 600 })
-    ).toBe(300);
+    ).toBe(400);
   });
 
-  it("plafonne au reste-à-couvrir (jamais sous le subtotal) quand il est plus strict que 30 %", () => {
+  it("plafonne toujours au reste-à-couvrir (jamais sous le subtotal)", () => {
     expect(
       computeCreditApplication({ balance: 100000, totalPrice: 648, subtotal: 600 })
     ).toBe(48);
@@ -449,11 +448,6 @@ describe("computeCreditApplication", () => {
 
   it("ne renvoie jamais un montant négatif (totalPrice déjà planchéré à subtotal ailleurs)", () => {
     expect(computeCreditApplication({ balance: 100, totalPrice: 600, subtotal: 600 })).toBe(0);
-  });
-
-  it("arrondit à l'entier TND", () => {
-    // 30 % de 333 = 99.9 → arrondi 100 ; reste-à-couvrir = 133, solde = 1000.
-    expect(computeCreditApplication({ balance: 1000, totalPrice: 333, subtotal: 200 })).toBe(100);
   });
 });
 

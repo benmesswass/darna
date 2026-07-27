@@ -207,8 +207,9 @@ export async function spendCredit(params: SpendCreditParams, db: DbClient = pris
  * accès base (même patron que computeRebookingDiscount). Deux planchers non
  * négociables (préambule CROISSANCE_ROADMAP.md, cumulatifs avec toute autre
  * remise déjà appliquée sur `totalPrice`, ex. RebookingDiscount) :
- *  - jamais plus de CREDIT_CHECKOUT_CAP_RATE (30 %) du total ACTUEL (après
- *    toute autre remise déjà appliquée) ;
+ *  - jamais plus de CREDIT_CHECKOUT_CAP_RATE (100 %, §L5.1) des FRAIS Darna
+ *    RESTANTS (après toute autre remise déjà appliquée) — jamais du total,
+ *    que Darna ne touche plus intégralement ;
  *  - jamais au-delà de `totalPrice - subtotal` : la commission Darna peut
  *    être intégralement absorbée, mais le prix hôte (`subtotal`) ne bouge
  *    JAMAIS — ce reste-à-couvrir se réduit déjà mécaniquement si une autre
@@ -222,7 +223,7 @@ export function computeCreditApplication(params: {
 }): number {
   const { balance, totalPrice, subtotal } = params;
   const commissionRoom = totalPrice - subtotal;
-  const rateCap = Math.round(totalPrice * CREDIT_CHECKOUT_CAP_RATE);
+  const rateCap = Math.round(commissionRoom * CREDIT_CHECKOUT_CAP_RATE);
   return Math.max(0, Math.min(balance, rateCap, commissionRoom));
 }
 

@@ -8,10 +8,14 @@ import { logStructured } from "@/lib/audit";
  * Deux transitions, idempotentes (updateMany conditionnels) :
  *   1. CONFIRMEE dont le séjour est terminé (checkOut passé) → TERMINEE.
  *   2. TERMINEE encore EN_SEQUESTRE → séquestre LIBÉRÉ vers l'hôte (LIBERE).
+ *      INERTE depuis le modèle commission-only (LANCEMENT_ROADMAP.md §L5.1,
+ *      2026-07-27) : plus aucun code ne pose `EN_SEQUESTRE` (Darna n'encaisse
+ *      plus le loyer), donc ce volet ne matche plus jamais rien pour une
+ *      réservation créée après ce changement. Conservé tel quel (états du
+ *      schéma non supprimés, cf. CLAUDE.md §Stack) — réactivable en V2 si
+ *      l'escrow réel revient.
  *
- * À appeler avant d'afficher une liste de réservations. Le découplage en deux
- * updates rend la libération correcte même si une réservation était CONFIRMEE
- * sans séquestre (escrow AUCUN) : on ne libère que ce qui était sous séquestre.
+ * À appeler avant d'afficher une liste de réservations.
  *
  * Module SERVEUR uniquement.
  */

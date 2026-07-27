@@ -96,7 +96,6 @@ async function seedProperties(): Promise<void> {
       totalPrice: 420,
       amountPaid: 420,
       status: "CONFIRMEE",
-      escrow: "EN_SEQUESTRE",
       paidAt: new Date(),
     },
   });
@@ -113,7 +112,6 @@ async function seedProperties(): Promise<void> {
       totalPrice: 420,
       amountPaid: 420,
       status: "CONFIRMEE",
-      escrow: "EN_SEQUESTRE",
       paidAt: new Date(),
     },
   });

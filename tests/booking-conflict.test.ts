@@ -117,15 +117,15 @@ describe("createBookingAction — anti double-réservation", () => {
 
     expect(result).toBeUndefined(); // succès → redirect (mocké)
     expect(create).toHaveBeenCalledTimes(1);
-    // Prix figés par le serveur : 100 × 2 nuits = 200, frais 8 % = 16, total 216.
+    // Prix figés par le serveur : 100 × 2 nuits = 200, frais 10 % = 20, total 220.
     // Aucun champ prix n'est accepté du client (createSchema ne l'expose pas).
     expect(create.mock.calls[0][0]).toMatchObject({
       data: {
         guestId: GUEST_ID,
         status: "EN_ATTENTE",
         nightlyPrice: 100,
-        serviceFee: 16,
-        totalPrice: 216,
+        serviceFee: 20,
+        totalPrice: 220,
       },
     });
   });

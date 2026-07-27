@@ -68,10 +68,16 @@ function verifySignature(token: string): VerifiedToken | null {
 
 /**
  * Calcule le montant de réduction (TND, arrondi) pour un nouveau prix de
- * séjour — pure, aucun accès base. Plafonnée à REBOOKING_DISCOUNT_CAP_TND.
+ * séjour — pure, aucun accès base. Plafonnée à REBOOKING_DISCOUNT_CAP_TND ET
+ * (§L5.1) aux frais Darna de la NOUVELLE réservation : Darna ne peut offrir
+ * que sa propre commission, jamais le loyer, qu'elle ne touche plus.
  */
-export function computeRebookingDiscount(newSubtotal: number): number {
-  return Math.min(Math.round(newSubtotal * REBOOKING_DISCOUNT_RATE), REBOOKING_DISCOUNT_CAP_TND);
+export function computeRebookingDiscount(newSubtotal: number, newServiceFee: number): number {
+  return Math.min(
+    Math.round(newSubtotal * REBOOKING_DISCOUNT_RATE),
+    REBOOKING_DISCOUNT_CAP_TND,
+    newServiceFee
+  );
 }
 
 /**

@@ -12,7 +12,6 @@ import {
   SITE_URL,
   HOST_INVOICE_DUE_DAYS,
   computeDepositAmount,
-  clampPayAmount,
   hostCancelBlockDays,
 } from "@/lib/config";
 import { BOOKING_EXPIRY_MS, HOST_ACCEPTANCE_EXPIRY_MS, PAYMENT_MODES } from "@/lib/constants";
@@ -272,7 +271,7 @@ export async function createBookingAction(
           user.id
         );
         if (discountClaimedFrom) {
-          const discount = computeRebookingDiscount(subtotal);
+          const discount = computeRebookingDiscount(subtotal, serviceFee);
           totalPrice = Math.max(subtotal, fullTotalPrice - discount);
         }
       }
@@ -303,7 +302,7 @@ export async function createBookingAction(
 
       // Acompte minimum dû en ligne, figé dès la création du hold (anti-bypass).
       // Sans objet en Rail 2 : zéro paiement en ligne, tout est dû cash à l'arrivée.
-      const depositAmount = wantsCash ? 0 : computeDepositAmount(totalPrice, serviceFee);
+      const depositAmount = wantsCash ? 0 : computeDepositAmount(serviceFee);
 
       // 3. Création de la réservation — prix TOUJOURS calculé côté serveur
       const created = await tx.booking.create({
@@ -512,7 +511,7 @@ export async function quoteBookingAction(input: {
   let total = fullTotal;
   if (parsed.data.discountToken && user) {
     if (await isRebookingDiscountValid(parsed.data.discountToken, user.id)) {
-      const rawDiscount = computeRebookingDiscount(subtotal);
+      const rawDiscount = computeRebookingDiscount(subtotal, serviceFee);
       total = Math.max(subtotal, fullTotal - rawDiscount);
       // §AHC5 — on renvoie la réduction RÉELLEMENT appliquée (fullTotal − total),
       // pas le brut computeRebookingDiscount : le total est plancherné à
@@ -543,16 +542,12 @@ export async function quoteBookingAction(input: {
   return { ok: true, nights, nightlyPrice, subtotal, serviceFee, total, discount, creditApplied };
 }
 
-/** Montant choisi à la réservation : borné [acompte, total] côté serveur. */
-const payAmountSchema = z.object({
+/** Réservation ciblée par une action de paiement (montant : côté serveur uniquement, §L5.1). */
+const paymentTargetSchema = z.object({
   bookingId: z.string().cuid(),
-  // Montant que le voyageur choisit de régler maintenant (TND). Toujours
-  // re-clampé serveur — un client malveillant ne peut ni payer moins que
-  // l'acompte ni « confirmer » au-delà du total.
-  payAmount: z.coerce.number().finite(),
 });
 
-/** Paiement simulé : passe la réservation en séquestre Darna. */
+/** Paiement simulé : règle les frais Darna (seul montant en ligne, §L5.1). */
 export async function confirmPaymentAction(formData: FormData): Promise<void> {
   // Garde : si Konnect est actif, seul le flux réel (startKonnectPaymentAction
   // + webhook) confirme un paiement. Le chemin mock ne doit jamais coexister
@@ -560,9 +555,8 @@ export async function confirmPaymentAction(formData: FormData): Promise<void> {
   if (isKonnectEnabled()) return;
 
   const user = await requireUser();
-  const parsed = payAmountSchema.safeParse({
+  const parsed = paymentTargetSchema.safeParse({
     bookingId: formData.get("bookingId"),
-    payAmount: formData.get("payAmount"),
   });
   if (!parsed.success) return;
 
@@ -596,19 +590,17 @@ export async function confirmPaymentAction(formData: FormData): Promise<void> {
     return;
   }
 
-  // Montant réellement encaissé : le choix du voyageur, CLAMPÉ serveur dans
-  // [acompte, total]. Jamais de confiance au montant brut du formulaire.
-  const amountPaid = clampPayAmount(
-    parsed.data.payAmount,
-    booking.depositAmount,
-    booking.totalPrice
-  );
+  // Montant réellement encaissé : TOUJOURS les frais Darna (depositAmount),
+  // figés côté serveur à la création — aucun montant client, plus de choix
+  // possible depuis §L5.1 (Darna n'encaisse plus que sa commission).
+  const amountPaid = booking.depositAmount;
 
   await prisma.booking.update({
     where: { id: booking.id },
     data: {
       status: "CONFIRMEE",
-      escrow: "EN_SEQUESTRE",
+      // escrow NON posé (§L5.1) : Darna n'encaisse plus le loyer, l'état
+      // escrow reste inerte (AUCUN) — cf. src/lib/bookings.ts.
       expiresAt: null, // Plus d'expiration une fois confirmé
       paidAt: new Date(),
       amountPaid,
@@ -656,9 +648,8 @@ export async function startKonnectPaymentAction(
 
   if (!isKonnectEnabled()) return { error: fr.common.erreurInconnue };
 
-  const parsed = payAmountSchema.safeParse({
+  const parsed = paymentTargetSchema.safeParse({
     bookingId: formData.get("bookingId"),
-    payAmount: formData.get("payAmount"),
   });
   if (!parsed.success) return { error: fr.common.erreurInconnue };
 
@@ -692,14 +683,11 @@ export async function startKonnectPaymentAction(
     : BOOKING_EXPIRY_MS;
   const lifespanMinutes = Math.max(2, Math.ceil(remainingMs / 60000));
 
-  // Montant à débiter = choix du voyageur, CLAMPÉ serveur dans [acompte, total].
-  // Mémorisé sur la réservation (amountPaid) AVANT la redirection : devient la
-  // source de vérité du montant attendu, revérifiée au règlement (settle).
-  const amountToCharge = clampPayAmount(
-    parsed.data.payAmount,
-    booking.depositAmount,
-    booking.totalPrice
-  );
+  // Montant à débiter = TOUJOURS les frais Darna (depositAmount), figés côté
+  // serveur — aucun choix voyageur depuis §L5.1. Mémorisé sur la réservation
+  // (amountPaid) AVANT la redirection : devient la source de vérité du
+  // montant attendu, revérifiée au règlement (settle).
+  const amountToCharge = booking.depositAmount;
 
   const [firstName, ...rest] = user.name.trim().split(/\s+/);
 

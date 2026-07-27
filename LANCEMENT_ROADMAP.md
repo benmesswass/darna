@@ -309,7 +309,7 @@ poser `OBSERVABILITY_WEBHOOK_URL` en staging/prod.
 
 | # | Tâche | Prio | Statut |
 |---|---|---|---|
-| L5.1 | Prix & paiement : frais 10 %, paiement en ligne = frais uniquement | P0 | ❌ |
+| L5.1 | Prix & paiement : frais 10 %, paiement en ligne = frais uniquement | P0 | ✅ PR #209 |
 | L5.2 | Politiques d'annulation portées sur les FRAIS + écran admin « Remboursements dus » | P0 | ❌ |
 | L5.3 | Garantie non-conformité : signalement < 24 h → remboursement des frais | P0 | ❌ |
 | L5.4 | Garantie no-show hôte : indemnité 100 % des frais, plafonnée | P1 | ❌ |
@@ -527,39 +527,46 @@ un barème non validé.
 > d'ouverture (#198) sont notés — les autres restent à faire pendant L5.
 
 **Code — logique (L5.1/L5.2/L5.4)** :
-- [ ] `src/lib/config.ts` : `SERVICE_FEE_RATE` 0.10 ; `DEPOSIT_MIN_RATE`
+- [x] `src/lib/config.ts` : `SERVICE_FEE_RATE` 0.10 ; `DEPOSIT_MIN_RATE`
       supprimé ; `computeDepositAmount` = serviceFee ; `clampPayAmount` figé ;
-      `CREDIT_CHECKOUT_CAP_RATE` remplacé (plafond = 100 % des frais).
-- [ ] `REBOOKING_DISCOUNT_RATE`/`REBOOKING_DISCOUNT_CAP_TND` (0.1 / 150 TND —
+      `CREDIT_CHECKOUT_CAP_RATE` remplacé (plafond = 100 % des frais). — L5.1
+- [x] `REBOOKING_DISCOUNT_RATE`/`REBOOKING_DISCOUNT_CAP_TND` (0.1 / 150 TND —
       **dépassent désormais les frais d'une résa** : 10 % du total > frais) :
       replafonner la réduction sur les frais de la nouvelle réservation
       (`src/lib/rebooking-discount.ts`), sinon Darna promet plus qu'elle
-      n'encaisse.
-- [ ] `src/actions/bookings.ts` : `depositAmount`, preview/devis,
-      `startKonnectPaymentAction` (montant initié = frais uniquement).
-- [ ] `src/lib/payments.ts` : `settleKonnectBooking` (montant attendu = frais) ;
-      `confirmPaymentAction` (démo) simule le paiement des FRAIS.
+      n'encaisse. — L5.1
+- [x] `src/actions/bookings.ts` : `depositAmount`, preview/devis,
+      `startKonnectPaymentAction` (montant initié = frais uniquement). — L5.1
+- [x] `src/lib/payments.ts` : `settleKonnectBooking` (montant attendu = frais) ;
+      `confirmPaymentAction` (démo) simule le paiement des FRAIS. — L5.1
 - [ ] `src/lib/cancellation.ts` : assiette `refundAmount` = frais (fenêtres
-      J-2/J-7 inchangées).
-- [ ] `src/lib/credits.ts` (`computeCreditApplication`) : plafonné aux frais.
-- [ ] Transitions `escrow` : plus AUCUNE écriture depuis l'UI/actions (états
+      J-2/J-7 inchangées). — reste à faire par L5.2 (hors périmètre L5.1,
+      volontairement : l'assiette `amountPaid - serviceFee` dégénère déjà
+      sans risque à 0 en attendant, cf. PR #209).
+- [x] `src/lib/credits.ts` (`computeCreditApplication`) : plafonné aux frais. — L5.1
+- [x] Transitions `escrow` : plus AUCUNE écriture depuis l'UI/actions (états
       inertes, commentaire « V2 » posé) ; `src/lib/host-invoicing.ts` :
-      rien à changer (le montant copie `serviceFee`, suit les 10 %).
+      rien à changer (le montant copie `serviceFee`, suit les 10 %). — L5.1
 
 **Code — UI (L5.1/L5.5)** :
 - [ ] `src/components/booking/DepositPayment.tsx` : plus de choix de montant —
-      un montant fixe (les frais), texte « le séjour se règle sur place ».
-- [ ] Page paiement `src/app/reservation/[id]/paiement` + `KonnectPayButton`.
-- [ ] `src/components/property/PropertyCard.tsx` : importe `SERVICE_FEE_RATE`
-      — vérifier ce qui est affiché sur les cartes et l'adapter.
+      un montant fixe (les frais) — **fait (PR #209)**. Reste à faire par
+      L5.5 : le bandeau de confiance « paiement protégé/séquestre » de la
+      page de paiement (`sequestreExplication`, `acompteSequestreInfo`)
+      n'a volontairement PAS été touché ici (texte, pas mécanique).
+- [ ] Page paiement `src/app/reservation/[id]/paiement` + `KonnectPayButton` —
+      partie L5.1 (montant fixe, `payAmount` retiré) **faite (PR #209)** ;
+      partie wording séquestre reste à L5.5.
+- [x] `src/components/property/PropertyCard.tsx` : importe `SERVICE_FEE_RATE`
+      — vérifié, calcule déjà correctement sur le nouveau taux, aucun
+      changement de code nécessaire. — L5.1
 - [ ] Récap de réservation : `aucunFraisCache` conservé, total sur place
       affiché dès le premier écran.
-- [ ] **`/dashboard/revenus` : respec complète** — « En attente de versement »
-      / « Versé » (clés `revenusEnAttente`/`revenusVerse`/`revenusBadge*`,
-      `fr.ts` l.577-591) n'ont PLUS DE SENS (aucun versement Darna→hôte).
-      La page devient « encaissements sur place attendus (loyers des résas
-      confirmées) + frais Darna réglés » — ou est dépubliée si trop ambiguë.
-      Décision par défaut : conserver la page, resémantiser.
+- [x] **`/dashboard/revenus` : respec complète** — « En attente de versement »
+      / « Versé » resémantisés en loyer NET « à encaisser à l'arrivée » /
+      « déjà encaissé » (statut CONFIRMEE/TERMINEE, plus l'escrow devenu sans
+      objet) + ligne frais Darna déjà réglés. Bénéfice annexe : les
+      réservations Rail 2 (jamais `EN_SEQUESTRE`) y apparaissent désormais. — L5.1, PR #209
 - [ ] Badges de statut réservation : « Confirmée — paiement protégé »
       (`fr.ts` l.536) → « Confirmée — frais réglés » (équivalents en/ar).
 - [ ] `/diaspora` (l.1690), home hero + blocs confiance (l.31, 67-69),
@@ -589,14 +596,17 @@ un barème non validé.
 - [x] `AUDIT_V2.md` §R3 — fait dans la PR #198.
 
 **Données & tests (chaque L5.x + clôture)** :
-- [ ] `prisma/seed.ts` : réservations seedées (montants, `depositAmount`,
-      états `escrow`, réservations démo « versées »).
+- [x] `prisma/seed.ts` : réservations seedées (montants, `depositAmount`,
+      états `escrow`, réservations démo « versées »). — L5.1, PR #209
 - [ ] Tests unitaires encodant 8 % / acompte 10 %-du-total :
       `deposit.test.ts`, `bookings.test.ts`, `payments.test.ts`,
       `cancellation.test.ts`, `booking-credit-application.test.ts`,
       `booking-promo-price.test.ts`, `rebooking-discount.test.ts`,
       `cash-booking.test.ts`, `contact-reveal.test.ts` (+ tout test qui
-      calcule un total).
+      calcule un total). — **PR #209 : tout fait sauf `cancellation.test.ts`**
+      (`bookings.test.ts`/`cash-booking.test.ts`/`contact-reveal.test.ts`
+      vérifiés inchangés à raison — leurs scénarios ne dépendent pas du
+      taux) ; `cancellation.test.ts` reste à L5.2 avec le fichier qu'il teste.
 - [ ] `tests/e2e` (parcours réservation/paiement) + `tests/api`.
 - [ ] `tests/perf` (k6 `booking-load*` : montants/étapes de paiement).
 

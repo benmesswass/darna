@@ -71,7 +71,6 @@ test.describe("GET /api/payments/konnect/webhook", () => {
         totalPrice: 420,
         amountPaid: 420,
         status: "CONFIRMEE",
-        escrow: "EN_SEQUESTRE",
         paidAt: new Date(),
       },
     });

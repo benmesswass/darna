@@ -47,6 +47,8 @@ type BookingRow = {
   status: string;
   expiresAt: Date | null;
   totalPrice: number;
+  serviceFee: number;
+  amountPaid: number;
   paymentRef: string | null;
 };
 
@@ -56,7 +58,11 @@ function row(over: Partial<BookingRow> = {}): BookingRow {
     guestId: "u_1",
     status: "EN_ATTENTE",
     expiresAt: new Date(Date.now() + 3_600_000), // +1 h : non expirée
-    totalPrice: 120,
+    totalPrice: 220,
+    serviceFee: 20,
+    // = depositAmount, figé par startKonnectPaymentAction avant redirection —
+    // source de vérité PRIMAIRE du montant attendu (§L5.1, jamais le total).
+    amountPaid: 20,
     paymentRef: "pay_1",
     ...over,
   };
@@ -66,8 +72,8 @@ function payment(over: Partial<KonnectPayment> = {}): KonnectPayment {
   return {
     id: "pay_1",
     status: "completed",
-    amount: 120_000,
-    reachedAmount: 120_000, // = 120 TND attendus
+    amount: 20_000,
+    reachedAmount: 20_000, // = 20 TND attendus (les frais Darna, jamais le total)
     token: "TND",
     ...over,
   };
@@ -116,15 +122,22 @@ describe("settleKonnectBooking", () => {
     expect(updateMany).not.toHaveBeenCalled();
   });
 
-  it("REFUSE de confirmer si le montant reçu est inférieur au dû", async () => {
-    findFirst.mockResolvedValue(row({ totalPrice: 120 }));
-    getPayment.mockResolvedValue(payment({ reachedAmount: 100_000 })); // < 120 000
+  it("REFUSE de confirmer si le montant reçu est inférieur au dû (les frais, jamais le total)", async () => {
+    findFirst.mockResolvedValue(row({ amountPaid: 20 }));
+    getPayment.mockResolvedValue(payment({ reachedAmount: 15_000 })); // < 20 000
     expect(await settleKonnectBooking({ paymentRef: "pay_1" })).toBe("ERREUR");
     expect(updateMany).not.toHaveBeenCalled();
     expect(audit).not.toHaveBeenCalled();
   });
 
-  it("confirme et met sous séquestre un paiement abouti et complet", async () => {
+  it("retombe sur les frais (serviceFee) si amountPaid n'a pas été mémorisé (cas anormal)", async () => {
+    findFirst.mockResolvedValue(row({ amountPaid: 0, serviceFee: 20 }));
+    getPayment.mockResolvedValue(payment({ reachedAmount: 15_000 })); // < 20 000 (frais)
+    expect(await settleKonnectBooking({ paymentRef: "pay_1" })).toBe("ERREUR");
+    expect(updateMany).not.toHaveBeenCalled();
+  });
+
+  it("confirme le règlement des frais Darna sans jamais poser d'état escrow (§L5.1)", async () => {
     findFirst.mockResolvedValue(row());
     getPayment.mockResolvedValue(payment());
     updateMany.mockResolvedValue({ count: 1 });
@@ -133,9 +146,11 @@ describe("settleKonnectBooking", () => {
     expect(updateMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { id: "bk_1", status: "EN_ATTENTE" },
-        data: expect.objectContaining({ status: "CONFIRMEE", escrow: "EN_SEQUESTRE" }),
+        data: expect.objectContaining({ status: "CONFIRMEE" }),
       })
     );
+    // Darna n'encaisse plus le loyer : plus aucune écriture escrow (états inertes).
+    expect(updateMany.mock.calls[0][0].data).not.toHaveProperty("escrow");
     expect(audit).toHaveBeenCalledTimes(1);
     expect(audit).toHaveBeenCalledWith(
       expect.objectContaining({ action: "PAYMENT_CONFIRMED", userId: "u_1", success: true })

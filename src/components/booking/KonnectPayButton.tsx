@@ -9,20 +9,15 @@ import { useT } from "@/components/i18n/LocaleProvider";
 
 /**
  * Lance le paiement Konnect puis redirige vers la passerelle (`payUrl`).
+ * Montant = les frais Darna, toujours déterminé côté serveur (§L5.1) — aucun
+ * montant transmis par le client.
  *
  * La redirection est faite côté client via `window.location` — et non par un
  * `redirect()` serveur — pour rester compatible avec la CSP `form-action 'self'`
  * du middleware : le formulaire poste vers notre propre origine, et la
  * navigation externe est une navigation de document, pas une soumission de form.
  */
-export function KonnectPayButton({
-  bookingId,
-  payAmount,
-}: {
-  bookingId: string;
-  /** Montant choisi par le voyageur (TND) — reborné serveur dans [acompte, total]. */
-  payAmount: number;
-}) {
+export function KonnectPayButton({ bookingId }: { bookingId: string }) {
   const fr = useT();
   const [state, action, pending] = useActionState<PaymentFormState, FormData>(
     startKonnectPaymentAction,
@@ -47,7 +42,6 @@ export function KonnectPayButton({
         </p>
       ) : null}
       <input type="hidden" name="bookingId" value={bookingId} />
-      <input type="hidden" name="payAmount" value={payAmount} />
       <button
         type="submit"
         disabled={pending || redirecting}

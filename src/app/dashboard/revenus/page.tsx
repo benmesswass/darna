@@ -9,12 +9,14 @@ import { formatTndServer, formatDateShortFr } from "@/lib/format";
 import { CoinsIcon } from "@/components/icons";
 
 /**
- * Revenus de l'hôte (lecture seule). Le « payout » est un statut, pas un vrai
- * virement (mock assumé, cohérent avec le reste de Darna) : le paiement du
- * voyageur est protégé (escrow EN_SEQUESTRE) puis libéré (LIBERE) à la fin du
- * séjour par `completeElapsedBookings()`. On agrège ces deux états en
- * « en attente de versement » et « déjà versé ». Aucun montant n'est recalculé
- * côté client. Réservé aux annonceurs (hôte / agence).
+ * Revenus de l'hôte (lecture seule) — modèle commission-only (LANCEMENT_
+ * ROADMAP.md §L5.1) : Darna ne détient ni ne verse plus jamais le loyer, réglé
+ * en espèces à l'arrivée directement par le voyageur. Cette page récapitule le
+ * loyer NET de l'hôte (`totalPrice - serviceFee`, jamais les frais Darna —
+ * réglés en ligne par le voyageur en Rail 1/ESCROW, ou facturés après coup à
+ * l'hôte en Rail 2/SUR_PLACE via HostInvoice, mécanique inchangée) : déjà
+ * encaissé (séjour terminé) ou à venir (à l'arrivée). Réservé aux
+ * annonceurs (hôte / agence).
  */
 export default async function RevenusPage() {
   const fr = await getT();
@@ -24,19 +26,27 @@ export default async function RevenusPage() {
     redirect("/dashboard/reservations");
   }
 
-  // Libération paresseuse du séquestre avant de calculer les totaux : un séjour
-  // terminé bascule EN_SEQUESTRE → LIBERE (= versé) au chargement.
+  // Bascule paresseuse CONFIRMEE → TERMINEE une fois le séjour passé. Le volet
+  // séquestre de cette même fonction est désormais inerte (§L5.1) : plus rien
+  // ne pose escrow EN_SEQUESTRE, cf. src/lib/bookings.ts.
   await completeElapsedBookings();
 
   const bookings = await prisma.booking.findMany({
     where: {
       property: { ownerId: user.id },
-      // Seuls les paiements réellement encaissés et protégés comptent comme
-      // revenus : EN_SEQUESTRE (à verser) ou LIBERE (versé). On exclut donc les
-      // EN_ATTENTE non payées et les ANNULEE (escrow AUCUN).
-      escrow: { in: ["EN_SEQUESTRE", "LIBERE"] },
+      // Seules les réservations réellement actées comptent : CONFIRMEE (frais
+      // réglés, séjour à venir) ou TERMINEE (séjour passé). On exclut les
+      // EN_ATTENTE (pas encore payées) et les ANNULEE.
+      status: { in: ["CONFIRMEE", "TERMINEE"] },
     },
-    include: {
+    select: {
+      id: true,
+      status: true,
+      paymentMode: true,
+      totalPrice: true,
+      serviceFee: true,
+      checkIn: true,
+      checkOut: true,
       property: {
         select: {
           slug: true,
@@ -50,13 +60,21 @@ export default async function RevenusPage() {
     orderBy: { checkOut: "desc" },
   });
 
-  const totalVerse = bookings
-    .filter((b) => b.escrow === "LIBERE")
-    .reduce((sum, b) => sum + b.totalPrice, 0);
-  const totalEnAttente = bookings
-    .filter((b) => b.escrow === "EN_SEQUESTRE")
-    .reduce((sum, b) => sum + b.totalPrice, 0);
-  const total = totalVerse + totalEnAttente;
+  const netLoyer = (b: (typeof bookings)[number]) => b.totalPrice - b.serviceFee;
+
+  const totalEncaisse = bookings
+    .filter((b) => b.status === "TERMINEE")
+    .reduce((sum, b) => sum + netLoyer(b), 0);
+  const totalAVenir = bookings
+    .filter((b) => b.status === "CONFIRMEE")
+    .reduce((sum, b) => sum + netLoyer(b), 0);
+  const total = totalEncaisse + totalAVenir;
+  // Frais Darna déjà réglés EN LIGNE par les voyageurs (Rail 1/ESCROW
+  // uniquement — en Rail 2/SUR_PLACE l'hôte les doit encore à Darna via
+  // HostInvoice, purement informatif, jamais compté dans le loyer ci-dessus).
+  const totalFraisEnLigne = bookings
+    .filter((b) => b.paymentMode === "ESCROW")
+    .reduce((sum, b) => sum + b.serviceFee, 0);
 
   return (
     <div>
@@ -72,10 +90,16 @@ export default async function RevenusPage() {
         <SummaryCard label={fr.dashboard.revenusTotal} value={formatTndServer(total)} emphasis />
         <SummaryCard
           label={fr.dashboard.revenusEnAttente}
-          value={formatTndServer(totalEnAttente)}
+          value={formatTndServer(totalAVenir)}
         />
-        <SummaryCard label={fr.dashboard.revenusVerse} value={formatTndServer(totalVerse)} />
+        <SummaryCard label={fr.dashboard.revenusVerse} value={formatTndServer(totalEncaisse)} />
       </div>
+
+      {totalFraisEnLigne > 0 ? (
+        <p className="mt-3 text-xs text-body/50">
+          {fr.dashboard.revenusFraisInfo(formatTndServer(totalFraisEnLigne))}
+        </p>
+      ) : null}
 
       {bookings.length === 0 ? (
         <div className="mt-6 rounded-3xl bg-surface p-10 text-center ring-1 ring-darna/10">
@@ -85,7 +109,7 @@ export default async function RevenusPage() {
       ) : (
         <ul className="mt-6 space-y-4">
           {bookings.map((b) => {
-            const verse = b.escrow === "LIBERE";
+            const encaisse = b.status === "TERMINEE";
             return (
               <li
                 key={b.id}
@@ -106,10 +130,10 @@ export default async function RevenusPage() {
                 <div className="min-w-0 flex-1">
                   <span
                     className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
-                      verse ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"
+                      encaisse ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"
                     }`}
                   >
-                    {verse ? fr.dashboard.revenusBadgeVerse : fr.dashboard.revenusBadgeEnAttente}
+                    {encaisse ? fr.dashboard.revenusBadgeVerse : fr.dashboard.revenusBadgeEnAttente}
                   </span>
                   <Link
                     href={`/annonce/${b.property.slug}`}
@@ -121,14 +145,14 @@ export default async function RevenusPage() {
                     {b.property.city} · {fr.dashboard.reservePar(b.guest.name)}
                   </p>
                   <p className="mt-0.5 text-xs text-body/50">
-                    {verse
+                    {encaisse
                       ? fr.dashboard.revenusVerseApres(formatDateShortFr(b.checkOut))
-                      : fr.dashboard.revenusVersementPrevu(formatDateShortFr(b.checkOut))}
+                      : fr.dashboard.revenusVersementPrevu(formatDateShortFr(b.checkIn))}
                   </p>
                 </div>
 
                 <p className="shrink-0 text-lg font-bold text-heading">
-                  {formatTndServer(b.totalPrice)}
+                  {formatTndServer(netLoyer(b))}
                 </p>
               </li>
             );

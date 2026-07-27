@@ -588,18 +588,20 @@ export const ar: Dictionary = {
     revenus: "المداخيل",
     revenusTitre: "مداخيلي",
     revenusSousTitre:
-      "المسافر يخلّص وقت الحجز؛ دارنا تحفظ المبلغ وتعطيهولك كان بعد ما يكمّل إقامتو. هاذي ضمانة « الخلاص المحمي » اللي تطمّن المسافرين وتخلّيهم يحجزو.",
+      "المسافرين يخلّصوك الكراء كاش وقت الوصول — دارنا ما تلمسوش أبداً. هاذي الصفحة تلخّصلك الكراء الصافي متاعك: اللي تصرّف، واللي باقي يجي.",
     revenusTotal: "مداخيل مؤكّدة",
-    revenusEnAttente: "في انتظار الصرف",
-    revenusVerse: "متصرّف",
+    revenusEnAttente: "يتصرّف وقت الوصول",
+    revenusVerse: "تصرّف",
     revenusAucun: "ما فماش مداخيل للتوّ.",
     revenusAucunCta:
-      "كان يخلّص مسافر حجز، المبلغ يبان هنا — الأول في انتظار الصرف، ومن بعد يتصرّفلك بعد ما يمشي.",
-    revenusBadgeEnAttente: "في انتظار الصرف",
-    revenusBadgeVerse: "متصرّف",
+      "كان يتأكّد حجز، الكراء الصافي متاعك يبان هنا — يتصرّف وقت الوصول، ومن بعد يتحسب بعد ما تكمّل الإقامة.",
+    revenusBadgeEnAttente: "يتصرّف وقت الوصول",
+    revenusBadgeVerse: "تصرّف",
     revenusVersementPrevu: (date: string) =>
-      `يتصرّف بعد ما يمشي المسافر (${date})`,
-    revenusVerseApres: (date: string) => `متصرّف — الإقامة كمّلت في ${date}`,
+      `يتصرّف كاش وقت وصول المسافر، ${date}`,
+    revenusVerseApres: (date: string) => `تصرّف — الإقامة كمّلت في ${date}`,
+    revenusFraisInfo: (amount: string) =>
+      `فيها ${amount} مصاريف خدمة دارنا اللي المسافرين خلّصوها أونلاين — بعيد عن الكراء متاعك فوق.`,
   },
   annonceForm: {
     titre: "عنوان الإعلان",
@@ -1290,15 +1292,9 @@ export const ar: Dictionary = {
     // ── حجز التسبقة (ضد التحويل خارج المنصّة) : قدّاش تخلّص توّا ──────────
     totalSejour: "إجمالي الإقامة",
     payerMaintenant: "تخلّص توّا",
-    montantAPayer: "قدّاش تحبّ تخلّص توّا ؟",
+    montantAPayer: "مصاريف الحجز اللي تتخلّص توّا",
     montantAPayerAide:
-      "خلّص أونلاين على الأقلّ التسبقة (10٪) — عمولة دارنا داخلة فيها. تنجّم تخلّص أكثر حتى للمبلغ الكامل ؛ الباقي يتخلّص كاش لصاحب الدار وقت الوصول.",
-    acompteMin: "التسبقة الدنيا",
-    raccourciAcompte: (pct: number) => `تسبقة (${pct}٪)`,
-    raccourciMoitie: "النصف",
-    raccourciTotalite: "المبلغ الكامل",
-    pourcentDuTotal: (pct: number) => `${pct}٪ من الإجمالي`,
-    dontCommission: "فيها عمولة دارنا",
+      "الوحيد اللي يتخلّص أونلاين هو مصاريف خدمة دارنا، داخلة في الإجمالي. الكراء يتخلّص كامل كاش لصاحب الدار وقت الوصول.",
     soldeArrivee: "الباقي يتخلّص كاش وقت الوصول",
     soldeArriveeAide:
       "تخلّص الباقي مباشرةً لصاحب الدار، كاش، نهار الوصول متاعك.",
