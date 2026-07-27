@@ -10,7 +10,7 @@ import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    booking: { findUnique: vi.fn(), update: vi.fn() },
+    booking: { findUnique: vi.fn(), update: vi.fn(), updateMany: vi.fn() },
     review: { create: vi.fn() },
   },
 }));
@@ -60,6 +60,9 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { isKonnectEnabled, initKonnectPayment } from "@/lib/konnect";
 import { logAudit } from "@/lib/audit";
+import { redirect } from "next/navigation";
+
+const redirectMock = redirect as unknown as Mock;
 
 const bookingFindUnique = prisma.booking.findUnique as unknown as Mock;
 const bookingUpdate = prisma.booking.update as unknown as Mock;
@@ -142,6 +145,40 @@ describe("startKonnectPaymentAction (paiement réel) — IDOR", () => {
     expect(result).toEqual({ error: "Erreur inconnue." });
     expect(initKonnectMock).not.toHaveBeenCalled();
     expect(bookingUpdate).not.toHaveBeenCalled();
+  });
+
+  it("frais intégralement couverts par un crédit (depositAmount=0) : confirme directement, sans appeler Konnect", async () => {
+    isKonnectEnabledMock.mockReturnValue(true);
+    requireUserMock.mockResolvedValue(OWNER);
+    bookingFindUnique.mockResolvedValue({
+      id: BOOKING_ID,
+      guestId: OWNER.id,
+      status: "EN_ATTENTE",
+      expiresAt: new Date(Date.now() + 600_000),
+      totalPrice: 450,
+      depositAmount: 0,
+      property: { title: "Villa" },
+    });
+    const bookingUpdateMany = prisma.booking.updateMany as unknown as Mock;
+    bookingUpdateMany.mockResolvedValue({ count: 1 });
+    // redirect() ne revient jamais côté réel (Next.js) — reproduit ici pour
+    // vérifier que la fonction s'arrête bien avant le code Konnect.
+    redirectMock.mockImplementationOnce(() => {
+      throw new Error("NEXT_REDIRECT");
+    });
+
+    await expect(startKonnectPaymentAction(undefined, idForm())).rejects.toThrow(
+      "NEXT_REDIRECT"
+    );
+
+    expect(initKonnectMock).not.toHaveBeenCalled();
+    expect(bookingUpdateMany).toHaveBeenCalledWith({
+      where: { id: BOOKING_ID, status: "EN_ATTENTE" },
+      data: expect.objectContaining({ status: "CONFIRMEE", amountPaid: 0 }),
+    });
+    expect(logAuditMock).toHaveBeenCalledWith(
+      expect.objectContaining({ action: "PAYMENT_CONFIRMED", metadata: expect.objectContaining({ amountPaid: 0 }) })
+    );
   });
 });
 

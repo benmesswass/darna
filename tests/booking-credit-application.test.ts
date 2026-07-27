@@ -207,6 +207,12 @@ describe("createBookingAction — dépense crédit atomique (§CR1)", () => {
     });
     expect((tx.booking.create as unknown as Mock).mock.calls[0][0].data).toMatchObject({
       totalPrice: 660 - 60,
+      // §L5.1 : le crédit doit réduire ce qui est RÉELLEMENT débité en ligne
+      // (totalPrice - subtotal = 0 ici, le crédit couvre tous les frais
+      // restants), pas seulement le totalPrice affiché — sinon le solde
+      // cash à l'arrivée (totalPrice - amountPaid) se retrouverait sous le
+      // loyer réel dû à l'hôte.
+      depositAmount: 0,
     });
   });
 
@@ -219,7 +225,7 @@ describe("createBookingAction — dépense crédit atomique (§CR1)", () => {
     await createBookingAction(undefined, bookingForm("false"));
 
     expect(tx.creditWallet.updateMany).not.toHaveBeenCalled();
-    expect(create.mock.calls[0][0].data).toMatchObject({ totalPrice: 660 });
+    expect(create.mock.calls[0][0].data).toMatchObject({ totalPrice: 660, depositAmount: 60 });
   });
 
   it("laisse totalPrice inchangé si la dépense échoue (solde épuisé entre-temps, count=0)", async () => {
@@ -230,7 +236,7 @@ describe("createBookingAction — dépense crédit atomique (§CR1)", () => {
 
     await createBookingAction(undefined, bookingForm("true"));
 
-    expect(create.mock.calls[0][0].data).toMatchObject({ totalPrice: 660 });
+    expect(create.mock.calls[0][0].data).toMatchObject({ totalPrice: 660, depositAmount: 60 });
     expect(tx.creditTransaction.create).not.toHaveBeenCalled();
   });
 });
