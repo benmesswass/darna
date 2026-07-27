@@ -1419,6 +1419,8 @@ export const ar: Dictionary = {
     reservationRecue: (titre: string) => `جالك حجز جديد على « ${titre} ».`,
     annonceIncomplete: (titre: string) =>
       `الإعلان متاعك « ${titre} » مازال فيه حاجات ناقصة — كمّلو باش يبيع أحسن.`,
+    annoncePromoSuggeree: (titre: string) =>
+      `الإعلان متاعك « ${titre} » عندو ليالي فارغة في الجمعات الجايّة — قارن السعر متاعك بمعدل المدينة، بروموسيون صغيّر ينجم يبيع ليلة زايدة.`,
   },
   alaUne: {
     titre: "حطّ إعلانك في الواجهة",

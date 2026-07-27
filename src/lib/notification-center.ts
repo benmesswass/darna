@@ -12,6 +12,8 @@ import {
   HOST_INVOICE_DUE_SOON_DAYS,
   LISTING_EXPIRE_SOON_DAYS,
   LISTING_INCOMPLETE_NUDGE_DAYS,
+  PROMO_SUGGESTION_BOOKING_WINDOW_DAYS,
+  PROMO_SUGGESTION_VERIFIED_SINCE_DAYS,
 } from "@/lib/config";
 import { sendHostInvoiceDueSoonEmail, sendHostInvoiceOverdueEmail } from "@/lib/notifications";
 import { computeListingCompleteness } from "@/lib/listing-completeness";
@@ -46,7 +48,9 @@ export type NotificationType =
   // de DEMANDE_CASH_RECUE (Rail 2, avant acceptation hôte).
   | "RESERVATION_RECUE"
   // Relance de complétude d'annonce (GROWTH_ROADMAP.md §G2).
-  | "ANNONCE_INCOMPLETE";
+  | "ANNONCE_INCOMPLETE"
+  // Nudge promo automatique (CROISSANCE_ROADMAP.md §PM2).
+  | "ANNONCE_PROMO_SUGGEREE";
 
 async function createNotification(
   userId: string,
@@ -417,5 +421,61 @@ export async function ensureHostInvoiceReminders(userId: string): Promise<void> 
     // E-mail UNIQUEMENT quand une notif a été réellement créée (pas de doublon).
     if (overdue) await sendHostInvoiceOverdueEmail(inv.id);
     else await sendHostInvoiceDueSoonEmail(inv.id);
+  }
+}
+
+/**
+ * Détection paresseuse des annonces à « nuits vides » à court terme
+ * (CROISSANCE_ROADMAP.md §PM2) — même idiome exact que
+ * ensureExpiringSoonNotifications/ensureIncompleteListingNotifications : pas
+ * de cron, calculé au sondage, dédupliqué par un index unique PARTIEL en base
+ * (userId, href) WHERE type = 'ANNONCE_PROMO_SUGGEREE' (cf. migration
+ * 20260724160000_add_promo_suggestion_notification). Le `href` est bucketé
+ * PAR MOIS (`?promo=AAAA-MM`) plutôt que figé comme les autres nudges
+ * d'annonce : une annonce qui reste sans réservation plusieurs mois de suite
+ * doit être relancée chaque mois, pas qu'une seule fois à vie.
+ */
+export async function ensurePromoSuggestionNotifications(userId: string): Promise<void> {
+  const now = new Date();
+  const verifiedCutoff = new Date(
+    now.getTime() - PROMO_SUGGESTION_VERIFIED_SINCE_DAYS * 24 * 60 * 60 * 1000
+  );
+  const bookingWindowEnd = new Date(
+    now.getTime() + PROMO_SUGGESTION_BOOKING_WINDOW_DAYS * 24 * 60 * 60 * 1000
+  );
+
+  const properties = await prisma.property.findMany({
+    where: {
+      ownerId: userId,
+      status: "ACTIVE",
+      verified: true,
+      verifiedAt: { lte: verifiedCutoff },
+      bookings: {
+        none: { status: "CONFIRMEE", checkIn: { lt: bookingWindowEnd }, checkOut: { gt: now } },
+      },
+    },
+    select: { id: true, title: true },
+  });
+
+  const monthBucket = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
+
+  for (const p of properties) {
+    // Lien vers l'édition (où la promo se gère, même destination que les
+    // autres nudges d'annonce) — le bucket mensuel sert aussi de clé de
+    // dédoublonnage (cf. index partiel).
+    const href = `/dashboard/annonces/${p.id}/modifier?promo=${monthBucket}`;
+    try {
+      await prisma.notification.create({
+        data: { userId, type: "ANNONCE_PROMO_SUGGEREE", propertyTitle: p.title, href },
+      });
+    } catch (err) {
+      if ((err as { code?: string }).code !== "P2002") {
+        logStructured("error", "notif.promo_suggestion_failed", {
+          userId,
+          propertyId: p.id,
+          error: (err as Error).message,
+        });
+      }
+    }
   }
 }

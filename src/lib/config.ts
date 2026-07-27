@@ -267,3 +267,15 @@ export const SUSPENSION_DURATIONS_DAYS = [3, 14];
 export const LISTING_ACTIVITY_MIN_VIEWS = 3;
 /** Une dernière réservation trop ancienne n'est plus un signal de dynamique. */
 export const LISTING_ACTIVITY_RECENT_BOOKING_DAYS = 30;
+
+/**
+ * Nudge promo automatique (CROISSANCE_ROADMAP.md §PM2) : ancienneté minimale
+ * de vérification avant la 1ère suggestion — laisse le temps à l'annonce de
+ * capter ses premières réservations organiques avant de suggérer une promo.
+ */
+export const PROMO_SUGGESTION_VERIFIED_SINCE_DAYS = 14;
+/**
+ * Fenêtre (jours à venir) sans réservation CONFIRMEE déclenchant la
+ * suggestion de promo (§PM2) — « nuits vides » à court terme.
+ */
+export const PROMO_SUGGESTION_BOOKING_WINDOW_DAYS = 21;

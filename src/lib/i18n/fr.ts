@@ -1428,6 +1428,8 @@ export const fr = {
       `Vous avez reçu une nouvelle réservation pour « ${titre} ».`,
     annonceIncomplete: (titre: string) =>
       `Votre annonce « ${titre} » a encore des cases à cocher — complétez-la pour mieux convertir.`,
+    annoncePromoSuggeree: (titre: string) =>
+      `« ${titre} » a des nuits vides dans les prochaines semaines — comparez votre prix à la moyenne de la ville : une promo ponctuelle peut suffire à vendre une nuit de plus.`,
   },
   alaUne: {
     titre: "Mettez votre annonce à la une",

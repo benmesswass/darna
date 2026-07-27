@@ -5,6 +5,7 @@ import {
   ensureExpiringSoonNotifications,
   ensureHostInvoiceReminders,
   ensureIncompleteListingNotifications,
+  ensurePromoSuggestionNotifications,
 } from "@/lib/notification-center";
 
 // Sondé périodiquement par NotificationBell : jamais mis en cache.
@@ -32,6 +33,8 @@ export async function GET() {
   await ensureHostInvoiceReminders(user.id);
   // Idem pour les annonces restées incomplètes (§G2).
   await ensureIncompleteListingNotifications(user.id);
+  // Idem pour les annonces à nuits vides à court terme (§PM2).
+  await ensurePromoSuggestionNotifications(user.id);
 
   const [count, items] = await Promise.all([
     prisma.notification.count({ where: { userId: user.id, readAt: null } }),

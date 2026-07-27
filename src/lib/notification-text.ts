@@ -56,6 +56,8 @@ export function notificationMessage(
       return fr.notifications.reservationRecue(n.propertyTitle ?? "");
     case "ANNONCE_INCOMPLETE":
       return fr.notifications.annonceIncomplete(n.propertyTitle ?? "");
+    case "ANNONCE_PROMO_SUGGEREE":
+      return fr.notifications.annoncePromoSuggeree(n.propertyTitle ?? "");
     default:
       return "";
   }
