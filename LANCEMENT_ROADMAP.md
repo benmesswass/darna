@@ -297,6 +297,7 @@ poser `OBSERVABILITY_WEBHOOK_URL` en staging/prod.
 | L5.4 | Garantie no-show hôte : indemnité 100 % des frais, plafonnée | P1 | ❌ |
 | L5.5 | Refonte wording : « zéro acompte au propriétaire » (i18n ×3 + e-mails + CGU + README) | P0 | ❌ |
 | L5.6 | ⛔ W4 — avis juridique (périmètre mis à jour, voir tableau ⛔) | P0 | ❌ 🧑 WASSIM |
+| L5.7 | Pédagogie hôte Rail 2 : contrat clair sur la facturation des 10 % + cadrage gagnant-gagnant | P0 | ❌ |
 
 **Contexte complet pour session future** : l'ancien modèle encaissait via
 Konnect un acompte `max(10 %, commission)` — donc de l'argent appartenant à
@@ -440,6 +441,63 @@ récap.
 conservés (grep exhaustif `séquestre|sequestre|protégé|conserve` sur les 3
 dictionnaires en fin de tâche) ; toucher aux clés `metadata`/SEO autrement
 que via `frMeta` (convention projet).
+
+### L5.7 — Pédagogie hôte Rail 2 : le contrat des 10 % doit être limpide (demande Wassim, 2026-07-27)
+
+**Pourquoi** : en Rail 2, l'hôte encaisse TOUT (loyer + les 10 % de frais
+inclus dans le total voyageur) puis doit reverser les 10 % à Darna. La
+mécanique est entièrement codée (PSP4-PSP8 : facture par réservation, lien
+Konnect, échéance `HOST_INVOICE_DUE_DAYS` = 14 j, rappels J-3/retard,
+masquage des annonces en cas d'impayé, suspension admin) mais elle n'est
+**expliquée nulle part à l'hôte AVANT qu'il s'engage**. Un hôte surpris par
+une facture = un impayé + un hôte perdu ; un hôte qui a compris le
+gagnant-gagnant = un payeur volontaire.
+
+**Décision de facturation (tranchée)** : la facture reste **par réservation**
+en V1 (modèle existant, testé, encaissement rapide, trivial à comprendre :
+« 1 réservation = 1 facture de 10 % ») — PAS de facture mensuelle consolidée
+maintenant : au volume de lancement (1-3 résas SUR_PLACE/hôte/mois, rail
+minoritaire cf. §0bis de `PAIEMENT_SUR_PLACE_ROADMAP.md`), la consolidation
+ajoute de la complexité (un `paymentRef` pour N factures casse le modèle
+1-paiement-1-facture) pour un gain nul. En revanche le dashboard PRÉSENTE
+les factures **regroupées par mois** avec total mensuel (pure présentation,
+zéro changement de modèle). Réévaluer la vraie facture mensuelle consolidée
+quand des hôtes dépassent ~5 factures/mois (noter alors une tâche dédiée).
+
+**Étapes** :
+1. **Écran d'activation du paiement sur place** (le toggle existant avec
+   acceptation des CGU hôte — `cashTermsAcceptedAt`, ne PAS casser le
+   non-bypass testé par `tests/cash-payment-terms-bypass.test.ts`) : refonte
+   pédagogique en 4 blocs AVANT la case à cocher —
+   (a) *Comment vous êtes payé* : le voyageur vous règle TOUT à l'arrivée,
+   loyer + frais Darna inclus dans son total ;
+   (b) *Comment vous nous payez* : une facture de 10 % par réservation
+   terminée, payable en ligne en 2 minutes (carte, e-DINAR, Flouci) depuis
+   « Mes factures », échéance 14 jours ;
+   (c) *Si vous ne payez pas* : rappels automatiques, puis vos annonces
+   sont masquées des recherches jusqu'au règlement (et suspension possible)
+   — dit sans détour, AVANT l'engagement ;
+   (d) *Pourquoi c'est gagnant-gagnant* : chaque réservation via Darna vous
+   apporte un voyageur à l'identité CIN vérifiée, un avis authentique
+   impossible à obtenir hors plateforme (contrainte de schéma) qui monte
+   votre classement, le badge Vérifié, la garantie anti-no-show du rail
+   standard, et l'accès aux voyageurs diaspora.
+2. **`/dashboard/factures`** : en-tête explicatif (les mêmes 4 points en
+   condensé) + regroupement par mois + total du mois en cours.
+3. **E-mail à la GÉNÉRATION de la facture** (il n'existe que les e-mails
+   J-3 et retard — ajouter celui de création dans `src/lib/notifications.ts`,
+   même patron) : montant, réservation concernée, échéance, lien de paiement
+   direct, rappel du « pourquoi » en une phrase.
+4. **Page CGU hôte** (`/cgu-hote`) : aligner les clauses sur le modèle 10 %
+   et l'échéance/conséquences ci-dessus (cohérence L5.5).
+5. i18n ×3, `ProductEvent` sur l'activation (discipline IN4), captures
+   avant/après (activation + factures), tests (e-mail de création, rendu
+   groupé par mois — aucune logique de règlement ne change).
+
+**Ne PAS faire** : modifier `HostInvoice`/`settleHostInvoice`/le webhook
+(rien ne change dans la mécanique de paiement) ; adoucir le point (c) — la
+clarté sur les conséquences EST la demande produit ; inventer une remise ou
+un barème non validé.
 
 ---
 
@@ -634,7 +692,7 @@ montrer à un hôte : simulateur de revenus, vérification gratuite au lancement
 
 ## Récapitulatif des priorités
 
-- **P0 (conditionnent la mise en ligne)** : L1 → L2 → L3.1/L3.2 → L5.1/L5.2/L5.3/L5.5 → L6 (+ W1-W5)
+- **P0 (conditionnent la mise en ligne)** : L1 → L2 → L3.1/L3.2 → L5.1/L5.2/L5.3/L5.5/L5.7 → L6 (+ W1-W5)
 - **P1 (avant de vrais utilisateurs)** : L3.3 → L4 → L5.4 → L7 → L8 → L10.1/L10.2 (+ W4 impérativement avant tout argent réel)
 - **P2 (avant campagne d'acquisition)** : L3.4 → L9
 
