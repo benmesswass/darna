@@ -191,7 +191,7 @@ label `ready-to-merge` déclenche `full` ; le nightly existe ; CLAUDE.md à jour
 |---|---|---|---|
 | L3.1 | Socle `/api/jobs/tick` (Vercel Cron, secret, idempotence, audit) | P0 | ✅ PR #202 |
 | L3.2 | Job : réconciliation Konnect↔local | P0 | ✅ PR #203 |
-| L3.3 | Job : relance de réservation abandonnée (G6, GROWTH_ROADMAP) | P1 | ✅ PR à venir (mode orchestration autonome) |
+| L3.3 | Job : relance de réservation abandonnée (G6, GROWTH_ROADMAP) | P1 | ✅ PR #204 |
 | L3.4 | Job : rappels automatiques de factures hôte (PSP5) | P2 | ❌ |
 
 ### L3.1 — Socle
