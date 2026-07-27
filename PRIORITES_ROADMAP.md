@@ -22,6 +22,21 @@
   source (même règle que le reste du projet) — sinon ce fichier dérive et
   devient trompeur pour la prochaine session qui le lit.
 
+## 🚀 CHANTIER PRIORITAIRE ACTIF — `LANCEMENT_ROADMAP.md` (2026-07-27)
+
+**Décision Wassim du 2026-07-27** (audit CTO complet : `AUDIT_V2.md`) : la
+priorité absolue passe à la **mise en production de la V1** —
+`LANCEMENT_ROADMAP.md` (infra, CI, scheduler, vérité financière, monitoring,
+RGPD, onboarding, mobile, GTM). **« suivant » / « enchaîne » = première tâche
+non cochée de `LANCEMENT_ROADMAP.md` (ordre L1 → L10)**, avant toute autre
+roadmap.
+
+**🧊 Gel des features growth** tant que ce chantier n'est pas clos : les
+vagues 4-5 ci-dessous (PM2, PM3, CR5, G7, CR6, fin de CR2) sont **suspendues**
+— y compris en mode orchestration autonome. Exceptions : G6 est intégrée au
+chantier lancement (§L3.3) ; bugfix sur l'existant toujours autorisé. Le dégel
+se fait via le pointeur de continuation en fin de `LANCEMENT_ROADMAP.md`.
+
 ## 🔔 Correction apportée avant priorisation
 
 **Doublon G9 / CR0-CR2.** `GROWTH_ROADMAP.md` (G9, parrainage bidirectionnel)
@@ -35,7 +50,7 @@ ligne G9 par `✅ Voir CR0-CR2 (CROISSANCE_ROADMAP.md)`.
 
 | Item | Roadmap | Attend |
 |---|---|---|
-| **PSP9** | `PAIEMENT_SUR_PLACE_ROADMAP.md` | Ton arbitrage tarification en ligne/sur place — corrigé le 2026-07-24 : PR #157 (mergée) n'a documenté QUE la question ouverte, aucun code PSP9 n'existe, rien à merger — tout reste à écrire une fois l'arbitrage tranché |
+| **PSP9** | `PAIEMENT_SUR_PLACE_ROADMAP.md` | Ton arbitrage tarification en ligne/sur place — corrigé le 2026-07-24 : PR #157 (mergée) n'a documenté QUE la question ouverte, aucun code PSP9 n'existe, rien à merger. **Recadré le 2026-07-27 par le modèle commission-only (`LANCEMENT_ROADMAP.md` §L5)** : les deux rails coûtent désormais le même total au voyageur (frais 10 % payés en ligne en rail standard, facturés à l'hôte en Rail 2) et le no-show est traité par l'indemnité L5.4 — PSP9 est probablement **sans objet** ; à requalifier (ou clore) après livraison de L5 |
 | **MI5** | `MONETISATION_IMMO_ROADMAP.md` | Partenariat bancaire externe non signé pour la monétisation réelle (commission) — le lead-capture est fait (✅ PR #197, mode orchestration autonome `/loop`, chantier indépendant), reste bloqué uniquement pour brancher un vrai partenaire |
 
 ## 🔧 Dette dépendances (ni bloqué sur toi, ni du code produit)

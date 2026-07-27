@@ -4,95 +4,89 @@
 
 Darna est une plateforme web pour le marché immobilier tunisien, combinant deux verticales sur un socle unique :
 
-- **Séjours** (type Airbnb) : location touristique — calendrier de disponibilité, recherche ville/dates/voyageurs, réservation avec séquestre, avis de vrais voyageurs.
-- **Immobilier** (type SeLoger) : location longue durée et vente — filtres prix/surface/pièces/gouvernorat, contact direct propriétaire/agence, contrat de bail pré-rempli.
+- **Séjours** (type Airbnb) : location touristique — calendrier, recherche ville/dates/voyageurs, réservation confirmée en ligne (frais de service uniquement, le séjour se règle sur place), messagerie intégrée, avis de vrais voyageurs, annulation encadrée.
+- **Immobilier** (type SeLoger) : location longue durée et vente — filtres prix/surface/pièces/gouvernorat, contact direct propriétaire/agence, contrat de bail pré-rempli, lead financement.
 
 ## Le positionnement : la confiance est le produit
 
 > *Ce que vous voyez existe. Le prix affiché est le prix payé. Votre argent est protégé.*
 
-Darna corrige structurellement les failles du marché tunisien :
-
 | Faille du marché | Réponse Darna |
 |---|---|
-| Arnaques aux acomptes, photos volées (Tayara) | Badge « Vérifié Darna » (réseau Wakil), paiement sous **séquestre** versé 24 h après le check-in |
-| Annonces périmées jamais nettoyées (Mubawab) | **Expiration automatique à 30 jours**, badge fraîcheur, bouton « Marquer loué/vendu » en 1 clic |
-| Avis inventés ou absents | Un avis est **impossible sans réservation confirmée** (contrainte au niveau du schéma de base) |
-| Pas de carte, pas d'arabe (TunRooms) | Carte Leaflet/OSM à marqueurs prix, i18n centralisée prête pour l'arabe + RTL |
+| Arnaques aux acomptes, photos volées (Tayara) | Badge « Vérifié Darna » (réseau Wakil, vérification humaine, 2 niveaux REMOTE/ON_SITE) + **zéro acompte au propriétaire** : seuls les frais Darna se paient en ligne (remboursés si l'annonce n'est pas conforme), le séjour se règle sur place |
+| Annonces périmées jamais nettoyées (Mubawab) | **Expiration automatique à 30 jours**, badge fraîcheur, « Marquer loué/vendu » en 1 clic |
+| Avis inventés ou absents | Un avis est **impossible sans réservation confirmée** (contrainte au niveau du schéma) |
+| Contournement de la plateforme | Messagerie interne avec masquage des coordonnées, acompte minimum en ligne, suspension progressive |
+| Pas de carte, pas d'arabe | Carte Leaflet/OSM à marqueurs prix, **site trilingue FR / EN / AR (derja) avec RTL automatique** |
 
-## Lancement
+## Fonctionnalités actuelles
+
+**Voyageur** — recherche tolérante à la translittération (« 7ammamet » → Hammamet), vue liste + carte, filtres, favoris avec dossiers, réservation transparente (hold 15 min, anti-double-réservation SERIALIZABLE, prix recalculés serveur), frais de service payés en ligne via **Konnect** (optionnel) — le séjour se règle sur place — ou réservation 100 % cash si l'hôte l'a activée, annulation avec politiques (flexible/modérée/stricte), messagerie hôte↔voyageur, avis à sous-notes, alertes de recherche sauvegardée, centre de notifications, crédits de bienvenue/parrainage, mode diaspora TND/EUR.
+
+**Hôte / Agence** — création d'annonce complète (photos avec upload + compression, carte, générateur de description), calendrier de blocage, promos, mise en avant payante, Yield Advisor, barre de complétude, badge Super-Hôte au mérite, tableau de revenus, annulation hôte encadrée (blocage progressif), abonnements agence, crédits de vérification Wakil, avis hôte→voyageur.
+
+**Plateforme** — vérification d'annonces par le réseau Wakil (back-office admin complet), KYC (OTP e-mail/SMS/WhatsApp, CIN chiffrée AES-256-GCM avec unicité par hash), Indice Darna des prix (`/prix-du-marche`), simulateur public de revenus, instrumentation produit (funnel + adoption) avec dashboards admin, SEO complet (sitemap, JSON-LD, slugs), reset mot de passe, CAPTCHA Turnstile (dual-mode).
+
+## Sécurité
+
+zod sur chaque server action mutante · autorisation serveur sur chaque mutation · zéro SQL brut · prix toujours recalculés serveur · bcrypt coût 12 + anti-énumération · rate limiting Redis (fallback mémoire) · CSP par nonce · audit trail complet · webhook de paiement auto-signé HMAC · CIN chiffrée au repos · ledger de crédits append-only · invalidation de session au changement de mot de passe.
+
+Détail des contrôles et des manques restants : `QA_ROADMAP.md`, `TODO-BETA.md`, `TODO-PRODUCTION.md`.
+
+## Modes démo ↔ production
+
+L'app démarre **sans aucune clé** avec des défauts démo sûrs ; chaque mode réel exige sa configuration complète, validée au boot (fail-fast) :
+
+| Mode | Démo (défaut) | Réel |
+|---|---|---|
+| `PAYMENT_MODE` | paiement des frais simulé | **Konnect** (sandbox gratuit) : init + webhook signé + réconciliation |
+| `KYC_MODE` | OTP affiché à l'écran | e-mail Resend, SMS Twilio, WhatsApp Meta Cloud API |
+| `STORAGE_MODE` | disque local | S3-compatible (R2…) via `aws4fetch` |
+| `CAPTCHA_MODE` | désactivé | Cloudflare Turnstile |
+
+## Lancement local
 
 ```bash
 npm install
 cp .env.example .env        # puis générer AUTH_SECRET : openssl rand -base64 32
 
-# Base PostgreSQL locale (Docker) :
 docker run -d -p 5432:5432 \
   -e POSTGRES_DB=darna -e POSTGRES_USER=darna -e POSTGRES_PASSWORD=darna \
   --name darna-db postgres:16-alpine
 
-npx prisma migrate dev      # applique les migrations
-npx prisma db seed          # 30 annonces réalistes, comptes démo, avis
-npm run dev                 # http://localhost:3000
+npx prisma migrate dev
+npx prisma db seed
+npm run dev
 ```
 
-Vérifications : `npx tsc --noEmit` et `npm run lint`.
+Vérifications : `npx tsc --noEmit` · `npm run lint` · `npm test` · `npm run test:e2e` (Playwright) · `npm run test:api` · `npm run test:perf` (k6).
 
 ## Comptes démo
 
-| Rôle | E-mail | Mot de passe | Particularités |
-|---|---|---|---|
-| Voyageur | `voyageur@darna.tn` | `darna2026` | Réservation confirmée à venir, avis publiés |
-| Hôte (vérifié) | `hote@darna.tn` | `darna2026` | KYC vérifié, annonces séjours + vente |
-| Agence | `agence@darna.tn` | `darna2026` | Annonces location/vente, demande de contact reçue |
+Mot de passe unique : `darna2026` (liste complète dans `CREDENTIALS.md`, non commité).
 
-## Fonctionnalités V0
+| Rôle | E-mail |
+|---|---|
+| Voyageur | `voyageur@darna.tn` |
+| Hôte (vérifié) | `hote@darna.tn` |
+| Agence | `agence@darna.tn` |
 
-- **Recherche tolérante à la translittération** : « 7ammamet », « hamamet » → Hammamet ; « soussa » → Sousse (normalisation + table d'alias, chiffres arabes 7/9/3/5 convertis).
-- **Vue liste + carte** Leaflet/OpenStreetMap avec marqueurs prix (import dynamique `ssr: false`).
-- **Fraîcheur des données** : annonces expirées (30 j) ou louées/vendues exclues des recherches et du sitemap ; republication en 1 clic (+30 j).
-- **Réservation 100 % transparente** : prix/nuit × nuits + frais de service affichés, total TND, « aucun autre frais ne vous sera demandé ».
-- **Séquestre simulé** : paiement mock, fonds « versés à l'hôte 24 h après le check-in », Konnect/Flouci annoncés.
-- **KYC simulé** : CIN + téléphone, OTP affiché à l'écran (aucun SMS réel), badge « Identité vérifiée ».
-- **Yield Advisor** : pour chaque bien, comparaison « saisonnier (nuitée moyenne de la ville × 30 × 60 % d'occupation) vs longue durée (loyer moyen du gouvernorat) », calculée depuis la base.
-- **Générateur de description** : composition de phrases FR par templates depuis les champs saisis — aucune API IA.
-- **Indice Darna** (`/prix-du-marche`) : prix moyen au m² par gouvernorat (vente, location) et nuitée moyenne par ville, barres CSS pures.
-- **Mode diaspora** (`/diaspora`) : bascule globale TND/EUR (taux statique 1 € = 3,4 TND dans `src/lib/config.ts`).
-- **Réseau Wakil** (`/devenir-wakil`) : candidature persistée en base.
-- **Contrat de bail pré-rempli imprimable** (`@media print`) pour la location longue durée.
-- **Contact WhatsApp** pré-rempli (`wa.me`) sur les annonces immobilier.
-- **SEO** : metadata dynamiques, JSON-LD schema.org (`Accommodation`, `RealEstateListing`), sitemap.xml, robots.txt, slugs `villa-piscine-hammamet-100`.
+## Limites assumées (état honnête)
 
-## Sécurité V0
+- **Pas encore déployé en production** — chantier en cours : `LANCEMENT_ROADMAP.md`.
+- **Modèle V1 « commission-only »** (décision 2026-07-27, bascule du code en cours — §L5 de `LANCEMENT_ROADMAP.md`) : Darna n'encaisse en ligne que ses frais de service (10 % du loyer) ; le loyer se règle 100 % sur place. Aucun fonds de tiers ne transite par Darna. Le paiement intégral en ligne (séquestre réel) est la V2, conditionnée à un avis juridique. Les remboursements de frais restent des virements manuels (l'API Konnect n'a pas d'endpoint de remboursement).
+- Conversion EUR d'affichage à taux statique (1 € = 3,4 TND) — le montant débité est toujours en TND.
+- KYC sans provider documentaire (pas d'OCR/liveness) ; OTP réel optionnel.
+- ⚖️ La location saisonnière tunisienne évolue dans un cadre juridique flou (fiscalité, agrément séquestre BCT) — avis juridique en cours avant tout lancement commercial.
 
-- zod sur chaque server action mutante ; Prisma uniquement (zéro SQL brut).
-- bcrypt coût 12, messages d'erreur d'authentification génériques.
-- Rate limiting en mémoire : 5 tentatives / 15 min / IP (connexion, inscription, OTP, contact).
-- Autorisation serveur sur chaque mutation : un hôte ne touche que ses annonces, un voyageur que ses réservations, le contrat de bail n'est visible que par les deux parties.
-- Headers : CSP, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`.
-- `.env` non commité (`.env.example` fourni).
-- Pas de `dangerouslySetInnerHTML`, à **une exception encadrée** : le JSON-LD SEO (`src/components/seo/JsonLd.tsx`), approche officiellement documentée par Next.js — contenu 100 % issu de la base, sérialisé par `JSON.stringify` avec `<` échappé.
+## Documentation & pilotage
 
-## Limites assumées de la V0
-
-- OTP, séquestre et conversion EUR sont des **mocks assumés dans l'interface** — aucun paiement réel, aucune clé API, aucun SMS.
-- Photos : placeholders SVG locaux (pas d'upload de fichiers).
-- Interface en français uniquement ; les dictionnaires (`src/lib/i18n/`) et `dir` sont prêts pour `ar.ts` + RTL.
-- ⚖️ **Note juridique** : la location saisonnière tunisienne évolue dans un vide juridique (statut fiscal, obligations d'enregistrement, encadrement des plateformes). À clarifier avec un conseil local avant tout lancement commercial. Les CGU et mentions légales sont des pages placeholder à rédiger.
-
-## Roadmap V1
-
-1. **Séquestre réel** via Konnect / Flouci (paiement local + carte internationale pour la diaspora).
-2. **KYC réel** : vérification CIN + OTP SMS.
-3. **pHash anti-photos volées** : détection des images réutilisées depuis d'autres annonces.
-4. **Détection de prix aberrants** (signal d'arnaque) à partir de l'Indice Darna.
-5. **App Wakil terrain** : visites avec photos géolocalisées et horodatées.
-6. **WhatsApp Business API** : notifications réservation/contact.
-7. **Version arabe complète** (`ar.ts` + `dir="rtl"`).
-8. **Indice Darna trimestriel public** (rapport PDF, presse).
-9. **App mobile Capacitor** (réutilisation du front Next.js).
-10. **Assurance partenaire** sur les séjours (casse, annulation).
+- `AUDIT_V2.md` — état des lieux de référence (2026-07-27).
+- `LANCEMENT_ROADMAP.md` — **chantier actif** : mise en production V1.
+- `PRIORITES_ROADMAP.md` — dispatch maître des chantiers.
+- `QA_ROADMAP.md` / `TODO-BETA.md` / `TODO-PRODUCTION.md` — qualité & sécurité par phase.
+- `CLAUDE.md` — conventions de développement.
 
 ## Stack
 
-Next.js 15 (App Router, Server Actions) · TypeScript strict · Tailwind CSS 4 · Prisma + SQLite · NextAuth (Auth.js) credentials · zod · Leaflet + OpenStreetMap (react-leaflet) · Aucun service payant, aucune clé API.
+Next.js 15 (App Router, Server Actions) · TypeScript strict · Tailwind CSS 4 · Prisma + **PostgreSQL** · NextAuth (Auth.js) credentials · zod · Leaflet + OpenStreetMap · Redis (ioredis, optionnel) · Konnect (optionnel) · i18n maison FR/EN/AR + RTL · Vitest + Playwright + k6 + axe + ZAP. Zéro service payant obligatoire.

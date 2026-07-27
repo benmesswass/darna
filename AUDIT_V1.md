@@ -1,5 +1,12 @@
 # DARNA — AUDIT PRODUIT V1
 
+> ⚠️ **DOCUMENT PÉRIMÉ — état au 2026-06-24, largement dépassé depuis.**
+> La plupart des manques identifiés ici (messagerie, reset mot de passe,
+> annulation, HMAC webhook, instrumentation, notifications…) sont comblés.
+> **Voir `AUDIT_V2.md` (2026-07-27) pour l'état des lieux de référence** et
+> `LANCEMENT_ROADMAP.md` pour le plan d'exécution actif. Conservé pour
+> l'historique uniquement — ne rien dispatcher depuis ce fichier.
+
 **Audit commandé en vue d'un tour de Seed — revue produit/UX/technique indépendante.**
 
 > Panel : ex-VP Product Airbnb · ex-Head of Product Booking.com · ex-Head of Design Airbnb · ex-Marketplace Growth Director · UX Researcher (travel) · expert paiement/trust&safety · expert marchés émergents Afrique du Nord (Tunisie).
