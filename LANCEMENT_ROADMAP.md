@@ -276,7 +276,7 @@ Cocher la partie « relances automatiques » de PSP5 dans
 | # | Tâche | Prio | Statut |
 |---|---|---|---|
 | L4.1 | Endpoint `/api/health` + monitoring d'uptime | P1 | ✅ PR #206 — reste 🧑 WASSIM : brancher UptimeRobot/Better Stack |
-| L4.2 | Sentry (erreurs serveur + client) compatible CSP nonce | P1 | ❌ (code préparable ; activation ⛔ W8) |
+| L4.2 | Sentry (erreurs serveur + client) compatible CSP nonce | P1 | ✅ code prêt (PR à venir) — activation ⛔ W8 |
 | L4.3 | Alertes métier via `OBSERVABILITY_WEBHOOK_URL` | P1 | ✅ PR #207 — reste 🧑 WASSIM : créer le webhook + poser la variable |
 
 **L4.1** : route GET `src/app/api/health/route.ts` → `{ ok, db, redis, mode }`
