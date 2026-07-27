@@ -76,7 +76,10 @@ export type AuditAction =
   | "VERIFICATION_CREDIT_PURCHASED"
   // Programme de crédits parrainage/bienvenue (CROISSANCE_ROADMAP.md §CR1).
   | "REFERRAL_SIGNUP_CREDIT_ISSUED"
-  | "CREDIT_APPLIED_AT_CHECKOUT";
+  | "CREDIT_APPLIED_AT_CHECKOUT"
+  // Socle scheduler (LANCEMENT_ROADMAP.md §L3.1) — un tick = une entrée,
+  // metadata { results } résume le statut de chaque job exécuté.
+  | "JOB_TICK";
 
 /**
  * Audit trail — chaque événement sensible est enregistré avec userId, IP et
