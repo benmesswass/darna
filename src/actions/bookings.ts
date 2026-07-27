@@ -300,9 +300,14 @@ export async function createBookingAction(
         }
       }
 
-      // Acompte minimum dû en ligne, figé dès la création du hold (anti-bypass).
+      // Montant dû en ligne, figé dès la création du hold : les frais Darna
+      // RESTANTS après réduction de re-réservation et crédit éventuels
+      // (`totalPrice - subtotal`, jamais `serviceFee` brut — sinon une
+      // réduction/un crédit n'aurait plus aucun effet sur ce qui est
+      // réellement débité, cf. les deux planchers `Math.max(subtotal, …)`
+      // ci-dessus qui garantissent déjà `totalPrice - subtotal ≥ 0`).
       // Sans objet en Rail 2 : zéro paiement en ligne, tout est dû cash à l'arrivée.
-      const depositAmount = wantsCash ? 0 : computeDepositAmount(serviceFee);
+      const depositAmount = wantsCash ? 0 : computeDepositAmount(totalPrice - subtotal);
 
       // 3. Création de la réservation — prix TOUJOURS calculé côté serveur
       const created = await tx.booking.create({
@@ -688,6 +693,33 @@ export async function startKonnectPaymentAction(
   // (amountPaid) AVANT la redirection : devient la source de vérité du
   // montant attendu, revérifiée au règlement (settle).
   const amountToCharge = booking.depositAmount;
+
+  // Frais intégralement couverts par un crédit à la création (réaliste : un
+  // solde de parrainage/bienvenue peut dépasser les frais d'un court séjour,
+  // cf. computeCreditApplication) : rien à débiter, et Konnect n'accepterait
+  // de toute façon pas une charge nulle. Confirmation directe, sans passer
+  // par la passerelle — aucun argent réel ne transite non plus dans ce cas
+  // précis, même si Konnect est actif pour le reste du site.
+  if (amountToCharge === 0) {
+    const updated = await prisma.booking.updateMany({
+      where: { id: booking.id, status: "EN_ATTENTE" },
+      data: { status: "CONFIRMEE", expiresAt: null, paidAt: new Date(), amountPaid: 0 },
+    });
+    if (updated.count > 0) {
+      await logAudit({
+        action: "PAYMENT_CONFIRMED",
+        userId: user.id,
+        success: true,
+        metadata: { bookingId: booking.id, amountPaid: 0, coveredByCredit: true },
+      });
+      await sendBookingConfirmationEmail(booking.id);
+      await notifyBookingConfirmed(booking.id);
+      await sendNewBookingHostEmail(booking.id);
+      await notifyNewBookingReceived(booking.id);
+    }
+    redirect(`/reservation/${booking.id}/paiement`);
+    return; // redirect() ne revient jamais en prod — filet explicite pour les tests.
+  }
 
   const [firstName, ...rest] = user.name.trim().split(/\s+/);
 

@@ -9,13 +9,19 @@ export const SERVICE_FEE_RATE = 0.1;
 /**
  * Montant dû EN LIGNE pour un séjour (TND, entier) — modèle « commission-only »
  * (LANCEMENT_ROADMAP.md §L5.1, 2026-07-27) : Darna n'encaisse plus JAMAIS le
- * loyer, seulement ses propres frais. Le montant en ligne est donc FIXE et
- * égal aux frais — plus de plancher `DEPOSIT_MIN_RATE`/choix voyageur (ancien
- * modèle, cf. historique git). Le loyer intégral se règle en espèces à
- * l'hôte, à l'arrivée.
+ * loyer, seulement ses propres frais restants (après réduction de
+ * re-réservation/crédit éventuels — l'appelant passe `totalPrice - subtotal`,
+ * jamais le `serviceFee` brut, sinon un geste commercial n'aurait plus aucun
+ * effet sur ce qui est réellement débité). Plus de plancher `DEPOSIT_MIN_RATE`
+ * ni de choix voyageur (ancien modèle, cf. historique git) : montant FIXE, le
+ * loyer intégral se règle en espèces à l'hôte, à l'arrivée.
+ *
+ * Peut valoir `0` (frais intégralement couverts par un crédit, ou d'origine
+ * déjà nuls) : `startKonnectPaymentAction` confirme alors directement, sans
+ * passer par Konnect (qui n'accepterait de toute façon pas une charge nulle).
  */
 export function computeDepositAmount(serviceFee: number): number {
-  return serviceFee;
+  return Math.max(0, Math.round(serviceFee));
 }
 
 /**
