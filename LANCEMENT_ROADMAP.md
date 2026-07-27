@@ -148,7 +148,7 @@ TEST_AUTOMATION). Mettre à jour les chemins dans `CLAUDE.md` (§Roadmaps).
 
 | # | Tâche | Prio | Statut |
 |---|---|---|---|
-| L2.1 | Pyramide de jobs CI (rapide sur push, lourd à la demande, sécurité en nightly) | P0 | ❌ |
+| L2.1 | Pyramide de jobs CI (rapide sur push, lourd à la demande, sécurité en nightly) | P0 | ✅ PR à venir (mode orchestration autonome) |
 
 **Pourquoi** : quota Actions épuisé le 22/07 → `ci.yml` en dispatch-only →
 le filet de tests ne protège plus (rituel manuel de ~20 min/merge, qui sera
