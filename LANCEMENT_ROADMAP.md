@@ -31,6 +31,24 @@
 - Priorités : `P0` (conditionne la mise en ligne) · `P1` (avant ouverture à de
   vrais utilisateurs) · `P2` (avant toute campagne d'acquisition).
 
+### 🔒 Règle anti-oubli — balayage d'impact obligatoire (demande Wassim, 2026-07-27)
+
+Toute tâche de ce chantier qui modifie une **règle transverse** (modèle de
+paiement, montant, taux, promesse produit, wording d'une garantie) n'est
+JAMAIS cochée ✅ sur la seule livraison de son périmètre nominal. Elle doit,
+**dans la même PR** :
+1. Dérouler la **checklist d'impact** de sa section (pour le modèle de
+   paiement : §L5.8) et corriger CHAQUE surface listée — code, UI, i18n ×3,
+   e-mails, seed, tests, e2e, k6.
+2. Mettre à jour les **documents qui décrivent l'ancienne règle** :
+   `CLAUDE.md`, `README.md`, `AUDIT_V2.md`, les roadmaps concernées
+   (`PAIEMENT_SUR_PLACE_ROADMAP.md`, `CROISSANCE_ROADMAP.md`…),
+   `.agents/product-marketing.md`.
+3. Exécuter les **greps de clôture** de la checklist : un résidu non justifié
+   (hors commentaire explicitement marqué « V2 ») = tâche NON terminée.
+Un trou découvert APRÈS coup s'ajoute immédiatement à la checklist de la
+section concernée (comme L5.8 l'a été), jamais corrigé en silence sans trace.
+
 ## 🧊 GEL DES FEATURES GROWTH (décision actée, 2026-07-27)
 
 **Tant que ce chantier n'est pas clos**, aucune nouvelle tâche des vagues 4-5
@@ -298,6 +316,7 @@ poser `OBSERVABILITY_WEBHOOK_URL` en staging/prod.
 | L5.5 | Refonte wording : « zéro acompte au propriétaire » (i18n ×3 + e-mails + CGU + README) | P0 | ❌ |
 | L5.6 | ⛔ W4 — avis juridique (périmètre mis à jour, voir tableau ⛔) | P0 | ❌ 🧑 WASSIM |
 | L5.7 | Pédagogie hôte Rail 2 : contrat clair sur la facturation des 10 % + cadrage gagnant-gagnant | P0 | ❌ |
+| L5.8 | **Checklist d'impact commission-only** (balayage exhaustif, clôture du chantier L5) | P0 | ❌ |
 
 **Contexte complet pour session future** : l'ancien modèle encaissait via
 Konnect un acompte `max(10 %, commission)` — donc de l'argent appartenant à
@@ -499,6 +518,98 @@ quand des hôtes dépassent ~5 factures/mois (noter alors une tâche dédiée).
 clarté sur les conséquences EST la demande produit ; inventer une remise ou
 un barème non validé.
 
+### L5.8 — Checklist d'impact commission-only (AUCUN OUBLI — clôture de L5)
+
+> Application de la règle anti-oubli (en-tête de ce fichier) au changement de
+> modèle de paiement. Chaque item est vérifié/corrigé par la tâche L5.x qui
+> touche sa surface, et la TOTALITÉ est re-balayée par cette tâche de clôture
+> avant de marquer le chantier L5 ✅. Les items déjà corrigés dans la PR
+> d'ouverture (#198) sont notés — les autres restent à faire pendant L5.
+
+**Code — logique (L5.1/L5.2/L5.4)** :
+- [ ] `src/lib/config.ts` : `SERVICE_FEE_RATE` 0.10 ; `DEPOSIT_MIN_RATE`
+      supprimé ; `computeDepositAmount` = serviceFee ; `clampPayAmount` figé ;
+      `CREDIT_CHECKOUT_CAP_RATE` remplacé (plafond = 100 % des frais).
+- [ ] `REBOOKING_DISCOUNT_RATE`/`REBOOKING_DISCOUNT_CAP_TND` (0.1 / 150 TND —
+      **dépassent désormais les frais d'une résa** : 10 % du total > frais) :
+      replafonner la réduction sur les frais de la nouvelle réservation
+      (`src/lib/rebooking-discount.ts`), sinon Darna promet plus qu'elle
+      n'encaisse.
+- [ ] `src/actions/bookings.ts` : `depositAmount`, preview/devis,
+      `startKonnectPaymentAction` (montant initié = frais uniquement).
+- [ ] `src/lib/payments.ts` : `settleKonnectBooking` (montant attendu = frais) ;
+      `confirmPaymentAction` (démo) simule le paiement des FRAIS.
+- [ ] `src/lib/cancellation.ts` : assiette `refundAmount` = frais (fenêtres
+      J-2/J-7 inchangées).
+- [ ] `src/lib/credits.ts` (`computeCreditApplication`) : plafonné aux frais.
+- [ ] Transitions `escrow` : plus AUCUNE écriture depuis l'UI/actions (états
+      inertes, commentaire « V2 » posé) ; `src/lib/host-invoicing.ts` :
+      rien à changer (le montant copie `serviceFee`, suit les 10 %).
+
+**Code — UI (L5.1/L5.5)** :
+- [ ] `src/components/booking/DepositPayment.tsx` : plus de choix de montant —
+      un montant fixe (les frais), texte « le séjour se règle sur place ».
+- [ ] Page paiement `src/app/reservation/[id]/paiement` + `KonnectPayButton`.
+- [ ] `src/components/property/PropertyCard.tsx` : importe `SERVICE_FEE_RATE`
+      — vérifier ce qui est affiché sur les cartes et l'adapter.
+- [ ] Récap de réservation : `aucunFraisCache` conservé, total sur place
+      affiché dès le premier écran.
+- [ ] **`/dashboard/revenus` : respec complète** — « En attente de versement »
+      / « Versé » (clés `revenusEnAttente`/`revenusVerse`/`revenusBadge*`,
+      `fr.ts` l.577-591) n'ont PLUS DE SENS (aucun versement Darna→hôte).
+      La page devient « encaissements sur place attendus (loyers des résas
+      confirmées) + frais Darna réglés » — ou est dépubliée si trop ambiguë.
+      Décision par défaut : conserver la page, resémantiser.
+- [ ] Badges de statut réservation : « Confirmée — paiement protégé »
+      (`fr.ts` l.536) → « Confirmée — frais réglés » (équivalents en/ar).
+- [ ] `/diaspora` (l.1690), home hero + blocs confiance (l.31, 67-69),
+      page annonce (`sequestreExplication` l.1246-1252, l.1300, 1339, 1394).
+- [ ] `/combien-gagner` + Yield Advisor + simulateur (`market-simulator`) :
+      vérifier qu'aucun calcul n'affiche un « net de commission » — dans le
+      nouveau modèle l'hôte touche 100 % de son prix (les frais sont payés
+      par le voyageur au-dessus).
+
+**Contenus, e-mails, docs (L5.5/L5.7)** :
+- [ ] Les TROIS dictionnaires (`fr`/`en`/`ar`) : champ lexical
+      séquestre/protégé/conservé/versement — voir greps de clôture.
+- [ ] E-mails transactionnels (l.989, 1017) + `src/lib/notification-text.ts`.
+- [ ] CGU (l.1780-1813, clauses L5.5) + confidentialité (l.1801 « séquestre
+      simulé ») + `/cgu-hote` (L5.7).
+- [ ] **`CLAUDE.md` §« Paiement Konnect »** : décrit encore le flux séquestre
+      (settle du total, escrow) — réécrire pour commission-only, avec la V2
+      en note. §« Règles métier » à vérifier aussi.
+- [x] `README.md` — fait dans la PR #198 (séquestre retiré, modèle V1 décrit).
+- [ ] `.agents/product-marketing.md` : promesse séquestre → « zéro acompte au
+      propriétaire » (sinon les skills marketing rédigeront sur l'ancienne
+      promesse).
+- [ ] `PAIEMENT_SUR_PLACE_ROADMAP.md` §0 : décrit `max(10 % du total,
+      serviceFee)` — ajouter la note « périmé depuis L5.1, acompte = frais ».
+- [ ] `CROISSANCE_ROADMAP.md` : plafonds/montants crédits documentés (30 % du
+      total → 100 % des frais).
+- [x] `AUDIT_V2.md` §R3 — fait dans la PR #198.
+
+**Données & tests (chaque L5.x + clôture)** :
+- [ ] `prisma/seed.ts` : réservations seedées (montants, `depositAmount`,
+      états `escrow`, réservations démo « versées »).
+- [ ] Tests unitaires encodant 8 % / acompte 10 %-du-total :
+      `deposit.test.ts`, `bookings.test.ts`, `payments.test.ts`,
+      `cancellation.test.ts`, `booking-credit-application.test.ts`,
+      `booking-promo-price.test.ts`, `rebooking-discount.test.ts`,
+      `cash-booking.test.ts`, `contact-reveal.test.ts` (+ tout test qui
+      calcule un total).
+- [ ] `tests/e2e` (parcours réservation/paiement) + `tests/api`.
+- [ ] `tests/perf` (k6 `booking-load*` : montants/étapes de paiement).
+
+**Greps de clôture (obligatoires, résultat vide ou justifié « V2 »)** :
+```
+grep -rn "séquestre\|sequestre\|escrow" src/components src/app src/lib/i18n
+grep -rin "protégé par Darna\|protected by Darna\|payout\|versement" src/lib/i18n
+grep -rn "0\.08\|8 %" src
+grep -rn "DEPOSIT_MIN_RATE\|CREDIT_CHECKOUT_CAP_RATE" src
+npx tsc --noEmit
+```
+(+ la suite de tests complète, évidemment.)
+
 ---
 
 ## L6 — Infrastructure : staging + production (P0)
@@ -685,14 +796,15 @@ casse CE chemin. Livrer : `docs/DEMO_SCRIPT.md` + captures + vidéo.
 
 **L10.2** : document/print (pas une nouvelle feature !) que Wassim peut
 montrer à un hôte : simulateur de revenus, vérification gratuite au lancement
-(`FREE_VERIFICATION_CREDITS`), séquestre, zéro commission immo. S'appuyer sur
-`.agents/product-marketing.md`.
+(`FREE_VERIFICATION_CREDITS`), « vous touchez 100 % de votre prix, le
+voyageur paie nos frais », garantie no-show, zéro commission immo. S'appuyer
+sur `.agents/product-marketing.md` (mis à jour par L5.8).
 
 ---
 
 ## Récapitulatif des priorités
 
-- **P0 (conditionnent la mise en ligne)** : L1 → L2 → L3.1/L3.2 → L5.1/L5.2/L5.3/L5.5/L5.7 → L6 (+ W1-W5)
+- **P0 (conditionnent la mise en ligne)** : L1 → L2 → L3.1/L3.2 → L5.1/L5.2/L5.3/L5.5/L5.7/L5.8 → L6 (+ W1-W5)
 - **P1 (avant de vrais utilisateurs)** : L3.3 → L4 → L5.4 → L7 → L8 → L10.1/L10.2 (+ W4 impérativement avant tout argent réel)
 - **P2 (avant campagne d'acquisition)** : L3.4 → L9
 

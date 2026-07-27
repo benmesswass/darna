@@ -46,7 +46,7 @@ Trois constats structurent tout le reste :
 |---|---|---|---|---|---|---|
 | 1 | Mise en production + staging (infra complète) | Infra/DevOps | 🔴 | M | ⭐⭐⭐⭐⭐ | non |
 | 2 | Gel des features growth → offre réelle et GTM | Produit/Business | 🔴 | XS (décision) | ⭐⭐⭐⭐⭐ | ✅ |
-| 3 | Vérité financière : payout manuel, réconciliation, avis BCT | Business/Juridique | 🔴 | S-M | ⭐⭐⭐⭐⭐ | partiel |
+| 3 | Vérité financière — tranché : modèle commission-only (V1), réconciliation, avis BCT | Business/Juridique | 🔴 | S-M | ⭐⭐⭐⭐⭐ | partiel |
 | 4 | CI automatique restaurée (pyramide de jobs) | DevOps/Qualité | 🟠 | S | ⭐⭐⭐⭐ | ✅ |
 | 5 | Monitoring prod (Sentry, uptime, alertes paiement) | Monitoring/SRE | 🟠 | S | ⭐⭐⭐⭐ | ✅ |
 | 6 | Inscription sans rôle + Google OAuth | UX/Acquisition | 🟠 | M | ⭐⭐⭐⭐ | non |

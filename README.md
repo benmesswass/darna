@@ -4,7 +4,7 @@
 
 Darna est une plateforme web pour le marché immobilier tunisien, combinant deux verticales sur un socle unique :
 
-- **Séjours** (type Airbnb) : location touristique — calendrier, recherche ville/dates/voyageurs, réservation avec séquestre, messagerie intégrée, avis de vrais voyageurs, annulation encadrée.
+- **Séjours** (type Airbnb) : location touristique — calendrier, recherche ville/dates/voyageurs, réservation confirmée en ligne (frais de service uniquement, le séjour se règle sur place), messagerie intégrée, avis de vrais voyageurs, annulation encadrée.
 - **Immobilier** (type SeLoger) : location longue durée et vente — filtres prix/surface/pièces/gouvernorat, contact direct propriétaire/agence, contrat de bail pré-rempli, lead financement.
 
 ## Le positionnement : la confiance est le produit
@@ -13,7 +13,7 @@ Darna est une plateforme web pour le marché immobilier tunisien, combinant deux
 
 | Faille du marché | Réponse Darna |
 |---|---|
-| Arnaques aux acomptes, photos volées (Tayara) | Badge « Vérifié Darna » (réseau Wakil, vérification humaine, 2 niveaux REMOTE/ON_SITE), paiement sous **séquestre** |
+| Arnaques aux acomptes, photos volées (Tayara) | Badge « Vérifié Darna » (réseau Wakil, vérification humaine, 2 niveaux REMOTE/ON_SITE) + **zéro acompte au propriétaire** : seuls les frais Darna se paient en ligne (remboursés si l'annonce n'est pas conforme), le séjour se règle sur place |
 | Annonces périmées jamais nettoyées (Mubawab) | **Expiration automatique à 30 jours**, badge fraîcheur, « Marquer loué/vendu » en 1 clic |
 | Avis inventés ou absents | Un avis est **impossible sans réservation confirmée** (contrainte au niveau du schéma) |
 | Contournement de la plateforme | Messagerie interne avec masquage des coordonnées, acompte minimum en ligne, suspension progressive |
@@ -21,7 +21,7 @@ Darna est une plateforme web pour le marché immobilier tunisien, combinant deux
 
 ## Fonctionnalités actuelles
 
-**Voyageur** — recherche tolérante à la translittération (« 7ammamet » → Hammamet), vue liste + carte, filtres, favoris avec dossiers, réservation transparente (hold 15 min, anti-double-réservation SERIALIZABLE, prix recalculés serveur), paiement en ligne **Konnect** (optionnel) ou **sur place avec acompte**, annulation avec politiques (flexible/modérée/stricte), messagerie hôte↔voyageur, avis à sous-notes, alertes de recherche sauvegardée, centre de notifications, crédits de bienvenue/parrainage, mode diaspora TND/EUR.
+**Voyageur** — recherche tolérante à la translittération (« 7ammamet » → Hammamet), vue liste + carte, filtres, favoris avec dossiers, réservation transparente (hold 15 min, anti-double-réservation SERIALIZABLE, prix recalculés serveur), frais de service payés en ligne via **Konnect** (optionnel) — le séjour se règle sur place — ou réservation 100 % cash si l'hôte l'a activée, annulation avec politiques (flexible/modérée/stricte), messagerie hôte↔voyageur, avis à sous-notes, alertes de recherche sauvegardée, centre de notifications, crédits de bienvenue/parrainage, mode diaspora TND/EUR.
 
 **Hôte / Agence** — création d'annonce complète (photos avec upload + compression, carte, générateur de description), calendrier de blocage, promos, mise en avant payante, Yield Advisor, barre de complétude, badge Super-Hôte au mérite, tableau de revenus, annulation hôte encadrée (blocage progressif), abonnements agence, crédits de vérification Wakil, avis hôte→voyageur.
 
@@ -39,7 +39,7 @@ L'app démarre **sans aucune clé** avec des défauts démo sûrs ; chaque mode 
 
 | Mode | Démo (défaut) | Réel |
 |---|---|---|
-| `PAYMENT_MODE` | séquestre simulé | **Konnect** (sandbox gratuit) : init + webhook signé + réconciliation |
+| `PAYMENT_MODE` | paiement des frais simulé | **Konnect** (sandbox gratuit) : init + webhook signé + réconciliation |
 | `KYC_MODE` | OTP affiché à l'écran | e-mail Resend, SMS Twilio, WhatsApp Meta Cloud API |
 | `STORAGE_MODE` | disque local | S3-compatible (R2…) via `aws4fetch` |
 | `CAPTCHA_MODE` | désactivé | Cloudflare Turnstile |
@@ -74,7 +74,7 @@ Mot de passe unique : `darna2026` (liste complète dans `CREDENTIALS.md`, non co
 ## Limites assumées (état honnête)
 
 - **Pas encore déployé en production** — chantier en cours : `LANCEMENT_ROADMAP.md`.
-- **Payout hôte et remboursements : manuels.** L'API Konnect n'expose aucun endpoint de virement sortant ; le versement à l'hôte est un process opéré et audité (outillage en cours, cf. `LANCEMENT_ROADMAP.md` §L5), pas un virement automatique.
+- **Modèle V1 « commission-only »** (décision 2026-07-27, bascule du code en cours — §L5 de `LANCEMENT_ROADMAP.md`) : Darna n'encaisse en ligne que ses frais de service (10 % du loyer) ; le loyer se règle 100 % sur place. Aucun fonds de tiers ne transite par Darna. Le paiement intégral en ligne (séquestre réel) est la V2, conditionnée à un avis juridique. Les remboursements de frais restent des virements manuels (l'API Konnect n'a pas d'endpoint de remboursement).
 - Conversion EUR d'affichage à taux statique (1 € = 3,4 TND) — le montant débité est toujours en TND.
 - KYC sans provider documentaire (pas d'OCR/liveness) ; OTP réel optionnel.
 - ⚖️ La location saisonnière tunisienne évolue dans un cadre juridique flou (fiscalité, agrément séquestre BCT) — avis juridique en cours avant tout lancement commercial.
