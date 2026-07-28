@@ -699,6 +699,19 @@ export const en: Dictionary = {
     cashTermsPrefix: "I have read and accept the",
     cashTermsRequise:
       "You must accept the host terms to enable pay-at-property.",
+    cashPaymentExplicationTitre: "Before you enable pay-at-property",
+    cashPaymentBloc1Titre: "How you get paid",
+    cashPaymentBloc1Desc:
+      "The guest pays you everything in cash on arrival: the rent and the Darna service fee (10%) included in their total.",
+    cashPaymentBloc2Titre: "How you pay us",
+    cashPaymentBloc2Desc:
+      "A 10% invoice is generated per completed booking, payable online in 2 minutes (card, e-DINAR, Flouci) from \"My invoices\", within 14 days.",
+    cashPaymentBloc3Titre: "If you don't pay",
+    cashPaymentBloc3Desc:
+      "You'll receive automatic reminders, then your listings are hidden from search results until you settle up — and your account may be suspended.",
+    cashPaymentBloc4Titre: "Why it's a win-win",
+    cashPaymentBloc4Desc:
+      "Every booking through Darna brings you a guest with a verified identity, a genuine review impossible to obtain off-platform, the Verified badge, the anti-no-show guarantee, and access to diaspora travelers.",
   },
   kyc: {
     titre: "Identity verification (KYC)",
@@ -1080,6 +1093,21 @@ export const en: Dictionary = {
         : `<p>Nothing had been paid online, so there is nothing to recover.</p>`) +
       `<p>We've lined up replacement stays available on your dates, with a discount on your next booking:</p>` +
       `<p><a href="${p.url}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">See replacement stays</a></p>` +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Verified stays.</p>` +
+      `</div>`,
+    hostInvoiceGeneratedSujet: (titre: string) =>
+      `Darna — new commission invoice (${titre})`,
+    hostInvoiceGeneratedHtml: (p: { hostName: string; propertyTitle: string; amount: string; dueDate: string; url: string }) =>
+      `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
+      `<h1 style="color:#0f4c7c;font-size:20px">New commission invoice</h1>` +
+      `<p>Hello ${p.hostName},</p>` +
+      `<p>Your booking "<strong>${p.propertyTitle}</strong>" (pay-at-property) is confirmed: the 10% Darna commission for this booking is now invoiced.</p>` +
+      `<table style="width:100%;border-collapse:collapse;margin:16px 0">` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Amount due</td><td style="padding:6px 0;text-align:right;font-weight:700;color:#0f4c7c">${p.amount}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Due before</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.dueDate}</td></tr>` +
+      `</table>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f4c7c;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">Pay the invoice</a></p>` +
+      `<p style="font-size:13px;color:#6b7280;margin-top:16px">This commission funds the identity verification, genuine reviews, and anti-no-show guarantee that build your listings' reputation.</p>` +
       `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Verified stays.</p>` +
       `</div>`,
     hostInvoiceReminderSujet: (titre: string) =>
@@ -1797,20 +1825,21 @@ export const en: Dictionary = {
         {
           titre: "2. Darna commission",
           corps: [
-            "A commission, at the same rate as the standard online payment mode, remains due to Darna for every booking accepted on this mode.",
-            "This commission never passes through the platform: it is invoiced to you separately after you accept the booking.",
+            "A 10% commission on the total booking amount remains due to Darna for every booking accepted on this mode — the same rate as the standard online payment mode.",
+            "The rent, paid in cash directly by the guest, never passes through Darna. The commission, on the other hand, is invoiced to you separately after you accept the booking: it passes through Darna when you pay it online.",
           ],
         },
         {
           titre: "3. Invoicing and payment",
           corps: [
-            "An invoice is generated when you accept the booking, with a payment deadline shown on it. You pay it online, in one click, from your dashboard.",
+            "An invoice is generated as soon as you accept the booking, with a 14-day payment deadline from the stay's checkout date. You pay it online, in one click, from your dashboard (\"My invoices\").",
           ],
         },
         {
           titre: "4. Non-payment",
           corps: [
-            "If an invoice is not paid by its deadline, your listings are hidden from search results until it is settled. They reappear immediately after payment.",
+            "You'll receive automatic reminders as the deadline approaches, then if payment is late. If an invoice remains unpaid past its deadline, your listings are hidden from search results until it is settled — they reappear immediately after payment.",
+            "In case of an unpaid invoice, Darna may also suspend your account.",
           ],
         },
         {
@@ -2046,6 +2075,14 @@ export const en: Dictionary = {
     statutEnRetard: "Overdue",
     vide: "No invoices yet.",
     voirFacture: "View invoice",
+    explicationTitre: "How the Darna commission works",
+    explicationPoints: [
+      "The guest pays you everything on arrival: rent and Darna fee (10%) included.",
+      "A 10% invoice per completed booking, payable online within 14 days.",
+      "Past that deadline: automatic reminders, then your listings are hidden until you settle up.",
+      "In return: guests with verified identities, genuine reviews, the Verified badge, the anti-no-show guarantee.",
+    ],
+    totalMois: "Total for the month",
   },
   credits: {
     titre: "My credits",

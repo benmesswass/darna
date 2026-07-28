@@ -717,6 +717,19 @@ export const ar: Dictionary = {
     cashPaymentToggle: "قبول الحجوزات اللي تتخلص عالمكان (كاش)",
     cashTermsPrefix: "قريت ونوافق على",
     cashTermsRequise: "لازم توافق على شروط المضيف باش تفعّل الخلاص عالمكان.",
+    cashPaymentExplicationTitre: "قبل ما تفعّل الخلاص عالمكان",
+    cashPaymentBloc1Titre: "كيفاش تتخلص",
+    cashPaymentBloc1Desc:
+      "المسافر يخلصك الكل كاش عند الوصول: الكراء ومصاريف دارنا (10%) داخلين في المجموع متاعو.",
+    cashPaymentBloc2Titre: "كيفاش تخلصنا",
+    cashPaymentBloc2Desc:
+      "تتعمل فاتورة بـ10% لكل حجز كمل، تنجم تخلصها أونلاين في دقيقتين (كارت، e-DINAR، Flouci) من «فواتيري»، في أجل 14 يوم.",
+    cashPaymentBloc3Titre: "إذا ما خلصتش",
+    cashPaymentBloc3Desc:
+      "نبعتولك تذكيرات أوتوماتيكية، وبعدين إعلاناتك تتخبى من نتائج البحث حتى تخلص — وينجم يتعلق حسابك.",
+    cashPaymentBloc4Titre: "علاش رابح-رابح",
+    cashPaymentBloc4Desc:
+      "كل حجز عبر دارنا يجيبلك مسافر بهوية متأكدة، رأي صحيح ما ينجمش يتلقى برّا المنصة، وسام «متأكّد»، الضمان ضد الغياب، والوصول لمسافرين الدياسبورا.",
   },
   kyc: {
     titre: "توثيق الهوية (KYC)",
@@ -1095,6 +1108,21 @@ export const ar: Dictionary = {
       `<p>حضّرنالك بلايص بديلة موجودة في نفس التواريخ، مع تخفيض على الحجز الجاي متاعك :</p>` +
       `<p><a href="${p.url}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">شوف البلايص البديلة</a></p>` +
       `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — السكن الموثوق.</p>` +
+      `</div>`,
+    hostInvoiceGeneratedSujet: (titre: string) =>
+      `Darna — فاتورة كوميسيون جديدة (${titre})`,
+    hostInvoiceGeneratedHtml: (p: { hostName: string; propertyTitle: string; amount: string; dueDate: string; url: string }) =>
+      `<div dir="rtl" style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
+      `<h1 style="color:#0f4c7c;font-size:20px">فاتورة كوميسيون جديدة</h1>` +
+      `<p>أهلا ${p.hostName}،</p>` +
+      `<p>الحجز متاعك في <strong>${p.propertyTitle}</strong> (خلاص عالمكان) تأكّد : كوميسيون دارنا بـ10% متاع هذا الحجز تفوترت توّة.</p>` +
+      `<table style="width:100%;border-collapse:collapse;margin:16px 0">` +
+      `<tr><td style="padding:6px 0;color:#6b7280">المبلغ المستوجب</td><td style="padding:6px 0;text-align:left;font-weight:700;color:#0f4c7c">${p.amount}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">لازم تخلّص قبل</td><td style="padding:6px 0;text-align:left;font-weight:600">${p.dueDate}</td></tr>` +
+      `</table>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f4c7c;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">خلّص الفاتورة</a></p>` +
+      `<p style="font-size:13px;color:#6b7280;margin-top:16px">هالكوميسيون تمول التأكد من الهوية، الآراء الصحيحة، والضمان ضد الغياب اللي يبنيو سمعة إعلاناتك.</p>` +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — السكن المضمون.</p>` +
       `</div>`,
     hostInvoiceReminderSujet: (titre: string) =>
       `Darna — تفكرة : فاتورة الكوميسيون في الانتظار (${titre})`,
@@ -1810,20 +1838,21 @@ export const ar: Dictionary = {
         {
           titre: "2. عمولة دارنا",
           corps: [
-            "العمولة، بنفس نسبة الخلاص أونلاين العادي، تبقى مستحقة لدارنا على كل حجز تقبّلتو بهالطريقة.",
-            "هالعمولة ما تعديش من المنصة أبدا: تتفوترلك على حدة بعد ما تقبّل الحجز.",
+            "عمولة بـ10% من المبلغ الكامل متاع الحجز تبقى مستحقة لدارنا على كل حجز تقبّلتو بهالطريقة — نفس النسبة متاع الخلاص أونلاين العادي.",
+            "الكراء، اللي يتخلص كاش مباشرة من المسافر، ما يعديش من دارنا أبدا. أما العمولة، تتفوترلك على حدة بعد ما تقبّل الحجز: هي تعدي من دارنا وقت ما تخلصها أونلاين.",
           ],
         },
         {
           titre: "3. الفوترة والخلاص",
           corps: [
-            "فاتورة تتولّد وقت ما تقبّل الحجز، وفيها أجل خلاص مبيّن. تخلصها أونلاين، بكليك واحدة، من لوحة القيادة متاعك.",
+            "فاتورة تتولّد فور ما تقبّل الحجز، وفيها أجل خلاص 14 يوم من تاريخ نهاية الإقامة. تخلصها أونلاين، بكليك واحدة، من لوحة القيادة متاعك («الفواتير متاعي»).",
           ],
         },
         {
           titre: "4. عدم الخلاص",
           corps: [
-            "إذا فاتورة ما تخلصتش في الأجل المبيّن، الإعلانات متاعك تتخبّى من نتائج البحث لحد ما تسوّي وضعيتك. ترجع تبان فور ما تخلص.",
+            "نبعتولك تذكيرات أوتوماتيكية وقت ما يقرب الأجل، وبعدين إذا تأخرت. إذا الفاتورة بقات ما تخلصتش بعد الأجل المبيّن، الإعلانات متاعك تتخبّى من نتائج البحث لحد ما تسوّي وضعيتك — ترجع تبان فور ما تخلص.",
+            "في حالة فاتورة ما تخلصتش، دارنا تنجم زادة تعلّق حسابك.",
           ],
         },
         {
@@ -2059,6 +2088,14 @@ export const ar: Dictionary = {
     statutEnRetard: "متأخرة",
     vide: "ما فماش فواتير لحد الآن.",
     voirFacture: "شوف الفاتورة",
+    explicationTitre: "كيفاش تخدم كوميسيون دارنا",
+    explicationPoints: [
+      "المسافر يخلصك الكل عند الوصول: الكراء ومصاريف دارنا (10%) داخلين.",
+      "فاتورة بـ10% لكل حجز كمل، تتخلص أونلاين في أجل 14 يوم.",
+      "بعد الأجل: تذكيرات أوتوماتيكية، وبعدين إعلاناتك تتخبى حتى تخلص.",
+      "في المقابل: مسافرين بهوية متأكدة، آراء صحيحة، وسام «متأكّد»، الضمان ضد الغياب.",
+    ],
+    totalMois: "مجموع الشهر",
   },
   credits: {
     titre: "أرصدتي",

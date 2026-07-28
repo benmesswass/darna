@@ -3,7 +3,10 @@ import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 // On isole la notification de la DB et du provider e-mail : seule compte sa
 // logique (récupération résa, contenu envoyé, robustesse non bloquante).
 vi.mock("@/lib/prisma", () => ({
-  prisma: { booking: { findUnique: vi.fn() } },
+  prisma: {
+    booking: { findUnique: vi.fn() },
+    hostInvoice: { findUnique: vi.fn() },
+  },
 }));
 vi.mock("@/lib/mailer", () => ({ sendEmail: vi.fn() }));
 vi.mock("@/lib/audit", () => ({ logStructured: vi.fn() }));
@@ -11,12 +14,14 @@ vi.mock("@/lib/audit", () => ({ logStructured: vi.fn() }));
 import {
   sendBookingConfirmationEmail,
   sendBookingCancelledByHostEmail,
+  sendHostInvoiceGeneratedEmail,
 } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/mailer";
 import { logStructured } from "@/lib/audit";
 
 const findUnique = prisma.booking.findUnique as unknown as Mock;
+const invoiceFindUnique = prisma.hostInvoice.findUnique as unknown as Mock;
 const send = sendEmail as unknown as Mock;
 const logged = logStructured as unknown as Mock;
 
@@ -153,6 +158,59 @@ describe("sendBookingCancelledByHostEmail (§AHC4)", () => {
       "error",
       "notif.host_cancel_failed",
       expect.objectContaining({ bookingId: "bk_1" })
+    );
+  });
+});
+
+describe("sendHostInvoiceGeneratedEmail (§L5.7 — pédagogie hôte Rail 2)", () => {
+  function invoiceRow() {
+    return {
+      amount: 16,
+      dueAt: new Date("2026-08-11T00:00:00.000Z"),
+      host: { name: "Hôte Test", email: "hote@example.com" },
+      booking: { property: { title: "Villa Hammamet" } },
+    };
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    send.mockResolvedValue(true);
+  });
+
+  it("envoie à l'hôte le montant, le titre de l'annonce et l'échéance", async () => {
+    invoiceFindUnique.mockResolvedValue(invoiceRow());
+
+    await sendHostInvoiceGeneratedEmail("inv_1");
+
+    expect(send).toHaveBeenCalledTimes(1);
+    const arg = send.mock.calls[0][0];
+    expect(arg.to).toBe("hote@example.com");
+    expect(arg.subject).toContain("Villa Hammamet");
+    expect(arg.html).toContain("Hôte Test");
+    expect(arg.html).toContain("16 TND");
+    expect(arg.html).toContain("/dashboard/factures/inv_1");
+  });
+
+  it("ne tente rien et journalise si la facture est introuvable", async () => {
+    invoiceFindUnique.mockResolvedValue(null);
+    await sendHostInvoiceGeneratedEmail("nope");
+    expect(send).not.toHaveBeenCalled();
+    expect(logged).toHaveBeenCalledWith(
+      "warn",
+      "notif.host_invoice_generated_not_found",
+      expect.objectContaining({ invoiceId: "nope" })
+    );
+  });
+
+  it("est NON BLOQUANT : un échec d'envoi est avalé (jamais d'exception)", async () => {
+    invoiceFindUnique.mockResolvedValue(invoiceRow());
+    send.mockRejectedValue(new Error("Resend 500"));
+
+    await expect(sendHostInvoiceGeneratedEmail("inv_1")).resolves.toBeUndefined();
+    expect(logged).toHaveBeenCalledWith(
+      "error",
+      "notif.host_invoice_generated_failed",
+      expect.objectContaining({ invoiceId: "inv_1" })
     );
   });
 });

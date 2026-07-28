@@ -45,6 +45,7 @@ import {
   sendBookingConfirmationEmail,
   sendBookingCancelledByHostEmail,
   sendNewBookingHostEmail,
+  sendHostInvoiceGeneratedEmail,
 } from "@/lib/notifications";
 import { computeRefund } from "@/lib/cancellation";
 import {
@@ -1240,7 +1241,7 @@ export async function acceptCashBookingAction(
 
   const dueAt = new Date(booking.checkOut.getTime() + HOST_INVOICE_DUE_DAYS * DAY);
 
-  await prisma.$transaction([
+  const [, hostInvoice] = await prisma.$transaction([
     prisma.booking.update({
       where: { id: booking.id },
       data: {
@@ -1276,6 +1277,7 @@ export async function acceptCashBookingAction(
   });
 
   await notifyBookingConfirmed(booking.id);
+  await sendHostInvoiceGeneratedEmail(hostInvoice.id);
 
   revalidatePath("/dashboard/reservations");
   revalidatePath(`/annonce/${booking.property.slug}`);

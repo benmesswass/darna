@@ -315,7 +315,7 @@ poser `OBSERVABILITY_WEBHOOK_URL` en staging/prod.
 | L5.4 | Garantie no-show hôte : indemnité 100 % des frais, plafonnée | P1 | ✅ PR #213 |
 | L5.5 | Refonte wording : « zéro acompte au propriétaire » (i18n ×3 + e-mails + CGU + README) | P0 | ✅ PR #214 |
 | L5.6 | ⛔ W4 — avis juridique (périmètre mis à jour, voir tableau ⛔) | P0 | ❌ 🧑 WASSIM |
-| L5.7 | Pédagogie hôte Rail 2 : contrat clair sur la facturation des 10 % + cadrage gagnant-gagnant | P0 | ❌ |
+| L5.7 | Pédagogie hôte Rail 2 : contrat clair sur la facturation des 10 % + cadrage gagnant-gagnant | P0 | ✅ PR #215 |
 | L5.8 | **Checklist d'impact commission-only** (balayage exhaustif, clôture du chantier L5) | P0 | ❌ |
 
 **Contexte complet pour session future** : l'ancien modèle encaissait via
@@ -524,7 +524,7 @@ réelles (Playwright) : accueil (hero + bloc confiance « Zéro acompte au
 propriétaire »), CGU (§5 + renumérotation), `/diaspora`, badge
 « Confirmée — frais réglés » sur `/dashboard/reservations`.
 
-### L5.7 — Pédagogie hôte Rail 2 : le contrat des 10 % doit être limpide (demande Wassim, 2026-07-27)
+### L5.7 — Pédagogie hôte Rail 2 : le contrat des 10 % doit être limpide (demande Wassim, 2026-07-27) ✅ PR #215
 
 **Pourquoi** : en Rail 2, l'hôte encaisse TOUT (loyer + les 10 % de frais
 inclus dans le total voyageur) puis doit reverser les 10 % à Darna. La
@@ -580,6 +580,36 @@ quand des hôtes dépassent ~5 factures/mois (noter alors une tâche dédiée).
 (rien ne change dans la mécanique de paiement) ; adoucir le point (c) — la
 clarté sur les conséquences EST la demande produit ; inventer une remise ou
 un barème non validé.
+
+**Implémenté** : les 4 blocs pédagogiques (a-d) insérés dans
+`PropertyForm.tsx`, AVANT la case à cocher, gated sur `!wasCashPaymentEnabled`
+(même garde que la sous-case CGU existante — n'apparaît qu'avant la première
+activation, jamais sur les re-sauvegardes). `resolveCashPayment`/
+`cashTermsAcceptedAt` et le non-bypass testé par
+`tests/cash-payment-terms-bypass.test.ts` inchangés. `/dashboard/factures` :
+en-tête explicatif condensé (4 puces) + regroupement par mois de création
+(tri dominant `createdAt desc` pour des mois strictement chronologiques,
+jamais entrelacés par statut) + total par mois via `<Price>`. Nouvel e-mail
+`sendHostInvoiceGeneratedEmail` (même patron que les 3 e-mails HostInvoice
+existants), déclenché une seule fois dans `acceptCashBookingAction` juste
+après la transaction claim+HostInvoice (id de la facture récupéré du
+tuple `$transaction([...])`, jusque-là ignoré). CGU hôte (`/cgu-hote`) : §2
+rend le taux de 10 % explicite et corrige l'imprécision « la commission ne
+transite jamais par la plateforme » (fausse depuis que Konnect règle les
+frais — seul le LOYER ne transite jamais par Darna) ; §3 rend le délai de 14
+jours explicite (échéance = fin de séjour + 14 j, comme le code) ; §4 ajoute
+la mention des rappels automatiques et de la suspension possible. i18n ×3.
+`ProductEvent` `CASH_PAYMENT_ENABLED` émis aux deux points d'appel
+(`createPropertyAction`/`updatePropertyAction`), gated sur
+`cashPayment.cashTermsAcceptedAt` truthy (donc uniquement sur une vraie
+transition false→true, jamais sur une resauvegarde) — testé explicitement
+dans `tests/cash-payment-terms-bypass.test.ts`. Vérifié en conditions
+réelles (Postgres local, Playwright) : activation du paiement sur place sur
+une annonce (explainer visible → case cochée → CGU sous-case → soumission),
+acceptation d'une demande SUR_PLACE réelle (nouvelle HostInvoice créée dans
+la transaction, e-mail déclenché), `/dashboard/factures` avec 3 factures
+seedées sur 2 mois distincts (regroupement + totaux corrects : Juillet 2026
+228 TND / Juin 2026 114 TND), `/cgu-hote` avec le nouveau contenu.
 
 ### L5.8 — Checklist d'impact commission-only (AUCUN OUBLI — clôture de L5)
 
@@ -656,7 +686,10 @@ un barème non validé.
       garanties » (remboursement des frais, garantie non-conformité, garantie
       no-show, litige loyer bilatéral — sections renumérotées 5→9) ;
       confidentialité vérifiée (aucune mention séquestre résiduelle). — L5.5,
-      PR #214. `/cgu-hote` reste à faire par **L5.7**.
+      PR #214.
+- [x] `/cgu-hote` : §2/§3/§4 alignées sur le modèle 10 % (taux explicite,
+      imprécision « ne transite jamais » corrigée, échéance 14 j explicite,
+      rappels + suspension possible mentionnés). — L5.7, PR #215
 - [x] **`CLAUDE.md` §« Paiement Konnect »** : décrivait encore le flux séquestre
       — réécrit pour commission-only (header + contenu), avec la V2 en note
       explicite. §Stack (l.51, « Le séquestre a deux modes ») corrigé aussi. — L5.5, PR #214

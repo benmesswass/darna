@@ -16,7 +16,8 @@ vi.mock("@/lib/geo", () => ({
   resolveCity: vi.fn(() => "Hammamet"),
   getCity: vi.fn(() => ({ name: "Hammamet", gouvernorat: "Nabeul" })),
 }));
-vi.mock("@/lib/audit", () => ({ logAudit: vi.fn() }));
+vi.mock("@/lib/audit", () => ({ logAudit: vi.fn(), logStructured: vi.fn() }));
+vi.mock("@/lib/product-events", () => ({ logProductEvent: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
 vi.mock("@/lib/i18n/server", () => ({
@@ -29,11 +30,13 @@ vi.mock("@/lib/i18n/server", () => ({
 import { updatePropertyAction } from "@/actions/properties";
 import { prisma } from "@/lib/prisma";
 import { requireLister, requireUser } from "@/lib/session";
+import { logProductEvent } from "@/lib/product-events";
 
 const propertyFindUnique = prisma.property.findUnique as unknown as Mock;
 const propertyUpdate = prisma.property.update as unknown as Mock;
 const requireListerMock = requireLister as unknown as Mock;
 const requireUserMock = requireUser as unknown as Mock;
+const logProductEventMock = logProductEvent as unknown as Mock;
 
 const OWNER = { id: "host-1", role: "HOTE" };
 const PROPERTY_ID = "clproperty000000000000001";
@@ -98,6 +101,11 @@ describe("updatePropertyAction — non-bypass de cashTermsAcceptedAt (§PSP7)", 
     const data = propertyUpdate.mock.calls[0][0].data;
     expect(data.cashPaymentEnabled).toBe(true);
     expect(data.cashTermsAcceptedAt).toBeInstanceOf(Date);
+    // §L5.7 — discipline IN4 : le ProductEvent part uniquement sur une VRAIE
+    // activation (transition false→true avec CGU acceptées).
+    expect(logProductEventMock).toHaveBeenCalledWith(
+      expect.objectContaining({ event: "CASH_PAYMENT_ENABLED", userId: OWNER.id })
+    );
   });
 
   it("ne force PAS une nouvelle acceptation quand le mode est déjà actif (cashTermsAcceptedAt intact, undefined = pas de mutation)", async () => {
@@ -113,6 +121,9 @@ describe("updatePropertyAction — non-bypass de cashTermsAcceptedAt (§PSP7)", 
     const data = propertyUpdate.mock.calls[0][0].data;
     expect(data.cashPaymentEnabled).toBe(true);
     expect(data.cashTermsAcceptedAt).toBeUndefined();
+    // Pas de nouvelle activation → pas de nouveau ProductEvent (éviterait de
+    // fausser le taux d'adoption avec des resauvegardes).
+    expect(logProductEventMock).not.toHaveBeenCalled();
   });
 
   it("désactive le paiement sur place sans exiger les CGU (false ne nécessite jamais d'acceptation)", async () => {
@@ -127,5 +138,6 @@ describe("updatePropertyAction — non-bypass de cashTermsAcceptedAt (§PSP7)", 
     const data = propertyUpdate.mock.calls[0][0].data;
     expect(data.cashPaymentEnabled).toBe(false);
     expect(data.cashTermsAcceptedAt).toBeUndefined();
+    expect(logProductEventMock).not.toHaveBeenCalled();
   });
 });
