@@ -323,3 +323,31 @@ export const PROMO_SUGGESTION_VERIFIED_SINCE_DAYS = 14;
  * suggestion de promo (§PM2) — « nuits vides » à court terme.
  */
 export const PROMO_SUGGESTION_BOOKING_WINDOW_DAYS = 21;
+
+/**
+ * Rétention RGPD/CNIL (LANCEMENT_ROADMAP.md §L7 — régime d'exemption de
+ * consentement « mesure d'audience »). Purgées par le job `retention-purge`
+ * (src/lib/jobs/retention-purge.ts) — CES DURÉES SONT LA PROMESSE FAITE À
+ * `/confidentialite` : ne jamais les changer sans mettre à jour la page en
+ * même temps (et inversement).
+ *
+ * `darna-vid` (cookie) : durée de vie ≤ 13 mois — posée directement dans
+ * src/middleware.ts (VISITOR_COOKIE_MAX_AGE, actuellement 365 j, conforme).
+ */
+/** ProductEvent : les données rattachées à l'identifiant, ≤ 25 mois (CNIL). */
+export const PRODUCT_EVENT_RETENTION_DAYS = 760; // ≈ 25 mois
+/**
+ * PropertyView (dédup des vues annonce, `@@unique([propertyId, anonId])`) :
+ * 13 mois — décision produit actée (LANCEMENT_ROADMAP.md §L7.2), pas une
+ * contrainte CNIL en soi (la dédup de `viewCount` perd juste sa mémoire
+ * au-delà, ce qui est acceptable ; 25 mois serait tout aussi conforme mais
+ * inutilement long pour ce que sert réellement cette table).
+ */
+export const PROPERTY_VIEW_RETENTION_DAYS = 395; // ≈ 13 mois
+/**
+ * AuditLog : sécurité, PAS le régime CNIL mesure d'audience — TODO-
+ * PRODUCTION.md exige ≥ 90 jours ; 13 mois les respecte largement tout en
+ * restant aligné sur la durée de vie de `darna-vid` (simple à expliquer sur
+ * une seule page confidentialité).
+ */
+export const AUDIT_LOG_RETENTION_DAYS = 395; // ≈ 13 mois

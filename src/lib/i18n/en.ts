@@ -1963,31 +1963,37 @@ export const en: Dictionary = {
             "Account data: name, email address, phone number, role (traveller, host, agency).",
             "Verification (KYC) data: your national ID number, stored encrypted and never displayed in clear text.",
             "Usage and technical data: bookings, favourites, contact messages, security logs (IP address, timestamp) for audit purposes.",
+            "Internal audience-measurement data: pages viewed, searches performed, site interactions, tied to an anonymous identifier (darna-vid cookie) — never to your name unless you're logged in.",
           ],
         },
         {
           titre: "3. Purposes",
           corps: [
-            "Your data is used to provide the service (account, search, booking), to ensure trust and security (verification, fraud prevention, audit) and to contact you about your bookings.",
+            "Your data is used to provide the service (account, search, booking), to ensure trust and security (verification, fraud prevention, audit), to contact you about your bookings, and to measure site usage in order to improve it (internal statistics, never advertising profiling).",
           ],
         },
         {
           titre: "4. Legal basis",
           corps: [
-            "Processing is based on the performance of the contract (providing the service), our legitimate interest (security and fraud prevention), compliance with legal obligations, and your consent where required (for example for non-essential cookies).",
+            "Processing is based on the performance of the contract (providing the service), our legitimate interest (security, fraud prevention, internal audience measurement), and compliance with legal obligations. Audience measurement (§5) falls under the CNIL's consent exemption regime: it does not require your prior consent because its purpose is strictly limited to internal use, with no cross-referencing with other processing and no transmission to third parties.",
           ],
         },
         {
           titre: "5. Cookies",
           corps: [
-            "Darna only uses strictly necessary cookies: login session, language preference, currency preference, and remembering your consent choice. No advertising cookie or third-party tracker is used during the demonstration phase.",
-            "You can clear cookies from your browser at any time; necessary cookies are essential for the service to work properly.",
+            "Strictly necessary cookies: login session, language preference, currency preference, remembering that you've seen the cookie information banner. Essential for the service to work.",
+            "Internal audience-measurement cookie (darna-vid): anonymous identifier, maximum lifetime 13 months, used only to measure site usage (pages viewed, searches) for internal statistical purposes — never cross-referenced with other sites, never shared with a third party, never advertising. This cookie falls under the CNIL exemption regime and therefore does not require consent, in line with the \"Cookies and other trackers\" guidance.",
+            "No advertising cookie or third-party tracker is used.",
           ],
         },
         {
           titre: "6. Retention",
           corps: [
-            "Account data is kept for as long as your account is active. Audit logs are kept for a limited period for security purposes. Your data is deleted or anonymised when no longer needed.",
+            "Account data is kept for as long as your account is active.",
+            "Audience-measurement data (tied to darna-vid) is kept for a maximum of 25 months from collection, in line with the CNIL exemption regime.",
+            "Audit logs (security, fraud prevention) are kept for 13 months.",
+            "Verification codes (SMS, email) and password reset tokens are deleted as soon as they expire.",
+            "Purged automatically and regularly, with no manual intervention (retention job, LANCEMENT_ROADMAP.md §L7.2).",
           ],
         },
         {
@@ -2007,12 +2013,11 @@ export const en: Dictionary = {
     },
   },
   cookieConsent: {
-    titre: "Your cookies, your choice",
+    titre: "Your cookies",
     message:
-      "Darna only uses cookies strictly necessary for it to work (login, language, currency). No advertising trackers.",
+      "Darna uses cookies strictly necessary for it to work (login, language, currency) and an internal, anonymous audience-measurement cookie, with no advertising trackers or sharing with third parties.",
     enSavoirPlus: "Learn more",
     accepter: "Got it",
-    refuser: "Continue without accepting",
   },
   notFound: {
     titre: "Page not found",
