@@ -1265,6 +1265,15 @@ export const en: Dictionary = {
     donneesExporter: "Export my data (JSON)",
     donneesExporterAide:
       "Profile, listings, bookings, reviews, messages, credit movements — never someone else's data beyond what's strictly necessary.",
+    supprimerTitre: "Delete my account",
+    supprimerAide:
+      "Permanent action: your name, email, phone and photo are erased and you're signed out. Your past bookings and reviews remain visible (anonymised) to respect the record of the people you interacted with.",
+    supprimerBouton: "Delete my account",
+    supprimerConfirmer: "Confirm permanent deletion",
+    supprimerAnnuler: "Cancel",
+    supprimerMdpRequis: "Password required.",
+    supprimerReservationActive:
+      "You have an active booking (as guest or host). Wait until it's completed or cancelled before deleting your account.",
   },
   yieldAdvisor: {
     titre: "Yield Advisor",
@@ -2012,6 +2021,8 @@ export const en: Dictionary = {
           titre: "8. Your rights",
           corps: [
             "Under the GDPR, you have the right to access, rectify, erase, restrict and object to the processing of your data, as well as the right to portability. To exercise these rights, contact: privacy@darna.tn.",
+            "You can download a copy of your data (profile, listings, bookings, reviews, messages, credit transactions) as a JSON file at any time from your \"Profile\" area.",
+            "You can also delete your account from your \"Profile\" area. Your name, email, phone number and photo are then permanently erased. As an exception to the right to erasure (GDPR, art. 17§3), data tied to a booking or an invoice already issued is kept in anonymized form rather than deleted, to preserve another user's legitimate rights (for example a host's accounting records).",
             "You may also lodge a complaint with the competent data protection authority.",
           ],
         },

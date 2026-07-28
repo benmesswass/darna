@@ -3,6 +3,7 @@ import { getT } from "@/lib/i18n/server";
 import { getSessionUser } from "@/lib/session";
 import { AvatarUploader } from "@/components/dashboard/AvatarUploader";
 import { ProfileForm } from "@/components/dashboard/ProfileForm";
+import { DeleteAccountForm } from "@/components/dashboard/DeleteAccountForm";
 import { CheckIcon } from "@/components/icons";
 
 export default async function ProfilPage() {
@@ -64,6 +65,8 @@ export default async function ProfilPage() {
           </a>
           <p className="mt-2 text-xs text-body/45">{fr.profil.donneesExporterAide}</p>
         </section>
+
+        <DeleteAccountForm />
       </div>
     </div>
   );

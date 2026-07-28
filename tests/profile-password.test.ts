@@ -17,6 +17,7 @@ vi.mock("@/lib/session", () => ({ requireUser: vi.fn() }));
 vi.mock("@/lib/rate-limit", () => ({ assertRateLimit: vi.fn().mockResolvedValue(true) }));
 vi.mock("@/lib/audit", () => ({ logAudit: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+vi.mock("@/lib/auth", () => ({ signOut: vi.fn() }));
 
 vi.mock("bcryptjs", () => ({
   default: {
