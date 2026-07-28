@@ -22,7 +22,16 @@ export default async function NouvelleAnnoncePage({
     : undefined;
   if (!user) redirect("/connexion");
   if (user.role !== "HOTE" && user.role !== "AGENCE") {
-    redirect("/dashboard/reservations");
+    // Friction d'entrée (§L8.1) : un VOYAGEUR qui atterrit ici veut par
+    // définition publier une annonce — on l'envoie devenir hôte plutôt que
+    // vers un cul-de-sac, callbackUrl le ramène ici une fois la bascule faite.
+    const qs = new URLSearchParams();
+    if (ville) qs.set("ville", ville);
+    if (type) qs.set("type", type);
+    const suffix = qs.toString() ? `?${qs.toString()}` : "";
+    redirect(
+      `/dashboard/devenir-hote?callbackUrl=${encodeURIComponent(`/dashboard/annonces/nouvelle${suffix}`)}`
+    );
   }
 
   // Gating KYC : on prévient l'hôte AVANT qu'il ne remplisse le formulaire

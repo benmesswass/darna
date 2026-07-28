@@ -30,11 +30,16 @@ export function buildDashboardLinks(user: SessionUser, fr: Dictionary): NavItem[
       links.push({ href: "/dashboard/abonnement", label: fr.abonnement.titre, icon: "CoinsIcon" });
     }
   } else {
-    links.push({
-      href: "/dashboard/reservations",
-      label: fr.dashboard.mesReservations,
-      icon: "CalendarIcon",
-    });
+    links.push(
+      {
+        href: "/dashboard/reservations",
+        label: fr.dashboard.mesReservations,
+        icon: "CalendarIcon",
+      },
+      // Friction d'entrée (§L8.1) : tout compte naît VOYAGEUR, la bascule
+      // HOTE/AGENCE se fait ici plutôt qu'à l'inscription.
+      { href: "/dashboard/devenir-hote", label: fr.dashboard.devenirHote, icon: "BuildingIcon" }
+    );
   }
 
   links.push(

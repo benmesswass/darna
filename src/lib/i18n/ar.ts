@@ -390,8 +390,6 @@ export const ar: Dictionary = {
     motDePasse: "كلمة السر",
     nom: "الاسم الكامل",
     telephone: "الهاتف (+216…)",
-    role: "أنا…",
-    roleVoyageur: "مسافر / مستأجر",
     roleHote: "مضيف / مالك",
     roleAgence: "وكالة عقارية",
     seConnecter: "ادخل",
@@ -439,6 +437,7 @@ export const ar: Dictionary = {
     bonjour: (nom: string) => `عسلامة، ${nom}`,
     mesAnnonces: "إعلاناتي",
     mesReservations: "حجوزاتي",
+    devenirHote: "ولّي مضيّف",
     mesVoyageurs: "مسافريني",
     demandesRecues: "الطلبات الواردة",
     yieldAdvisor: "مستشار المردودية",
@@ -1283,6 +1282,14 @@ export const ar: Dictionary = {
     supprimerMdpRequis: "كلمة السرّ مطلوبة.",
     supprimerReservationActive:
       "عندك حجز نشيط (كمسافر ولا كمضيّف). استنى حتى يكمل ولا يتلغى قبل ما تحذف حسابك.",
+  },
+  devenirHote: {
+    titre: "ولّي مضيّف",
+    sousTitre:
+      "انشر أول إعلان متاعك في دقائق معدودة. تلقى 100٪ من السومة متاعك: المسافر هو اللي يخلص مصاريف الخدمة متاعنا.",
+    choixHoteDesc: "نكري العقار متاعي (خاص).",
+    choixAgenceDesc: "نتصرف في عقارات لحساب مالكين آخرين.",
+    cta: "كمّل",
   },
   yieldAdvisor: {
     titre: "مستشار المردودية",

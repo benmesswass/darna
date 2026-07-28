@@ -13,16 +13,13 @@ export const metadata: Metadata = { title: frMeta.auth.inscriptionTitre };
 export default async function InscriptionPage({
   searchParams,
 }: {
-  searchParams: Promise<{ role?: string; callbackUrl?: string; ref?: string }>;
+  searchParams: Promise<{ callbackUrl?: string; ref?: string }>;
 }) {
   const fr = await getT();
-  const { role, callbackUrl, ref } = await searchParams;
+  const { callbackUrl, ref } = await searchParams;
   const cb = safeCallbackUrl(callbackUrl);
   const user = await getSessionUser();
   if (user) redirect(cb);
-
-  // Rôle pré-sélectionné depuis le CTA « devenir hôte » (jamais ADMIN).
-  const defaultRole = role === "HOTE" || role === "AGENCE" ? role : "VOYAGEUR";
 
   // CAPTCHA (dual-mode) : clé publique transmise au widget si le mode est actif.
   const captchaSiteKey = isCaptchaEnabled() ? turnstileSiteKey() : "";
@@ -40,7 +37,6 @@ export default async function InscriptionPage({
       </h1>
       <div className="mt-8 rounded-3xl bg-surface p-7 shadow-sm ring-1 ring-darna/10">
         <RegisterForm
-          defaultRole={defaultRole}
           callbackUrl={callbackUrl ? cb : undefined}
           captchaSiteKey={captchaSiteKey}
           refCode={refCode}

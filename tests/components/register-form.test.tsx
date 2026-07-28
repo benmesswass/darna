@@ -61,7 +61,7 @@ describe("<RegisterForm />", () => {
   it("affiche le message assumé « compte déjà existant » renvoyé par l'action", async () => {
     registerMock.mockResolvedValue({
       error: fr.auth.emailDejaUtilise,
-      values: { name: "Sami", email: "sami@darna.tn", phone: "", role: "VOYAGEUR" },
+      values: { name: "Sami", email: "sami@darna.tn", phone: "" },
     });
     const { container } = renderWithProviders(<RegisterForm />);
 

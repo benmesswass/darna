@@ -39,7 +39,7 @@ export function RevenueSimulatorForm({
 
   const publishHref = isLoggedIn
     ? `/dashboard/annonces/nouvelle?ville=${encodeURIComponent(result?.city ?? cityName)}&type=${type}`
-    : `/inscription?role=HOTE&callbackUrl=${encodeURIComponent(
+    : `/inscription?callbackUrl=${encodeURIComponent(
         `/dashboard/annonces/nouvelle?ville=${result?.city ?? cityName}&type=${type}`
       )}`;
 

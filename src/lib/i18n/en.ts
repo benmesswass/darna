@@ -367,8 +367,6 @@ export const en: Dictionary = {
     motDePasse: "Password",
     nom: "Full name",
     telephone: "Phone (+216…)",
-    role: "I am…",
-    roleVoyageur: "Traveller / Tenant",
     roleHote: "Host / Owner",
     roleAgence: "Real estate agency",
     seConnecter: "Sign in",
@@ -416,6 +414,7 @@ export const en: Dictionary = {
     bonjour: (nom: string) => `Hello, ${nom}`,
     mesAnnonces: "My listings",
     mesReservations: "My bookings",
+    devenirHote: "Become a host",
     mesVoyageurs: "My guests",
     demandesRecues: "Received requests",
     yieldAdvisor: "Yield Advisor",
@@ -1274,6 +1273,14 @@ export const en: Dictionary = {
     supprimerMdpRequis: "Password required.",
     supprimerReservationActive:
       "You have an active booking (as guest or host). Wait until it's completed or cancelled before deleting your account.",
+  },
+  devenirHote: {
+    titre: "Become a host",
+    sousTitre:
+      "Publish your first listing in a few minutes. You keep 100% of your price: the traveller pays our service fee.",
+    choixHoteDesc: "I rent out my own place (individual).",
+    choixAgenceDesc: "I manage properties on behalf of owners.",
+    cta: "Continue",
   },
   yieldAdvisor: {
     titre: "Yield Advisor",

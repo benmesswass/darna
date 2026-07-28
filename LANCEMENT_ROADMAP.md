@@ -949,7 +949,7 @@ en conditions réelles (Postgres local, Playwright).
 
 | # | Tâche | Prio | Statut |
 |---|---|---|---|
-| L8.1 | Supprimer le choix de rôle à l'inscription (« Devenir hôte » a posteriori) | P1 | ❌ |
+| L8.1 | Supprimer le choix de rôle à l'inscription (« Devenir hôte » a posteriori) | P1 | ✅ PR #221 |
 | L8.2 | Provider Google OAuth (NextAuth) | P1 | ❌ (dev possible ; prod ⛔ W6) |
 
 **L8.1 — décisions tranchées** : tout nouveau compte naît `VOYAGEUR` (défaut
@@ -961,6 +961,30 @@ HOTE/AGENCE existant ne change pas. Mass-assignment : le rôle reste
 évidemment hors des champs zod du profil (règle QA existante). Mesure :
 émettre `ROLE_UPGRADED` (ProductEvent) ; le funnel d'inscription IN1 mesurera
 l'effet. i18n ×3, captures avant/après.
+
+**Implémenté (PR #221)** : `registerSchema` perd `role` (le compte hérite du
+défaut `VOYAGEUR` du schéma) ; `RegisterForm` perd le `<select>` rôle.
+`becomeHostAction` (`src/actions/profile.ts`) : réservée aux `VOYAGEUR`
+(pas de rétrogradation/changement latéral HOTE↔AGENCE↔ADMIN), rate-limitée,
+journalise `PROFILE_UPDATED` (audit) + `ROLE_UPGRADED` (ProductEvent),
+redirige vers `callbackUrl` (validé via `safeCallbackUrl`) ou
+`/dashboard/annonces` par défaut. Nouvelle page `/dashboard/devenir-hote`
+(garde : redirige un compte déjà HOTE/AGENCE/ADMIN) + composant
+`BecomeHostForm` (choix Hôte/Agence). Nav dashboard : lien « Devenir hôte »
+pour tout compte non-annonceur (`src/lib/dashboard-nav.ts`). La garde
+existante de `/dashboard/annonces/nouvelle` (VOYAGEUR → redirection) pointe
+désormais vers `/dashboard/devenir-hote?callbackUrl=...` au lieu d'un
+cul-de-sac (`/dashboard/reservations`) ; les 2 CTA « devenir hôte » public
+(`sejours/page.tsx`, `RevenueSimulatorForm.tsx`) simplifiés : connecté → va
+droit au formulaire d'annonce (la garde ci-dessus gère un VOYAGEUR), sinon
+inscription sans rôle pré-sélectionné. 9 tests dédiés
+(`tests/become-host-action.test.ts`) + 3 tests existants mis à jour
+(inscription sans champ rôle). Vérifié en conditions réelles (Postgres
+local, Playwright) : formulaire d'inscription sans champ rôle, nav VOYAGEUR
+correcte, bascule VOYAGEUR→HOTE et →AGENCE confirmées en base
+(`ProductEvent`/`AuditLog`), gate `/dashboard/annonces/nouvelle` →
+`devenir-hote` → retour au formulaire après bascule (callbackUrl round-trip),
+compte déjà HOTE redirigé hors de `/dashboard/devenir-hote`.
 
 **L8.2 — décisions tranchées** :
 - Provider **Google uniquement** (pas de Facebook/Apple à ce stade).

@@ -364,12 +364,10 @@ export function ResetPasswordForm({ token }: { token: string }) {
 }
 
 export function RegisterForm({
-  defaultRole = "VOYAGEUR",
   callbackUrl,
   captchaSiteKey = "",
   refCode,
 }: {
-  defaultRole?: string;
   callbackUrl?: string;
   captchaSiteKey?: string;
   /** Code de parrainage déjà validé côté serveur (§CR1) — absent si aucun/invalide. */
@@ -487,19 +485,6 @@ export function RegisterForm({
               {c}
             </option>
           ))}
-        </select>
-      </label>
-      <label className="block space-y-1.5">
-        <span className="text-sm font-semibold text-body/70">{fr.auth.role}</span>
-        <select
-          name="role"
-          required
-          defaultValue={values?.role || defaultRole}
-          className={inputClass}
-        >
-          <option value="VOYAGEUR">{fr.auth.roleVoyageur}</option>
-          <option value="HOTE">{fr.auth.roleHote}</option>
-          <option value="AGENCE">{fr.auth.roleAgence}</option>
         </select>
       </label>
       <TurnstileWidget siteKey={captchaSiteKey} />

@@ -3,6 +3,7 @@
 import bcrypt from "bcryptjs";
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
@@ -10,7 +11,9 @@ import { requireUser } from "@/lib/session";
 import { signOut } from "@/lib/auth";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { logAudit } from "@/lib/audit";
+import { logProductEvent } from "@/lib/product-events";
 import { deleteUploadedImage, saveUploadedImage } from "@/lib/uploads";
+import { safeCallbackUrl } from "@/lib/redirect";
 
 export type ProfileFormState =
   | { error?: string; success?: string }
@@ -303,4 +306,56 @@ export async function deleteAccountAction(
 
   revalidatePath("/dashboard/annonces");
   await signOut({ redirectTo: "/" });
+}
+
+/**
+ * Devenir hôte (LANCEMENT_ROADMAP.md §L8.1) — upgrade en libre-service
+ * VOYAGEUR→HOTE/AGENCE, appelée depuis /dashboard/devenir-hote. Tout nouveau
+ * compte naît VOYAGEUR (le rôle ne se choisit plus à l'inscription) ; c'est
+ * ici, et seulement ici, que le rôle change après coup. Les gates existants
+ * par rôle (KYC, quotas agence…) ne changent pas : un compte qui vient de
+ * devenir HOTE traverse exactement les mêmes vérifications qu'un compte créé
+ * HOTE avant §L8.1.
+ */
+const becomeHostSchema = z.object({ role: z.enum(["HOTE", "AGENCE"]) });
+
+export async function becomeHostAction(
+  _prev: ProfileFormState,
+  formData: FormData
+): Promise<ProfileFormState> {
+  const fr = await getT();
+  const user = await requireUser();
+
+  if (!(await assertRateLimit("become-host"))) {
+    return { error: fr.common.tropDeTentatives };
+  }
+
+  // Seul un VOYAGEUR peut « devenir hôte » — un compte déjà HOTE/AGENCE/ADMIN
+  // n'a rien à faire ici (pas de rétrogradation, pas de changement latéral).
+  if (user.role !== "VOYAGEUR") {
+    return { error: fr.common.erreurInconnue };
+  }
+
+  const parsed = becomeHostSchema.safeParse({ role: formData.get("role") });
+  if (!parsed.success) return { error: fr.common.champsRequis };
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { role: parsed.data.role },
+  });
+
+  await logAudit({
+    action: "PROFILE_UPDATED",
+    userId: user.id,
+    success: true,
+    metadata: { roleUpgraded: parsed.data.role },
+  });
+  void logProductEvent({
+    event: "ROLE_UPGRADED",
+    userId: user.id,
+    metadata: { role: parsed.data.role },
+  });
+
+  revalidatePath("/dashboard");
+  redirect(safeCallbackUrl(String(formData.get("callbackUrl") ?? ""), "/dashboard/annonces"));
 }

@@ -58,14 +58,14 @@ export default async function SejoursPage({
       ])
     : [null, null];
 
-  // CTA « devenir hôte » : un hôte/agence déjà connecté va droit au formulaire ;
-  // sinon on passe par l'inscription avec le rôle Hôte pré-sélectionné, puis
-  // retour au formulaire après connexion (callbackUrl).
+  // CTA « devenir hôte » : connecté (quel que soit son rôle) → droit au
+  // formulaire, dont la garde redirige un VOYAGEUR vers /dashboard/devenir-hote
+  // (§L8.1, rôle non choisi à l'inscription) ; sinon inscription puis retour
+  // ici après connexion (callbackUrl).
   const newListingPath = "/dashboard/annonces/nouvelle";
-  const canList = sessionUser?.role === "HOTE" || sessionUser?.role === "AGENCE";
-  const hostCtaHref = canList
+  const hostCtaHref = sessionUser
     ? newListingPath
-    : `/inscription?role=HOTE&callbackUrl=${encodeURIComponent(newListingPath)}`;
+    : `/inscription?callbackUrl=${encodeURIComponent(newListingPath)}`;
 
   // Dates recherchées propagées : nom de dossier par défaut = mois d'ARRIVÉE
   // (pas le mois courant), et transmission des dates au lien de la fiche détail.

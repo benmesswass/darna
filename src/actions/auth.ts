@@ -25,7 +25,7 @@ export type AuthFormState =
       resetUrl?: string;
       // Valeurs non sensibles renvoyées pour repeupler le formulaire après une
       // erreur (jamais les mots de passe).
-      values?: { name: string; email: string; phone: string; role: string };
+      values?: { name: string; email: string; phone: string };
     }
   | undefined;
 
@@ -58,8 +58,6 @@ const registerSchema = z
     // Pays de résidence déclaré (pilotage diaspora). Validé contre le référentiel ;
     // toute valeur hors liste est ignorée (null) plutôt que rejetée.
     country: z.string().trim().max(60).optional().or(z.literal("")),
-    // ADMIN ne peut pas être choisi à l'inscription — assigné manuellement en DB
-    role: z.enum(["VOYAGEUR", "HOTE", "AGENCE"] as const),
     // Code de parrainage (CROISSANCE_ROADMAP.md §CR1), optionnel — transmis
     // via le lien de partage (?ref=CODE). Un code invalide/inconnu n'échoue
     // JAMAIS l'inscription, il est simplement ignoré (cf. registerAction).
@@ -87,7 +85,6 @@ export async function registerAction(
     name: String(formData.get("name") ?? ""),
     email: String(formData.get("email") ?? ""),
     phone: String(formData.get("phone") ?? ""),
-    role: String(formData.get("role") ?? ""),
   };
 
   // CAPTCHA anti-robot (no-op si désactivé). Vérifié AVANT toute écriture.
@@ -104,7 +101,6 @@ export async function registerAction(
     confirmPassword: formData.get("confirmPassword"),
     phone: formData.get("phone"),
     country: formData.get("country") ?? undefined,
-    role: formData.get("role"),
     ref: formData.get("ref") ?? undefined,
   });
   if (!parsed.success) {
@@ -117,7 +113,7 @@ export async function registerAction(
     };
   }
 
-  const { name, email, password, phone, country, role, ref } = parsed.data;
+  const { name, email, password, phone, country, ref } = parsed.data;
   // Pays validé contre le référentiel ; hors liste → null (jamais d'échec).
   const validCountry = country && isValidCountry(country) ? country : null;
 
@@ -142,6 +138,10 @@ export async function registerAction(
   }
 
   const passwordHash = await bcrypt.hash(password, 12);
+  // Tout nouveau compte naît VOYAGEUR (§L8.1 — friction d'entrée) : le rôle
+  // ne se choisit plus à l'inscription, `role` garde le défaut du schéma.
+  // La bascule HOTE/AGENCE se fait a posteriori via becomeHostAction
+  // (src/actions/profile.ts), depuis /dashboard/devenir-hote.
   const user = await prisma.user.create({
     data: {
       name,
@@ -149,7 +149,6 @@ export async function registerAction(
       passwordHash,
       phone: phone || null,
       country: validCountry,
-      role,
       // Posé UNE SEULE FOIS, ici, à la création — jamais modifié ensuite
       // (cf. schema.prisma, User.referredById).
       referredById: referrer?.id,
@@ -160,7 +159,7 @@ export async function registerAction(
     action: "REGISTER",
     userId: user.id,
     success: true,
-    metadata: { role, referred: Boolean(referrer) },
+    metadata: { referred: Boolean(referrer) },
   });
 
   // Bonus filleul (§CR1), immédiat — jamais bloquant pour l'inscription (même
