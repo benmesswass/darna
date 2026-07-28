@@ -46,11 +46,19 @@
 
 ## 0. Ce qui existe déjà (ne pas réinventer)
 
+> **Périmé depuis L5.1** (`LANCEMENT_ROADMAP.md`, modèle commission-only,
+> plus d'acompte) : `computeDepositAmount` ne calcule plus
+> `max(10 % du total, serviceFee)` — il **est** `serviceFee` (arrondi),
+> point. Le paragraphe ci-dessous décrit le mécanisme D'ORIGINE (toujours
+> pertinent pour comprendre POURQUOI la commission est déjà garantie sur le
+> rail ESCROW), mais la formule `max(...)` elle-même n'existe plus dans le
+> code.
+
 Darna a **déjà** un mécanisme d'acompte partiel qui garantit la commission
 Darna même quand le solde est payé cash à l'arrivée :
 
-- `Booking.depositAmount` = acompte minimum dû en ligne = `max(10 % du total,
-  serviceFee)` (`src/lib/config.ts:computeDepositAmount`) — la commission
+- `Booking.depositAmount` = acompte minimum dû en ligne = `serviceFee`
+  (`src/lib/config.ts:computeDepositAmount`) — la commission
   Darna y est **toujours** entièrement contenue.
 - `Booking.amountPaid` = montant réellement choisi par le voyageur entre
   `depositAmount` et `totalPrice` (`clampPayAmount`, reborné serveur).
