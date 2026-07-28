@@ -17,6 +17,9 @@ export type SessionUser = {
   suspendedUntil: Date | null;
   suspensionCount: number;
   suspensionReason: string | null;
+  // Faux pour un compte Google-only (§L8.2) — jamais le hash lui-même, qui ne
+  // doit jamais quitter la couche serveur au-delà de ce booléen dérivé.
+  hasPassword: boolean;
 };
 
 /**
@@ -46,6 +49,7 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
       suspensionCount: true,
       suspensionReason: true,
       tokenVersion: true,
+      passwordHash: true,
     },
   });
   if (!user) return null;
@@ -56,8 +60,8 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
   if (dbVersion !== jwtVersion) return null;
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { tokenVersion: _, ...sessionUser } = user;
-  return sessionUser;
+  const { tokenVersion: _, passwordHash, ...rest } = user;
+  return { ...rest, hasPassword: passwordHash !== null };
 });
 
 /** Garde serveur : lève si non connecté (mutations). */

@@ -52,7 +52,12 @@ export default async function ProfilPage() {
           </p>
         </section>
 
-        <ProfileForm name={user.name} email={user.email} phone={user.phone} />
+        <ProfileForm
+          name={user.name}
+          email={user.email}
+          phone={user.phone}
+          hasPassword={user.hasPassword}
+        />
 
         <section className="rounded-3xl bg-surface p-6 ring-1 ring-darna/10">
           <h3 className="text-sm font-bold text-heading">{fr.profil.donneesTitre}</h3>
@@ -66,7 +71,7 @@ export default async function ProfilPage() {
           <p className="mt-2 text-xs text-body/45">{fr.profil.donneesExporterAide}</p>
         </section>
 
-        <DeleteAccountForm />
+        <DeleteAccountForm hasPassword={user.hasPassword} />
       </div>
     </div>
   );

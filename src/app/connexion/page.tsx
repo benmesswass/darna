@@ -5,6 +5,7 @@ import { fr as frMeta } from "@/lib/i18n/fr";
 import { getSessionUser } from "@/lib/session";
 import { safeCallbackUrl } from "@/lib/redirect";
 import { isCaptchaEnabled, turnstileSiteKey } from "@/lib/turnstile";
+import { isGoogleAuthEnabled } from "@/lib/google-auth";
 import { LoginForm } from "@/components/auth/AuthForms";
 
 export const metadata: Metadata = { title: frMeta.auth.connexionTitre };
@@ -37,6 +38,7 @@ export default async function ConnexionPage({
           registered={registered === "1"}
           defaultEmail={defaultEmail}
           captchaSiteKey={captchaSiteKey}
+          googleEnabled={isGoogleAuthEnabled()}
         />
       </div>
     </div>

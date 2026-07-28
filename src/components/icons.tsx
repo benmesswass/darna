@@ -179,6 +179,15 @@ export function WhatsAppIcon(props: IconProps) {
   );
 }
 
+/** Monochrome (currentColor) — pas le logo Google officiel multicolore, même parti pris que WhatsAppIcon ci-dessus. */
+export function GoogleIcon(props: IconProps) {
+  return (
+    <svg {...base({ fill: "currentColor", stroke: "none", ...props })}>
+      <path d="M12 11v2.4h5.5c-.2 1.4-1.7 4.2-5.5 4.2-3.3 0-6-2.7-6-6.1s2.7-6.1 6-6.1c1.9 0 3.1.8 3.9 1.5l2.5-2.4C16.8 3.1 14.6 2 12 2 6.9 2 2.7 6.1 2.7 11.5S6.9 21 12 21c6.9 0 8.3-6.1 7.7-9.2H12Z" />
+    </svg>
+  );
+}
+
 export function HeartIcon(props: IconProps) {
   return (
     <svg {...base(props)}>

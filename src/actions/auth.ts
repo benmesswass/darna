@@ -272,6 +272,18 @@ export async function logoutAction(): Promise<void> {
   await signOut({ redirectTo: "/" });
 }
 
+/**
+ * Connexion Google (§L8.2) — déclenche la redirection OAuth réelle (le
+ * provider n'est même pas enregistré côté NextAuth si isGoogleAuthEnabled()
+ * est faux, cf. src/lib/auth.ts, donc cet appel échouerait proprement dans
+ * ce cas). Liaison/création du compte : voir signIn callback + resolveGoogleUser.
+ */
+export async function signInWithGoogleAction(formData: FormData): Promise<void> {
+  const rawCb = formData.get("callbackUrl");
+  const redirectTo = typeof rawCb === "string" ? safeCallbackUrl(rawCb, "/") : "/";
+  await signIn("google", { redirectTo });
+}
+
 // ── Réinitialisation de mot de passe ─────────────────────────────────────────
 
 const requestResetSchema = z.object({

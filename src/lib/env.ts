@@ -107,6 +107,12 @@ const envSchema = z
     TURNSTILE_SECRET_KEY: z.string().optional(),
     NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().optional(),
 
+    // L8.2 (LANCEMENT_ROADMAP.md) — connexion Google (NextAuth), opt-in comme
+    // tous les modes ci-dessus : absent ⇒ seul le provider credentials est
+    // proposé. Les deux variables sont exigées ENSEMBLE (cf. superRefine).
+    GOOGLE_CLIENT_ID: z.string().optional(),
+    GOOGLE_CLIENT_SECRET: z.string().optional(),
+
     // L4.2 (LANCEMENT_ROADMAP.md) — Sentry, actif seulement si défini (défaut
     // démo sûr, comme tous les modes). Le DSN n'est pas un secret par
     // conception Sentry (il ne permet qu'ENVOYER des events, jamais de les
@@ -226,6 +232,17 @@ const envSchema = z
         code: z.ZodIssueCode.custom,
         message:
           "CAPTCHA_MODE=turnstile requiert TURNSTILE_SECRET_KEY et NEXT_PUBLIC_TURNSTILE_SITE_KEY.",
+      });
+    }
+
+    // L8.2 — Google OAuth : les deux variables (client id + secret) doivent
+    // être posées ENSEMBLE, sinon le provider serait mal configuré (échec
+    // silencieux ou pire, un provider actif sans secret).
+    if (Boolean(e.GOOGLE_CLIENT_ID) !== Boolean(e.GOOGLE_CLIENT_SECRET)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "GOOGLE_CLIENT_ID et GOOGLE_CLIENT_SECRET doivent être définis ensemble (ou aucun des deux).",
       });
     }
 
