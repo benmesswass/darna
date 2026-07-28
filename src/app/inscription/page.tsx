@@ -5,6 +5,7 @@ import { getT } from "@/lib/i18n/server";
 import { getSessionUser } from "@/lib/session";
 import { safeCallbackUrl } from "@/lib/redirect";
 import { isCaptchaEnabled, turnstileSiteKey } from "@/lib/turnstile";
+import { isGoogleAuthEnabled } from "@/lib/google-auth";
 import { RegisterForm } from "@/components/auth/AuthForms";
 import { findUserByReferralCode } from "@/lib/credits";
 
@@ -40,6 +41,7 @@ export default async function InscriptionPage({
           callbackUrl={callbackUrl ? cb : undefined}
           captchaSiteKey={captchaSiteKey}
           refCode={refCode}
+          googleEnabled={isGoogleAuthEnabled()}
         />
       </div>
     </div>

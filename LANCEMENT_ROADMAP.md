@@ -950,7 +950,7 @@ en conditions réelles (Postgres local, Playwright).
 | # | Tâche | Prio | Statut |
 |---|---|---|---|
 | L8.1 | Supprimer le choix de rôle à l'inscription (« Devenir hôte » a posteriori) | P1 | ✅ PR #221 |
-| L8.2 | Provider Google OAuth (NextAuth) | P1 | ❌ (dev possible ; prod ⛔ W6) |
+| L8.2 | Provider Google OAuth (NextAuth) | P1 | ✅ code prêt (PR #222) — activation ⛔ W6 |
 
 **L8.1 — décisions tranchées** : tout nouveau compte naît `VOYAGEUR` (défaut
 schéma déjà en place) ; le formulaire d'inscription perd le sélecteur de
@@ -1007,6 +1007,38 @@ compte déjà HOTE redirigé hors de `/dashboard/devenir-hote`.
   `tokenVersion` inchangé, mass-assignment. QA_ROADMAP : section auth mise à
   jour. E2E : le flux Google réel n'est pas automatisable simplement — mock au
   niveau du provider en test, parcours réel vérifié manuellement en staging.
+
+**Implémenté (PR #222)** : `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` opt-in
+(`src/lib/env.ts`, exigées ensemble), `isGoogleAuthEnabled()`
+(`src/lib/google-auth.ts`). Migration `passwordHash` nullable
+(`20260728103500_user_password_hash_nullable`). `src/lib/auth.ts` : provider
+Google enregistré seulement si activé, `authorize()` (credentials) rejette
+désormais `!user.passwordHash` avec le MÊME traitement anti-énumération
+qu'un compte inconnu (délai constant, message générique), `trustHost: true`
+(requis pour la redirection OAuth derrière un proxy), `signIn` callback qui
+substitue l'id Darna réel à l'id Google avant `jwt()`. Logique de
+liaison/création extraite dans `src/lib/google-account-linking.ts`
+(`resolveGoogleUser`) — même raison que `login-failure-tracking.ts` :
+importer `next-auth` dans un test unitaire échoue systématiquement, donc
+toute logique testable doit vivre hors de `auth.ts`. `SessionUser` gagne
+`hasPassword` (jamais le hash lui-même) ; `changePasswordAction` et
+`deleteAccountAction` (`src/actions/profile.ts`) gèrent le cas
+`passwordHash null` (formulaire de mot de passe masqué côté UI pour
+`changePasswordAction` ; `deleteAccountAction` n'exige plus de mot de passe
+pour un compte Google-only — la session authentifiée suffit). Bouton
+« Continuer avec Google » sur connexion/inscription (`GoogleButton` dans
+`AuthForms.tsx`, nouvelle action `signInWithGoogleAction`), rendu
+uniquement si `isGoogleAuthEnabled()`. 14 tests dédiés
+(`tests/google-account-linking.test.ts` ×5, cas Google-only ajoutés à
+`tests/delete-account-action.test.ts` et `tests/profile-password.test.ts`)
++ suite complète (127 fichiers / 898 tests) verte. **Non vérifiable en
+conditions réelles sans vraies clés Google (⛔ W6)** : vérifié que
+`isGoogleAuthEnabled()` retourne bien `false` sans clés (bouton absent,
+comportement actuel préservé à l'identique) et que le bouton apparaît
+correctement avec des clés factices posées temporairement (redirection
+`/api/auth/signin/google` déclenchée, échoue ensuite chez Google faute de
+vraies clés — attendu). Le flux Google bout-en-bout réel reste à vérifier
+manuellement une fois W6 posé.
 
 ---
 

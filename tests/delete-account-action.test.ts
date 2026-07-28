@@ -89,11 +89,21 @@ describe("deleteAccountAction", () => {
     expect(mockTransaction).not.toHaveBeenCalled();
   });
 
-  it("rejette un mot de passe vide sans toucher à la base", async () => {
+  it("rejette un mot de passe vide pour un compte avec mot de passe (credentials)", async () => {
     const res = await deleteAccountAction(undefined, makeFd(""));
 
     expect(res?.error).toBe("Mot de passe requis.");
-    expect(mockFindUnique).not.toHaveBeenCalled();
+    expect(mockTransaction).not.toHaveBeenCalled();
+  });
+
+  it("compte Google-only (passwordHash null, §L8.2) : la session suffit, pas de mot de passe requis", async () => {
+    mockFindUnique.mockResolvedValueOnce({ passwordHash: null, image: null });
+
+    const res = await deleteAccountAction(undefined, makeFd(""));
+
+    expect(res).toBeUndefined();
+    expect(bcrypt.compare).not.toHaveBeenCalled();
+    expect(mockTransaction).toHaveBeenCalled();
   });
 
   it("rejette si le mot de passe est incorrect et journalise l'échec", async () => {

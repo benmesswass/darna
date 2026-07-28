@@ -13,7 +13,7 @@ const inputClass =
  * confirmation en deux temps que CashBookingActions.tsx (refuser une
  * demande) : un bouton seul ne déclenche rien d'irréversible.
  */
-export function DeleteAccountForm() {
+export function DeleteAccountForm({ hasPassword }: { hasPassword: boolean }) {
   const fr = useT();
   const [confirming, setConfirming] = useState(false);
   const [state, action, pending] = useActionState<ProfileFormState, FormData>(
@@ -45,16 +45,18 @@ export function DeleteAccountForm() {
         </button>
       ) : (
         <form action={action} className="mt-4 space-y-3">
-          <label className="block space-y-1.5">
-            <span className="text-sm font-semibold text-body/70">{fr.profil.mdpActuel}</span>
-            <input
-              name="password"
-              type="password"
-              required
-              autoComplete="current-password"
-              className={inputClass}
-            />
-          </label>
+          {hasPassword ? (
+            <label className="block space-y-1.5">
+              <span className="text-sm font-semibold text-body/70">{fr.profil.mdpActuel}</span>
+              <input
+                name="password"
+                type="password"
+                required
+                autoComplete="current-password"
+                className={inputClass}
+              />
+            </label>
+          ) : null}
           <div className="flex gap-2">
             <button
               type="submit"

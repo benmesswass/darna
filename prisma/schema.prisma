@@ -30,7 +30,10 @@ datasource db {
 model User {
   id                      String    @id @default(cuid())
   email                   String    @unique
-  passwordHash            String
+  // Nullable depuis L8.2 (Google OAuth) : un compte créé via Google n'a pas de
+  // mot de passe Darna. `authorize()` (credentials) rejette explicitement ces
+  // comptes ; changePasswordAction/deleteAccountAction gèrent le cas null.
+  passwordHash            String?
   name                    String
   phone                   String?
   image                   String? // Photo de profil — URL locale /uploads (cf. src/lib/uploads.ts)

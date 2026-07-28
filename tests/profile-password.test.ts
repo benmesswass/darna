@@ -35,6 +35,7 @@ vi.mock("@/lib/i18n/server", () => ({
       mdpActuelInvalide: "Actuel invalide.",
       mdpIdentique: "Identique.",
       mdpEnregistre: "Enregistré.",
+      mdpAucunMotDePasse: "Pas de mdp Google.",
     },
   }),
 }));
@@ -77,6 +78,16 @@ describe("changePasswordAction", () => {
       where: { id: "u1" },
       data: { passwordHash: "new-hashed", tokenVersion: { increment: 1 } },
     });
+  });
+
+  it("rejette un compte Google-only (passwordHash null, §L8.2) sans appeler bcrypt", async () => {
+    mockFindUnique.mockResolvedValueOnce({ passwordHash: null });
+
+    const res = await changePasswordAction(undefined, makeFd("anything1", "newpass1"));
+
+    expect(res).toEqual({ error: "Pas de mdp Google." });
+    expect(bcrypt.compare).not.toHaveBeenCalled();
+    expect(mockUpdate).not.toHaveBeenCalled();
   });
 
   it("rejette si le mot de passe actuel est incorrect", async () => {

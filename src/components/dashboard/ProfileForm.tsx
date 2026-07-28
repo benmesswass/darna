@@ -37,10 +37,12 @@ export function ProfileForm({
   name,
   email,
   phone,
+  hasPassword,
 }: {
   name: string;
   email: string;
   phone: string | null;
+  hasPassword: boolean;
 }) {
   const fr = useT();
   const [infoState, infoAction, infoPending] = useActionState<
@@ -114,62 +116,65 @@ export function ProfileForm({
         </button>
       </form>
 
-      {/* Mot de passe */}
-      <form action={pwAction} className="rounded-3xl bg-surface p-6 ring-1 ring-darna/10">
-        <p className="flex items-center gap-2 font-semibold text-heading">
-          <LockIcon width={18} height={18} />
-          {fr.profil.mdpTitre}
-        </p>
-        <p className="mt-1 text-sm text-body/60">{fr.profil.mdpSousTitre}</p>
+      {/* Mot de passe — absent pour un compte Google-only (§L8.2, aucun mot
+          de passe Darna à changer). */}
+      {hasPassword ? (
+        <form action={pwAction} className="rounded-3xl bg-surface p-6 ring-1 ring-darna/10">
+          <p className="flex items-center gap-2 font-semibold text-heading">
+            <LockIcon width={18} height={18} />
+            {fr.profil.mdpTitre}
+          </p>
+          <p className="mt-1 text-sm text-body/60">{fr.profil.mdpSousTitre}</p>
 
-        <div className="mt-5 space-y-4">
-          <Feedback state={pwState} />
+          <div className="mt-5 space-y-4">
+            <Feedback state={pwState} />
 
-          <label className="block space-y-1.5">
-            <span className={labelClass}>{fr.profil.mdpActuel}</span>
-            <input
-              name="currentPassword"
-              type="password"
-              required
-              autoComplete="current-password"
-              className={inputClass}
-            />
-          </label>
-
-          <div className="grid gap-4 sm:grid-cols-2">
             <label className="block space-y-1.5">
-              <span className={labelClass}>{fr.profil.mdpNouveau}</span>
+              <span className={labelClass}>{fr.profil.mdpActuel}</span>
               <input
-                name="newPassword"
+                name="currentPassword"
                 type="password"
                 required
-                minLength={8}
-                autoComplete="new-password"
+                autoComplete="current-password"
                 className={inputClass}
               />
             </label>
-            <label className="block space-y-1.5">
-              <span className={labelClass}>{fr.profil.mdpConfirmation}</span>
-              <input
-                name="confirmPassword"
-                type="password"
-                required
-                minLength={8}
-                autoComplete="new-password"
-                className={inputClass}
-              />
-            </label>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block space-y-1.5">
+                <span className={labelClass}>{fr.profil.mdpNouveau}</span>
+                <input
+                  name="newPassword"
+                  type="password"
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
+                  className={inputClass}
+                />
+              </label>
+              <label className="block space-y-1.5">
+                <span className={labelClass}>{fr.profil.mdpConfirmation}</span>
+                <input
+                  name="confirmPassword"
+                  type="password"
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
+                  className={inputClass}
+                />
+              </label>
+            </div>
           </div>
-        </div>
 
-        <button
-          type="submit"
-          disabled={pwPending}
-          className="mt-5 rounded-xl border border-darna/20 px-6 py-2.5 text-sm font-bold text-heading transition hover:bg-darna hover:text-white disabled:opacity-60"
-        >
-          {pwPending ? fr.common.chargement : fr.profil.mdpChanger}
-        </button>
-      </form>
+          <button
+            type="submit"
+            disabled={pwPending}
+            className="mt-5 rounded-xl border border-darna/20 px-6 py-2.5 text-sm font-bold text-heading transition hover:bg-darna hover:text-white disabled:opacity-60"
+          >
+            {pwPending ? fr.common.chargement : fr.profil.mdpChanger}
+          </button>
+        </form>
+      ) : null}
     </div>
   );
 }

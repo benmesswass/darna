@@ -183,6 +183,9 @@ export async function changePasswordAction(
     select: { passwordHash: true },
   });
   if (!dbUser) return { error: fr.common.erreurInconnue };
+  // Compte Google-only (§L8.2) : rien à changer, l'UI masque déjà ce
+  // formulaire — filet serveur si l'action était appelée directement.
+  if (!dbUser.passwordHash) return { error: fr.profil.mdpAucunMotDePasse };
 
   const ok = await bcrypt.compare(current, dbUser.passwordHash);
   if (!ok) {
@@ -227,7 +230,9 @@ export async function changePasswordAction(
  * la recherche via `expiresAt` (mécanisme d'expiration EXISTANT, jamais un
  * nouveau statut — cf. activeListingWhere()).
  */
-const deleteAccountSchema = z.object({ password: z.string().min(1) });
+// Mot de passe optionnel au niveau du schéma : un compte Google-only (§L8.2,
+// passwordHash null) n'en a pas — voir le contrôle conditionnel plus bas.
+const deleteAccountSchema = z.object({ password: z.string().optional() });
 
 export async function deleteAccountAction(
   _prev: ProfileFormState,
@@ -240,7 +245,9 @@ export async function deleteAccountAction(
     return { error: fr.common.tropDeTentatives };
   }
 
-  const parsed = deleteAccountSchema.safeParse({ password: formData.get("password") });
+  const parsed = deleteAccountSchema.safeParse({
+    password: formData.get("password") || undefined,
+  });
   if (!parsed.success) return { error: fr.profil.supprimerMdpRequis };
 
   const dbUser = await prisma.user.findUnique({
@@ -249,15 +256,21 @@ export async function deleteAccountAction(
   });
   if (!dbUser) return { error: fr.common.erreurInconnue };
 
-  const ok = await bcrypt.compare(parsed.data.password, dbUser.passwordHash);
-  if (!ok) {
-    await logAudit({
-      action: "ACCOUNT_DELETED",
-      userId: user.id,
-      success: false,
-      metadata: { reason: "wrong_password" },
-    });
-    return { error: fr.profil.mdpActuelInvalide };
+  // Compte Google-only (§L8.2, passwordHash null) : pas de mot de passe à
+  // revérifier, la session authentifiée suffit. Compte credentials : re-auth
+  // par mot de passe obligatoire, comme avant.
+  if (dbUser.passwordHash) {
+    if (!parsed.data.password) return { error: fr.profil.supprimerMdpRequis };
+    const ok = await bcrypt.compare(parsed.data.password, dbUser.passwordHash);
+    if (!ok) {
+      await logAudit({
+        action: "ACCOUNT_DELETED",
+        userId: user.id,
+        success: false,
+        metadata: { reason: "wrong_password" },
+      });
+      return { error: fr.profil.mdpActuelInvalide };
+    }
   }
 
   // Blocage : toute réservation encore active (voyageur OU hôte via ses

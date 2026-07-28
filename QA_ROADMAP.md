@@ -573,7 +573,8 @@ is purged in isolation, same pattern as `reconcileKonnectPayments`.
 
 | Case | Normal path | Abnormal path | Status | Phase |
 |------|-------------|---------------|--------|-------|
-| Login | Valid creds → session | Wrong pw, unknown user (generic error, timing-stable), rate-limited | ✅/⚠️ | Demo |
+| Login | Valid creds → session | Wrong pw, unknown user, **compte Google-only (passwordHash null)** — les trois indistinguables (générique, timing-stable), rate-limited | ✅/⚠️ | Demo |
+| Google OAuth (§L8.2) | Nouveau compte créé (passwordHash null, emailVerified true, rôle VOYAGEUR) ; e-mail existant lié automatiquement (sûr : Google a vérifié l'adresse) | `resolveGoogleUser` testé unitairement (`tests/google-account-linking.test.ts`) ; flux réel non automatisable sans clés Google (dev/staging), vérifié manuellement dès W6 posé | ✅ (unit) / ❌ (e2e réel, ⛔ W6) | Demo |
 | Logout | Clears cookie/session | Logout when not logged in (no error leak) | ❌ E2E | Beta |
 | Reset password | Token issued, single-use, TTL | Reused/expired/forged token; invalidates active sessions | ❌ (feature) | Beta |
 | OTP (phone/email) | 6-digit, 10-min, consumed on success | Wrong code (attempt++), expired, exhausted (5), purpose-cross | ✅ | Demo |

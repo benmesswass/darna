@@ -8,13 +8,14 @@ import {
   registerAction,
   requestPasswordResetAction,
   resetPasswordAction,
+  signInWithGoogleAction,
   type AuthFormState,
 } from "@/actions/auth";
 import { useT } from "@/components/i18n/LocaleProvider";
 import { TurnstileWidget } from "@/components/auth/TurnstileWidget";
 import { COUNTRY_LABELS } from "@/lib/constants";
 import { REFERRAL_SIGNUP_BONUS_TND } from "@/lib/config";
-import { CheckIcon } from "@/components/icons";
+import { CheckIcon, GoogleIcon } from "@/components/icons";
 
 const inputClass =
   "w-full rounded-xl border border-darna/15 bg-cream px-3.5 py-2.5 text-sm outline-none transition-all duration-200 focus:border-darna focus:ring-4 focus:ring-darna/10";
@@ -158,6 +159,30 @@ function SubmitButton({ label, pending }: { label: string; pending: boolean }) {
   );
 }
 
+/** Google (§L8.2) — rendu seulement si isGoogleAuthEnabled() côté serveur (prop transmise par la page). */
+function GoogleButton({ callbackUrl }: { callbackUrl?: string }) {
+  const fr = useT();
+  return (
+    <>
+      <form action={signInWithGoogleAction}>
+        {callbackUrl ? <input type="hidden" name="callbackUrl" value={callbackUrl} /> : null}
+        <button
+          type="submit"
+          className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-darna/15 bg-white px-5 py-3 text-sm font-bold text-heading transition hover:bg-cream"
+        >
+          <GoogleIcon width={18} height={18} />
+          {fr.auth.continuerAvecGoogle}
+        </button>
+      </form>
+      <div className="flex items-center gap-3 text-xs font-medium uppercase text-body/40">
+        <span className="h-px flex-1 bg-darna/10" />
+        {fr.auth.ouSeparateur}
+        <span className="h-px flex-1 bg-darna/10" />
+      </div>
+    </>
+  );
+}
+
 function Feedback({ state }: { state: AuthFormState }) {
   if (!state) return null;
   if (state.error) {
@@ -182,11 +207,13 @@ export function LoginForm({
   registered = false,
   defaultEmail = "",
   captchaSiteKey = "",
+  googleEnabled = false,
 }: {
   callbackUrl?: string;
   registered?: boolean;
   defaultEmail?: string;
   captchaSiteKey?: string;
+  googleEnabled?: boolean;
 }) {
   const fr = useT();
   const [state, action, pending] = useActionState(loginAction, undefined);
@@ -195,47 +222,50 @@ export function LoginForm({
     : "/inscription";
 
   return (
-    <form action={action} className="space-y-4">
-      <Feedback state={state} />
-      {/* Bannière affichée quand on arrive juste après une inscription réussie. */}
-      {registered && !state ? (
-        <p role="status" className="rounded-xl bg-emerald-50 px-4 py-2.5 text-sm font-medium text-emerald-700">
-          {fr.auth.compteCreeConnectezVous}
+    <div className="space-y-4">
+      {googleEnabled ? <GoogleButton callbackUrl={callbackUrl} /> : null}
+      <form action={action} className="space-y-4">
+        <Feedback state={state} />
+        {/* Bannière affichée quand on arrive juste après une inscription réussie. */}
+        {registered && !state ? (
+          <p role="status" className="rounded-xl bg-emerald-50 px-4 py-2.5 text-sm font-medium text-emerald-700">
+            {fr.auth.compteCreeConnectezVous}
+          </p>
+        ) : null}
+        {callbackUrl ? <input type="hidden" name="callbackUrl" value={callbackUrl} /> : null}
+        <label className="block space-y-1.5">
+          <span className="text-sm font-semibold text-body/70">{fr.auth.email}</span>
+          <input
+            name="email"
+            type="email"
+            required
+            autoComplete="email"
+            defaultValue={defaultEmail}
+            className={inputClass}
+          />
+        </label>
+        <label className="block space-y-1.5">
+          <span className="text-sm font-semibold text-body/70">{fr.auth.motDePasse}</span>
+          <PasswordInput name="password" autoComplete="current-password" />
+        </label>
+        <TurnstileWidget siteKey={captchaSiteKey} />
+        <SubmitButton label={fr.auth.seConnecter} pending={pending} />
+        <p className="text-center text-sm">
+          <Link
+            href="/mot-de-passe-oublie"
+            className="font-semibold text-heading underline underline-offset-2"
+          >
+            {fr.auth.motDePasseOublie}
+          </Link>
         </p>
-      ) : null}
-      {callbackUrl ? <input type="hidden" name="callbackUrl" value={callbackUrl} /> : null}
-      <label className="block space-y-1.5">
-        <span className="text-sm font-semibold text-body/70">{fr.auth.email}</span>
-        <input
-          name="email"
-          type="email"
-          required
-          autoComplete="email"
-          defaultValue={defaultEmail}
-          className={inputClass}
-        />
-      </label>
-      <label className="block space-y-1.5">
-        <span className="text-sm font-semibold text-body/70">{fr.auth.motDePasse}</span>
-        <PasswordInput name="password" autoComplete="current-password" />
-      </label>
-      <TurnstileWidget siteKey={captchaSiteKey} />
-      <SubmitButton label={fr.auth.seConnecter} pending={pending} />
-      <p className="text-center text-sm">
-        <Link
-          href="/mot-de-passe-oublie"
-          className="font-semibold text-heading underline underline-offset-2"
-        >
-          {fr.auth.motDePasseOublie}
-        </Link>
-      </p>
-      <p className="text-center text-sm text-body/60">
-        {fr.auth.pasDeCompte}{" "}
-        <Link href={inscriptionHref} className="font-semibold text-heading underline">
-          {fr.auth.sInscrire}
-        </Link>
-      </p>
-    </form>
+        <p className="text-center text-sm text-body/60">
+          {fr.auth.pasDeCompte}{" "}
+          <Link href={inscriptionHref} className="font-semibold text-heading underline">
+            {fr.auth.sInscrire}
+          </Link>
+        </p>
+      </form>
+    </div>
   );
 }
 
@@ -367,11 +397,13 @@ export function RegisterForm({
   callbackUrl,
   captchaSiteKey = "",
   refCode,
+  googleEnabled = false,
 }: {
   callbackUrl?: string;
   captchaSiteKey?: string;
   /** Code de parrainage déjà validé côté serveur (§CR1) — absent si aucun/invalide. */
   refCode?: string;
+  googleEnabled?: boolean;
 }) {
   const fr = useT();
   const router = useRouter();
@@ -406,95 +438,98 @@ export function RegisterForm({
   const values = state?.values;
 
   return (
-    <form action={action} onSubmit={handleSubmit} className="space-y-4">
-      <Feedback state={state} />
-      {refCode ? (
-        <>
-          <input type="hidden" name="ref" value={refCode} />
-          <p className="rounded-xl bg-sand/40 px-4 py-2.5 text-sm font-medium text-darna-dark">
-            {fr.auth.parrainageBanniere(REFERRAL_SIGNUP_BONUS_TND)}
-          </p>
-        </>
-      ) : null}
-      <label className="block space-y-1.5">
-        <span className="text-sm font-semibold text-body/70">{fr.auth.nom}</span>
-        <input
-          name="name"
-          type="text"
-          required
-          minLength={2}
-          defaultValue={values?.name ?? ""}
-          className={inputClass}
-        />
-      </label>
-      <label className="block space-y-1.5">
-        <span className="text-sm font-semibold text-body/70">{fr.auth.email}</span>
-        <input
-          name="email"
-          type="email"
-          required
-          autoComplete="email"
-          defaultValue={values?.email ?? ""}
-          className={inputClass}
-        />
-      </label>
-      <label className="block space-y-1.5">
-        <span className="text-sm font-semibold text-body/70">{fr.auth.motDePasse}</span>
-        <PasswordInput
-          name="password"
-          autoComplete="new-password"
-          minLength={8}
-          ruleHint={fr.auth.motDePasseRegle}
-          onValueChange={setPassword}
-        />
-      </label>
-      <label className="block space-y-1.5">
-        <span className="text-sm font-semibold text-body/70">
-          {fr.auth.confirmerMotDePasse}
-        </span>
-        <PasswordInput
-          name="confirmPassword"
-          autoComplete="new-password"
-          minLength={8}
-          hasError={mismatch}
-          onValueChange={setConfirmPassword}
-        />
-        <ConfirmMismatchError show={mismatch} message={fr.profil.mdpConfirmationInvalide} />
-      </label>
-      <label className="block space-y-1.5">
-        <span className="text-sm font-semibold text-body/70">
-          {fr.auth.telephone}{" "}
-          <span className="font-normal text-body/40">({fr.common.optionnel})</span>
-        </span>
-        <input
-          name="phone"
-          type="tel"
-          defaultValue={values?.phone ?? ""}
-          className={inputClass}
-        />
-      </label>
-      <label className="block space-y-1.5">
-        <span className="text-sm font-semibold text-body/70">
-          {fr.auth.pays}{" "}
-          <span className="font-normal text-body/40">({fr.common.optionnel})</span>
-        </span>
-        <select name="country" defaultValue="" className={inputClass}>
-          <option value="">—</option>
-          {COUNTRY_LABELS.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
-      </label>
-      <TurnstileWidget siteKey={captchaSiteKey} />
-      <SubmitButton label={fr.auth.sInscrire} pending={pending} />
-      <p className="text-center text-sm text-body/60">
-        {fr.auth.dejaCompte}{" "}
-        <Link href={connexionHref} className="font-semibold text-heading underline">
-          {fr.auth.seConnecter}
-        </Link>
-      </p>
-    </form>
+    <div className="space-y-4">
+      {googleEnabled ? <GoogleButton callbackUrl={callbackUrl} /> : null}
+      <form action={action} onSubmit={handleSubmit} className="space-y-4">
+        <Feedback state={state} />
+        {refCode ? (
+          <>
+            <input type="hidden" name="ref" value={refCode} />
+            <p className="rounded-xl bg-sand/40 px-4 py-2.5 text-sm font-medium text-darna-dark">
+              {fr.auth.parrainageBanniere(REFERRAL_SIGNUP_BONUS_TND)}
+            </p>
+          </>
+        ) : null}
+        <label className="block space-y-1.5">
+          <span className="text-sm font-semibold text-body/70">{fr.auth.nom}</span>
+          <input
+            name="name"
+            type="text"
+            required
+            minLength={2}
+            defaultValue={values?.name ?? ""}
+            className={inputClass}
+          />
+        </label>
+        <label className="block space-y-1.5">
+          <span className="text-sm font-semibold text-body/70">{fr.auth.email}</span>
+          <input
+            name="email"
+            type="email"
+            required
+            autoComplete="email"
+            defaultValue={values?.email ?? ""}
+            className={inputClass}
+          />
+        </label>
+        <label className="block space-y-1.5">
+          <span className="text-sm font-semibold text-body/70">{fr.auth.motDePasse}</span>
+          <PasswordInput
+            name="password"
+            autoComplete="new-password"
+            minLength={8}
+            ruleHint={fr.auth.motDePasseRegle}
+            onValueChange={setPassword}
+          />
+        </label>
+        <label className="block space-y-1.5">
+          <span className="text-sm font-semibold text-body/70">
+            {fr.auth.confirmerMotDePasse}
+          </span>
+          <PasswordInput
+            name="confirmPassword"
+            autoComplete="new-password"
+            minLength={8}
+            hasError={mismatch}
+            onValueChange={setConfirmPassword}
+          />
+          <ConfirmMismatchError show={mismatch} message={fr.profil.mdpConfirmationInvalide} />
+        </label>
+        <label className="block space-y-1.5">
+          <span className="text-sm font-semibold text-body/70">
+            {fr.auth.telephone}{" "}
+            <span className="font-normal text-body/40">({fr.common.optionnel})</span>
+          </span>
+          <input
+            name="phone"
+            type="tel"
+            defaultValue={values?.phone ?? ""}
+            className={inputClass}
+          />
+        </label>
+        <label className="block space-y-1.5">
+          <span className="text-sm font-semibold text-body/70">
+            {fr.auth.pays}{" "}
+            <span className="font-normal text-body/40">({fr.common.optionnel})</span>
+          </span>
+          <select name="country" defaultValue="" className={inputClass}>
+            <option value="">—</option>
+            {COUNTRY_LABELS.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+        </label>
+        <TurnstileWidget siteKey={captchaSiteKey} />
+        <SubmitButton label={fr.auth.sInscrire} pending={pending} />
+        <p className="text-center text-sm text-body/60">
+          {fr.auth.dejaCompte}{" "}
+          <Link href={connexionHref} className="font-semibold text-heading underline">
+            {fr.auth.seConnecter}
+          </Link>
+        </p>
+      </form>
+    </div>
   );
 }
