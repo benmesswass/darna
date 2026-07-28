@@ -3,6 +3,14 @@ import { prisma } from "@/lib/prisma";
 import { activeListingWhere } from "@/lib/listings";
 import { SITE_URL } from "@/lib/config";
 
+// Rendu à la demande (LANCEMENT_ROADMAP.md §L6.1), jamais figé au build :
+// (1) les annonces expirent en continu (30 jours) et doivent en sortir sans
+// attendre un redéploi ; (2) une prérendition statique interroge la DB
+// PENDANT `next build` — indisponible/instable à cet instant sur Vercel,
+// ça ferait échouer le build entier (reproduit : DB injoignable au build →
+// « Export encountered an error on /sitemap.xml »).
+export const dynamic = "force-dynamic";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
     { url: SITE_URL, changeFrequency: "daily", priority: 1 },
