@@ -144,7 +144,7 @@ export default async function HomePage() {
             </span>
             <div>
               <h2 className="text-3xl font-bold text-heading">{fr.home.alaUneTitle}</h2>
-              <p className="text-sm text-body/60">{fr.home.alaUneSub}</p>
+              <p className="text-sm text-muted">{fr.home.alaUneSub}</p>
             </div>
           </div>
           <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">

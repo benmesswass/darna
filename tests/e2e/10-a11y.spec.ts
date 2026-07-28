@@ -31,18 +31,48 @@ async function setLocale(page: Page, locale: (typeof LOCALES)[number]): Promise<
 }
 
 /**
- * `color-contrast` exclu du gate bloquant : premier scan, trouvé systémique
- * (texte "secondaire" `text-body/*`, `text-white/50` — dizaines de
- * composants, valeurs 4.05-4.16:1 vs 4.5:1 requis AA). Un vrai chantier
- * design (ajuster les tokens `--color-body`/opacités), pas un bug isolé à
- * patcher en passant — tracké dans TODO-PRODUCTION.md, pas caché. Toutes les
- * AUTRES catégories serious/critical (ARIA, labels, clavier…) restent
- * bloquantes.
+ * `color-contrast` a rejoint le gate bloquant (LANCEMENT_ROADMAP.md §L9.1,
+ * TODO-PRODUCTION.md §Accessibility) : `text-body/*` (4.05-4.16:1) et
+ * `text-white/50` (4.16:1) remplacés par les tokens `text-muted`/
+ * `text-subtle` (`--color-muted`/`--color-subtle`, src/app/globals.css) et
+ * `text-white/70`, tous ≥ 4.5:1 AA sur chaque fond utilisé (clair et
+ * sombre). Plus aucune catégorie exclue du gate.
  */
-const EXCLUDED_FROM_GATE = new Set(["color-contrast"]);
+const EXCLUDED_FROM_GATE = new Set<string>([]);
 
 async function scan(page: Page, pageName: string, locale: string): Promise<void> {
   await allure.step(`Scanner "${pageName}" en ${locale}`, async () => {
+    // Attend que polices + images soient posées avant l'analyse : sur le
+    // premier hit d'une route en mode dev (compilation à la demande) ou une
+    // page à forte charge de peinture (grille d'annonces, ~20 images
+    // simultanées), axe peut sinon scanner une frame pas encore composée et
+    // remonter des couleurs de rendu erronées (dérive vers le fond, sans
+    // rapport avec les vraies couleurs affichées) — faux positifs
+    // `color-contrast` non reproductibles (constaté empiriquement, cf. L9.1).
+    // PAS `waitForLoadState("networkidle")` : le WebSocket HMR de `next dev`
+    // reste ouvert en continu, donc « idle » n'est jamais atteint et le wait
+    // timeout (60 s) au lieu de résoudre.
+    await page.evaluate(() => document.fonts.ready);
+    // Course contre un timeout, jamais un `Promise.all` nu : `next/image` est
+    // lazy par défaut, les cartes hors écran (grille de résultats) ne
+    // démarrent leur chargement qu'au scroll — attendre leur `load` sans
+    // filet bloquerait indéfiniment (vécu : run > 300 s, tué manuellement).
+    await page.evaluate(() =>
+      Promise.race([
+        Promise.all(
+          Array.from(document.images)
+            .filter((img) => !img.complete)
+            .map((img) => new Promise((resolve) => {
+              img.addEventListener("load", resolve, { once: true });
+              img.addEventListener("error", resolve, { once: true });
+            }))
+        ),
+        new Promise((resolve) => setTimeout(resolve, 2000)),
+      ])
+    );
+    // Marge de composition : laisse le compositeur peindre la frame finale
+    // après le dernier chargement (police/image) avant l'échantillonnage axe.
+    await page.waitForTimeout(150);
     const results = await new AxeBuilder({ page }).analyze();
     const blocking = results.violations.filter(
       (v) => (v.impact === "serious" || v.impact === "critical") && !EXCLUDED_FROM_GATE.has(v.id)

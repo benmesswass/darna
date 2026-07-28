@@ -74,11 +74,11 @@ export function BlockedDatesManager({
 
   return (
     <div className="space-y-5">
-      <p className="text-xs text-body/50">{fr.annonceForm.disponibilitesAide}</p>
+      <p className="text-xs text-muted">{fr.annonceForm.disponibilitesAide}</p>
 
       {/* Blocages en cours */}
       {blocks.length === 0 ? (
-        <p className="rounded-2xl bg-cream/60 px-4 py-3 text-sm text-body/55">
+        <p className="rounded-2xl bg-cream/60 px-4 py-3 text-sm text-muted">
           {fr.annonceForm.aucunBlocage}
         </p>
       ) : (
@@ -93,7 +93,7 @@ export function BlockedDatesManager({
                   {fr.booking.sejourDates(fmt(b.start), fmt(b.end))}
                 </span>
                 {b.reason ? (
-                  <span className="block truncate text-xs text-body/55">{b.reason}</span>
+                  <span className="block truncate text-xs text-muted">{b.reason}</span>
                 ) : null}
               </span>
               {confirmingId === b.id ? (
@@ -104,7 +104,7 @@ export function BlockedDatesManager({
                   <button
                     type="button"
                     onClick={() => setConfirmingId(null)}
-                    className="rounded-full px-3 py-1 text-xs font-semibold text-body/55 transition hover:bg-cream hover:text-body"
+                    className="rounded-full px-3 py-1 text-xs font-semibold text-muted transition hover:bg-cream hover:text-body"
                   >
                     {fr.common.annuler}
                   </button>
@@ -174,7 +174,7 @@ export function BlockedDatesManager({
             name="reason"
             maxLength={120}
             placeholder={fr.annonceForm.blocageNotePlaceholder}
-            className="w-full rounded-xl bg-cream px-3.5 py-2.5 text-sm text-body ring-1 ring-darna/10 placeholder:text-body/40 focus:outline-none focus:ring-2 focus:ring-darna/40"
+            className="w-full rounded-xl bg-cream px-3.5 py-2.5 text-sm text-body ring-1 ring-darna/10 placeholder:text-subtle focus:outline-none focus:ring-2 focus:ring-darna/40"
           />
         </label>
 

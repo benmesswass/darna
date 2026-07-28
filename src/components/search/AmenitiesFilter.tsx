@@ -12,7 +12,7 @@ export function AmenitiesFilter({ selected }: { selected: string[] }) {
   const fr = useT();
   return (
     <fieldset className="flex flex-col gap-1">
-      <legend className="text-xs font-semibold text-body/50">
+      <legend className="text-xs font-semibold text-muted">
         {fr.search.equipements}
       </legend>
       <div className="flex flex-wrap gap-1.5">

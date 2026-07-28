@@ -22,7 +22,7 @@ export default async function ProfilPage() {
   return (
     <div className="max-w-2xl">
       <h2 className="text-xl font-bold text-heading">{fr.profil.titre}</h2>
-      <p className="mt-1 text-sm text-body/60">{fr.profil.sousTitre}</p>
+      <p className="mt-1 text-sm text-muted">{fr.profil.sousTitre}</p>
 
       <div className="mt-6 space-y-6">
         {/* Carte identité : avatar + nom / e-mail / badges */}
@@ -31,7 +31,7 @@ export default async function ProfilPage() {
             <AvatarUploader name={user.name} image={user.image} />
             <div className="min-w-0">
               <p className="truncate text-lg font-bold text-heading">{user.name}</p>
-              <p className="truncate text-sm text-body/60">{user.email}</p>
+              <p className="truncate text-sm text-muted">{user.email}</p>
               <div className="mt-2 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
                 <span className="inline-flex items-center rounded-full bg-darna/[0.06] px-2.5 py-0.5 text-[11px] font-semibold text-heading">
                   {roleLabel}
@@ -47,7 +47,7 @@ export default async function ProfilPage() {
               </div>
             </div>
           </div>
-          <p className="mt-4 text-center text-xs text-body/45 sm:text-start">
+          <p className="mt-4 text-center text-xs text-subtle sm:text-start">
             {fr.profil.photoAide}
           </p>
         </section>
@@ -61,14 +61,14 @@ export default async function ProfilPage() {
 
         <section className="rounded-3xl bg-surface p-6 ring-1 ring-darna/10">
           <h3 className="text-sm font-bold text-heading">{fr.profil.donneesTitre}</h3>
-          <p className="mt-1 text-sm text-body/60">{fr.profil.donneesSousTitre}</p>
+          <p className="mt-1 text-sm text-muted">{fr.profil.donneesSousTitre}</p>
           <a
             href="/api/account/export"
             className="mt-4 inline-block rounded-xl border border-darna/20 px-4 py-2 text-sm font-semibold text-heading transition hover:bg-darna hover:text-white"
           >
             {fr.profil.donneesExporter}
           </a>
-          <p className="mt-2 text-xs text-body/45">{fr.profil.donneesExporterAide}</p>
+          <p className="mt-2 text-xs text-subtle">{fr.profil.donneesExporterAide}</p>
         </section>
 
         <DeleteAccountForm hasPassword={user.hasPassword} />

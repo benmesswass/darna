@@ -66,7 +66,7 @@ export default async function ImmobilierPage({
         <div className="flex w-fit rounded-full bg-cream p-1 ring-1 ring-darna/10">
           <label
             className={`cursor-pointer rounded-full px-5 py-1.5 text-sm font-semibold ${
-              !isVente ? "bg-darna text-white" : "text-body/60"
+              !isVente ? "bg-darna text-white" : "text-muted"
             }`}
           >
             <input
@@ -80,7 +80,7 @@ export default async function ImmobilierPage({
           </label>
           <label
             className={`cursor-pointer rounded-full px-5 py-1.5 text-sm font-semibold ${
-              isVente ? "bg-darna text-white" : "text-body/60"
+              isVente ? "bg-darna text-white" : "text-muted"
             }`}
           >
             <input
@@ -96,7 +96,7 @@ export default async function ImmobilierPage({
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr_auto]">
           <label className="flex flex-col gap-1">
-            <span className="text-xs font-semibold text-body/60">
+            <span className="text-xs font-semibold text-muted">
               {fr.search.gouvernorat}
             </span>
             <GouvernoratAutocomplete
@@ -107,7 +107,7 @@ export default async function ImmobilierPage({
             />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs font-semibold text-body/60">
+            <span className="text-xs font-semibold text-muted">
               {fr.search.prixMin} ({fr.common.tnd})
             </span>
             <input
@@ -120,7 +120,7 @@ export default async function ImmobilierPage({
             />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs font-semibold text-body/60">
+            <span className="text-xs font-semibold text-muted">
               {fr.search.prixMax} ({fr.common.tnd})
             </span>
             <input
@@ -133,7 +133,7 @@ export default async function ImmobilierPage({
             />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs font-semibold text-body/60">
+            <span className="text-xs font-semibold text-muted">
               {fr.search.surfaceMin}
             </span>
             <input
@@ -145,7 +145,7 @@ export default async function ImmobilierPage({
             />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs font-semibold text-body/60">
+            <span className="text-xs font-semibold text-muted">
               {fr.search.piecesMin}
             </span>
             <select
@@ -208,7 +208,7 @@ export default async function ImmobilierPage({
             <p className="text-lg font-semibold text-heading">
               {fr.search.aucunResultatTitre}
             </p>
-            <p className="mx-auto mt-2 max-w-md text-sm text-body/60">
+            <p className="mx-auto mt-2 max-w-md text-sm text-muted">
               {fr.search.aucunResultatDesc}
             </p>
           </div>

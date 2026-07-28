@@ -51,7 +51,7 @@ export default async function ContratPage({
   return (
     <div className="mx-auto max-w-3xl px-6 py-10 print:max-w-none print:px-0 print:py-0">
       <div className="no-print mb-6 flex items-center justify-between gap-4">
-        <p className="text-sm text-body/60">{fr.bail.sousTitre}</p>
+        <p className="text-sm text-muted">{fr.bail.sousTitre}</p>
         <PrintButton />
       </div>
 
@@ -60,7 +60,7 @@ export default async function ContratPage({
           <h1 className="text-2xl font-bold uppercase tracking-wide text-heading">
             {fr.bail.titre}
           </h1>
-          <p className="mt-2 text-sm text-body/60">
+          <p className="mt-2 text-sm text-muted">
             Darna — {fr.meta.tagline}
           </p>
         </header>
@@ -76,7 +76,7 @@ export default async function ContratPage({
               {ownerCin ? (
                 <p className="text-sm text-body/70">CIN : {ownerCin}</p>
               ) : (
-                <p className="text-sm text-body/40">CIN : ____________________</p>
+                <p className="text-sm text-subtle">CIN : ____________________</p>
               )}
               {property.owner.phone ? (
                 <p className="text-sm text-body/70">Tél. : {property.owner.phone}</p>
@@ -87,7 +87,7 @@ export default async function ContratPage({
                 {fr.bail.locataire}
               </p>
               <p className="mt-2 font-semibold">{request.name}</p>
-              <p className="text-sm text-body/40">CIN : ____________________</p>
+              <p className="text-sm text-subtle">CIN : ____________________</p>
               <p className="text-sm text-body/70">Tél. : {request.phone}</p>
               <p className="text-sm text-body/70">{request.email}</p>
             </div>
@@ -169,7 +169,7 @@ export default async function ContratPage({
           </div>
         </section>
 
-        <footer className="mt-10 border-t border-ink/10 pt-4 text-xs italic text-body/50">
+        <footer className="mt-10 border-t border-ink/10 pt-4 text-xs italic text-muted">
           {fr.bail.mentionLegale}
         </footer>
       </article>

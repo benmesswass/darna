@@ -67,7 +67,7 @@ export function QuotaReachedModal({
           type="button"
           onClick={() => setOpen(false)}
           aria-label={fr.common.annuler}
-          className="absolute end-5 top-5 text-body/40 hover:text-heading"
+          className="absolute end-5 top-5 text-subtle hover:text-heading"
         >
           <CloseIcon width={18} height={18} />
         </button>
@@ -80,7 +80,7 @@ export function QuotaReachedModal({
         <p className="mt-2 text-sm leading-relaxed text-body/70">
           {fr.abonnement.modalTexte(utilisees, limite)}
         </p>
-        <p className="mt-3 text-xs font-medium text-body/50">
+        <p className="mt-3 text-xs font-medium text-muted">
           {fr.abonnement.modalRecommandation(recommendedLabel, recommendedListings, recommendedPrice)}
         </p>
 

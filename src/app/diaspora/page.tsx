@@ -85,7 +85,7 @@ export default async function DiasporaPage() {
           <div className="flex items-end justify-between gap-4">
             <div>
               <h2 className="text-2xl font-bold text-heading">{fr.diaspora.ctaTitre}</h2>
-              <p className="mt-1 text-sm text-body/60">{fr.diaspora.ctaDesc}</p>
+              <p className="mt-1 text-sm text-muted">{fr.diaspora.ctaDesc}</p>
             </div>
             <Link
               href="/sejours"

@@ -90,11 +90,11 @@ export function PhotoDropzone({
         <span className="text-sm font-semibold text-body/70">
           {fr.annonceForm.photosTitre}
         </span>
-        <span className="text-xs font-medium text-body/45">
+        <span className="text-xs font-medium text-subtle">
           {items.length}/{MAX_PHOTOS_PER_PROPERTY}
         </span>
       </div>
-      <p className="text-xs text-body/50">{fr.annonceForm.photosAccroche}</p>
+      <p className="text-xs text-muted">{fr.annonceForm.photosAccroche}</p>
 
       {/* Zone de dépôt */}
       <button
@@ -125,7 +125,7 @@ export function PhotoDropzone({
         <span className="text-sm font-bold text-heading">
           {fr.annonceForm.photosDeposer}
         </span>
-        <span className="text-xs text-body/50">{fr.annonceForm.photosDeposerAide}</span>
+        <span className="text-xs text-muted">{fr.annonceForm.photosDeposerAide}</span>
         <span className="mt-1 rounded-full bg-darna px-4 py-1.5 text-xs font-bold text-white">
           {busy ? fr.common.chargement : fr.annonceForm.photosParcourir}
         </span>
@@ -149,7 +149,7 @@ export function PhotoDropzone({
       {items.length > 0 ? (
         <>
           {items.length > 1 ? (
-            <p className="text-xs text-body/50">{fr.annonceForm.photosReordonner}</p>
+            <p className="text-xs text-muted">{fr.annonceForm.photosReordonner}</p>
           ) : null}
           <ul className="grid grid-cols-3 gap-3 sm:grid-cols-4">
             {items.map((it, i) => (
@@ -208,7 +208,7 @@ export function PhotoDropzone({
         </>
       ) : null}
 
-      <p className="text-xs text-body/40">{fr.annonceForm.photosCreationAide}</p>
+      <p className="text-xs text-subtle">{fr.annonceForm.photosCreationAide}</p>
     </div>
   );
 }

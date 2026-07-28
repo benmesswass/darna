@@ -59,11 +59,11 @@ export default async function FacturesListPage() {
   return (
     <div>
       <h3 className="text-lg font-bold text-heading">{fr.factures.listeTitre}</h3>
-      <p className="mt-1 text-sm text-body/60">{fr.factures.listeSousTitre}</p>
+      <p className="mt-1 text-sm text-muted">{fr.factures.listeSousTitre}</p>
 
       <div className="mt-4 rounded-2xl bg-cream/50 p-3.5 ring-1 ring-darna/15">
         <p className="text-xs font-bold text-heading">{fr.factures.explicationTitre}</p>
-        <ul className="mt-1.5 space-y-1 text-[11px] leading-relaxed text-body/60">
+        <ul className="mt-1.5 space-y-1 text-[11px] leading-relaxed text-muted">
           {fr.factures.explicationPoints.map((point) => (
             <li key={point}>· {point}</li>
           ))}
@@ -72,8 +72,8 @@ export default async function FacturesListPage() {
 
       {invoices.length === 0 ? (
         <div className="mt-6 rounded-3xl bg-surface p-10 text-center ring-1 ring-darna/10">
-          <CoinsIcon width={28} height={28} className="mx-auto text-body/30" />
-          <p className="mt-3 text-sm text-body/60">{fr.factures.vide}</p>
+          <CoinsIcon width={28} height={28} className="mx-auto text-subtle" />
+          <p className="mt-3 text-sm text-muted">{fr.factures.vide}</p>
         </div>
       ) : (
         Array.from(invoicesByMonth.entries()).map(([month, monthInvoices]) => {
@@ -82,7 +82,7 @@ export default async function FacturesListPage() {
             <div key={month} className="mt-6">
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-bold text-heading">{month}</h4>
-                <p className="text-xs font-semibold text-body/60">
+                <p className="text-xs font-semibold text-muted">
                   {fr.factures.totalMois} · <Price amount={monthTotal} />
                 </p>
               </div>
@@ -99,7 +99,7 @@ export default async function FacturesListPage() {
                         <p className="font-semibold text-body">
                           {invoice.booking.property.title}
                         </p>
-                        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-body/60">
+                        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted">
                           <span
                             className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
                               invoice.status === "PAYEE"

@@ -68,7 +68,7 @@ export function DestinationPanel({
               <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-surface px-2.5 py-1 text-sm font-semibold text-heading ring-1 ring-darna/10">
                 {weatherIcon(data.weather.condition)}
                 {data.weather.tempC}°
-                <span className="text-xs font-medium text-body/55">
+                <span className="text-xs font-medium text-muted">
                   {weatherLabel(data.weather.condition)}
                 </span>
               </span>
@@ -83,7 +83,7 @@ export function DestinationPanel({
                 {fr.destination.logementsDispo(data.availableCount)}
               </p>
             ) : (
-              <p className="text-sm font-medium text-body/60">{fr.destination.aucunIci}</p>
+              <p className="text-sm font-medium text-muted">{fr.destination.aucunIci}</p>
             )
           ) : null}
 
@@ -115,7 +115,7 @@ export function DestinationPanel({
                     <span className="block truncate text-sm font-semibold text-body">
                       {reco.title}
                     </span>
-                    <span className="mt-0.5 flex items-center gap-2 text-xs text-body/55">
+                    <span className="mt-0.5 flex items-center gap-2 text-xs text-muted">
                       <span className="font-semibold text-heading">{reco.priceLabel}</span>
                       {reco.verified ? (
                         <span className="inline-flex items-center gap-0.5 font-semibold text-emerald-700">
@@ -143,7 +143,7 @@ export function DestinationPanel({
           {/* Alternatives / destinations populaires (cross-discovery) */}
           {data.alternatives.length > 0 ? (
             <div className="mt-auto border-t border-darna/10 pt-3">
-              <p className="mb-2 text-xs font-medium text-body/55">
+              <p className="mb-2 text-xs font-medium text-muted">
                 {data.resolvedCity
                   ? fr.destination.autreDestination
                   : fr.destination.destinationsPopulaires}

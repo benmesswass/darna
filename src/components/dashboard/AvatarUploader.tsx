@@ -130,7 +130,7 @@ export function AvatarUploader({
           <button
             type="submit"
             disabled={removePending || pending}
-            className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold text-body/60 transition hover:bg-red-50 hover:text-red-600 disabled:opacity-60"
+            className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold text-muted transition hover:bg-red-50 hover:text-red-600 disabled:opacity-60"
           >
             <TrashIcon width={13} height={13} />
             {fr.profil.supprimerPhoto}

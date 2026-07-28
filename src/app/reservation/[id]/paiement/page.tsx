@@ -176,7 +176,7 @@ export default async function PaiementPage({
           </p>
           <div className="mt-5 rounded-2xl bg-cream p-4 text-start text-sm">
             <p className="font-semibold text-body">{booking.property.title}</p>
-            <p className="text-body/60">
+            <p className="text-muted">
               {fr.booking.sejourDates(
                 formatDateFr(booking.checkIn),
                 formatDateFr(booking.checkOut)
@@ -184,7 +184,7 @@ export default async function PaiementPage({
             </p>
             <dl className="mt-3 space-y-1.5">
               <div className="flex justify-between">
-                <dt className="text-body/60">{fr.booking.totalSejour}</dt>
+                <dt className="text-muted">{fr.booking.totalSejour}</dt>
                 <dd>
                   <Price amount={booking.totalPrice} className="font-semibold text-body" />
                 </dd>
@@ -197,7 +197,7 @@ export default async function PaiementPage({
               </div>
               {balanceDue > 0 ? (
                 <div className="flex justify-between border-t border-darna/10 pt-1.5">
-                  <dt className="text-body/60">{fr.booking.soldeArrivee}</dt>
+                  <dt className="text-muted">{fr.booking.soldeArrivee}</dt>
                   <dd>
                     <Price amount={balanceDue} className="font-semibold text-body" />
                   </dd>
@@ -238,7 +238,7 @@ export default async function PaiementPage({
           </p>
 
           {booking.expiresAt ? (
-            <p className="mt-3 text-xs text-body/50">
+            <p className="mt-3 text-xs text-muted">
               {fr.booking.cashEnAttenteExpire(formatDateFr(booking.expiresAt))}
             </p>
           ) : null}

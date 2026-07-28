@@ -52,11 +52,11 @@ export default async function AdminFacturesPage() {
   return (
     <div>
       <h3 className="text-lg font-bold text-heading">{fr.admin.facturesTitre}</h3>
-      <p className="mt-1 text-sm text-body/60">{fr.admin.facturesSousTitre}</p>
+      <p className="mt-1 text-sm text-muted">{fr.admin.facturesSousTitre}</p>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-3">
         <div className="rounded-2xl bg-surface p-4 ring-1 ring-darna/10">
-          <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-body/50">
+          <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted">
             <CoinsIcon width={14} height={14} />
             {fr.admin.facturesTotalDu}
           </p>
@@ -65,7 +65,7 @@ export default async function AdminFacturesPage() {
           </p>
         </div>
         <div className="rounded-2xl bg-surface p-4 ring-1 ring-darna/10">
-          <p className="text-xs font-semibold uppercase tracking-wide text-body/50">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted">
             {fr.admin.facturesTotalEncaisse}
           </p>
           <p className="mt-1 text-2xl font-bold text-emerald-700">
@@ -73,7 +73,7 @@ export default async function AdminFacturesPage() {
           </p>
         </div>
         <div className="rounded-2xl bg-surface p-4 ring-1 ring-darna/10">
-          <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-body/50">
+          <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted">
             <AlertTriangleIcon width={14} height={14} className={enRetard.length ? "text-red-600" : ""} />
             {fr.admin.facturesStatutEnRetard}
           </p>
@@ -88,7 +88,7 @@ export default async function AdminFacturesPage() {
 
       {invoices.length === 0 ? (
         <div className="mt-6 rounded-3xl bg-surface p-10 text-center ring-1 ring-darna/10">
-          <p className="text-sm text-body/60">{fr.admin.facturesVide}</p>
+          <p className="text-sm text-muted">{fr.admin.facturesVide}</p>
         </div>
       ) : (
         <ul className="mt-5 space-y-3">
@@ -102,7 +102,7 @@ export default async function AdminFacturesPage() {
               >
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-semibold text-body">{invoice.host.name}</span>
-                  <span className="text-xs text-body/50">{invoice.host.email}</span>
+                  <span className="text-xs text-muted">{invoice.host.email}</span>
                   <span
                     className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
                       invoice.status === "PAYEE"
@@ -125,7 +125,7 @@ export default async function AdminFacturesPage() {
                         : fr.admin.signalementsSuspendu}
                     </span>
                   ) : null}
-                  <span className="ms-auto text-xs text-body/45">
+                  <span className="ms-auto text-xs text-subtle">
                     {invoice.booking.property.title}
                   </span>
                 </div>
@@ -134,15 +134,15 @@ export default async function AdminFacturesPage() {
                   <span className="font-bold text-heading">
                     <Price amount={invoice.amount} />
                   </span>
-                  <span className="text-xs text-body/60">
+                  <span className="text-xs text-muted">
                     {fr.admin.facturesColEcheance} : {formatDateShortFr(invoice.dueAt)}
                   </span>
                   {invoice.paidAt ? (
-                    <span className="text-xs text-body/60">
+                    <span className="text-xs text-muted">
                       {fr.factures.payeLe(formatDateShortFr(invoice.paidAt))}
                     </span>
                   ) : invoice.lastReminderAt ? (
-                    <span className="text-xs text-body/60">
+                    <span className="text-xs text-muted">
                       {fr.admin.facturesRelanceLe(formatDateShortFr(invoice.lastReminderAt))}
                     </span>
                   ) : null}

@@ -45,7 +45,7 @@ export function GuestReviewForm({ bookingId }: { bookingId: string }) {
             type="button"
             onClick={() => setRating(n)}
             aria-label={`${n}/5`}
-            className={n <= rating ? "text-sand" : "text-body/20"}
+            className={n <= rating ? "text-sand" : "text-subtle"}
           >
             <StarIcon width={20} height={20} fill={n <= rating ? "currentColor" : "none"} />
           </button>

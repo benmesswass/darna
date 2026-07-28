@@ -104,11 +104,11 @@ export async function PropertyCard({
 
         <div className="flex flex-1 flex-col gap-2 p-4">
           <h3 className="line-clamp-1 font-semibold text-body">{property.title}</h3>
-          <p className="flex items-center gap-1 text-sm text-body/60">
+          <p className="flex items-center gap-1 text-sm text-muted">
             <MapPinIcon width={15} height={15} />
             {property.city}, {property.gouvernorat}
           </p>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-body/60">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
             {property.surface ? (
               <span className="flex items-center gap-1">
                 <RulerIcon width={14} height={14} />
@@ -138,7 +138,7 @@ export async function PropertyCard({
               className="text-lg font-bold text-heading"
             />
             {stayTotal !== null ? (
-              <p className="mt-0.5 text-xs text-body/60">
+              <p className="mt-0.5 text-xs text-muted">
                 <Price amount={stayTotal} className="font-semibold text-body/80" />{" "}
                 {fr.search.totalSejour(nights!)}
               </p>

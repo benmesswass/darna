@@ -81,7 +81,7 @@ export function HostCancelButton({ bookingId, checkIn, suspensionDays }: Props) 
                   type="button"
                   onClick={() => setOpen(false)}
                   aria-label={fr.common.annuler}
-                  className="absolute end-5 top-5 text-body/40 hover:text-heading"
+                  className="absolute end-5 top-5 text-subtle hover:text-heading"
                 >
                   <CloseIcon width={18} height={18} />
                 </button>

@@ -114,7 +114,7 @@ export function MessagesNotifier({ initialCount }: { initialCount: number }) {
           type="button"
           onClick={() => setToast(null)}
           aria-label={fr.common.fermer}
-          className="shrink-0 rounded-lg p-1 text-body/40 hover:bg-cream hover:text-body"
+          className="shrink-0 rounded-lg p-1 text-subtle hover:bg-cream hover:text-body"
         >
           <CloseIcon width={16} height={16} />
         </button>

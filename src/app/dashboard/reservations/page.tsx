@@ -148,7 +148,7 @@ export default async function MesReservationsPage() {
             <p className="text-lg font-semibold text-heading">
               {fr.dashboard.aucuneReservationHote}
             </p>
-            <p className="mt-1 text-sm text-body/60">
+            <p className="mt-1 text-sm text-muted">
               {fr.dashboard.aucuneReservationHoteCta}
             </p>
             <Link
@@ -214,7 +214,7 @@ export default async function MesReservationsPage() {
                     <p className="mt-1.5 truncate font-semibold text-body">
                       {b.property.title}
                     </p>
-                    <p className="text-sm text-body/60">
+                    <p className="text-sm text-muted">
                       {b.property.city} ·{" "}
                       {fr.booking.sejourDates(
                         formatDateShortFr(b.checkIn),
@@ -342,7 +342,7 @@ export default async function MesReservationsPage() {
           <p className="text-lg font-semibold text-heading">
             {fr.dashboard.aucuneReservation}
           </p>
-          <p className="mt-1 text-sm text-body/60">{fr.dashboard.aucuneReservationCta}</p>
+          <p className="mt-1 text-sm text-muted">{fr.dashboard.aucuneReservationCta}</p>
           <Link
             href="/sejours"
             className="mt-5 inline-block rounded-full bg-darna px-6 py-2.5 text-sm font-semibold text-white hover:bg-darna-light"
@@ -377,7 +377,7 @@ export default async function MesReservationsPage() {
                 <p className="mt-1.5 truncate font-semibold text-body">
                   {b.property.title}
                 </p>
-                <p className="text-sm text-body/60">
+                <p className="text-sm text-muted">
                   {b.property.city} ·{" "}
                   {fr.booking.sejourDates(
                     formatDateShortFr(b.checkIn),
@@ -484,7 +484,7 @@ export default async function MesReservationsPage() {
                   />
                 ) : null}
                 {b.status === "ANNULEE" && b.cancelledAt ? (
-                  <div className="space-y-0.5 text-[11px] text-body/50">
+                  <div className="space-y-0.5 text-[11px] text-muted">
                     <p>{fr.dashboard.cancelledAt(formatDateShortFr(b.cancelledAt))}</p>
                     {b.refundAmount != null && b.refundAmount > 0 ? (
                       <p
@@ -504,13 +504,13 @@ export default async function MesReservationsPage() {
                   <ReportNonConformityButton bookingId={b.id} />
                 ) : null}
                 {b.nonConformityReport ? (
-                  <div className="space-y-0.5 text-[11px] text-body/50">
+                  <div className="space-y-0.5 text-[11px] text-muted">
                     <p
                       className={`font-semibold ${
                         b.nonConformityReport.status === "VALIDE"
                           ? "text-emerald-700"
                           : b.nonConformityReport.status === "REJETE"
-                            ? "text-body/50"
+                            ? "text-muted"
                             : "text-amber-700"
                       }`}
                     >

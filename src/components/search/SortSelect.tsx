@@ -43,7 +43,7 @@ export function SortSelect({
             ))
           : []
       )}
-      <label className="flex items-center gap-2 text-sm text-body/60">
+      <label className="flex items-center gap-2 text-sm text-muted">
         <span className="font-medium">{fr.search.trier}</span>
         <select
           name="tri"

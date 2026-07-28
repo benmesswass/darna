@@ -44,7 +44,7 @@ export function FinancingLeadForm({
       <input type="hidden" name="propertyId" value={propertyId} />
       <div className="grid gap-3.5 sm:grid-cols-2">
         <label className="block space-y-1">
-          <span className="text-xs font-semibold text-body/60">{fr.contact.nom}</span>
+          <span className="text-xs font-semibold text-muted">{fr.contact.nom}</span>
           <input
             name="name"
             type="text"
@@ -55,7 +55,7 @@ export function FinancingLeadForm({
           />
         </label>
         <label className="block space-y-1">
-          <span className="text-xs font-semibold text-body/60">{fr.contact.email}</span>
+          <span className="text-xs font-semibold text-muted">{fr.contact.email}</span>
           <input
             name="email"
             type="email"
@@ -67,7 +67,7 @@ export function FinancingLeadForm({
       </div>
       <div className="grid gap-3.5 sm:grid-cols-2">
         <label className="block space-y-1">
-          <span className="text-xs font-semibold text-body/60">{fr.contact.telephone}</span>
+          <span className="text-xs font-semibold text-muted">{fr.contact.telephone}</span>
           <input
             name="phone"
             type="tel"
@@ -77,19 +77,19 @@ export function FinancingLeadForm({
           />
         </label>
         <label className="block space-y-1">
-          <span className="text-xs font-semibold text-body/60">
-            {fr.financement.montantSouhaite} <span className="text-body/40">({fr.common.optionnel})</span>
+          <span className="text-xs font-semibold text-muted">
+            {fr.financement.montantSouhaite} <span className="text-subtle">({fr.common.optionnel})</span>
           </span>
           <input name="desiredAmount" type="number" min={1000} className={inputClass} />
         </label>
       </div>
       <label className="block space-y-1">
-        <span className="text-xs font-semibold text-body/60">
-          {fr.contact.message} <span className="text-body/40">({fr.common.optionnel})</span>
+        <span className="text-xs font-semibold text-muted">
+          {fr.contact.message} <span className="text-subtle">({fr.common.optionnel})</span>
         </span>
         <textarea name="message" rows={3} className={inputClass} />
       </label>
-      <p className="text-xs text-body/50">{fr.financement.disclaimer}</p>
+      <p className="text-xs text-muted">{fr.financement.disclaimer}</p>
       <button
         type="submit"
         disabled={pending}

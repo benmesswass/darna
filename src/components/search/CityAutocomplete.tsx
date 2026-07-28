@@ -154,7 +154,7 @@ export function CityAutocomplete({
               >
                 <MapPinIcon width={15} height={15} className="shrink-0 text-heading/60" />
                 <span className="font-semibold">{city.name}</span>
-                <span className="ml-auto text-xs text-body/45">{city.gouvernorat}</span>
+                <span className="ml-auto text-xs text-subtle">{city.gouvernorat}</span>
               </button>
             </li>
           ))}

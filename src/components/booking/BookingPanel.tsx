@@ -177,7 +177,7 @@ export function BookingPanel({
 
           {/* Corps : invite, erreur, ou détail des prix */}
           {!complete ? (
-            <p className="mt-5 rounded-2xl bg-cream px-4 py-5 text-center text-sm text-body/55">
+            <p className="mt-5 rounded-2xl bg-cream px-4 py-5 text-center text-sm text-muted">
               {fr.booking.placeholderPrix}
             </p>
           ) : errorMsg ? (
@@ -189,7 +189,7 @@ export function BookingPanel({
             </p>
           ) : (
             <>
-              <p className="mt-4 text-sm text-body/60">
+              <p className="mt-4 text-sm text-muted">
                 {formatRange()} · {fr.property.capacite(voyageurs)}
               </p>
 
@@ -210,7 +210,7 @@ export function BookingPanel({
                   <div className="flex items-center justify-between">
                     <dt className="text-body/70">
                       {fr.booking.fraisService}
-                      <span className="block text-xs text-body/40">
+                      <span className="block text-xs text-subtle">
                         {fr.booking.fraisServiceAide}
                       </span>
                     </dt>
@@ -242,7 +242,7 @@ export function BookingPanel({
                   </div>
                 </dl>
               ) : (
-                <p className="mt-4 text-sm text-body/50">{fr.common.chargement}</p>
+                <p className="mt-4 text-sm text-muted">{fr.common.chargement}</p>
               )}
 
               {/* Crédit parrainage/bienvenue (§CR1), opt-in — masqué si aucun solde. */}
@@ -267,7 +267,7 @@ export function BookingPanel({
                   si l'annonce l'accepte ET le voyageur est éligible (KYC vérifié). */}
               {cashPaymentEligible ? (
                 <fieldset className="mt-4 space-y-2">
-                  <legend className="text-xs font-bold text-body/60">
+                  <legend className="text-xs font-bold text-muted">
                     {fr.booking.modePaiementTitre}
                   </legend>
                   <div className="grid gap-2 sm:grid-cols-2">
@@ -298,7 +298,7 @@ export function BookingPanel({
                             />
                             <span className="text-xs font-bold text-body">{opt.label}</span>
                           </span>
-                          <span className="ps-6 text-[11px] leading-relaxed text-body/55">
+                          <span className="ps-6 text-[11px] leading-relaxed text-muted">
                             {opt.aide}
                           </span>
                         </label>

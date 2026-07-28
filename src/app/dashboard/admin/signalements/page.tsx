@@ -47,11 +47,11 @@ export default async function SignalementsPage() {
   return (
     <div>
       <h3 className="text-lg font-bold text-heading">{fr.admin.signalementsTitre}</h3>
-      <p className="mt-1 text-sm text-body/60">{fr.admin.signalementsSousTitre}</p>
+      <p className="mt-1 text-sm text-muted">{fr.admin.signalementsSousTitre}</p>
 
       {flagged.length === 0 ? (
         <div className="mt-6 rounded-3xl bg-surface p-10 text-center ring-1 ring-darna/10">
-          <p className="text-sm text-body/60">{fr.admin.signalementsVide}</p>
+          <p className="text-sm text-muted">{fr.admin.signalementsVide}</p>
         </div>
       ) : (
         <ul className="mt-5 space-y-3">
@@ -66,7 +66,7 @@ export default async function SignalementsPage() {
               >
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-semibold text-body">{m.sender.name}</span>
-                  <span className="text-xs text-body/50">{m.sender.email}</span>
+                  <span className="text-xs text-muted">{m.sender.email}</span>
                   <span
                     className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
                       escalated
@@ -87,7 +87,7 @@ export default async function SignalementsPage() {
                         : fr.admin.signalementsSuspendu}
                     </span>
                   ) : null}
-                  <span className="ms-auto text-xs text-body/45">
+                  <span className="ms-auto text-xs text-subtle">
                     {formatDateShortFr(m.createdAt)}
                   </span>
                 </div>

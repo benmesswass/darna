@@ -109,7 +109,7 @@ export default async function RelogementPage({
           ))}
         </AnimatedGrid>
       ) : (
-        <div className="mt-6 rounded-2xl bg-surface p-6 text-sm text-body/60 ring-1 ring-darna/10">
+        <div className="mt-6 rounded-2xl bg-surface p-6 text-sm text-muted ring-1 ring-darna/10">
           <p>{fr.relogement.aucuneSuggestion}</p>
           <Link
             href="/sejours"

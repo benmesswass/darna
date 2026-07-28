@@ -49,7 +49,7 @@ export function ContactForm({
       <input type="hidden" name="propertyId" value={propertyId} />
       <div className="grid gap-3.5 sm:grid-cols-2">
         <label className="block space-y-1">
-          <span className="text-xs font-semibold text-body/60">{fr.contact.nom}</span>
+          <span className="text-xs font-semibold text-muted">{fr.contact.nom}</span>
           <input
             name="name"
             type="text"
@@ -60,7 +60,7 @@ export function ContactForm({
           />
         </label>
         <label className="block space-y-1">
-          <span className="text-xs font-semibold text-body/60">{fr.contact.email}</span>
+          <span className="text-xs font-semibold text-muted">{fr.contact.email}</span>
           <input
             name="email"
             type="email"
@@ -71,7 +71,7 @@ export function ContactForm({
         </label>
       </div>
       <label className="block space-y-1">
-        <span className="text-xs font-semibold text-body/60">{fr.contact.telephone}</span>
+        <span className="text-xs font-semibold text-muted">{fr.contact.telephone}</span>
         <input
           name="phone"
           type="tel"
@@ -81,7 +81,7 @@ export function ContactForm({
         />
       </label>
       <label className="block space-y-1">
-        <span className="text-xs font-semibold text-body/60">{fr.contact.message}</span>
+        <span className="text-xs font-semibold text-muted">{fr.contact.message}</span>
         <textarea
           name="message"
           required
@@ -100,7 +100,7 @@ export function ContactForm({
           {pending ? fr.common.chargement : fr.contact.envoyer}
         </button>
         {whatsappHref ? (
-          <span className="flex items-center gap-2 text-sm text-body/60">
+          <span className="flex items-center gap-2 text-sm text-muted">
             {fr.contact.ouWhatsapp}
             <a
               href={whatsappHref}

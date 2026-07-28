@@ -72,11 +72,11 @@ export default async function TravelerPage({
             )}
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-body/40">
+            <p className="text-xs font-semibold uppercase tracking-wide text-subtle">
               {fr.traveler.sousTitre}
             </p>
             <h1 className="text-2xl font-bold text-heading">{traveler.name}</h1>
-            <p className="mt-1 text-sm text-body/60">
+            <p className="mt-1 text-sm text-muted">
               {fr.traveler.membreDepuis(traveler.createdAt.getFullYear())}
             </p>
           </div>
@@ -89,7 +89,7 @@ export default async function TravelerPage({
               {fr.kyc.statutVerifie}
             </span>
           ) : traveler.kycStatus === "DEMO_VERIFIE" ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-ink/[0.06] px-2.5 py-1 text-xs font-medium text-body/55">
+            <span className="inline-flex items-center gap-1 rounded-full bg-ink/[0.06] px-2.5 py-1 text-xs font-medium text-muted">
               <CheckIcon width={12} height={12} strokeWidth={3} />
               {fr.kyc.statutVerifieDemo}
             </span>
@@ -101,7 +101,7 @@ export default async function TravelerPage({
               {traveler.ratingAvg.toFixed(1)} · {fr.traveler.avisRecus(traveler.ratingCount)}
             </span>
           ) : (
-            <span className="text-sm text-body/50">{fr.search.sansAvis}</span>
+            <span className="text-sm text-muted">{fr.search.sansAvis}</span>
           )}
         </div>
       </AnimatedGrid>
@@ -112,7 +112,7 @@ export default async function TravelerPage({
           <div className="mt-4 space-y-3">
             {traveler.reviewableBookings.map((b) => (
               <div key={b.id}>
-                <p className="text-xs font-semibold text-body/50">
+                <p className="text-xs font-semibold text-muted">
                   {b.propertyTitle} ·{" "}
                   {fr.booking.sejourDates(
                     formatDateShortFr(new Date(b.checkIn)),
@@ -143,19 +143,19 @@ export default async function TravelerPage({
                       width={14}
                       height={14}
                       fill={n <= r.rating ? "currentColor" : "none"}
-                      className={n <= r.rating ? "" : "text-body/20"}
+                      className={n <= r.rating ? "" : "text-subtle"}
                     />
                   ))}
                 </span>
-                <span className="text-xs text-body/50">{formatDateFr(new Date(r.createdAt))}</span>
+                <span className="text-xs text-muted">{formatDateFr(new Date(r.createdAt))}</span>
               </div>
               <p className="mt-2 text-body/70">{r.comment}</p>
-              <p className="mt-2 text-xs font-semibold text-body/50">{r.authorName}</p>
+              <p className="mt-2 text-xs font-semibold text-muted">{r.authorName}</p>
             </li>
           ))}
         </ul>
       ) : (
-        <p className="mt-4 rounded-2xl bg-surface p-6 text-sm text-body/60 ring-1 ring-darna/10">
+        <p className="mt-4 rounded-2xl bg-surface p-6 text-sm text-muted ring-1 ring-darna/10">
           {fr.traveler.aucunAvis}
         </p>
       )}

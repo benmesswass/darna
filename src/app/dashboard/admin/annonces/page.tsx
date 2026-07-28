@@ -67,7 +67,7 @@ function PropertyTable({
   showVerify: boolean;
 }) {
   if (properties.length === 0) {
-    return <p className="py-4 text-sm text-body/50">{fr.admin.aucuneAnnonce}</p>;
+    return <p className="py-4 text-sm text-muted">{fr.admin.aucuneAnnonce}</p>;
   }
   return (
     <div className="overflow-hidden rounded-2xl border border-ink/10">
@@ -95,13 +95,13 @@ function PropertyTable({
                   <span className="line-clamp-1 font-semibold text-darna-dark underline-offset-2 group-hover:underline">
                     {p.title}
                   </span>
-                  <span className="shrink-0 text-[10px] text-body/30 group-hover:text-heading">↗</span>
+                  <span className="shrink-0 text-[10px] text-subtle group-hover:text-heading">↗</span>
                 </Link>
-                <div className="text-xs text-body/50">{p.city}</div>
+                <div className="text-xs text-muted">{p.city}</div>
               </td>
               <td className="px-4 py-3">
                 <div>{p.owner.name}</div>
-                <div className="text-xs text-body/50">{p.owner.email}</div>
+                <div className="text-xs text-muted">{p.owner.email}</div>
               </td>
               <td className="px-4 py-3">
                 <KycBadge kycStatus={p.owner.kycStatus} />
@@ -113,7 +113,7 @@ function PropertyTable({
                       {fr.admin.verifiee}
                     </span>
                     {p.verifiedBy ? (
-                      <div className="mt-0.5 text-xs text-body/40">
+                      <div className="mt-0.5 text-xs text-subtle">
                         {fr.admin.verifiePar(p.verifiedBy.name)}
                       </div>
                     ) : null}
@@ -192,7 +192,7 @@ export default async function AdminAnnoncesPage() {
             </span>
           )}
         </div>
-        <p className="mb-6 text-sm text-body/60">{fr.admin.fileModerationDesc}</p>
+        <p className="mb-6 text-sm text-muted">{fr.admin.fileModerationDesc}</p>
         <PropertyTable properties={pending as Property[]} fr={fr} showVerify={true} />
       </section>
 

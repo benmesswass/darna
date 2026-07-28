@@ -38,7 +38,7 @@ export default async function AdminFinancementPage() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h3 className="text-lg font-bold text-heading">{fr.admin.financementTitre}</h3>
-          <p className="mt-1 max-w-2xl text-sm text-body/60">{fr.admin.financementSousTitre}</p>
+          <p className="mt-1 max-w-2xl text-sm text-muted">{fr.admin.financementSousTitre}</p>
         </div>
         {leads.length > 0 ? (
           <Link
@@ -53,7 +53,7 @@ export default async function AdminFinancementPage() {
 
       {leads.length === 0 ? (
         <div className="mt-6 rounded-3xl bg-surface p-10 text-center ring-1 ring-darna/10">
-          <p className="text-sm text-body/60">{fr.admin.financementVide}</p>
+          <p className="text-sm text-muted">{fr.admin.financementVide}</p>
         </div>
       ) : (
         <div className="mt-5 overflow-x-auto rounded-2xl ring-1 ring-darna/10">
@@ -70,7 +70,7 @@ export default async function AdminFinancementPage() {
             <tbody className="divide-y divide-ink/5 bg-surface">
               {leads.map((lead) => (
                 <tr key={lead.id}>
-                  <td className="px-4 py-2.5 text-xs text-body/60">
+                  <td className="px-4 py-2.5 text-xs text-muted">
                     {formatDateShortFr(lead.createdAt)}
                   </td>
                   <td className="px-4 py-2.5">
@@ -83,14 +83,14 @@ export default async function AdminFinancementPage() {
                   </td>
                   <td className="px-4 py-2.5">
                     <p className="font-medium text-body">{lead.name}</p>
-                    <p className="text-xs text-body/50">
+                    <p className="text-xs text-muted">
                       {lead.email} · {lead.phone}
                     </p>
                   </td>
                   <td className="px-4 py-2.5 text-end font-semibold text-heading">
                     {lead.desiredAmount ? <Price amount={lead.desiredAmount} /> : "—"}
                   </td>
-                  <td className="max-w-xs px-4 py-2.5 text-xs text-body/60">
+                  <td className="max-w-xs px-4 py-2.5 text-xs text-muted">
                     {lead.message ?? "—"}
                   </td>
                 </tr>

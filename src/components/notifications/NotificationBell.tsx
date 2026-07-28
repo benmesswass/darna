@@ -121,7 +121,7 @@ export function NotificationBell() {
               <button
                 type="button"
                 onClick={handleMarkAllRead}
-                className="text-xs font-medium text-heading/70 hover:text-heading hover:underline"
+                className="text-xs font-medium text-heading-muted hover:text-heading hover:underline"
               >
                 {fr.notifications.toutMarquerLu}
               </button>
@@ -130,7 +130,7 @@ export function NotificationBell() {
 
           <div className="max-h-96 overflow-auto">
             {items.length === 0 ? (
-              <p className="px-4 py-6 text-center text-sm text-body/50">
+              <p className="px-4 py-6 text-center text-sm text-muted">
                 {fr.notifications.aucune}
               </p>
             ) : (
@@ -142,7 +142,7 @@ export function NotificationBell() {
                       role="menuitem"
                       onClick={() => handleItemClick(n)}
                       className={`flex w-full flex-col gap-0.5 px-4 py-2.5 text-start text-sm transition hover:bg-cream ${
-                        n.readAt ? "text-body/60" : "font-medium text-body"
+                        n.readAt ? "text-muted" : "font-medium text-body"
                       }`}
                     >
                       <span className="flex items-start gap-2">
@@ -153,7 +153,7 @@ export function NotificationBell() {
                         )}
                         <span>{notificationMessage(fr, n)}</span>
                       </span>
-                      <span className="ps-3.5 text-[11px] text-body/40">
+                      <span className="ps-3.5 text-[11px] text-subtle">
                         {formatDateShortFr(new Date(n.createdAt))}
                       </span>
                     </button>

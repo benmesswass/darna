@@ -86,13 +86,13 @@ export function RevenueSimulatorForm({
           <label className="block space-y-1.5">
             <span className={labelClass}>{fr.simulateur.voyageurs}</span>
             <input name="capacity" type="number" min={1} max={30} className={inputClass} />
-            <span className="block text-xs text-body/40">{fr.simulateur.voyageursAide}</span>
+            <span className="block text-xs text-subtle">{fr.simulateur.voyageursAide}</span>
           </label>
         ) : (
           <label className="block space-y-1.5">
             <span className={labelClass}>{fr.simulateur.surface}</span>
             <input name="surface" type="number" min={10} max={2000} className={inputClass} />
-            <span className="block text-xs text-body/40">
+            <span className="block text-xs text-subtle">
               {fr.simulateur.surfaceRequisePourEstimation}
             </span>
           </label>
@@ -115,7 +115,7 @@ export function RevenueSimulatorForm({
 
       <div className="rounded-3xl bg-cream p-6 ring-1 ring-darna/10">
         {!result ? (
-          <div className="flex h-full flex-col items-center justify-center gap-3 py-10 text-center text-body/50">
+          <div className="flex h-full flex-col items-center justify-center gap-3 py-10 text-center text-muted">
             <SparklesIcon width={28} height={28} className="text-sand" />
             <p className="max-w-xs text-sm">{fr.simulateur.sousTitre}</p>
           </div>
@@ -131,7 +131,7 @@ export function RevenueSimulatorForm({
         ) : !result.estimate.matched ? (
           <div className="space-y-3">
             <p className="font-semibold text-body">{fr.simulateur.aucuneDonnee}</p>
-            <p className="text-sm text-body/60">{fr.simulateur.villesProches}</p>
+            <p className="text-sm text-muted">{fr.simulateur.villesProches}</p>
             <ul className="flex flex-wrap gap-2">
               {nearbyCities(result.city, 3).map((c) => (
                 <li key={c.name}>
@@ -160,12 +160,12 @@ export function RevenueSimulatorForm({
                 {formatTndServer(result.estimate.monthlyLow ?? 0)} –{" "}
                 {formatTndServer(result.estimate.monthlyHigh ?? 0)}
                 {result.estimate.unit !== "PRIX_VENTE" ? (
-                  <span className="ms-1 text-base font-semibold text-body/50">
+                  <span className="ms-1 text-base font-semibold text-muted">
                     {fr.simulateur.parMois}
                   </span>
                 ) : null}
               </p>
-              <p className="mt-1 text-xs text-body/50">{fr.simulateur.echantillon(result.estimate.sampleSize)}</p>
+              <p className="mt-1 text-xs text-muted">{fr.simulateur.echantillon(result.estimate.sampleSize)}</p>
             </div>
 
             <Link
@@ -174,7 +174,7 @@ export function RevenueSimulatorForm({
             >
               {fr.simulateur.ctaPublier}
             </Link>
-            <p className="text-center text-xs text-body/40">{fr.simulateur.ctaPublierAide}</p>
+            <p className="text-center text-xs text-subtle">{fr.simulateur.ctaPublierAide}</p>
           </div>
         )}
       </div>

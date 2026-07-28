@@ -244,7 +244,7 @@ export function PropertyForm({
             ) : null}
           </select>
           {isEdit ? (
-            <span className="block text-xs text-body/40">
+            <span className="block text-xs text-subtle">
               {fr.annonceForm.typeNonModifiable}
             </span>
           ) : null}
@@ -367,7 +367,7 @@ export function PropertyForm({
             {fr.annonceForm.politiqueAnnulation}
             <span className="text-red-600">*</span>
           </p>
-          <p className="text-xs leading-relaxed text-body/55">
+          <p className="text-xs leading-relaxed text-muted">
             {fr.annonceForm.politiqueAnnulationAide}
           </p>
           <div className="grid gap-2.5 sm:grid-cols-2">
@@ -396,7 +396,7 @@ export function PropertyForm({
                       {fr.property.cancelPolicy[p]}
                     </span>
                   </span>
-                  <span className="ps-6 text-xs leading-relaxed text-body/60">
+                  <span className="ps-6 text-xs leading-relaxed text-muted">
                     {fr.property.cancelPolicyDesc[p]}
                   </span>
                 </label>
@@ -422,7 +422,7 @@ export function PropertyForm({
                 ].map(([titre, desc], i) => (
                   <div key={i} className="rounded-lg bg-cream/70 p-2.5">
                     <p className="text-xs font-semibold text-heading">{titre}</p>
-                    <p className="mt-0.5 text-[11px] leading-relaxed text-body/60">{desc}</p>
+                    <p className="mt-0.5 text-[11px] leading-relaxed text-muted">{desc}</p>
                   </div>
                 ))}
               </div>
@@ -441,7 +441,7 @@ export function PropertyForm({
               <span className="block text-sm font-bold text-heading">
                 {fr.annonceForm.cashPaymentTitre}
               </span>
-              <span className="mt-0.5 block text-xs leading-relaxed text-body/55">
+              <span className="mt-0.5 block text-xs leading-relaxed text-muted">
                 {fr.annonceForm.cashPaymentAide}
               </span>
             </span>
@@ -475,7 +475,7 @@ export function PropertyForm({
       <fieldset className="space-y-1.5">
         <legend className={labelClass}>
           {fr.annonceForm.localisation}{" "}
-          <span className="font-normal text-body/40">
+          <span className="font-normal text-subtle">
             — {fr.annonceForm.repereAide}
           </span>
         </legend>
@@ -532,7 +532,7 @@ export function PropertyForm({
           onChange={(e) => setDescription(e.target.value)}
           className={inputClass}
         />
-        <p className="text-xs text-body/40">{fr.annonceForm.genererDescriptionAide}</p>
+        <p className="text-xs text-subtle">{fr.annonceForm.genererDescriptionAide}</p>
       </div>
 
       {isEdit ? (
@@ -555,7 +555,7 @@ export function PropertyForm({
             {fr.annonceForm.apercuPublier}
           </button>
           {photoUrls.length === 0 ? (
-            <p className="text-xs font-medium text-body/50">{fr.annonceForm.photoRequise}</p>
+            <p className="text-xs font-medium text-muted">{fr.annonceForm.photoRequise}</p>
           ) : null}
         </>
       )}
@@ -574,13 +574,13 @@ export function PropertyForm({
             <div className="flex items-start justify-between gap-3 border-b border-darna/10 px-6 py-4">
               <div>
                 <h3 className="text-lg font-bold text-heading">{fr.annonceForm.apercuTitre}</h3>
-                <p className="mt-0.5 text-xs text-body/55">{fr.annonceForm.apercuAide}</p>
+                <p className="mt-0.5 text-xs text-muted">{fr.annonceForm.apercuAide}</p>
               </div>
               <button
                 type="button"
                 onClick={() => setPreview(null)}
                 aria-label={fr.common.annuler}
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-body/60 transition hover:bg-cream hover:text-heading"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted transition hover:bg-cream hover:text-heading"
               >
                 <CloseIcon width={16} height={16} />
               </button>
@@ -628,16 +628,16 @@ export function PropertyForm({
               {/* Titre + localisation */}
               <div className="space-y-1.5">
                 <h4 className="text-xl font-bold text-body">{preview.title}</h4>
-                <p className="flex items-center gap-1 text-sm text-body/60">
+                <p className="flex items-center gap-1 text-sm text-muted">
                   <MapPinIcon width={15} height={15} />
                   {cityName}
                   {gouvernorat ? `, ${gouvernorat}` : ""}
                 </p>
-                {address ? <p className="text-sm text-body/50">{address}</p> : null}
+                {address ? <p className="text-sm text-muted">{address}</p> : null}
               </div>
 
               {/* Caractéristiques */}
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-body/60">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-muted">
                 {preview.surface ? (
                   <span className="flex items-center gap-1.5">
                     <RulerIcon width={15} height={15} />
@@ -662,7 +662,7 @@ export function PropertyForm({
               <p className="text-2xl font-bold text-heading">
                 {preview.price.toLocaleString("fr-FR")} TND
                 {priceSuffix ? (
-                  <span className="ms-1 text-sm font-medium text-body/55">{priceSuffix}</span>
+                  <span className="ms-1 text-sm font-medium text-muted">{priceSuffix}</span>
                 ) : null}
               </p>
 

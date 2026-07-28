@@ -142,7 +142,7 @@ export default async function SejoursPage({
       >
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_auto]">
         <label className="flex flex-col gap-1">
-          <span className="text-xs font-semibold text-body/60">
+          <span className="text-xs font-semibold text-muted">
             {fr.search.ouAllezVous}
           </span>
           <CityAutocomplete
@@ -157,7 +157,7 @@ export default async function SejoursPage({
           fieldClassName="w-full rounded-xl border border-darna/15 bg-cream px-3 py-2.5 text-sm outline-none focus:border-darna"
         />
         <label className="flex flex-col gap-1">
-          <span className="flex items-center gap-1 text-xs font-semibold text-body/60">
+          <span className="flex items-center gap-1 text-xs font-semibold text-muted">
             <UsersIcon width={13} height={13} />
             {fr.search.voyageurs}
           </span>
@@ -189,7 +189,7 @@ export default async function SejoursPage({
             defaultDepart={params.depart}
           />
           <label className="flex flex-col gap-1">
-            <span className="text-xs font-semibold text-body/60">
+            <span className="text-xs font-semibold text-muted">
               {fr.search.chambresMin}
             </span>
             <select
@@ -206,7 +206,7 @@ export default async function SejoursPage({
             </select>
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs font-semibold text-body/60">
+            <span className="text-xs font-semibold text-muted">
               {fr.search.typeBien}
             </span>
             <select
@@ -246,7 +246,7 @@ export default async function SejoursPage({
         />
       ) : null}
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-body/60">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-muted">
         <div className="flex items-center gap-2">
           <span className="font-semibold text-heading">
             {fr.search.resultats(total)}
@@ -364,7 +364,7 @@ async function EmptyState({
         <>
           {/* Ville connue mais vide partout : pas de cartes à montrer, donc
               l'amorçage de l'offre devient l'action principale, bien visible. */}
-          <p className="mx-auto mt-2 max-w-md text-sm text-body/60">
+          <p className="mx-auto mt-2 max-w-md text-sm text-muted">
             {fr.search.hoteAbsentDesc(resolvedCity)}
           </p>
           <Link
@@ -375,7 +375,7 @@ async function EmptyState({
           </Link>
         </>
       ) : (
-        <p className="mx-auto mt-2 max-w-md text-sm text-body/60">
+        <p className="mx-auto mt-2 max-w-md text-sm text-muted">
           {fr.search.aucunResultatDesc}
         </p>
       )}

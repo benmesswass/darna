@@ -110,7 +110,7 @@ export async function VerifiedBadge({
           <span>
             {fr.badges.verifieOnSite}
             {!small && verifierName && dateStr ? (
-              <span className="ms-1 font-normal opacity-70">
+              <span className="ms-1 font-normal opacity-90">
                 · {fr.property.verifiePar(verifierName)} · {dateStr}
               </span>
             ) : null}
@@ -140,7 +140,7 @@ export async function VerifiedBadge({
           <span>
             {fr.badges.verifieRemote}
             {!small && verifierName && dateStr ? (
-              <span className="ms-1 font-normal opacity-70">
+              <span className="ms-1 font-normal opacity-90">
                 · {fr.property.verifiePar(verifierName)} · {dateStr}
               </span>
             ) : null}

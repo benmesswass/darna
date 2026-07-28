@@ -1046,7 +1046,7 @@ manuellement une fois W6 posé.
 
 | # | Tâche | Prio | Statut |
 |---|---|---|---|
-| L9.1 | Chantier tokens de contraste + réactivation du gate axe `color-contrast` | P2 | ❌ |
+| L9.1 | Chantier tokens de contraste + réactivation du gate axe `color-contrast` | P2 | ✅ PR #224 |
 | L9.2 | PWA minimale (manifest + SW de cache statique) | P2 | ❌ |
 | L9.3 | Budget perf Lighthouse (nightly) + session device réel | P2 | ❌ (device 🧑 WASSIM) |
 
@@ -1059,6 +1059,37 @@ Approche : introduire des tokens sémantiques (`text-muted`, `text-subtle`) et
 remplacer mécaniquement les variantes d'opacité — PAS de retouche
 composant par composant à l'œil. Captures avant/après sur ~6 pages clés
 (règle projet), lumière ET sombre si le thème sombre existe.
+
+**Implémenté (PR #224)** : 3 tokens `color-mix()` dans `src/app/globals.css`
+(`--color-subtle`/`--color-muted` sur `--color-body`, `--color-heading-muted`
+sur `--color-heading` — plancher distinct car plus saturé, calculé par un
+script de contraste maison plutôt que deviné) référençant des custom
+properties déjà adaptatives via `.dark` : conformes AA dans les deux thèmes
+sans bloc `.dark` séparé. 528 instances `text-body/N` remplacées
+mécaniquement (94 fichiers, `sed`), `text-white/50` du footer → `/70`.
+Scope étendu en cours de route au-delà du diagnostic initial de
+`TODO-PRODUCTION.md` : `opacity-70` sur texte teinté accent/heading
+(`Price.tsx`, `Badges.tsx`, `VerificationsAssistant.tsx` → `/90`),
+`text-heading/N` réel (4 instances → `text-heading-muted`, 8 autres sur des
+icônes correctement laissées — axe ne juge que le texte rendu),
+`text-ink/50` → `/70` (`ListingDetail.tsx`, fond clair fixe documenté par un
+commentaire existant). Pastille active de `PrimaryNav.tsx` : le fond
+`--color-accent` n'était porté que par un `<span aria-hidden>` sibling
+positionné/animé en JS, jamais crédité par l'algorithme de contraste d'axe
+(chaîne d'ancêtres uniquement) — fond posé directement sur le lien actif
+(`bg-[var(--color-accent)]`), transition retirée sur cette branche pour
+éliminer une frame intermédiaire sous le seuil AA quand l'actif vient
+d'`ActiveSection` (override posé après le premier paint). Gate
+`color-contrast` réactivé sans exclusion dans `tests/e2e/10-a11y.spec.ts` —
+12/12 combinaisons (4 pages × 3 locales) + dashboard × 3 vertes, y compris à
+froid (premier hit d'une route en mode dev). Robustesse de scan ajoutée dans
+le même fichier (`document.fonts.ready` + attente bornée des images, PAS
+`waitForLoadState("networkidle")` qui bloque indéfiniment sur le WebSocket
+HMR de `next dev`) après avoir constaté des faux positifs `color-contrast`
+non reproductibles sur une page à forte charge de peinture (grille de ~20
+images) scannée avant sa composition finale — vérifié que les couleurs
+réellement rendues (lecture canvas) passent AA (6.84-7.10:1) alors qu'axe
+remontait des ratios ~1.3-2:1 sur la même frame incomplète.
 
 **L9.2 — décisions tranchées** : manifest (nom, icônes 192/512 générées
 depuis le logo, `display: standalone`, thème sable) + service worker MINIMAL :

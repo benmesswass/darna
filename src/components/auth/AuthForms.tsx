@@ -69,7 +69,7 @@ function LiveRuleHint({ met, label }: { met: boolean; label: string }) {
   return (
     <p
       className={`mt-1.5 flex items-center gap-1.5 text-xs transition-colors duration-300 ${
-        met ? "text-emerald-600" : "text-body/40"
+        met ? "text-emerald-600" : "text-subtle"
       }`}
     >
       <span
@@ -136,7 +136,7 @@ function PasswordInput({
           aria-label={show ? fr.auth.masquerMotDePasse : fr.auth.afficherMotDePasse}
           aria-pressed={show}
           tabIndex={-1}
-          className="absolute inset-y-0 end-0 flex items-center pe-3.5 text-body/45 transition hover:text-heading focus:outline-none focus-visible:text-heading"
+          className="absolute inset-y-0 end-0 flex items-center pe-3.5 text-subtle transition hover:text-heading focus:outline-none focus-visible:text-heading"
         >
           {show ? <EyeOffIcon /> : <EyeIcon />}
         </button>
@@ -174,7 +174,7 @@ function GoogleButton({ callbackUrl }: { callbackUrl?: string }) {
           {fr.auth.continuerAvecGoogle}
         </button>
       </form>
-      <div className="flex items-center gap-3 text-xs font-medium uppercase text-body/40">
+      <div className="flex items-center gap-3 text-xs font-medium uppercase text-subtle">
         <span className="h-px flex-1 bg-darna/10" />
         {fr.auth.ouSeparateur}
         <span className="h-px flex-1 bg-darna/10" />
@@ -258,7 +258,7 @@ export function LoginForm({
             {fr.auth.motDePasseOublie}
           </Link>
         </p>
-        <p className="text-center text-sm text-body/60">
+        <p className="text-center text-sm text-muted">
           {fr.auth.pasDeCompte}{" "}
           <Link href={inscriptionHref} className="font-semibold text-heading underline">
             {fr.auth.sInscrire}
@@ -294,7 +294,7 @@ export function ForgotPasswordForm() {
         <input name="email" type="email" required autoComplete="email" className={inputClass} />
       </label>
       <SubmitButton label={fr.auth.resetEnvoyer} pending={pending} />
-      <p className="text-center text-sm text-body/60">
+      <p className="text-center text-sm text-muted">
         <Link href="/connexion" className="font-semibold text-heading underline">
           {fr.auth.resetRetourConnexion}
         </Link>
@@ -498,7 +498,7 @@ export function RegisterForm({
         <label className="block space-y-1.5">
           <span className="text-sm font-semibold text-body/70">
             {fr.auth.telephone}{" "}
-            <span className="font-normal text-body/40">({fr.common.optionnel})</span>
+            <span className="font-normal text-subtle">({fr.common.optionnel})</span>
           </span>
           <input
             name="phone"
@@ -510,7 +510,7 @@ export function RegisterForm({
         <label className="block space-y-1.5">
           <span className="text-sm font-semibold text-body/70">
             {fr.auth.pays}{" "}
-            <span className="font-normal text-body/40">({fr.common.optionnel})</span>
+            <span className="font-normal text-subtle">({fr.common.optionnel})</span>
           </span>
           <select name="country" defaultValue="" className={inputClass}>
             <option value="">—</option>
@@ -523,7 +523,7 @@ export function RegisterForm({
         </label>
         <TurnstileWidget siteKey={captchaSiteKey} />
         <SubmitButton label={fr.auth.sInscrire} pending={pending} />
-        <p className="text-center text-sm text-body/60">
+        <p className="text-center text-sm text-muted">
           {fr.auth.dejaCompte}{" "}
           <Link href={connexionHref} className="font-semibold text-heading underline">
             {fr.auth.seConnecter}

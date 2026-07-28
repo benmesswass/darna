@@ -27,7 +27,7 @@ export function DeleteAccountForm({ hasPassword }: { hasPassword: boolean }) {
         <TrashIcon width={18} height={18} />
         {fr.profil.supprimerTitre}
       </p>
-      <p className="mt-1 text-sm text-body/60">{fr.profil.supprimerAide}</p>
+      <p className="mt-1 text-sm text-muted">{fr.profil.supprimerAide}</p>
 
       {state?.error ? (
         <p role="alert" className="mt-4 rounded-xl bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700">

@@ -47,11 +47,11 @@ export default async function AdminNonConformitePage() {
         <ShieldIcon width={18} height={18} className="text-sand" />
         {fr.admin.nonConformiteTitre}
       </h3>
-      <p className="mt-1 text-sm text-body/60">{fr.admin.nonConformiteSousTitre}</p>
+      <p className="mt-1 text-sm text-muted">{fr.admin.nonConformiteSousTitre}</p>
 
       {reports.length === 0 ? (
         <div className="mt-6 rounded-3xl bg-surface p-10 text-center ring-1 ring-darna/10">
-          <p className="text-sm text-body/60">{fr.admin.nonConformiteVide}</p>
+          <p className="text-sm text-muted">{fr.admin.nonConformiteVide}</p>
         </div>
       ) : (
         <ul className="mt-5 space-y-3">
@@ -62,8 +62,8 @@ export default async function AdminNonConformitePage() {
             >
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-semibold text-body">{report.booking.guest.name}</span>
-                <span className="text-xs text-body/50">{report.booking.guest.email}</span>
-                <span className="ms-auto text-xs text-body/45">
+                <span className="text-xs text-muted">{report.booking.guest.email}</span>
+                <span className="ms-auto text-xs text-subtle">
                   {report.booking.property.title}
                 </span>
               </div>
@@ -73,7 +73,7 @@ export default async function AdminNonConformitePage() {
                   {fr.dashboard.signalementCategories[report.category as NonConformityCategory] ??
                     report.category}
                 </span>
-                <span className="text-body/60">
+                <span className="text-muted">
                   {fr.admin.nonConformiteColSignaleLe} : {formatDateShortFr(report.createdAt)}
                 </span>
                 <span className="font-semibold text-heading">

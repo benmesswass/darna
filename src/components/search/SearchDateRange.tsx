@@ -36,7 +36,7 @@ export function SearchDateRange({
   ville,
   fieldClassName,
   labelClassName = "flex flex-col gap-1",
-  labelTextClassName = "flex items-center gap-1 text-xs font-semibold text-body/60",
+  labelTextClassName = "flex items-center gap-1 text-xs font-semibold text-muted",
   labelStyle,
 }: {
   defaultCheckIn?: string;
@@ -124,7 +124,7 @@ export function SearchDateRange({
         aria-haspopup="dialog"
         aria-expanded={open}
       >
-        <span className={value ? "text-body" : "text-body/40"}>
+        <span className={value ? "text-body" : "text-subtle"}>
           {value ?? fr.search.datePlaceholder}
         </span>
         <CalendarIcon width={15} height={15} className="shrink-0 text-heading/60" />

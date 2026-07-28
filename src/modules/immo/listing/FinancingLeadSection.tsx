@@ -20,7 +20,7 @@ export async function FinancingLeadSection({
   return (
     <section id="financement">
       <h2 className="text-xl font-bold text-heading">{fr.financement.titre}</h2>
-      <p className="mt-1 max-w-2xl text-sm text-body/60">{fr.financement.sousTitre}</p>
+      <p className="mt-1 max-w-2xl text-sm text-muted">{fr.financement.sousTitre}</p>
       <div className="mt-4 rounded-3xl bg-surface p-6 ring-1 ring-darna/10">
         <FinancingLeadForm
           propertyId={property.id}

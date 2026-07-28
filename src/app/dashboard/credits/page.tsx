@@ -48,14 +48,14 @@ export default async function CreditsPage() {
 
       {/* Solde */}
       <div className="rounded-3xl bg-surface p-6 shadow-sm ring-1 ring-darna/10">
-        <p className="flex items-center gap-2 text-sm font-semibold text-body/60">
+        <p className="flex items-center gap-2 text-sm font-semibold text-muted">
           <CoinsIcon width={16} height={16} />
           {fr.credits.soldeLabel}
         </p>
         <p className="mt-2">
           <Price amount={balance} className="text-3xl font-bold text-heading" />
         </p>
-        <p className="mt-2 text-xs text-body/50">{fr.credits.soldeAide}</p>
+        <p className="mt-2 text-xs text-muted">{fr.credits.soldeAide}</p>
       </div>
 
       {/* Parrainage */}
@@ -64,7 +64,7 @@ export default async function CreditsPage() {
           <UsersIcon width={16} height={16} />
           {fr.credits.parrainageTitre}
         </p>
-        <p className="mt-2 text-sm text-body/60">
+        <p className="mt-2 text-sm text-muted">
           {fr.credits.parrainageDesc(REFERRAL_SIGNUP_BONUS_TND)}
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -85,7 +85,7 @@ export default async function CreditsPage() {
       <div className="rounded-3xl bg-surface p-6 shadow-sm ring-1 ring-darna/10">
         <p className="text-sm font-bold text-heading">{fr.credits.historiqueTitre}</p>
         {transactions.length === 0 ? (
-          <p className="mt-3 text-sm text-body/50">{fr.credits.historiqueVide}</p>
+          <p className="mt-3 text-sm text-muted">{fr.credits.historiqueVide}</p>
         ) : (
           <ul className="mt-3 divide-y divide-darna/10">
             {transactions.map((t) => (
@@ -94,7 +94,7 @@ export default async function CreditsPage() {
                   <p className="text-sm font-medium text-body">
                     {fr.credits.motifLabel(t.motif as CreditTransactionMotif)}
                   </p>
-                  <p className="mt-0.5 text-xs text-body/45">
+                  <p className="mt-0.5 text-xs text-subtle">
                     {formatDateFr(t.createdAt)}
                     {t.expiresAt ? ` · ${fr.credits.expireLe(formatDateFr(t.expiresAt))}` : ""}
                   </p>

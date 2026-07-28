@@ -63,7 +63,7 @@ export default async function DemandesPage() {
           <h3 className="text-base font-bold text-heading">
             {fr.dashboard.demandesCashTitre}
           </h3>
-          <p className="mt-0.5 text-xs text-body/55">{fr.dashboard.demandesCashAide}</p>
+          <p className="mt-0.5 text-xs text-muted">{fr.dashboard.demandesCashAide}</p>
           <div className="mt-3 space-y-4">
             {cashRequests.map((b) => (
               <div
@@ -91,7 +91,7 @@ export default async function DemandesPage() {
                   >
                     {b.property.title}
                   </Link>
-                  <p className="text-sm text-body/60">
+                  <p className="text-sm text-muted">
                     {b.property.city} ·{" "}
                     {fr.booking.sejourDates(
                       formatDateShortFr(b.checkIn),
@@ -118,7 +118,7 @@ export default async function DemandesPage() {
           {fr.dashboard.demandesContactTitre}
         </h3>
       {contactRequests.length === 0 ? (
-        <p className="mt-6 rounded-3xl bg-surface p-8 text-center text-sm text-body/60 ring-1 ring-darna/10">
+        <p className="mt-6 rounded-3xl bg-surface p-8 text-center text-sm text-muted ring-1 ring-darna/10">
           {fr.dashboard.aucuneDemande}
         </p>
       ) : (
@@ -129,7 +129,7 @@ export default async function DemandesPage() {
                 <p className="font-semibold text-body">{fr.dashboard.demandeDe(c.name)}</p>
                 <TypeBadge type={c.property.type} />
               </div>
-              <p className="mt-1 text-sm text-body/60">
+              <p className="mt-1 text-sm text-muted">
                 <Link
                   href={`/annonce/${c.property.slug}`}
                   className="font-medium text-heading underline"

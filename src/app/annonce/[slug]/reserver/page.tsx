@@ -114,7 +114,7 @@ export default async function ReserverPage({
       {/* Réservation = parcours séjours : on garde la nav en surbrillance. */}
       <ActiveSection name="sejours" />
       <h1 className="text-3xl font-bold text-heading">{fr.booking.titre}</h1>
-      <p className="mt-1 text-body/60">
+      <p className="mt-1 text-muted">
         {property.title} — {property.city}
       </p>
 
@@ -126,7 +126,7 @@ export default async function ReserverPage({
           <p className="text-lg font-bold text-heading">
             {fr.booking.proprietaireImpossible}
           </p>
-          <p className="mx-auto mt-2 max-w-md text-sm text-body/60">
+          <p className="mx-auto mt-2 max-w-md text-sm text-muted">
             {fr.booking.proprietaireImpossibleAide}
           </p>
         </div>

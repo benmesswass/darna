@@ -90,17 +90,17 @@ export async function WeatherBanner({
       {/* Prévision sur la période recherchée */}
       {forecast && rangeLabel ? (
         <div className="rounded-xl bg-white/70 px-3.5 py-2.5 ring-1 ring-darna/10">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-body/45">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-subtle">
             {fr.destination.meteoSejour}
           </p>
           <p className="mt-0.5 flex items-center gap-1.5 text-base font-bold text-heading">
             <WeatherIcon condition={forecast.condition} size={18} />
             {forecast.tempMin}–{forecast.tempMax}°
-            <span className="text-xs font-medium text-body/55">
+            <span className="text-xs font-medium text-muted">
               {conditionLabel(forecast.condition)}
             </span>
           </p>
-          <p className="mt-0.5 text-[11px] text-body/50">
+          <p className="mt-0.5 text-[11px] text-muted">
             {rangeLabel}
             {forecast.source === "seasonal" ? ` · ${fr.destination.meteoMoyenneSaison}` : ""}
           </p>

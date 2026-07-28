@@ -76,7 +76,7 @@ export default async function AbonnementPage({
     <div className="mx-auto max-w-3xl">
       <Link
         href="/dashboard/annonces"
-        className="inline-flex items-center gap-1 text-sm font-medium text-body/60 hover:text-heading"
+        className="inline-flex items-center gap-1 text-sm font-medium text-muted hover:text-heading"
       >
         ← {fr.dashboard.mesAnnonces}
       </Link>
@@ -91,7 +91,7 @@ export default async function AbonnementPage({
         <div className="mt-4 rounded-2xl bg-cream p-4 text-sm">
           {isActive && currentPlan && subscription?.currentPeriodEnd ? (
             <>
-              <p className="text-xs font-semibold uppercase tracking-wide text-body/50">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted">
                 {fr.abonnement.planLabel(currentPlan.label)}
               </p>
               <p className="mt-0.5 font-semibold text-body">
@@ -173,13 +173,13 @@ export default async function AbonnementPage({
                   </span>
                 ) : null}
                 <p className="font-bold text-heading">{plan.label}</p>
-                <p className="mt-1 text-sm text-body/60">
+                <p className="mt-1 text-sm text-muted">
                   {fr.abonnement.annoncesIncluses(plan.listingsIncluded)}
                 </p>
                 <div className="mt-3">
                   <Price amount={plan.priceTND} className="text-2xl font-bold text-heading" />
                 </div>
-                <p className="mt-1 text-xs text-body/50">
+                <p className="mt-1 text-xs text-muted">
                   {fr.abonnement.coutParAnnonce(listingUnitCost(plan))}
                 </p>
 
@@ -202,7 +202,7 @@ export default async function AbonnementPage({
           })}
         </div>
 
-        <p className="mt-4 text-center text-xs text-body/50">{fr.abonnement.garantie}</p>
+        <p className="mt-4 text-center text-xs text-muted">{fr.abonnement.garantie}</p>
       </div>
 
       <div className="mt-6 rounded-3xl bg-surface p-8 ring-1 ring-darna/10">

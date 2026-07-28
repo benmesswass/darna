@@ -23,7 +23,7 @@ export async function LegalArticle({
   return (
     <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
       <h1 className="text-3xl font-bold text-heading">{titre}</h1>
-      <p className="mt-2 text-sm text-body/50">{fr.pagesLegales.miseAJour}</p>
+      <p className="mt-2 text-sm text-muted">{fr.pagesLegales.miseAJour}</p>
 
       <p className="mt-6 text-body/80">{content.intro}</p>
 
@@ -40,7 +40,7 @@ export async function LegalArticle({
         ))}
       </div>
 
-      <p className="mt-10 rounded-2xl bg-sand/40 p-4 text-sm text-body/60 ring-1 ring-darna/10">
+      <p className="mt-10 rounded-2xl bg-sand/40 p-4 text-sm text-muted ring-1 ring-darna/10">
         {avertissement ?? fr.pagesLegales.avertissement}
       </p>
     </div>

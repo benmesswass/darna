@@ -59,12 +59,12 @@ export function PriceRangeFilter({
   const showEquiv = nights > 0 && (minN !== null || maxN !== null);
 
   const inputClass =
-    "w-16 bg-transparent text-sm outline-none placeholder:text-body/30";
+    "w-16 bg-transparent text-sm outline-none placeholder:text-subtle";
 
   return (
     <div ref={containerRef} className="flex flex-col gap-1">
       <div className="flex items-center gap-2 rounded-xl border border-darna/15 bg-cream px-3 py-2 focus-within:border-darna">
-        <span className="whitespace-nowrap text-xs font-semibold text-body/50">
+        <span className="whitespace-nowrap text-xs font-semibold text-muted">
           {fr.search.prix} {fr.common.parNuit} ({fr.common.tnd})
         </span>
         <input
@@ -78,7 +78,7 @@ export function PriceRangeFilter({
           aria-label={`${fr.search.prixMin} (${fr.common.tnd})`}
           className={inputClass}
         />
-        <span aria-hidden className="text-body/30">–</span>
+        <span aria-hidden className="text-subtle">–</span>
         <input
           type="number"
           name="prixMax"
@@ -93,7 +93,7 @@ export function PriceRangeFilter({
       </div>
 
       {showEquiv ? (
-        <p className="text-xs text-body/50">
+        <p className="text-xs text-muted">
           {fr.search.equivSejour(nights)}{" "}
           {minN !== null && maxN !== null ? (
             <span className="font-semibold text-body/70">

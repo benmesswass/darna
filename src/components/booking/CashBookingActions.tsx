@@ -70,7 +70,7 @@ export function CashBookingActions({
 
   return (
     <div className="space-y-2">
-      <p className="text-[11px] leading-relaxed text-body/60">
+      <p className="text-[11px] leading-relaxed text-muted">
         {fr.dashboard.demandeCashRecapAide(montantCash)}
       </p>
       {acceptState?.error ? (
