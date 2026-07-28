@@ -1079,7 +1079,7 @@ FR puis AR/RTL — rapport écrit + captures.
 | # | Tâche | Prio | Statut |
 |---|---|---|---|
 | L10.1 | Script de démo investisseur/partenaire + vidéo 3 min | P1 | ❌ (après L6) |
-| L10.2 | Argumentaire hôte (one-pager) autour du simulateur G1 + Yield Advisor | P1 | ❌ |
+| L10.2 | Argumentaire hôte (one-pager) autour du simulateur G1 + Yield Advisor | P1 | ✅ PR #223 |
 | L10.3 | ⛔ W7 — 20-30 annonces réelles vérifiées, 1-2 Wakils réels | P0 (business) | ❌ 🧑 WASSIM |
 
 **L10.1** : dérouler et documenter LE parcours montré à un tiers : recherche
@@ -1093,6 +1093,22 @@ montrer à un hôte : simulateur de revenus, vérification gratuite au lancement
 (`FREE_VERIFICATION_CREDITS`), « vous touchez 100 % de votre prix, le
 voyageur paie nos frais », garantie no-show, zéro commission immo. S'appuyer
 sur `.agents/product-marketing.md` (mis à jour par L5.8).
+
+**Implémenté (PR #223)** : `docs/ARGUMENTAIRE_HOTE.md` (source texte
+versionnée) + one-pager HTML imprimable publié en artifact. **Correction
+volontaire par rapport au libellé ci-dessus** : vérifié empiriquement
+(`src/lib/verification-credits.ts`) que `FREE_VERIFICATION_CREDITS` ne
+s'applique QU'aux comptes AGENCE (1 crédit à vie) — un propriétaire
+individuel (HOTE), cible principale de ce document, paie
+`HOST_VERIFICATION_PRICE_TND` (20 TND) à l'unité, jamais gratuit. Annoncer
+une vérification gratuite à cette audience aurait été une fausse promesse ;
+le document mentionne donc le prix réel (20 TND, une fois) plutôt que la
+gratuité. Les 4 autres points (100 % du prix réglé sur place, zéro
+commission immo — confirmé : `SERVICE_FEE_RATE` ne s'applique qu'aux
+séjours réservés, jamais à LOCATION/VENTE, garantie no-show à 100 % des
+frais plafonnée à `NO_SHOW_INDEMNITY_MONTHLY_CAP`/mois, lien vers le
+simulateur `/combien-gagner`) vérifiés dans `src/lib/config.ts` et
+repris tels quels.
 
 ---
 
