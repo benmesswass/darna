@@ -104,7 +104,7 @@ export function generateDescription(input: DescriptionInput): string {
   // 5. Conclusion confiance — la signature Darna.
   const outros: Record<string, string[]> = {
     SEJOUR: [
-      "Réservez en toute sérénité : prix transparent, paiement protégé par Darna jusqu'à la fin de votre séjour.",
+      "Réservez en toute sérénité : prix transparent, zéro acompte au propriétaire — seuls les frais de réservation se paient en ligne.",
       "Calendrier à jour et paiement sécurisé : ce que vous voyez est ce que vous réservez.",
     ],
     LOCATION: [

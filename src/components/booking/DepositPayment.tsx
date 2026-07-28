@@ -68,7 +68,7 @@ export function DepositPayment({
       {/* Règle de remboursement (frais non remboursables passé le délai gratuit) */}
       <p className="mt-3 flex items-start gap-2 rounded-xl bg-sand-light/40 px-4 py-3 text-[11px] leading-relaxed font-medium text-darna-dark">
         <CoinsIcon width={15} height={15} className="mt-0.5 shrink-0" />
-        {fr.booking.commissionNonRemboursable}
+        {fr.booking.remboursementFraisPolitique}
       </p>
 
       {/* Paiement : montant fixe (les frais), plus aucune saisie voyageur. */}

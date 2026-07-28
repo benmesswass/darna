@@ -4,12 +4,12 @@
 
 ## Produit
 
-Darna (« notre maison » en tunisien) — plateforme de logement **vérifié** en Tunisie. Deux verticales sur un socle unique : séjours touristiques (type Airbnb) et immobilier longue durée/vente (type SeLoger). V0 fonctionnelle : recherche translittérée, carte, réservation avec séquestre simulé, KYC mock, contrat de bail, indice des prix.
+Darna (« notre maison » en tunisien) — plateforme de logement **vérifié** en Tunisie. Deux verticales sur un socle unique : séjours touristiques (type Airbnb) et immobilier longue durée/vente (type SeLoger). Modèle commission-only : Darna n'encaisse en ligne que ses frais de service (10 %), le loyer se règle 100 % sur place. V0 fonctionnelle : recherche translittérée, carte, réservation avec paiement des frais simulé, KYC mock, contrat de bail, indice des prix.
 
 ## Positionnement (révisé après comité d'investisseurs, juin 2026)
 
 - **Message principal : « Le logement vérifié. »** — pas « plateforme bivertical » (jargon interne, le client s'en fiche).
-- Promesse en trois temps : *Ce que vous voyez existe. Le prix affiché est le prix payé. Votre argent est protégé.*
+- Promesse en trois temps : *Ce que vous voyez existe. Le prix affiché est le prix payé. Zéro acompte au propriétaire.*
 - **L'actif défendable est le réseau Wakil** (agents de vérification terrain), pas l'app. Toute communication doit le rendre visible et concret.
 - **North-star metric : annonces vérifiées actives** (objectif : 500), pas les nuitées ni le GMV.
 
@@ -28,7 +28,7 @@ Darna (« notre maison » en tunisien) — plateforme de logement **vérifié** 
 
 - Badge « Vérifié Darna » = visite terrain par un Wakil (qui, quand).
 - Avis impossibles sans réservation confirmée (contrainte en base de données).
-- Séquestre : fonds versés à l'hôte 24 h après le check-in.
+- Zéro acompte au propriétaire : en ligne, on ne paie que les frais de réservation (remboursés si l'annonce n'est pas conforme) — jamais le loyer, réglé sur place, à l'arrivée.
 - Annonces expirées automatiquement à 30 jours — zéro annonce fantôme.
 - Prix 100 % transparents, zéro frais caché.
 

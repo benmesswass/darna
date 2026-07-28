@@ -313,7 +313,7 @@ poser `OBSERVABILITY_WEBHOOK_URL` en staging/prod.
 | L5.2 | Politiques d'annulation portées sur les FRAIS + écran admin « Remboursements dus » | P0 | ✅ PR #211 |
 | L5.3 | Garantie non-conformité : signalement < 24 h → remboursement des frais | P0 | ✅ PR #212 |
 | L5.4 | Garantie no-show hôte : indemnité 100 % des frais, plafonnée | P1 | ✅ PR #213 |
-| L5.5 | Refonte wording : « zéro acompte au propriétaire » (i18n ×3 + e-mails + CGU + README) | P0 | ❌ |
+| L5.5 | Refonte wording : « zéro acompte au propriétaire » (i18n ×3 + e-mails + CGU + README) | P0 | ✅ PR #214 |
 | L5.6 | ⛔ W4 — avis juridique (périmètre mis à jour, voir tableau ⛔) | P0 | ❌ 🧑 WASSIM |
 | L5.7 | Pédagogie hôte Rail 2 : contrat clair sur la facturation des 10 % + cadrage gagnant-gagnant | P0 | ❌ |
 | L5.8 | **Checklist d'impact commission-only** (balayage exhaustif, clôture du chantier L5) | P0 | ❌ |
@@ -468,7 +468,7 @@ hôte déclare un no-show sur une résa ESCROW confirmée → 190 TND crédités
 immédiatement, visibles sur `/dashboard/credits` — historique
 `INDEMNITE_NO_SHOW` — voyageur suspendu avec motif `BOOKING_NO_SHOW`).
 
-### L5.5 — Refonte wording : « Zéro acompte au propriétaire »
+### L5.5 — Refonte wording : « Zéro acompte au propriétaire » ✅ PR #214
 
 **Pourquoi** : `src/lib/i18n/fr.ts` promet aujourd'hui la garde des fonds
 (« Votre argent est protégé » l.31, « Darna le conserve … et ne le verse à
@@ -502,6 +502,27 @@ récap.
 conservés (grep exhaustif `séquestre|sequestre|protégé|conserve` sur les 3
 dictionnaires en fin de tâche) ; toucher aux clés `metadata`/SEO autrement
 que via `frMeta` (convention projet).
+
+**Implémenté** : les 4 greps de clôture de §L5.8 tournés vides (hors 2
+commentaires de code justifiés, dormants, décrivant le mécanisme `escrow`
+gardé inerte pour la V2 — `dashboard/reservations/page.tsx`,
+`dashboard/revenus/page.tsx`). `meta.description` (SEO, `frMeta`) corrigée
+dans `fr.ts` uniquement, conformément à la convention. Bug de correction
+adjacent découvert en balayant la page de paiement :
+`commissionNonRemboursable` décrivait encore l'ancien carve-out commission
+(`computeBookingRefund`, supprimé en §L5.2) au lieu du remboursement uniforme
+par palier de politique — renommée `remboursementFraisPolitique` et
+réécrite. E-mails de confirmation enrichis d'une répartition frais
+payés/solde cash/total (`booking.amountPaid` ajouté au payload, absent
+avant). CGU : nouvelle §5 « Remboursements et garanties » entre l'ancienne
+§4 et §5, renumérotation 5→9. Plusieurs clés dont le NOM restait
+« séquestre »/« versement » alors que leur VALEUR était déjà correcte ont
+été renommées par cohérence (`sequestreExplication`→
+`paiementFraisExplication`, `acompteSequestreInfo`→`contactRevelationInfo`,
+`revenusVersementPrevu`→`revenusAEncaisserLe`). Vérifié en conditions
+réelles (Playwright) : accueil (hero + bloc confiance « Zéro acompte au
+propriétaire »), CGU (§5 + renumérotation), `/diaspora`, badge
+« Confirmée — frais réglés » sur `/dashboard/reservations`.
 
 ### L5.7 — Pédagogie hôte Rail 2 : le contrat des 10 % doit être limpide (demande Wassim, 2026-07-27)
 
@@ -593,46 +614,58 @@ un barème non validé.
       rien à changer (le montant copie `serviceFee`, suit les 10 %). — L5.1
 
 **Code — UI (L5.1/L5.5)** :
-- [ ] `src/components/booking/DepositPayment.tsx` : plus de choix de montant —
-      un montant fixe (les frais) — **fait (PR #209)**. Reste à faire par
-      L5.5 : le bandeau de confiance « paiement protégé/séquestre » de la
-      page de paiement (`sequestreExplication`, `acompteSequestreInfo`)
-      n'a volontairement PAS été touché ici (texte, pas mécanique).
-- [ ] Page paiement `src/app/reservation/[id]/paiement` + `KonnectPayButton` —
-      partie L5.1 (montant fixe, `payAmount` retiré) **faite (PR #209)** ;
-      partie wording séquestre reste à L5.5.
+- [x] `src/components/booking/DepositPayment.tsx` : plus de choix de montant —
+      un montant fixe (les frais) — fait (PR #209). Bandeau de confiance
+      « paiement protégé/séquestre » de la page de paiement
+      (`sequestreExplication`→`paiementFraisExplication`,
+      `acompteSequestreInfo`→`contactRevelationInfo`, renommées + réécrites) et
+      `commissionNonRemboursable`→`remboursementFraisPolitique` (texte
+      corrigé : décrivait encore l'ancien carve-out commission supprimé en
+      §L5.2). — L5.5, PR #214
+- [x] Page paiement `src/app/reservation/[id]/paiement` + `KonnectPayButton` —
+      partie L5.1 (montant fixe, `payAmount` retiré) faite (PR #209) ; partie
+      wording séquestre réécrite. — L5.5, PR #214
 - [x] `src/components/property/PropertyCard.tsx` : importe `SERVICE_FEE_RATE`
       — vérifié, calcule déjà correctement sur le nouveau taux, aucun
       changement de code nécessaire. — L5.1
-- [ ] Récap de réservation : `aucunFraisCache` conservé, total sur place
-      affiché dès le premier écran.
+- [x] Récap de réservation : `aucunFraisCache` conservé (vérifié, toujours
+      affiché), total sur place affiché dès le premier écran
+      (`totalSejour`/`soldeArrivee`, inchangés depuis L5.1). — L5.5
 - [x] **`/dashboard/revenus` : respec complète** — « En attente de versement »
       / « Versé » resémantisés en loyer NET « à encaisser à l'arrivée » /
       « déjà encaissé » (statut CONFIRMEE/TERMINEE, plus l'escrow devenu sans
       objet) + ligne frais Darna déjà réglés. Bénéfice annexe : les
       réservations Rail 2 (jamais `EN_SEQUESTRE`) y apparaissent désormais. — L5.1, PR #209
-- [ ] Badges de statut réservation : « Confirmée — paiement protégé »
-      (`fr.ts` l.536) → « Confirmée — frais réglés » (équivalents en/ar).
-- [ ] `/diaspora` (l.1690), home hero + blocs confiance (l.31, 67-69),
-      page annonce (`sequestreExplication` l.1246-1252, l.1300, 1339, 1394).
-- [ ] `/combien-gagner` + Yield Advisor + simulateur (`market-simulator`) :
-      vérifier qu'aucun calcul n'affiche un « net de commission » — dans le
-      nouveau modèle l'hôte touche 100 % de son prix (les frais sont payés
-      par le voyageur au-dessus).
+      (clé `revenusVersementPrevu`→`revenusAEncaisserLe` renommée — L5.5, PR #214)
+- [x] Badges de statut réservation : « Confirmée — paiement protégé »
+      (`fr.ts` l.536) → « Confirmée — frais réglés » (équivalents en/ar). — L5.5, PR #214
+- [x] `/diaspora`, home hero + blocs confiance, page annonce
+      (`paiementFraisExplication`, `paiementTitre`, `paiementConfirmeDetail`,
+      `modeEscrowAide`). — L5.5, PR #214
+- [x] `/combien-gagner` + Yield Advisor + simulateur (`market-simulator`) :
+      vérifié — aucun calcul n'affiche de « net de commission », dans le
+      nouveau modèle l'hôte touche 100 % de son prix. — L5.5, PR #214
 
 **Contenus, e-mails, docs (L5.5/L5.7)** :
-- [ ] Les TROIS dictionnaires (`fr`/`en`/`ar`) : champ lexical
-      séquestre/protégé/conservé/versement — voir greps de clôture.
-- [ ] E-mails transactionnels (l.989, 1017) + `src/lib/notification-text.ts`.
-- [ ] CGU (l.1780-1813, clauses L5.5) + confidentialité (l.1801 « séquestre
-      simulé ») + `/cgu-hote` (L5.7).
-- [ ] **`CLAUDE.md` §« Paiement Konnect »** : décrit encore le flux séquestre
-      (settle du total, escrow) — réécrire pour commission-only, avec la V2
-      en note. §« Règles métier » à vérifier aussi.
-- [x] `README.md` — fait dans la PR #198 (séquestre retiré, modèle V1 décrit).
-- [ ] `.agents/product-marketing.md` : promesse séquestre → « zéro acompte au
-      propriétaire » (sinon les skills marketing rédigeront sur l'ancienne
-      promesse).
+- [x] Les TROIS dictionnaires (`fr`/`en`/`ar`) : champ lexical
+      séquestre/protégé/conservé/versement — greps de clôture vides. — L5.5, PR #214
+- [x] E-mails transactionnels (confirmation voyageur + nouvelle résa hôte,
+      réécrits avec répartition frais payés/solde cash/total) ;
+      `src/lib/notification-text.ts` vérifié — aucune mention séquestre. — L5.5, PR #214
+- [x] CGU : §4 réécrite (commission-only) + nouvelle §5 « Remboursements et
+      garanties » (remboursement des frais, garantie non-conformité, garantie
+      no-show, litige loyer bilatéral — sections renumérotées 5→9) ;
+      confidentialité vérifiée (aucune mention séquestre résiduelle). — L5.5,
+      PR #214. `/cgu-hote` reste à faire par **L5.7**.
+- [x] **`CLAUDE.md` §« Paiement Konnect »** : décrivait encore le flux séquestre
+      — réécrit pour commission-only (header + contenu), avec la V2 en note
+      explicite. §Stack (l.51, « Le séquestre a deux modes ») corrigé aussi. — L5.5, PR #214
+- [x] `README.md` — fait dans la PR #198 (séquestre retiré, modèle V1 décrit) ;
+      2 mentions résiduelles trouvées et corrigées en L5.5 (promesse 3 temps
+      « Votre argent est protégé », ligne « acompte minimum en ligne »). — PR #214
+- [x] `.agents/product-marketing.md` : promesse séquestre → « zéro acompte au
+      propriétaire » (3 mentions corrigées : produit V0, promesse 3 temps,
+      différenciateur « Séquestre » remplacé). — L5.5, PR #214
 - [ ] `PAIEMENT_SUR_PLACE_ROADMAP.md` §0 : décrit `max(10 % du total,
       serviceFee)` — ajouter la note « périmé depuis L5.1, acompte = frais ».
 - [ ] `CROISSANCE_ROADMAP.md` : plafonds/montants crédits documentés (30 % du
