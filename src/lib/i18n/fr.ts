@@ -1991,31 +1991,37 @@ export const fr = {
             "Données de compte : nom, adresse e-mail, numéro de téléphone, rôle (voyageur, hôte, agence).",
             "Données de vérification (KYC) : votre numéro de carte d'identité (CIN), conservé chiffré et jamais affiché en clair.",
             "Données d'usage et techniques : réservations, favoris, messages de contact, journaux de sécurité (adresse IP, horodatage) à des fins d'audit.",
+            "Données de mesure d'audience interne : pages vues, recherches effectuées, interactions avec le site, rattachées à un identifiant anonyme (cookie darna-vid) — jamais à votre nom tant que vous n'êtes pas connecté.",
           ],
         },
         {
           titre: "3. Finalités",
           corps: [
-            "Vos données servent à fournir le service (compte, recherche, réservation), à assurer la confiance et la sécurité (vérification, prévention de la fraude, audit) et à vous contacter au sujet de vos réservations.",
+            "Vos données servent à fournir le service (compte, recherche, réservation), à assurer la confiance et la sécurité (vérification, prévention de la fraude, audit), à vous contacter au sujet de vos réservations, et à mesurer l'usage du site pour l'améliorer (statistiques internes, jamais de profilage publicitaire).",
           ],
         },
         {
           titre: "4. Base légale",
           corps: [
-            "Le traitement repose sur l'exécution du contrat (fourniture du service), notre intérêt légitime (sécurité et prévention de la fraude), le respect d'obligations légales, et votre consentement lorsqu'il est requis (par exemple pour les cookies non essentiels).",
+            "Le traitement repose sur l'exécution du contrat (fourniture du service), notre intérêt légitime (sécurité, prévention de la fraude, mesure d'audience interne), et le respect d'obligations légales. La mesure d'audience (§5) relève du régime d'exemption de consentement de la CNIL : elle ne nécessite pas votre accord préalable car sa finalité est strictement limitée à un usage interne, sans croisement avec d'autres traitements ni transmission à un tiers.",
           ],
         },
         {
           titre: "5. Cookies",
           corps: [
-            "Darna n'utilise que des cookies strictement nécessaires : session de connexion, préférence de langue, préférence de devise, et mémorisation de votre choix de consentement. Aucun cookie publicitaire ni traceur tiers n'est utilisé pendant la phase de démonstration.",
-            "Vous pouvez à tout moment effacer les cookies depuis votre navigateur ; les cookies nécessaires sont indispensables au bon fonctionnement du service.",
+            "Cookies strictement nécessaires : session de connexion, préférence de langue, préférence de devise, mémorisation du fait que vous avez vu le bandeau d'information cookies. Indispensables au fonctionnement du service.",
+            "Cookie de mesure d'audience interne (darna-vid) : identifiant anonyme, durée de vie maximale 13 mois, utilisé uniquement pour mesurer l'usage du site (pages vues, recherches) à des fins statistiques internes — jamais de croisement avec d'autres sites, jamais transmis à un tiers, jamais publicitaire. Ce cookie relève du régime d'exemption CNIL et ne nécessite donc pas de consentement, conformément à la recommandation « Cookies et autres traceurs ».",
+            "Aucun cookie publicitaire ni traceur tiers n'est utilisé.",
           ],
         },
         {
           titre: "6. Conservation",
           corps: [
-            "Les données de compte sont conservées tant que votre compte est actif. Les journaux d'audit sont conservés pour une durée limitée à des fins de sécurité. Vos données sont supprimées ou anonymisées lorsqu'elles ne sont plus nécessaires.",
+            "Les données de compte sont conservées tant que votre compte est actif.",
+            "Les données de mesure d'audience (rattachées à darna-vid) sont conservées au maximum 25 mois à compter de leur collecte, conformément au régime d'exemption CNIL.",
+            "Les journaux d'audit (sécurité, prévention de la fraude) sont conservés 13 mois.",
+            "Les codes de vérification (SMS, e-mail) et jetons de réinitialisation de mot de passe sont supprimés dès leur expiration.",
+            "Purge automatisée et régulière, sans intervention manuelle (job de rétention, LANCEMENT_ROADMAP.md §L7.2).",
           ],
         },
         {
@@ -2035,12 +2041,11 @@ export const fr = {
     },
   },
   cookieConsent: {
-    titre: "Vos cookies, votre choix",
+    titre: "Vos cookies",
     message:
-      "Darna n'utilise que des cookies strictement nécessaires à son fonctionnement (connexion, langue, devise). Aucun traceur publicitaire.",
+      "Darna utilise des cookies strictement nécessaires à son fonctionnement (connexion, langue, devise) et un cookie de mesure d'audience interne, anonyme, sans traceur publicitaire ni partage avec des tiers.",
     enSavoirPlus: "En savoir plus",
     accepter: "J'ai compris",
-    refuser: "Continuer sans accepter",
   },
   notFound: {
     titre: "Page introuvable",

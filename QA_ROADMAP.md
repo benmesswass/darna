@@ -547,6 +547,26 @@ transaction** (`applySuspension` accepts a transactional client).
 | Audit trail | Successful claim | `NO_SHOW_INDEMNITY_CLAIMED` with `bookingId`/`guestId`/`indemnityAmount` | ✅ `no-show-indemnity.test.ts` | Demo |
 | Live end-to-end | Full flow: host claims on a confirmed ESCROW booking within the window → credit appears on `/dashboard/credits` → guest's account shows suspended | Verified live (Postgres local, Playwright, before/after screenshots) | ✅ see test report in the PR | Demo |
 
+### 6.9 Retention purge test suite (RGPD/CNIL, LANCEMENT_ROADMAP.md §L7.2)
+
+`purgeRetention` (`src/lib/jobs/retention-purge.ts`, registered in
+`src/lib/jobs/runner.ts`) makes the durations promised on `/confidentialite`
+real: `ProductEvent`/`PropertyView` (CNIL audience-measurement exemption,
+≤ 25 months) and `AuditLog` (security, ≥ 90 days required by
+`TODO-PRODUCTION.md`, 13 months applied) are purged on `createdAt`;
+`PasswordResetToken`/`OtpChallenge` are purged as soon as `expiresAt` has
+passed (no retention window to respect for single-use tokens). Each entity
+is purged in isolation, same pattern as `reconcileKonnectPayments`.
+
+| Scenario | Test to create | Expected guarantee | Status | Phase |
+|----------|----------------|---------------------|--------|-------|
+| Each entity purged on its own threshold | Run the job | `deleteMany` called with `createdAt < now - N days` (ProductEvent/PropertyView/AuditLog) or `expiresAt < now` (PasswordResetToken/OtpChallenge) | ✅ `jobs-retention-purge.test.ts` | Demo |
+| AuditLog window shorter than ProductEvent's | Compare the two computed thresholds | AuditLog's cutoff date is more recent (shorter retention) than ProductEvent's | ✅ `jobs-retention-purge.test.ts` | Demo |
+| Isolation | One entity's `deleteMany` throws | Other entities still purged; error reported to `captureError` with `{ entity, phase: "retention-purge" }` | ✅ `jobs-retention-purge.test.ts` | Demo |
+| Counts surfaced | Successful run | Summary object with a count per entity, surfaced in the job runner's aggregated `JOB_TICK` audit log | ✅ `jobs-retention-purge.test.ts` | Demo |
+| `darna-vid` lifetime | Middleware sets the cookie | `maxAge` ≤ 13 months (CNIL exemption regime requirement) | ✅ `middleware-visitor-cookie.test.ts` | Demo |
+| Cookie banner — no false choice | Render `CookieConsent` | Single acknowledgement button only, no "refuse" control that silently does nothing | ✅ code review (button removed, `tests/i18n-parity.test.ts` confirms the dead `refuser` key is gone from all 3 dictionaries) | Demo |
+
 ---
 
 ## 7. Auth test suite

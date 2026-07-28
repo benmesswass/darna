@@ -48,4 +48,16 @@ describe("middleware — cookie visiteur darna-vid", () => {
 
     expect(res.cookies.get(VISITOR_COOKIE)?.httpOnly).toBe(true);
   });
+
+  // LANCEMENT_ROADMAP.md §L7.1 — régime d'exemption CNIL "mesure d'audience" :
+  // durée de vie du cookie identifiant ≤ 13 mois, sans quoi l'exemption de
+  // consentement ne s'applique plus (il faudrait alors un vrai bandeau de
+  // consentement bloquant).
+  it("dure au maximum 13 mois (régime d'exemption CNIL mesure d'audience)", () => {
+    const req = new NextRequest("http://localhost/sejours");
+    const res = middleware(req);
+
+    const THIRTEEN_MONTHS_SECONDS = 13 * 31 * 24 * 60 * 60; // borne large (mois de 31 j)
+    expect(res.cookies.get(VISITOR_COOKIE)?.maxAge).toBeLessThanOrEqual(THIRTEEN_MONTHS_SECONDS);
+  });
 });

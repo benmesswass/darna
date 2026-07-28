@@ -835,8 +835,8 @@ le filet `?konnect=success`). Rapport + captures obligatoires.
 
 | # | Tâche | Prio | Statut |
 |---|---|---|---|
-| L7.1 | Mise en conformité `darna-vid` (régime « exemption mesure d'audience » CNIL) | P1 | ❌ |
-| L7.2 | Purges de rétention automatisées (job L3) | P1 | ❌ (dépend L3.1) |
+| L7.1 | Mise en conformité `darna-vid` (régime « exemption mesure d'audience » CNIL) | P1 | ✅ PR #218 |
+| L7.2 | Purges de rétention automatisées (job L3) | P1 | ✅ PR #218 |
 | L7.3 | Export des données + suppression de compte | P1 | ❌ |
 
 **Pourquoi** : cible marketing n°1 = diaspora **France** = utilisateurs
@@ -868,6 +868,25 @@ les respecte largement) ; purge `PropertyView` > 13 mois (la dédup de
 `viewCount` perd juste sa mémoire au-delà — acceptable, décision actée) ;
 purge `PasswordResetToken`/`OtpChallenge` expirés. Tests d'idempotence.
 Cocher les lignes correspondantes de `QA_ROADMAP.md`/`TODO-PRODUCTION.md`.
+
+**Implémenté (L7.1+L7.2 livrées ensemble — indissociables : la page
+confidentialité aurait fait une promesse non tenue sans le job qui la rend
+vraie, exactement le défaut du bandeau « Refuser » corrigé ici)** :
+`darna-vid` déjà à 365 j (`src/middleware.ts`, vérifié conforme ≤ 13 mois,
+test de régression ajouté). `CookieConsent.tsx` : bandeau informatif à bouton
+unique (« Refuser » retiré — il ne changeait jamais rien, cf. grep : aucun
+lecteur du cookie de consentement dans tout le code), clé i18n `refuser`
+supprimée des 3 dictionnaires. `/confidentialite` réécrite (§2 Données
+collectées, §3 Finalités, §4 Base légale, §5 Cookies, §6 Conservation) pour
+distinguer explicitement cookies strictement nécessaires vs mesure d'audience
+exemptée (CNIL), avec durées réelles. Nouveau job `retention-purge`
+(`src/lib/jobs/retention-purge.ts`, enregistré dans le runner §L3.1) :
+`ProductEvent` 25 mois, `PropertyView` 13 mois (décision produit, pas une
+contrainte CNIL — la dédup de `viewCount` n'a pas besoin de plus),
+`AuditLog` 13 mois (régime sécurité distinct, ≥ 90 j TODO-PRODUCTION
+largement respectés), `PasswordResetToken`/`OtpChallenge` purgés dès
+expiration — chaque entité isolée (une erreur n'empêche pas les autres).
+`QA_ROADMAP.md` §6.9 ajoutée. — L7.1+L7.2, PR #218
 
 **L7.3** : server action « Exporter mes données » (JSON : profil, annonces,
 réservations, avis, messages envoyés, mouvements de crédits — PAS les données
