@@ -282,6 +282,48 @@ export async function sendNewMessageEmail(messageId: string): Promise<void> {
 }
 
 /**
+ * E-mail envoyé à la GÉNÉRATION d'une HostInvoice — au moment où l'hôte
+ * accepte une demande de réservation Rail 2 (LANCEMENT_ROADMAP.md §L5.7,
+ * `acceptCashBookingAction`). Distinct des rappels (avant échéance / retard) :
+ * celui-ci part une seule fois, dès que la facture existe.
+ */
+export async function sendHostInvoiceGeneratedEmail(invoiceId: string): Promise<void> {
+  try {
+    const invoice = await prisma.hostInvoice.findUnique({
+      where: { id: invoiceId },
+      select: {
+        amount: true,
+        dueAt: true,
+        host: { select: { name: true, email: true } },
+        booking: { select: { property: { select: { title: true } } } },
+      },
+    });
+
+    if (!invoice) {
+      logStructured("warn", "notif.host_invoice_generated_not_found", { invoiceId });
+      return;
+    }
+
+    await sendEmail({
+      to: invoice.host.email,
+      subject: frMail.email.hostInvoiceGeneratedSujet(invoice.booking.property.title),
+      html: frMail.email.hostInvoiceGeneratedHtml({
+        hostName: invoice.host.name,
+        propertyTitle: invoice.booking.property.title,
+        amount: formatTndServer(invoice.amount),
+        dueDate: formatDateFr(invoice.dueAt),
+        url: `${SITE_URL}/dashboard/factures/${invoiceId}`,
+      }),
+    });
+  } catch (err) {
+    logStructured("error", "notif.host_invoice_generated_failed", {
+      invoiceId,
+      error: (err as Error).message,
+    });
+  }
+}
+
+/**
  * Relance MANUELLE (dashboard admin factures — PAIEMENT_SUR_PLACE_ROADMAP.md
  * §PSP8) d'un hôte pour une HostInvoice impayée. Déclenchée par un admin,
  * jamais par un job planifié.

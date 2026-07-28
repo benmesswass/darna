@@ -21,7 +21,10 @@ vi.mock("@/lib/prisma", () => ({
   },
 }));
 vi.mock("@/lib/session", () => ({ requireUser: vi.fn() }));
-vi.mock("@/lib/notifications", () => ({ sendBookingConfirmationEmail: vi.fn() }));
+vi.mock("@/lib/notifications", () => ({
+  sendBookingConfirmationEmail: vi.fn(),
+  sendHostInvoiceGeneratedEmail: vi.fn(),
+}));
 vi.mock("@/lib/host-invoicing", () => ({ hasOverdueHostInvoice: vi.fn(() => false) }));
 vi.mock("@/lib/notification-center", () => ({
   notifyBookingConfirmed: vi.fn(),
@@ -69,6 +72,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { applySuspension } from "@/lib/suspension";
+import { sendHostInvoiceGeneratedEmail } from "@/lib/notifications";
 
 const propertyFindUnique = prisma.property.findUnique as unknown as Mock;
 const bookingFindUnique = prisma.booking.findUnique as unknown as Mock;
@@ -78,6 +82,7 @@ const hostInvoiceCreate = prisma.hostInvoice.create as unknown as Mock;
 const txRun = prisma.$transaction as unknown as Mock;
 const requireUserMock = requireUser as unknown as Mock;
 const applySuspensionMock = applySuspension as unknown as Mock;
+const sendHostInvoiceGeneratedEmailMock = sendHostInvoiceGeneratedEmail as unknown as Mock;
 
 const DAY = 24 * 60 * 60 * 1000;
 const GUEST_ID = "guest-1";
@@ -205,7 +210,7 @@ describe("acceptCashBookingAction — IDOR + génération HostInvoice", () => {
     requireUserMock.mockResolvedValue({ id: OWNER_ID });
     bookingFindUnique.mockResolvedValue(pendingBooking(OWNER_ID));
     bookingUpdate.mockResolvedValue({});
-    hostInvoiceCreate.mockResolvedValue({});
+    hostInvoiceCreate.mockResolvedValue({ id: "invoice-1" });
     txRun.mockImplementation(async (ops: unknown[]) => Promise.all(ops));
 
     const result = await acceptCashBookingAction(undefined, idForm());
@@ -230,6 +235,9 @@ describe("acceptCashBookingAction — IDOR + génération HostInvoice", () => {
         }),
       })
     );
+    // §L5.7 — l'e-mail « nouvelle facture » part une seule fois, avec l'id de
+    // la HostInvoice créée dans la même transaction.
+    expect(sendHostInvoiceGeneratedEmailMock).toHaveBeenCalledWith("invoice-1");
   });
 
   it("refuse d'accepter une demande déjà traitée (statut différent)", async () => {

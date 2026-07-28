@@ -25,6 +25,7 @@ import {
   SITE_URL,
 } from "@/lib/config";
 import { logAudit, logStructured } from "@/lib/audit";
+import { logProductEvent } from "@/lib/product-events";
 import { initKonnectPayment, isKonnectEnabled, signKonnectWebhook } from "@/lib/konnect";
 import {
   MAX_PHOTOS_PER_PROPERTY,
@@ -222,6 +223,14 @@ export async function createPropertyAction(
     metadata: { propertyId: property.id, type: data.type, city: cityRef.name },
   });
 
+  if (cashPayment.cashTermsAcceptedAt) {
+    void logProductEvent({
+      event: "CASH_PAYMENT_ENABLED",
+      userId: user.id,
+      metadata: { propertyId: property.id },
+    });
+  }
+
   // Fire-and-forget — ne bloque pas la redirection
   void notifyAdmins("NEW_PROPERTY", {
     title: data.title,
@@ -377,6 +386,14 @@ export async function updatePropertyAction(
     success: true,
     metadata: { propertyId: property.id },
   });
+
+  if (cashPayment.cashTermsAcceptedAt) {
+    void logProductEvent({
+      event: "CASH_PAYMENT_ENABLED",
+      userId: user.id,
+      metadata: { propertyId: property.id },
+    });
+  }
 
   revalidatePath("/dashboard/annonces");
   revalidatePath(`/annonce/${property.slug}`);

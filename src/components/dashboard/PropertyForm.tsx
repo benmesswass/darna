@@ -408,6 +408,26 @@ export function PropertyForm({
 
       {type === "SEJOUR" ? (
         <fieldset className="space-y-3 rounded-2xl bg-cream/50 p-4 ring-1 ring-darna/15">
+          {!wasCashPaymentEnabled ? (
+            <div className="rounded-xl bg-surface p-3.5 ring-1 ring-darna/10">
+              <p className="text-xs font-bold text-heading">
+                {fr.annonceForm.cashPaymentExplicationTitre}
+              </p>
+              <div className="mt-2.5 grid gap-2.5 sm:grid-cols-2">
+                {[
+                  [fr.annonceForm.cashPaymentBloc1Titre, fr.annonceForm.cashPaymentBloc1Desc],
+                  [fr.annonceForm.cashPaymentBloc2Titre, fr.annonceForm.cashPaymentBloc2Desc],
+                  [fr.annonceForm.cashPaymentBloc3Titre, fr.annonceForm.cashPaymentBloc3Desc],
+                  [fr.annonceForm.cashPaymentBloc4Titre, fr.annonceForm.cashPaymentBloc4Desc],
+                ].map(([titre, desc], i) => (
+                  <div key={i} className="rounded-lg bg-cream/70 p-2.5">
+                    <p className="text-xs font-semibold text-heading">{titre}</p>
+                    <p className="mt-0.5 text-[11px] leading-relaxed text-body/60">{desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
           <label className="flex cursor-pointer items-start gap-2.5">
             <input
               type="checkbox"

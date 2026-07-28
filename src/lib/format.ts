@@ -30,6 +30,12 @@ export function formatDateShortFr(date: Date): string {
   }).format(date);
 }
 
+/** Libellé "Mois année" capitalisé — regroupement des factures par mois. */
+export function formatMonthYearFr(date: Date): string {
+  const label = new Intl.DateTimeFormat("fr-FR", { month: "long", year: "numeric" }).format(date);
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
 /**
  * Formate un temps restant (en millisecondes) en `mm:ss` borné à zéro.
  * Sert au compte à rebours du hold de réservation (HoldCountdown). Au-delà de

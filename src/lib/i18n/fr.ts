@@ -708,6 +708,19 @@ export const fr = {
     cashTermsPrefix: "J'ai lu et j'accepte les",
     cashTermsRequise:
       "Vous devez accepter les CGU hôte pour activer le paiement sur place.",
+    cashPaymentExplicationTitre: "Avant d'activer le paiement sur place",
+    cashPaymentBloc1Titre: "Comment vous êtes payé",
+    cashPaymentBloc1Desc:
+      "Le voyageur vous règle tout en espèces à l'arrivée : le loyer et les frais de service Darna (10 %) inclus dans son total.",
+    cashPaymentBloc2Titre: "Comment vous nous payez",
+    cashPaymentBloc2Desc:
+      "Une facture de 10 % est générée par réservation terminée, payable en ligne en 2 minutes (carte, e-DINAR, Flouci) depuis « Mes factures », sous 14 jours.",
+    cashPaymentBloc3Titre: "Si vous ne payez pas",
+    cashPaymentBloc3Desc:
+      "Des rappels automatiques vous sont envoyés, puis vos annonces sont masquées des recherches jusqu'au règlement — et votre compte peut être suspendu.",
+    cashPaymentBloc4Titre: "Pourquoi c'est gagnant-gagnant",
+    cashPaymentBloc4Desc:
+      "Chaque réservation via Darna vous apporte un voyageur à l'identité vérifiée, un avis authentique impossible à obtenir hors plateforme, le badge Vérifié, la garantie anti-no-show, et l'accès aux voyageurs de la diaspora.",
   },
   kyc: {
     titre: "Vérification d'identité (KYC)",
@@ -1097,6 +1110,21 @@ export const fr = {
         : `<p>Aucun montant n'avait été réglé en ligne : vous n'avez rien à récupérer.</p>`) +
       `<p>Nous vous avons préparé des logements de remplacement disponibles sur vos dates, avec une réduction sur votre prochaine réservation :</p>` +
       `<p><a href="${p.url}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">Voir les logements de remplacement</a></p>` +
+      `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Le logement vérifié.</p>` +
+      `</div>`,
+    hostInvoiceGeneratedSujet: (titre: string) =>
+      `Darna — nouvelle facture de commission (${titre})`,
+    hostInvoiceGeneratedHtml: (p: { hostName: string; propertyTitle: string; amount: string; dueDate: string; url: string }) =>
+      `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
+      `<h1 style="color:#0f4c7c;font-size:20px">Nouvelle facture de commission</h1>` +
+      `<p>Bonjour ${p.hostName},</p>` +
+      `<p>Votre réservation « <strong>${p.propertyTitle}</strong> » (paiement sur place) est confirmée : la commission Darna de 10 % correspondant à cette réservation est à présent facturée.</p>` +
+      `<table style="width:100%;border-collapse:collapse;margin:16px 0">` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Montant dû</td><td style="padding:6px 0;text-align:right;font-weight:700;color:#0f4c7c">${p.amount}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">À régler avant le</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.dueDate}</td></tr>` +
+      `</table>` +
+      `<p><a href="${p.url}" style="display:inline-block;background:#0f4c7c;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">Régler la facture</a></p>` +
+      `<p style="font-size:13px;color:#6b7280;margin-top:16px">Cette commission finance la vérification d'identité, les avis authentiques et la garantie anti-no-show qui font la réputation de vos annonces.</p>` +
       `<p style="font-size:12px;color:#9ca3af;margin-top:24px">Darna — Le logement vérifié.</p>` +
       `</div>`,
     hostInvoiceReminderSujet: (titre: string) =>
@@ -1825,20 +1853,21 @@ export const fr = {
         {
           titre: "2. Commission Darna",
           corps: [
-            "Une commission, au même taux que le mode de paiement en ligne standard, reste due à Darna pour chaque réservation acceptée sur ce mode.",
-            "Cette commission ne transite jamais par la plateforme : elle vous est facturée séparément après l'acceptation de la réservation.",
+            "Une commission de 10 % du montant total de la réservation reste due à Darna pour chaque réservation acceptée sur ce mode — le même taux que sur le mode de paiement en ligne standard.",
+            "Le loyer, réglé en espèces directement par le voyageur, ne transite jamais par Darna. La commission, elle, vous est facturée séparément après l'acceptation de la réservation : elle transite par Darna au moment de son paiement en ligne.",
           ],
         },
         {
           titre: "3. Facturation et paiement",
           corps: [
-            "Une facture est générée à l'acceptation de la réservation, avec un délai de paiement indiqué sur celle-ci. Vous la réglez en ligne, en un clic, depuis votre tableau de bord.",
+            "Une facture est générée dès l'acceptation de la réservation, avec un délai de paiement de 14 jours à compter de la date de fin de séjour. Vous la réglez en ligne, en un clic, depuis votre tableau de bord (« Mes factures »).",
           ],
         },
         {
           titre: "4. Non-paiement",
           corps: [
-            "Si une facture n'est pas réglée dans le délai indiqué, vos annonces sont masquées des résultats de recherche jusqu'à régularisation. Elles redeviennent visibles immédiatement après paiement.",
+            "Des rappels automatiques vous sont envoyés à l'approche de l'échéance, puis en cas de retard. Si la facture reste impayée au-delà du délai indiqué, vos annonces sont masquées des résultats de recherche jusqu'à régularisation — elles redeviennent visibles immédiatement après paiement.",
+            "En cas de facture impayée, Darna peut également suspendre votre compte.",
           ],
         },
         {
@@ -2075,6 +2104,14 @@ export const fr = {
     statutEnRetard: "En retard",
     vide: "Aucune facture pour le moment.",
     voirFacture: "Voir la facture",
+    explicationTitre: "Comment fonctionne la commission Darna",
+    explicationPoints: [
+      "Le voyageur vous règle tout à l'arrivée : loyer et frais Darna (10 %) inclus.",
+      "Une facture de 10 % par réservation terminée, payable en ligne sous 14 jours.",
+      "Passé ce délai : rappels automatiques, puis masquage de vos annonces jusqu'au règlement.",
+      "En échange : voyageurs à l'identité vérifiée, avis authentiques, badge Vérifié, garantie anti-no-show.",
+    ],
+    totalMois: "Total du mois",
   },
   credits: {
     titre: "Mes crédits",
