@@ -837,7 +837,7 @@ le filet `?konnect=success`). Rapport + captures obligatoires.
 |---|---|---|---|
 | L7.1 | Mise en conformité `darna-vid` (régime « exemption mesure d'audience » CNIL) | P1 | ✅ PR #218 |
 | L7.2 | Purges de rétention automatisées (job L3) | P1 | ✅ PR #218 |
-| L7.3 | Export des données + suppression de compte | P1 | ✅ export PR #219, suppression PR #TBD |
+| L7.3 | Export des données + suppression de compte | P1 | ✅ export PR #219, suppression PR #220 |
 
 **Pourquoi** : cible marketing n°1 = diaspora **France** = utilisateurs
 RGPD/CNIL. Or le bandeau actuel (`src/components/legal/CookieConsent.tsx`)
@@ -917,7 +917,7 @@ chaque `onDelete` du schéma, qui a confirmé que `Booking.guestId` et
 supprimant son compte aurait sinon effacé, en cascade transitive, les
 factures de commission d'un HÔTE) : **anonymiser plutôt que supprimer**.
 
-**Implémenté — suppression (PR #TBD)** : implémentation plus simple que les 3
+**Implémenté — suppression (PR #220)** : implémentation plus simple que les 3
 options envisagées ci-dessus — **jamais de `prisma.user.delete()`**.
 `deleteAccountAction` (`src/actions/profile.ts`) fait un scrub en place de la
 ligne `User` existante (name/email/phone/image/cin/cinHash → valeurs
