@@ -52,6 +52,18 @@ export default async function ProfilPage() {
         </section>
 
         <ProfileForm name={user.name} email={user.email} phone={user.phone} />
+
+        <section className="rounded-3xl bg-surface p-6 ring-1 ring-darna/10">
+          <h3 className="text-sm font-bold text-heading">{fr.profil.donneesTitre}</h3>
+          <p className="mt-1 text-sm text-body/60">{fr.profil.donneesSousTitre}</p>
+          <a
+            href="/api/account/export"
+            className="mt-4 inline-block rounded-xl border border-darna/20 px-4 py-2 text-sm font-semibold text-heading transition hover:bg-darna hover:text-white"
+          >
+            {fr.profil.donneesExporter}
+          </a>
+          <p className="mt-2 text-xs text-body/45">{fr.profil.donneesExporterAide}</p>
+        </section>
       </div>
     </div>
   );

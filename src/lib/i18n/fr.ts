@@ -1278,6 +1278,12 @@ export const fr = {
     mdpActuelInvalide: "Mot de passe actuel incorrect.",
     mdpConfirmationInvalide: "Les deux mots de passe ne correspondent pas.",
     mdpIdentique: "Le nouveau mot de passe doit être différent de l'actuel.",
+    donneesTitre: "Vos données",
+    donneesSousTitre:
+      "Conformément au RGPD, vous pouvez exporter une copie de vos données à tout moment.",
+    donneesExporter: "Exporter mes données (JSON)",
+    donneesExporterAide:
+      "Profil, annonces, réservations, avis, messages, mouvements de crédits — jamais les données d'autrui au-delà du strict nécessaire.",
   },
   yieldAdvisor: {
     titre: "Yield Advisor",
