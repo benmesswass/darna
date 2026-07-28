@@ -80,6 +80,13 @@ model User {
   // aux abonnements AGENCE).
   superHostBoostClaimedAt DateTime?
   createdAt               DateTime  @default(now())
+  // Suppression de compte (LANCEMENT_ROADMAP.md §L7.3) : ANONYMISATION en
+  // place, jamais un vrai DELETE — name/email/phone/image/cin/cinHash sont
+  // scrubbés et passwordHash + tokenVersion invalidés, mais la ligne survit
+  // pour que Booking/HostInvoice/Review (historique comptable/avis d'un
+  // hôte, par ex.) restent intacts. `deletedAt` distingue un compte
+  // réellement supprimé d'un profil normal nommé « Utilisateur supprimé ».
+  deletedAt               DateTime?
 
   properties                       Property[]
   bookings                         Booking[]

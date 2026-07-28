@@ -1,11 +1,13 @@
 "use server";
 
 import bcrypt from "bcryptjs";
+import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
+import { signOut } from "@/lib/auth";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { logAudit } from "@/lib/audit";
 import { deleteUploadedImage, saveUploadedImage } from "@/lib/uploads";
@@ -208,4 +210,97 @@ export async function changePasswordAction(
   });
 
   return { success: fr.profil.mdpEnregistre };
+}
+
+/**
+ * Suppression de compte (LANCEMENT_ROADMAP.md §L7.3) — ANONYMISATION en
+ * place, jamais un `prisma.user.delete()` : Booking/HostInvoice/Review
+ * gardent leur ligne (l'historique comptable d'un HÔTE ne doit pas
+ * disparaître parce qu'un voyageur supprime son compte, décision explicite
+ * de Wassim). name/email/phone/image/cin/cinHash sont scrubbés,
+ * passwordHash + tokenVersion invalidés (même mécanisme que
+ * changePasswordAction — un JWT existant est rejeté au prochain
+ * getSessionUser()), `deletedAt` posé. Les annonces actives sont retirées de
+ * la recherche via `expiresAt` (mécanisme d'expiration EXISTANT, jamais un
+ * nouveau statut — cf. activeListingWhere()).
+ */
+const deleteAccountSchema = z.object({ password: z.string().min(1) });
+
+export async function deleteAccountAction(
+  _prev: ProfileFormState,
+  formData: FormData
+): Promise<ProfileFormState> {
+  const fr = await getT();
+  const user = await requireUser();
+
+  if (!(await assertRateLimit("delete-account"))) {
+    return { error: fr.common.tropDeTentatives };
+  }
+
+  const parsed = deleteAccountSchema.safeParse({ password: formData.get("password") });
+  if (!parsed.success) return { error: fr.profil.supprimerMdpRequis };
+
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { passwordHash: true, image: true },
+  });
+  if (!dbUser) return { error: fr.common.erreurInconnue };
+
+  const ok = await bcrypt.compare(parsed.data.password, dbUser.passwordHash);
+  if (!ok) {
+    await logAudit({
+      action: "ACCOUNT_DELETED",
+      userId: user.id,
+      success: false,
+      metadata: { reason: "wrong_password" },
+    });
+    return { error: fr.profil.mdpActuelInvalide };
+  }
+
+  // Blocage : toute réservation encore active (voyageur OU hôte via ses
+  // annonces) doit être annulée/terminée avant de pouvoir supprimer le
+  // compte — jamais une contrepartie qui se retrouve sans interlocuteur.
+  const activeBooking = await prisma.booking.findFirst({
+    where: {
+      OR: [{ guestId: user.id }, { property: { ownerId: user.id } }],
+      status: { notIn: ["ANNULEE", "TERMINEE"] },
+    },
+    select: { id: true },
+  });
+  if (activeBooking) return { error: fr.profil.supprimerReservationActive };
+
+  const placeholderEmail = `deleted-${randomUUID()}@darna.invalid`;
+  const unusablePasswordHash = await bcrypt.hash(randomUUID(), 12);
+
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: user.id },
+      data: {
+        name: "Utilisateur supprimé",
+        email: placeholderEmail,
+        phone: null,
+        image: null,
+        cin: null,
+        cinHash: null,
+        kycStatus: "NON_VERIFIE",
+        passwordHash: unusablePasswordHash,
+        deletedAt: new Date(),
+        tokenVersion: { increment: 1 },
+      },
+    }),
+    // Retire les annonces de la recherche/sitemap via le mécanisme
+    // d'expiration EXISTANT (activeListingWhere() filtre déjà expiresAt) —
+    // jamais un nouveau statut, jamais une suppression des lignes.
+    prisma.property.updateMany({
+      where: { ownerId: user.id, expiresAt: { gt: new Date() } },
+      data: { expiresAt: new Date() },
+    }),
+  ]);
+
+  if (dbUser.image) await deleteUploadedImage(dbUser.image);
+
+  await logAudit({ action: "ACCOUNT_DELETED", userId: user.id, success: true });
+
+  revalidatePath("/dashboard/annonces");
+  await signOut({ redirectTo: "/" });
 }

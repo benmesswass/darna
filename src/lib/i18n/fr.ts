@@ -1284,6 +1284,15 @@ export const fr = {
     donneesExporter: "Exporter mes données (JSON)",
     donneesExporterAide:
       "Profil, annonces, réservations, avis, messages, mouvements de crédits — jamais les données d'autrui au-delà du strict nécessaire.",
+    supprimerTitre: "Supprimer mon compte",
+    supprimerAide:
+      "Action définitive : votre nom, e-mail, téléphone et photo sont effacés et vous êtes déconnecté. Vos réservations et avis passés restent visibles (anonymisés) pour respecter l'historique de vos interlocuteurs.",
+    supprimerBouton: "Supprimer mon compte",
+    supprimerConfirmer: "Confirmer la suppression définitive",
+    supprimerAnnuler: "Annuler",
+    supprimerMdpRequis: "Mot de passe requis.",
+    supprimerReservationActive:
+      "Vous avez une réservation active (voyageur ou hôte). Attendez qu'elle soit terminée ou annulée avant de supprimer votre compte.",
   },
   yieldAdvisor: {
     titre: "Yield Advisor",
@@ -2040,6 +2049,8 @@ export const fr = {
           titre: "8. Vos droits",
           corps: [
             "Conformément au RGPD, vous disposez d'un droit d'accès, de rectification, d'effacement, de limitation et d'opposition au traitement de vos données, ainsi que d'un droit à la portabilité. Pour exercer ces droits, contactez : privacy@darna.tn.",
+            "Vous pouvez télécharger à tout moment une copie de vos données (profil, annonces, réservations, avis, messages, mouvements de crédits) au format JSON depuis votre espace « Profil ».",
+            "Vous pouvez également supprimer votre compte depuis votre espace « Profil ». Votre nom, e-mail, téléphone et photo sont alors définitivement effacés. Par exception au droit à l'effacement (RGPD, art. 17§3), les données liées à une réservation ou une facture déjà émise sont conservées sous forme anonymisée plutôt que supprimées, afin de préserver les droits légitimes d'un autre utilisateur (par exemple l'historique comptable d'un hôte).",
             "Vous pouvez également introduire une réclamation auprès de l'autorité de protection des données compétente.",
           ],
         },
