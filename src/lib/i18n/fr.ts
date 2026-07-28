@@ -551,6 +551,9 @@ export const fr = {
     noShowAnnuler: "Revenir",
     noShowAvertissement:
       "Ne confirmez que si le voyageur ne s'est réellement pas présenté — cette action suspend son compte.",
+    signalerNoShowIndemnite: "Signaler un no-show (indemnisé)",
+    noShowIndemniteAvertissement:
+      "Ne confirmez que si le voyageur ne s'est réellement pas présenté — vous serez indemnisé en crédits Darna et son compte sera suspendu.",
     annulerReservationHote: "Annuler cette réservation",
     hostCancelModalTitre: "Annuler cette réservation ?",
     hostCancelAvertissementHumain:
@@ -1409,6 +1412,12 @@ export const fr = {
       "Ce signalement n'est disponible que dans les 24 h suivant votre arrivée.",
     signalementDejaEnvoye: "Un signalement a déjà été déposé pour cette réservation.",
     signalementEnvoye: "Signalement envoyé — notre équipe l'examine.",
+    noShowIndemnitePlafondAtteint:
+      "Vous avez atteint le nombre maximum d'indemnités no-show pour ce mois.",
+    noShowIndemniteVersee: (montant: number) =>
+      montant > 0
+        ? `No-show déclaré — ${montant} TND crédités sur votre compte Darna.`
+        : "No-show déclaré.",
     cashConfirmeeDetail:
       "L'hôte a accepté votre demande. Réglez le montant total en espèces à votre arrivée — l'hôte a été notifié.",
   },

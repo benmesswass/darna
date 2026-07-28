@@ -563,6 +563,9 @@ export const ar: Dictionary = {
     noShowAnnuler: "ارجع",
     noShowAvertissement:
       "أكّد غير إذا المسافر ماجاش بالفعل — هالإجراء يعلّق حساباتو.",
+    signalerNoShowIndemnite: "بلّغ على غياب المسافر (بتعويض)",
+    noShowIndemniteAvertissement:
+      "أكّد غير إذا المسافر ماجاش بالفعل — باش تتعوّض بكريدي دارنا وحسابه باش يتعلّق.",
     annulerReservationHote: "لغي الحجز هذا",
     hostCancelModalTitre: "تلغي الحجز هذا ؟",
     hostCancelAvertissementHumain:
@@ -1399,6 +1402,11 @@ export const ar: Dictionary = {
     signalementIndisponible: "هالتبليغ متاح غير في الـ24 ساعة اللي تجي بعد وصولك.",
     signalementDejaEnvoye: "فما تبليغ اتبعث لهالحجز من قبل.",
     signalementEnvoye: "التبليغ اتبعث — الفريق متاعنا باش يفحصو.",
+    noShowIndemnitePlafondAtteint: "وصلت للعدد الأقصى متاع التعويضات على الغياب لهالشهر.",
+    noShowIndemniteVersee: (montant: number) =>
+      montant > 0
+        ? `الغياب اتبلّغ عليه — ${montant} دينار تزادوا لحسابك متاع دارنا.`
+        : "الغياب اتبلّغ عليه.",
     cashConfirmeeDetail:
       "المالك قبل طلبك. خلّص المبلغ الكامل كاش وقت وصولك — المالك تعلّم بالخبر.",
   },

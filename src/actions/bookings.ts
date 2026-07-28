@@ -12,6 +12,8 @@ import {
   SITE_URL,
   HOST_INVOICE_DUE_DAYS,
   NON_CONFORMITY_REPORT_WINDOW_HOURS,
+  NO_SHOW_INDEMNITY_WINDOW_HOURS,
+  NO_SHOW_INDEMNITY_MONTHLY_CAP,
   computeDepositAmount,
   hostCancelBlockDays,
 } from "@/lib/config";
@@ -30,7 +32,13 @@ import {
   computeRebookingDiscount,
   isRebookingDiscountValid,
 } from "@/lib/rebooking-discount";
-import { computeCreditApplication, creditBalance, refundCreditForBooking, spendCredit } from "@/lib/credits";
+import {
+  computeCreditApplication,
+  creditBalance,
+  issueCredit,
+  refundCreditForBooking,
+  spendCredit,
+} from "@/lib/credits";
 import { initKonnectPayment, isKonnectEnabled, signKonnectWebhook } from "@/lib/konnect";
 import { hasOverdueHostInvoice } from "@/lib/host-invoicing";
 import {
@@ -1480,4 +1488,116 @@ export async function reportNonConformityAction(
 
   revalidatePath("/dashboard/reservations");
   return { success: fr.booking.signalementEnvoye };
+}
+
+export type NoShowIndemnityState = { error?: string; success?: string } | undefined;
+
+const noShowIndemnitySchema = z.object({ bookingId: z.string().cuid() });
+
+/**
+ * Garantie no-show hôte (LANCEMENT_ROADMAP.md §L5.4) — DISTINCTE de
+ * reportNoShowAction (Rail 2 SUR_PLACE, sans indemnité : rien n'est encaissé
+ * en ligne sur ce rail pour la financer). Ici, rail ESCROW uniquement :
+ * l'hôte déclare un no-show voyageur entre `checkIn` et
+ * `checkIn + NO_SHOW_INDEMNITY_WINDOW_HOURS`, et reçoit une indemnité en
+ * crédits Darna = 100 % des frais réellement encaissés sur CETTE réservation
+ * — sur le REVENU PROPRE de Darna, jamais l'argent du voyageur (c'est ce qui
+ * rend le mécanisme légalement anodin : une indemnité contractuelle, pas un
+ * transfert de fonds de tiers). Plafonné à
+ * `NO_SHOW_INDEMNITY_MONTHLY_CAP` réclamations par hôte par mois glissant.
+ *
+ * Idempotence : `Booking.noShowIndemnityClaimedAt`, PAS le statut — un statut
+ * CONFIRMEE→TERMINEE peut aussi survenir via la complétion paresseuse normale
+ * d'un séjour (completeElapsedBookings) DANS la même fenêtre de 48 h pour un
+ * court séjour, sans rapport avec un no-show ; s'appuyer sur le statut seul
+ * bloquerait alors à tort une réclamation légitime. Réclamation (claim) ET
+ * crédit posés dans LA MÊME transaction (même principe que
+ * validateNonConformityReportAction, §L5.3) ; la suspension voyageur
+ * (BOOKING_NO_SHOW, motif déjà existant) est incluse dans la même
+ * transaction — applySuspension accepte un client transactionnel.
+ */
+export async function claimNoShowIndemnityAction(
+  _prev: NoShowIndemnityState,
+  formData: FormData
+): Promise<NoShowIndemnityState> {
+  const fr = await getT();
+  const user = await requireUser();
+
+  const parsed = noShowIndemnitySchema.safeParse({ bookingId: formData.get("bookingId") });
+  if (!parsed.success) return { error: fr.common.champsRequis };
+
+  const booking = await prisma.booking.findUnique({
+    where: { id: parsed.data.bookingId },
+    select: {
+      id: true,
+      status: true,
+      paymentMode: true,
+      checkIn: true,
+      guestId: true,
+      amountPaid: true,
+      noShowIndemnityClaimedAt: true,
+      property: { select: { ownerId: true } },
+    },
+  });
+
+  if (!booking || booking.property.ownerId !== user.id) {
+    return { error: fr.common.erreurInconnue };
+  }
+
+  const windowStart = booking.checkIn.getTime();
+  const windowEnd = windowStart + NO_SHOW_INDEMNITY_WINDOW_HOURS * 60 * 60 * 1000;
+  const now = Date.now();
+  if (
+    booking.paymentMode !== "ESCROW" ||
+    (booking.status !== "CONFIRMEE" && booking.status !== "TERMINEE") ||
+    booking.noShowIndemnityClaimedAt !== null ||
+    now < windowStart ||
+    now > windowEnd
+  ) {
+    return { error: fr.booking.noShowIndisponible };
+  }
+
+  // Plafond anti-abus (§L5.4) : vérification best-effort, non atomique avec
+  // la réclamation (cf. doc NO_SHOW_INDEMNITY_MONTHLY_CAP) — acceptable pour
+  // un plafond provisoire sur le revenu propre de Darna.
+  const rollingMonthStart = new Date(now - 30 * 24 * 60 * 60 * 1000);
+  const recentClaims = await prisma.booking.count({
+    where: {
+      property: { ownerId: user.id },
+      noShowIndemnityClaimedAt: { gte: rollingMonthStart },
+    },
+  });
+  if (recentClaims >= NO_SHOW_INDEMNITY_MONTHLY_CAP) {
+    return { error: fr.booking.noShowIndemnitePlafondAtteint };
+  }
+
+  const indemnityAmount = booking.amountPaid;
+
+  const settled = await prisma.$transaction(async (tx) => {
+    const res = await tx.booking.updateMany({
+      where: { id: booking.id, noShowIndemnityClaimedAt: null },
+      data: { status: "TERMINEE", noShowIndemnityClaimedAt: new Date() },
+    });
+    if (res.count === 0) return false; // déjà réclamée entre-temps (double clic)
+
+    if (indemnityAmount > 0) {
+      await issueCredit(
+        { userId: user.id, amount: indemnityAmount, motif: "INDEMNITE_NO_SHOW", bookingId: booking.id },
+        tx
+      );
+    }
+    await applySuspension(booking.guestId, "BOOKING_NO_SHOW", { bookingId: booking.id }, tx);
+    return true;
+  });
+  if (!settled) return { error: fr.booking.noShowIndisponible };
+
+  await logAudit({
+    action: "NO_SHOW_INDEMNITY_CLAIMED",
+    userId: user.id,
+    success: true,
+    metadata: { bookingId: booking.id, guestId: booking.guestId, indemnityAmount },
+  });
+
+  revalidatePath("/dashboard/reservations");
+  return { success: fr.booking.noShowIndemniteVersee(indemnityAmount) };
 }

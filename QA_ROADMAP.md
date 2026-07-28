@@ -519,6 +519,34 @@ rent dispute stays bilateral host↔guest (CGU).
 | Audit trail | Report filed / validated / rejected | `NON_CONFORMITY_REPORTED`/`_VALIDATED`/`_REJECTED` — each with `bookingId` (+ `reportId` for the admin actions) | ✅ covered inline in the tests above | Demo |
 | Live end-to-end | Full flow: file as guest → appears in `/dashboard/admin/non-conformite` → validate → refund appears on `/dashboard/admin/remboursements` and guest's `/dashboard/reservations` | Verified live (Postgres local, Playwright, before/after screenshots) | ✅ see test report in the PR | Demo |
 
+### 6.8 No-show host indemnity test suite (garantie no-show hôte, LANCEMENT_ROADMAP.md §L5.4)
+
+Host-declared no-show on the **standard rail** (`paymentMode` `ESCROW`) — DISTINCT
+from the pre-existing `reportNoShowAction` (Rail 2 `SUR_PLACE`, no indemnity:
+nothing is collected online on that rail to fund one). `claimNoShowIndemnityAction`
+(`src/actions/bookings.ts`) pays the host an indemnity = 100% of `amountPaid`
+in Darna credits (`INDEMNITE_NO_SHOW` motif — Darna's own revenue, never the
+guest's money), capped at `NO_SHOW_INDEMNITY_MONTHLY_CAP` (3) claims per host
+per rolling month, and applies the existing `BOOKING_NO_SHOW` progressive
+suspension to the guest — claim, credit and suspension all in **one
+transaction** (`applySuspension` accepts a transactional client).
+
+| Scenario | Test to create | Expected guarantee | Status | Phase |
+|----------|----------------|---------------------|--------|-------|
+| Window — too early | Claim before `checkIn` | Rejected | ✅ `no-show-indemnity.test.ts` | Demo |
+| Window — too late | Claim > `checkIn + 48h` | Rejected | ✅ `no-show-indemnity.test.ts` | Demo |
+| Window — status TERMINEE | Claim while status is already `TERMINEE` (lazy checkout-completion fired first, same window) | Accepted — status alone is never the eligibility/idempotency guard, only `noShowIndemnityClaimedAt` is | ✅ `no-show-indemnity.test.ts` | Demo |
+| Rail guard | Claim on a `SUR_PLACE` booking | Rejected — that rail has its own no-show mechanism, no indemnity | ✅ `no-show-indemnity.test.ts` | Demo |
+| IDOR | Attacker (not the property owner) claims | Rejected, generic error | ✅ `no-show-indemnity.test.ts` | Demo |
+| Uniqueness (pre-check) | Second claim on an already-claimed booking | Rejected before any write | ✅ `no-show-indemnity.test.ts` | Demo |
+| Uniqueness (race) | Transaction's conditional `updateMany` finds no matching row | Rejected, no credit/suspension issued | ✅ `no-show-indemnity.test.ts` | Demo |
+| Monthly cap | Host already has `NO_SHOW_INDEMNITY_MONTHLY_CAP` claims in the rolling 30 days (across ALL their listings) | Rejected before any write | ✅ `no-show-indemnity.test.ts` | Demo |
+| Credit issuance | Successful claim, `amountPaid > 0` | `issueCredit` called with `INDEMNITE_NO_SHOW`, exact `amountPaid`, inside the transaction | ✅ `no-show-indemnity.test.ts` | Demo |
+| Zero-fee edge case | Successful claim, `amountPaid === 0` (credit had fully covered the fee) | Claim + suspension still happen; `issueCredit` is skipped (it throws on a non-positive amount) | ✅ `no-show-indemnity.test.ts` | Demo |
+| Guest suspension | Successful claim | `applySuspension(guestId, "BOOKING_NO_SHOW", ..., tx)` — same transaction | ✅ `no-show-indemnity.test.ts` | Demo |
+| Audit trail | Successful claim | `NO_SHOW_INDEMNITY_CLAIMED` with `bookingId`/`guestId`/`indemnityAmount` | ✅ `no-show-indemnity.test.ts` | Demo |
+| Live end-to-end | Full flow: host claims on a confirmed ESCROW booking within the window → credit appears on `/dashboard/credits` → guest's account shows suspended | Verified live (Postgres local, Playwright, before/after screenshots) | ✅ see test report in the PR | Demo |
+
 ---
 
 ## 7. Auth test suite

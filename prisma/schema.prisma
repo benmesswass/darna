@@ -407,6 +407,15 @@ model Booking {
   // Null tant que non utilisée. Posée UNE SEULE FOIS (condition d'unicité
   // appliquée par l'updateMany qui la consomme) — usage unique garanti.
   rebookingDiscountUsedFor String?
+  // Garantie no-show hôte (LANCEMENT_ROADMAP.md §L5.4) : posée quand l'hôte
+  // déclare — et se voit indemniser pour — un no-show voyageur sur le rail
+  // standard (paymentMode ESCROW ; le rail SUR_PLACE a son propre mécanisme
+  // SANS indemnité, cf. reportNoShowAction, rien n'étant encaissé en ligne
+  // pour la financer). Source de vérité de l'idempotence — PAS le passage à
+  // `status: "TERMINEE"` seul, qui peut aussi survenir via la complétion
+  // paresseuse normale d'un séjour (completeElapsedBookings) pendant la même
+  // fenêtre de 48 h, sans rapport avec un no-show.
+  noShowIndemnityClaimedAt DateTime?
   createdAt                DateTime  @default(now())
 
   propertyId String

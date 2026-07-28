@@ -247,6 +247,10 @@ export const CREDIT_TRANSACTION_MOTIFS = [
   // DÉPENSÉ, jamais de l'argent réel) : motif séparé pour ne jamais confondre
   // les deux idempotences (même bookingId possible sur les deux à la fois).
   "REMBOURSEMENT_FRAIS_ANNULATION",
+  // Garantie no-show hôte (LANCEMENT_ROADMAP.md §L5.4) : indemnité versée à
+  // l'hôte sur le REVENU PROPRE de Darna (jamais l'argent du voyageur) quand
+  // un voyageur ne se présente pas — rail ESCROW uniquement.
+  "INDEMNITE_NO_SHOW",
 ] as const;
 export type CreditTransactionMotif = (typeof CREDIT_TRANSACTION_MOTIFS)[number];
 
