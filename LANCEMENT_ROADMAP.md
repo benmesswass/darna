@@ -1048,7 +1048,7 @@ manuellement une fois W6 posé.
 |---|---|---|---|
 | L9.1 | Chantier tokens de contraste + réactivation du gate axe `color-contrast` | P2 | ✅ PR #224 |
 | L9.2 | PWA minimale (manifest + SW de cache statique) | P2 | ✅ PR #225 |
-| L9.3 | Budget perf Lighthouse (nightly) + session device réel | P2 | ❌ (device 🧑 WASSIM) |
+| L9.3 | Budget perf Lighthouse (nightly) + session device réel | P2 | ✅ job Lighthouse (PR #226) — session device réel reste 🧑 WASSIM |
 
 **L9.1** : la spec existe déjà dans `TODO-PRODUCTION.md` §Accessibility :
 recalibrer `--color-body` / l'échelle d'opacité dans `src/app/globals.css`
@@ -1130,6 +1130,30 @@ prod.
 une page annonce — seuils : LCP < 2.5 s, CLS < 0.1 (warning, pas bloquant au
 début). Session device réel (Android milieu de gamme, 4G) : parcours complet
 FR puis AR/RTL — rapport écrit + captures.
+
+**Implémenté (PR #226, moitié codable)** : job `lighthouse` ajouté à
+`.github/workflows/nightly.yml` (même schéma que `zap-baseline` : Postgres +
+seed réel + `npm run build`/`next start`, jamais `next dev` — mesure la vraie
+perf de prod). `scripts/lighthouse-report.mjs` lance Lighthouse mobile
+(`--form-factor=mobile --throttling-method=simulate`) sur les 3 pages, publie
+un tableau score/LCP/CLS dans `$GITHUB_STEP_SUMMARY` — jamais bloquant
+(`process.exit` toujours 0), même posture que ZAP/k6 : seuils pas encore
+calibrés sur un vrai run planifié. `scripts/print-sample-property-slug.ts`
+récupère une vraie annonce du seed pour la page « Annonce » plutôt qu'un slug
+deviné/codé en dur (même pattern que `tests/perf/booking-load-setup.ts`).
+Chrome stable est pré-installé sur `ubuntu-latest`, auto-détecté par
+chrome-launcher — pas de `CHROME_PATH` à poser en CI (uniquement nécessaire
+en sandbox de dev, où le seul Chromium disponible est celui de Playwright).
+Vérifié en local (serveur de prod réel, `CHROME_PATH` pointé vers le
+Chromium du sandbox) : le script tourne de bout en bout, produit un tableau
+correct (score perf + LCP + CLS par page). `nightly.yml` ne se déclenche
+jamais sur push/PR (`schedule` + `workflow_dispatch` uniquement) : la
+première exécution réelle du job lui-même (avec le VRAI Chrome CI, pas le
+Chromium du sandbox) aura lieu au prochain passage nightly ou via
+déclenchement manuel — comme pour ZAP en son temps, les seuils seront
+calibrés sur ce premier run réel si besoin. **Reste bloqué sur Wassim** : la
+session device réel (Android milieu de gamme, 4G, parcours FR puis AR/RTL)
+n'est pas codable — nécessite un vrai téléphone.
 
 ---
 

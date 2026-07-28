@@ -164,6 +164,86 @@ jobs:
         if: always()
         run: kill "$(cat server.pid)" 2>/dev/null || true
 
+  # LANCEMENT_ROADMAP.md §L9.3 : budget perf Lighthouse (mobile, throttling
+  # simulé) sur les pages clés. `ubuntu-latest` fournit Chrome stable
+  # pré-installé (auto-détecté par chrome-launcher, pas de CHROME_PATH à
+  # poser). Informatif seulement — LCP < 2.5 s / CLS < 0.1 en warning, jamais
+  # bloquant (cf. scripts/lighthouse-report.mjs) : même posture que ZAP/k6
+  # ci-dessus, seuils pas encore calibrés sur un vrai run.
+  lighthouse:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: darna
+          POSTGRES_USER: darna
+          POSTGRES_PASSWORD: darna
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U darna"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://darna:darna@localhost:5432/darna
+      DIRECT_URL: postgresql://darna:darna@localhost:5432/darna
+      AUTH_SECRET: ci-only-dummy-secret-do-not-use-in-prod
+      SITE_URL: http://localhost:3000
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Prisma generate
+        run: npx prisma generate
+
+      - name: Apply migrations
+        run: npx prisma migrate deploy
+
+      - name: Seed (pages avec du contenu réel à auditer)
+        run: npx prisma db seed
+
+      - name: Build (production — perf réelle, pas next dev)
+        run: npm run build
+
+      - name: Démarrer le serveur en arrière-plan
+        run: |
+          nohup npx next start > next-start.log 2>&1 &
+          echo $! > server.pid
+
+      - name: Attendre que le serveur soit prêt
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sS -o /dev/null http://localhost:3000; then
+              echo "Serveur prêt."
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::Le serveur next start n'a jamais répondu."
+          cat next-start.log
+          exit 1
+
+      - name: Lighthouse (Accueil, Recherche, Annonce)
+        if: always()
+        run: |
+          SLUG=$(npx tsx scripts/print-sample-property-slug.ts)
+          node scripts/lighthouse-report.mjs http://localhost:3000 "$SLUG"
+
+      - name: Arrêter le serveur
+        if: always()
+        run: kill "$(cat server.pid)" 2>/dev/null || true
+
   # TEST_AUTOMATION_ROADMAP.md §6.7 : perf/charge k6. Runner GitHub Actions
   # partagé = pas un environnement stable pour un gate bloquant par PR — jamais
   # sur push/pull_request, uniquement ici (nightly) ou déclenchement manuel.
