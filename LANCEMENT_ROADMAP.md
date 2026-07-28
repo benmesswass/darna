@@ -311,7 +311,7 @@ poser `OBSERVABILITY_WEBHOOK_URL` en staging/prod.
 |---|---|---|---|
 | L5.1 | Prix & paiement : frais 10 %, paiement en ligne = frais uniquement | P0 | ✅ PR #209 |
 | L5.2 | Politiques d'annulation portées sur les FRAIS + écran admin « Remboursements dus » | P0 | ✅ PR #211 |
-| L5.3 | Garantie non-conformité : signalement < 24 h → remboursement des frais | P0 | ❌ |
+| L5.3 | Garantie non-conformité : signalement < 24 h → remboursement des frais | P0 | ✅ PR #212 |
 | L5.4 | Garantie no-show hôte : indemnité 100 % des frais, plafonnée | P1 | ❌ |
 | L5.5 | Refonte wording : « zéro acompte au propriétaire » (i18n ×3 + e-mails + CGU + README) | P0 | ❌ |
 | L5.6 | ⛔ W4 — avis juridique (périmètre mis à jour, voir tableau ⛔) | P0 | ❌ 🧑 WASSIM |
@@ -403,7 +403,7 @@ conditions réelles (Postgres local, Playwright : annulation voyageur →
 190 TND affichés → créditation admin → wallet crédité, ligne disparue du
 tableau de bord admin, statut voyageur passé à « Remboursé »).
 
-### L5.3 — Garantie non-conformité (la promesse de confiance V1)
+### L5.3 — Garantie non-conformité (la promesse de confiance V1) ✅ PR #212
 
 **Décisions tranchées** : bouton « Signaler un problème à l'arrivée » sur la
 réservation, disponible de `checkIn` à `checkIn + 24 h`, réservé au voyageur
@@ -416,7 +416,23 @@ notifications). Émettre le `ProductEvent` correspondant (discipline IN4).
 Darna n'arbitre QUE ses propres frais (exposition max = 10 % du séjour) —
 le litige sur le loyer reste bilatéral hôte↔voyageur (CGU, cf. L5.5).
 
-**Tests** : fenêtre 24 h ; unicité ; IDOR ; flux admin ; audit.
+**Tests** : fenêtre 24 h ; unicité ; IDOR ; flux admin ; audit. Implémenté via
+un nouveau modèle `NonConformityReport` (`bookingId` unique, statut
+RECU/VALIDE/REJETE, même patron que `WakilApplication`) plutôt que des champs
+sur `Booking` — `validateNonConformityReportAction` pose
+`Booking.refundAmount` ET fait passer le dossier à VALIDE dans LA MÊME
+transaction (même principe que `creditRefundAction`, §L5.2). Garde
+additionnelle découverte en implémentant : `cancelBookingAction` refuse
+désormais l'annulation « libre choix » du voyageur si un dossier de
+non-conformité existe déjà (quel que soit son statut) — sinon elle
+écraserait silencieusement un `refundAmount` déjà validé par un admin avec
+le résultat de `computeRefund` (quasi toujours 0 % puisque le check-in est
+alors déjà passé). QA_ROADMAP §6.7. Vérifié en conditions réelles (Postgres
+local, Playwright : signalement voyageur → dossier visible sur
+`/dashboard/admin/non-conformite` → validation admin → 266 TND apparaissent
+sur `/dashboard/admin/remboursements` → statut voyageur passé à
+« Signalement validé » + « Remboursement de 266 TND en cours », notifications
+hôte (SIGNALEMENT_RECU) et voyageur (SIGNALEMENT_VALIDE) posées en base).
 
 ### L5.4 — Garantie no-show hôte (P1 — peut suivre le lancement de peu)
 

@@ -60,6 +60,12 @@ export function notificationMessage(
       return fr.notifications.annoncePromoSuggeree(n.propertyTitle ?? "");
     case "RESERVATION_ABANDONNEE":
       return fr.notifications.reservationAbandonnee(n.propertyTitle ?? "");
+    case "SIGNALEMENT_RECU":
+      return fr.notifications.signalementRecu(n.propertyTitle ?? "");
+    case "SIGNALEMENT_VALIDE":
+      return fr.notifications.signalementValide(n.propertyTitle ?? "");
+    case "SIGNALEMENT_REJETE":
+      return fr.notifications.signalementRejete(n.propertyTitle ?? "");
     default:
       return "";
   }

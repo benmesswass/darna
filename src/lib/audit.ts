@@ -81,7 +81,11 @@ export type AuditAction =
   // metadata { results } résume le statut de chaque job exécuté.
   | "JOB_TICK"
   // Remboursement des frais après annulation (LANCEMENT_ROADMAP.md §L5.2).
-  | "REFUND_MARKED";
+  | "REFUND_MARKED"
+  // Garantie non-conformité (LANCEMENT_ROADMAP.md §L5.3).
+  | "NON_CONFORMITY_REPORTED"
+  | "NON_CONFORMITY_VALIDATED"
+  | "NON_CONFORMITY_REJECTED";
 
 /**
  * Audit trail — chaque événement sensible est enregistré avec userId, IP et

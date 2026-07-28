@@ -232,8 +232,10 @@ describe("cancelBookingAction — IDOR", () => {
     status: "CONFIRMEE",
     checkIn: new Date(Date.now() + 10 * 86_400_000),
     totalPrice: 300,
+    amountPaid: 30, // frais Darna réellement encaissés (§L5.2) — assiette de computeRefund
     createdAt: new Date(Date.now() - 10 * 86_400_000),
     property: { slug: "villa-hammamet", cancelPolicy: "MODEREE" },
+    nonConformityReport: null,
   });
 
   it("refuse d'annuler la réservation d'un autre utilisateur", async () => {
@@ -265,8 +267,25 @@ describe("cancelBookingAction — IDOR", () => {
     expect(result).toEqual({ success: "Réservation annulée." });
     expect(bookingUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({ status: "ANNULEE", escrow: "AUCUN" }),
+        data: expect.objectContaining({ status: "ANNULEE", escrow: "AUCUN", refundAmount: 30 }),
       })
     );
+  });
+
+  // §L5.3 : un dossier de non-conformité déjà ouvert (RECU, VALIDE ou REJETE)
+  // bloque l'annulation « libre choix » du voyageur — sinon elle écraserait
+  // silencieusement un refundAmount déjà posé par validateNonConformityReportAction
+  // (update non conditionné dans cancelBookingAction).
+  it("refuse d'annuler si un signalement de non-conformité existe déjà", async () => {
+    requireUserMock.mockResolvedValue(OWNER);
+    bookingFindUnique.mockResolvedValue({
+      ...confirmedBooking(OWNER.id),
+      nonConformityReport: { id: "existing-report" },
+    });
+
+    const result = await cancelBookingAction(undefined, idForm());
+
+    expect(result).toEqual({ error: "Annulation impossible." });
+    expect(bookingUpdate).not.toHaveBeenCalled();
   });
 });

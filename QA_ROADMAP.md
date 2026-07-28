@@ -491,6 +491,34 @@ possible sur les deux, jamais le même motif.
 | Statut voyageur | `/dashboard/reservations` après annulation | « Remboursement en cours » (ambre) tant que `refundPaidAt` est `null`, « Remboursé » (vert) une fois réglé — jamais le même libellé pour les deux états | ✅ vérifié en direct (Playwright + Postgres local, capture avant/après créditation) | Demo |
 | Reconciliation | Aucune — pas de source externe à réconcilier (le règlement est un geste admin, pas un webhook) | N/A par construction | — | — |
 
+### 6.7 Non-conformity report test suite (garantie non-conformité, LANCEMENT_ROADMAP.md §L5.3)
+
+A guest-filed report (`NonConformityReport`, `bookingId` unique — one per
+booking) is never an automatic refund: it opens a RECU dossier reviewed by an
+ADMIN (`validateNonConformityReportAction`/`rejectNonConformityReportAction`,
+`src/actions/admin.ts`). Validating sets `Booking.refundAmount` = 100% of
+`amountPaid` (fees actually collected online — `null`, not `0`, in Rail 2
+where nothing transited online) and re-enters the §6.6 refund circuit
+verbatim (same `refundPaidAt` settlement, same admin remboursements page).
+Darna only ever arbitrates its own fee (max exposure = 10% of the stay); the
+rent dispute stays bilateral host↔guest (CGU).
+
+| Scenario | Test to create | Expected guarantee | Status | Phase |
+|----------|----------------|---------------------|--------|-------|
+| Window — too early | Report filed before `checkIn` | Rejected | ✅ `non-conformity-report.test.ts` | Demo |
+| Window — too late | Report filed > `checkIn + 24h` | Rejected | ✅ `non-conformity-report.test.ts` | Demo |
+| Window — nominal | Report filed within the window, status `CONFIRMEE` or `TERMINEE` | Accepted, dossier `RECU` | ✅ `non-conformity-report.test.ts` | Demo |
+| IDOR | Attacker files a report on someone else's booking | Rejected, generic error — `booking.guestId === user.id` reverified server-side | ✅ `non-conformity-report.test.ts` | Demo |
+| Uniqueness (pre-check) | Second report attempt on a booking that already has one | Rejected before any write | ✅ `non-conformity-report.test.ts` | Demo |
+| Uniqueness (race) | Concurrent double submission (unique `bookingId` constraint hit — `P2002`) | Rejected gracefully, no throw | ✅ `non-conformity-report.test.ts` | Demo |
+| Admin validate | `validateNonConformityReportAction` on a `RECU` dossier | `refundAmount` = `amountPaid` (or `null` if Rail 2) AND dossier → `VALIDE`, in the SAME transaction | ✅ `admin-non-conformity.test.ts` | Demo |
+| Admin reject | `rejectNonConformityReportAction` on a `RECU` dossier | Dossier → `REJETE`, no refund, guest notified | ✅ `admin-non-conformity.test.ts` | Demo |
+| Idempotence (validate/reject) | Two calls on the same dossier | Only the first writes + audits; the second is a silent no-op (`updateMany` count 0) | ✅ `admin-non-conformity.test.ts` | Demo |
+| Interaction with voluntary cancellation | `cancelBookingAction` called on a booking that already has a report (any status) | Rejected — a report existing takes this booking out of the "guest free-choice cancellation" track, so it can never silently clobber an admin-set `refundAmount` with `computeRefund`'s (near-always-0% post-checkin) result | ✅ `booking-idor.test.ts` | Demo |
+| Admin-only | Validate/reject called by a non-admin | Rejected by `requireAdmin` (generic, already covered) | ✅ `permissions-gates.test.ts` (generic) | Demo |
+| Audit trail | Report filed / validated / rejected | `NON_CONFORMITY_REPORTED`/`_VALIDATED`/`_REJECTED` — each with `bookingId` (+ `reportId` for the admin actions) | ✅ covered inline in the tests above | Demo |
+| Live end-to-end | Full flow: file as guest → appears in `/dashboard/admin/non-conformite` → validate → refund appears on `/dashboard/admin/remboursements` and guest's `/dashboard/reservations` | Verified live (Postgres local, Playwright, before/after screenshots) | ✅ see test report in the PR | Demo |
+
 ---
 
 ## 7. Auth test suite
