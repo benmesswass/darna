@@ -109,13 +109,13 @@ that never double-charges." The guards exist in code; the demo gap is that the
 
 | # | Test | Priority | Risk covered | Why needed now |
 |---|------|----------|--------------|----------------|
-| D1 | **Booking conflict**: two overlapping bookings on the same property → exactly one `CONFIRMEE`, the other rejected (`BookingConflictError`) | **P0** | Double-booking / money taken for an unavailable property | The SERIALIZABLE transaction (`bookings.ts:140-187`) is the single most fragile invariant; a refactor could silently break it. Untested = unprotected. |
-| D2 | **Booking IDOR**: user B cannot `confirmPaymentAction`/`startKonnectPaymentAction`/`submitReviewAction` on user A's booking | **P0** | Horizontal privilege escalation; payment/review on someone else's reservation | Authorization is in demo scope; the `guestId === user.id` check (`bookings.ts:323`) must be proven. |
-| D3 | **Property IDOR**: user B cannot edit / delete / add photos / block dates on user A's property | **P0** | Tampering with other hosts' listings | `requireOwnProperty()` is relied upon across ~10 mutations; one missing call = full IDOR. |
-| D4 | **Role gate negatives**: `requireUser/requireLister/requireAdmin/requireWakilOrAdmin` reject the wrong role | **P0** | Vertical privilege escalation (a VOYAGEUR reaching admin/listing actions) | Cheap, high-value; guards live in one file (`src/lib/session.ts`). |
-| D5 | **Mock payment exclusivity**: `confirmPaymentAction` (demo escrow) refuses to run when Konnect is enabled | **P1** | A real booking being "confirmed" without real money | Prevents demo/real mode confusion (`bookings.ts:311`). |
-| D6 | **Price integrity**: server ignores any client-supplied price; total is recomputed from `nights × nightlyPrice + serviceFee` | **P1** | Amount manipulation at booking time | Confirms the "prices always recalculated server-side" invariant. |
-| D7 | **Upload rejection E2E-lite**: a polyglot/oversized/wrong-magic file is rejected by the action (not only the lib) | **P2** | Malicious upload reaching disk/S3 | `storage.test.ts` covers the lib; this proves the action wires it. |
+| D1 | **Booking conflict**: two overlapping bookings on the same property → exactly one `CONFIRMEE`, the other rejected (`BookingConflictError`) | **P0** | Double-booking / money taken for an unavailable property | The SERIALIZABLE transaction (`bookings.ts:140-187`) is the single most fragile invariant; a refactor could silently break it. Test: `tests/booking-conflict.test.ts`. |
+| D2 | **Booking IDOR**: user B cannot `confirmPaymentAction`/`startKonnectPaymentAction`/`submitReviewAction` on user A's booking | **P0** | Horizontal privilege escalation; payment/review on someone else's reservation | The `guestId === user.id` check (`bookings.ts:323`). Test: `tests/booking-idor.test.ts`. |
+| D3 | **Property IDOR**: user B cannot edit / delete / add photos / block dates on user A's property | **P0** | Tampering with other hosts' listings | `requireOwnProperty()` relied upon across ~10 mutations. Test: `tests/property-idor.test.ts`. |
+| D4 | **Role gate negatives**: `requireUser/requireLister/requireAdmin/requireWakilOrAdmin` reject the wrong role | **P0** | Vertical privilege escalation (a VOYAGEUR reaching admin/listing actions) | Guards live in one file (`src/lib/session.ts`). Coverage spread across most `tests/*.test.ts` (each action test asserts its role gate). |
+| D5 | **Mock payment exclusivity**: `confirmPaymentAction` (demo escrow) refuses to run when Konnect is enabled | **P1** | A real booking being "confirmed" without real money | Guard at `bookings.ts:577` (`if (isKonnectEnabled()) return;`, before even reading the user). Test: `tests/booking-idor.test.ts`. |
+| D6 | **Price integrity**: server ignores any client-supplied price; total is recomputed from `nights × nightlyPrice + serviceFee` | **P1** | Amount manipulation at booking time | `createSchema` doesn't even define a price field; a bogus `totalPrice`/`nightlyPrice` in the form has zero effect. Test: `tests/booking-promo-price.test.ts`. |
+| D7 | **Upload rejection E2E-lite**: a polyglot/oversized/wrong-magic file is rejected by the action (not only the lib) | **P2** | Malicious upload reaching disk/S3 | `storage.test.ts` covers the lib; `tests/photo-upload-action.test.ts` proves `addPhotosAction` wires it (real validation chain, only prisma/session/i18n mocked). |
 | D8 | **Host cancellation IDOR**: host B cannot `hostCancelBookingAction` on host A's property/booking | **P0** | Tampering with another host's reservations (fake cancellation, forced refund/suspension against a rival) | `docs/archive/ANNULATION_HOTE_ROADMAP.md` §AH7. Test: `tests/host-cancellation-security.test.ts`. |
 | D9 | **Host cancellation idempotence**: a 2nd cancel attempt on an already-`ANNULEE` booking (explicit status check + `updateMany` race guard) does not double-apply the listing block or the account suspension | **P0** | Double-punishment / suspension counter drift under double-click or concurrent requests | Test: `tests/host-cancellation-security.test.ts`. |
 | D10 | **Host cancellation block-tier non-bypass**: the blocking duration (3/15/30 days) is recomputed server-side from `booking.checkIn` — the form only sends `bookingId`, no client-controlled tier | **P1** | A host forcing the shortest block regardless of real notice given | Test: `tests/host-cancellation-security.test.ts`. |
@@ -243,8 +243,9 @@ work is due.
 | `trackEvent` action: zod validation, client event-name allowlist, rate-limit | unit | ✅ (`tests/track-event.test.ts`) | Demo | P2 | Forged/arbitrary event names or userId spoofing from client |
 | `SHARE_CLICKED` (native/copy/whatsapp channels) | unit | ✅ (`tests/components/share-button.test.tsx`) | Demo | P3 | Silent metric drift |
 | `SAVED_SEARCH_CREATED` (metadata: city/prixMin/prixMax) | unit | ✅ (`tests/saved-search-events.test.ts`) | Demo | P3 | Silent metric drift |
-| `MAP_INTERACTED` (first `dragstart` or zoom-control click, session-deduped via `sessionStorage`) | unit | ⚠️ (`src/components/map/MapInner.tsx`) | Demo | P2 | Session dedup or event trigger regresses silently — no test would catch it (PR #173) |
-| `SIMULATOR_USED` (fires on every `/dashboard/yield` load when `properties.length > 0`) | unit | ⚠️ (`src/app/dashboard/yield/page.tsx`) | Demo | P2 | Empty-state gate or metadata shape regresses silently (PR #173) |
+| `MAP_INTERACTED` (first `dragstart` or zoom-control click, session-deduped via `sessionStorage`) | unit | ⚠️ (`src/components/map/MapInner.tsx`) — le catalogue/dispatch générique est testé (`tests/track-event.test.ts`), pas la logique de dédup/déclenchement dans le composant | Demo | P2 | Session dedup or event trigger regresses silently — no test would catch it (PR #173) |
+| `SIMULATOR_USED` — simulateur public (`src/actions/simulator.ts`) | unit | ✅ (`tests/simulator-action.test.ts`) | Demo | P2 | Metadata shape (ville/type/matched), résolution userId, silence si rate-limité ou ville inconnue |
+| `SIMULATOR_USED` — Yield Advisor (`src/app/dashboard/yield/page.tsx`, `properties.length > 0`) | unit | ⚠️ toujours ouvert — logique dans un Server Component, pas un server action isolable de la même façon | Demo | P2 | Empty-state gate or metadata shape regresses silently (PR #173) |
 
 ---
 
@@ -752,11 +753,11 @@ checkout → setup-node 22 → npm ci → prisma generate → prisma migrate dep
 ## 14. Execution roadmap (prioritized)
 
 **Now (Demo) — P0/P1, ~7 small unit/integration tests, no new tooling:**
-1. D1 booking-conflict concurrency test.
-2. D2 booking IDOR + D3 property IDOR + D4 role-gate negatives.
-3. D5 mock-payment exclusivity, D6 price integrity, D7 upload-action wiring.
+1. ✅ D1 booking-conflict concurrency test (`tests/booking-conflict.test.ts`).
+2. ✅ D2 booking IDOR + D3 property IDOR + D4 role-gate negatives.
+3. ✅ D5 mock-payment exclusivity + D6 price integrity (`tests/booking-idor.test.ts`, `tests/booking-promo-price.test.ts`) ; ✅ D7 upload-action wiring (`tests/photo-upload-action.test.ts`).
 4. Keep current CI green. _(Optional: add `vitest --coverage` non-blocking to start a baseline.)_
-5. `MAP_INTERACTED` + `SIMULATOR_USED` unit tests — only 2 of 4 IN2 instrumentation events are currently tested (§4.13).
+5. ✅ `SIMULATOR_USED` (simulateur public, `tests/simulator-action.test.ts`) et catalogue générique `trackEvent`/`MAP_INTERACTED` (`tests/track-event.test.ts`). **Toujours ouvert** (§4.13, plus nuancé qu'un simple test manquant) : la logique de dédup `MAP_INTERACTED` dans `MapInner.tsx` et le dispatch `SIMULATOR_USED` du Yield Advisor (`dashboard/yield/page.tsx`) vivent dans des composants, pas des server actions isolables de la même façon.
 
 **Before Beta — quality gates + first integration/E2E + security regression:**
 1. Add coverage gate (≥70% lib+actions) + Playwright E2E smoke (5–8 journeys) to CI.

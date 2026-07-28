@@ -5,6 +5,9 @@
  * payer (mock), démarrer un paiement Konnect, ou déposer un avis. Le garde-fou
  * est `booking.guestId === user.id`, relu en base (jamais confiance au client).
  * Chaque négatif est ancré par un contrôle positif (le propriétaire, lui, passe).
+ *
+ * D5 (QA_ROADMAP §3) est aussi couvert ici : `confirmPaymentAction` refuse de
+ * tourner quand Konnect est actif — même harnais (`isKonnectEnabledMock`).
  */
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 
@@ -87,6 +90,26 @@ function idForm(): FormData {
   fd.set("bookingId", BOOKING_ID);
   return fd;
 }
+
+describe("confirmPaymentAction — bascule Konnect (D5, QA_ROADMAP §3)", () => {
+  it("refuse de tourner quand Konnect est actif, avant même de lire l'utilisateur — jamais un paiement confirmé sans argent réel", async () => {
+    isKonnectEnabledMock.mockReturnValue(true);
+    bookingFindUnique.mockResolvedValue({
+      id: BOOKING_ID,
+      guestId: OWNER.id,
+      status: "EN_ATTENTE",
+      expiresAt: new Date(Date.now() + 600_000),
+      totalPrice: 216,
+    });
+
+    await confirmPaymentAction(idForm());
+
+    expect(requireUserMock).not.toHaveBeenCalled();
+    expect(bookingFindUnique).not.toHaveBeenCalled();
+    expect(bookingUpdate).not.toHaveBeenCalled();
+    expect(logAuditMock).not.toHaveBeenCalled();
+  });
+});
 
 describe("confirmPaymentAction (paiement mock) — IDOR", () => {
   it("refuse de confirmer la réservation d'un autre utilisateur", async () => {
