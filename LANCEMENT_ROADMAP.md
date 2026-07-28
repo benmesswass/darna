@@ -316,7 +316,7 @@ poser `OBSERVABILITY_WEBHOOK_URL` en staging/prod.
 | L5.5 | Refonte wording : « zéro acompte au propriétaire » (i18n ×3 + e-mails + CGU + README) | P0 | ✅ PR #214 |
 | L5.6 | ⛔ W4 — avis juridique (périmètre mis à jour, voir tableau ⛔) | P0 | ❌ 🧑 WASSIM |
 | L5.7 | Pédagogie hôte Rail 2 : contrat clair sur la facturation des 10 % + cadrage gagnant-gagnant | P0 | ✅ PR #215 |
-| L5.8 | **Checklist d'impact commission-only** (balayage exhaustif, clôture du chantier L5) | P0 | ❌ |
+| L5.8 | **Checklist d'impact commission-only** (balayage exhaustif, clôture du chantier L5) | P0 | ✅ PR #216 |
 
 **Contexte complet pour session future** : l'ancien modèle encaissait via
 Konnect un acompte `max(10 %, commission)` — donc de l'argent appartenant à
@@ -699,10 +699,12 @@ seedées sur 2 mois distincts (regroupement + totaux corrects : Juillet 2026
 - [x] `.agents/product-marketing.md` : promesse séquestre → « zéro acompte au
       propriétaire » (3 mentions corrigées : produit V0, promesse 3 temps,
       différenciateur « Séquestre » remplacé). — L5.5, PR #214
-- [ ] `PAIEMENT_SUR_PLACE_ROADMAP.md` §0 : décrit `max(10 % du total,
-      serviceFee)` — ajouter la note « périmé depuis L5.1, acompte = frais ».
-- [ ] `CROISSANCE_ROADMAP.md` : plafonds/montants crédits documentés (30 % du
-      total → 100 % des frais).
+- [x] `PAIEMENT_SUR_PLACE_ROADMAP.md` §0 : décrivait encore `max(10 % du
+      total, serviceFee)` — note « périmé depuis L5.1 » ajoutée, formule
+      corrigée en `serviceFee`. — L5.8
+- [x] `CROISSANCE_ROADMAP.md` (CR1) : décrivait encore un plafond de crédit à
+      30 % du total — corrigé en `CREDIT_CHECKOUT_CAP_RATE` (100 % des frais
+      restants depuis §L5.1), avec la valeur périmée notée pour mémoire. — L5.8
 - [x] `AUDIT_V2.md` §R3 — fait dans la PR #198.
 
 **Données & tests (chaque L5.x + clôture)** :
@@ -718,8 +720,34 @@ seedées sur 2 mois distincts (regroupement + totaux corrects : Juillet 2026
       vérifiés inchangés à raison — leurs scénarios ne dépendent pas du
       taux) ; `cancellation.test.ts` fait avec le fichier qu'il teste — L5.2,
       PR #211 (+ nouveau `admin-refunds.test.ts` pour les deux actions admin).
-- [ ] `tests/e2e` (parcours réservation/paiement) + `tests/api`.
-- [ ] `tests/perf` (k6 `booking-load*` : montants/étapes de paiement).
+- [x] `tests/e2e` (parcours réservation/paiement) + `tests/api` — exécutés
+      réellement en local (pas seulement relus) : **26/26 `tests/e2e` verts**.
+      `tests/api` : **bug réel trouvé et corrigé** — `playwright.api.config.ts`
+      active `PAYMENT_MODE=konnect` sans jamais poser `CRON_SECRET`, or
+      `src/lib/env.ts` l'exige dès qu'un mode réel est actif depuis §L3.1/L4.2
+      (PR #208, 2026-07-27) : le serveur de test refusait de démarrer
+      (`Variables d'environnement invalides`) — donc le job CI `api` était
+      cassé pour TOUTES les PR depuis #208 (soit #209→#215), masqué par le
+      quota GitHub Actions épuisé sur la même période (jamais un run réel pour
+      révéler l'échec). Corrigé par l'ajout d'un `CRON_SECRET` factice
+      (≥ 32 caractères) au `webServer.env`. Une fois démarré : **12/13 verts**
+      — 1 flake intermittent (`webhook-konnect.spec.ts`, rejeu idempotent)
+      reproduit uniquement sous charge concurrente `next dev`/Turbopack
+      (100 % stable isolé, `--workers=1`), jamais lié au modèle commission-only
+      (logique déjà couverte, déterministe, par `tests/payments.test.ts`) —
+      absorbé par le retry CI existant (`retries: process.env.CI ? 1 : 0`),
+      non bloquant. Aucune donnée de fixture (`nightlyPrice`/`serviceFee`/
+      `totalPrice`) trouvée dépendante d'un taux périmé dans une assertion
+      réelle (une valeur `serviceFee: 20` sur un total de 400 TND traîne dans
+      `global-setup.ts`/`webhook-konnect.spec.ts` — pas 10 % exactement, mais
+      aucun test n'en dépend, laissée telle quelle). — L5.8, PR #216
+- [x] `tests/perf` (k6 `booking-load*`/`search*`) : relu intégralement —
+      aucun montant/taux figé (`booking-load-verify.ts` ne vérifie qu'un
+      COMPTE de réservations actives, pas de montant ; `search-seed.ts` génère
+      des prix de recherche arbitraires, sans lien avec `serviceFee`). `k6`
+      non installé dans ce bac à sable → non exécutable ici (cohérent avec sa
+      place au niveau 3 de la pyramide CI, `nightly.yml`, hors porte de merge
+      d'une PR). — L5.8, PR #216
 
 **Greps de clôture (obligatoires, résultat vide ou justifié « V2 »)** :
 ```
@@ -730,6 +758,15 @@ grep -rn "DEPOSIT_MIN_RATE\|CREDIT_CHECKOUT_CAP_RATE" src
 npx tsc --noEmit
 ```
 (+ la suite de tests complète, évidemment.)
+
+**Ré-exécutés à la clôture (L5.8, PR #216)** : les 4 greps ci-dessus tournent
+identiques à l'état déjà vérifié en L5.5/PR #214 (2 commentaires de code
+justifiés `escrow`/« séquestre libéré » décrivant le mécanisme V2 inerte,
+1 faux positif `0.08` sur une animation Framer Motion, `CREDIT_CHECKOUT_CAP_RATE`
+en usage actif correct + `DEPOSIT_MIN_RATE` mentionné une fois dans un
+commentaire disant explicitement qu'il n'existe plus) — rien de nouveau
+depuis. `npx tsc --noEmit` et `npm run lint` clean. **Chantier L5 clos** :
+tous les items ✅ (L5.6 reste ⛔ 🧑 WASSIM, hors périmètre codable).
 
 ---
 

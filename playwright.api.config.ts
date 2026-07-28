@@ -35,6 +35,12 @@ export default defineConfig({
       // reste couvert par les tests Vitest mockés existants).
       KONNECT_API_KEY: "api-tests-dummy-key-not-real",
       KONNECT_RECEIVER_WALLET_ID: "api-tests-dummy-wallet-not-real",
+      // PAYMENT_MODE=konnect ci-dessus active `anyRealMode` côté
+      // src/lib/env.ts (§L3.1, depuis PR #208/L4.2) — CRON_SECRET devient
+      // alors obligatoire au démarrage, sinon le serveur de test refuse de
+      // démarrer (`Error: Variables d'environnement invalides`). Factice,
+      // ≥ 32 caractères (exigence zod), jamais une vraie valeur.
+      CRON_SECRET: "api-tests-dummy-cron-secret-not-real-0000",
     },
   },
 });
