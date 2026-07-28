@@ -188,6 +188,29 @@ export const BOOKING_ABANDON_REMINDER_WINDOW_HOURS = 24;
 export const NON_CONFORMITY_REPORT_WINDOW_HOURS = 24;
 
 /**
+ * Garantie no-show hôte (LANCEMENT_ROADMAP.md §L5.4) : fenêtre après le
+ * check-in pendant laquelle un hôte peut déclarer un no-show voyageur —
+ * rail ESCROW uniquement (le rail SUR_PLACE a son propre mécanisme sans
+ * indemnité, cf. reportNoShowAction). Plus large que la fenêtre de
+ * non-conformité (§L5.3, 24 h) : laisser à l'hôte le temps de constater
+ * l'absence sans le presser sur un délai aussi court qu'un problème visible
+ * dès l'arrivée.
+ */
+export const NO_SHOW_INDEMNITY_WINDOW_HOURS = 48;
+
+/**
+ * Plafond anti-abus : au plus ce nombre d'indemnités no-show versées à un
+ * même hôte par mois glissant (30 jours). Constante PROVISOIRE (comme
+ * REBOOKING_DISCOUNT_RATE etc.) — à ajuster une fois un volume réel
+ * disponible. Vérification non atomique avec la réclamation elle-même
+ * (lecture puis décision) : acceptable pour un plafond anti-abus provisoire
+ * portant sur le revenu propre de Darna, pas une garantie de correction
+ * financière stricte (contrairement à l'idempotence de la réclamation
+ * elle-même, qui EST atomique — cf. claimNoShowIndemnityAction).
+ */
+export const NO_SHOW_INDEMNITY_MONTHLY_CAP = 3;
+
+/**
  * Détection de spike d'échecs de connexion (LANCEMENT_ROADMAP.md §L4.3) —
  * compteur GLOBAL (tous utilisateurs/IP confondus, distinct du rate limiting
  * par IP de src/lib/rate-limit.ts) : un volume anormal d'échecs sur une courte

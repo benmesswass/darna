@@ -9,12 +9,13 @@ import { completeElapsedBookings } from "@/lib/bookings";
 import { formatDateShortFr } from "@/lib/format";
 import { Price } from "@/components/currency/Price";
 import { computeRefund } from "@/lib/cancellation";
-import { NON_CONFORMITY_REPORT_WINDOW_HOURS } from "@/lib/config";
+import { NON_CONFORMITY_REPORT_WINDOW_HOURS, NO_SHOW_INDEMNITY_WINDOW_HOURS } from "@/lib/config";
 import { contactRevealState, type ContactGate } from "@/lib/contact-reveal";
 import type { CancelPolicy } from "@/lib/constants";
 import { CancelBookingButton } from "@/components/booking/CancelBookingButton";
 import { HostCancelButton } from "@/components/booking/HostCancelButton";
 import { NoShowButton } from "@/components/booking/NoShowButton";
+import { NoShowIndemnityButton } from "@/components/booking/NoShowIndemnityButton";
 import { ReportNonConformityButton } from "@/components/booking/ReportNonConformityButton";
 import { ContactReveal } from "@/components/booking/ContactReveal";
 import { GuestReviewForm } from "@/components/booking/GuestReviewForm";
@@ -59,6 +60,27 @@ function nonConformityReportEligible(status: string, checkIn: Date): boolean {
   if (status !== "CONFIRMEE" && status !== "TERMINEE") return false;
   const start = checkIn.getTime();
   const end = start + NON_CONFORMITY_REPORT_WINDOW_HOURS * 60 * 60 * 1000;
+  const now = Date.now();
+  return now >= start && now <= end;
+}
+
+/**
+ * Garantie no-show hôte (§L5.4) — rail ESCROW uniquement, même principe que
+ * nonConformityReportEligible ci-dessus : le statut seul peut déjà être
+ * TERMINEE via la complétion paresseuse normale d'un séjour dans la même
+ * fenêtre, donc CONFIRMEE et TERMINEE sont tous deux acceptés ici ; la vraie
+ * garde d'unicité est `noShowIndemnityClaimedAt` (revérifié côté serveur).
+ */
+function noShowIndemnityEligible(
+  status: string,
+  paymentMode: string,
+  checkIn: Date,
+  claimedAt: Date | null
+): boolean {
+  if (paymentMode !== "ESCROW" || claimedAt !== null) return false;
+  if (status !== "CONFIRMEE" && status !== "TERMINEE") return false;
+  const start = checkIn.getTime();
+  const end = start + NO_SHOW_INDEMNITY_WINDOW_HOURS * 60 * 60 * 1000;
   const now = Date.now();
   return now >= start && now <= end;
 }
@@ -228,6 +250,18 @@ export default async function MesReservationsPage() {
                     b.checkIn.getTime() < Date.now() ? (
                       <div className="mt-3">
                         <NoShowButton bookingId={b.id} />
+                      </div>
+                    ) : null}
+                    {/* Rail standard (ESCROW) : garantie no-show indemnisée
+                        (§L5.4), de checkIn à checkIn + 48h. */}
+                    {noShowIndemnityEligible(
+                      b.status,
+                      b.paymentMode,
+                      b.checkIn,
+                      b.noShowIndemnityClaimedAt
+                    ) ? (
+                      <div className="mt-3">
+                        <NoShowIndemnityButton bookingId={b.id} />
                       </div>
                     ) : null}
                   </div>

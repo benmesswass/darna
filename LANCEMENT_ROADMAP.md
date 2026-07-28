@@ -312,7 +312,7 @@ poser `OBSERVABILITY_WEBHOOK_URL` en staging/prod.
 | L5.1 | Prix & paiement : frais 10 %, paiement en ligne = frais uniquement | P0 | ✅ PR #209 |
 | L5.2 | Politiques d'annulation portées sur les FRAIS + écran admin « Remboursements dus » | P0 | ✅ PR #211 |
 | L5.3 | Garantie non-conformité : signalement < 24 h → remboursement des frais | P0 | ✅ PR #212 |
-| L5.4 | Garantie no-show hôte : indemnité 100 % des frais, plafonnée | P1 | ❌ |
+| L5.4 | Garantie no-show hôte : indemnité 100 % des frais, plafonnée | P1 | ✅ PR #213 |
 | L5.5 | Refonte wording : « zéro acompte au propriétaire » (i18n ×3 + e-mails + CGU + README) | P0 | ❌ |
 | L5.6 | ⛔ W4 — avis juridique (périmètre mis à jour, voir tableau ⛔) | P0 | ❌ 🧑 WASSIM |
 | L5.7 | Pédagogie hôte Rail 2 : contrat clair sur la facturation des 10 % + cadrage gagnant-gagnant | P0 | ❌ |
@@ -434,7 +434,7 @@ sur `/dashboard/admin/remboursements` → statut voyageur passé à
 « Signalement validé » + « Remboursement de 266 TND en cours », notifications
 hôte (SIGNALEMENT_RECU) et voyageur (SIGNALEMENT_VALIDE) posées en base).
 
-### L5.4 — Garantie no-show hôte (P1 — peut suivre le lancement de peu)
+### L5.4 — Garantie no-show hôte (P1 — peut suivre le lancement de peu) ✅ PR #213
 
 **Décisions tranchées** : si le voyageur ne se présente pas (réservation
 CONFIRMEE, non annulée, no-show déclaré par l'hôte entre `checkIn` et
@@ -453,7 +453,20 @@ no-show déclaré alimente la suspension progressive voyageur existante
 voyageur non remboursés dans ce cas (cohérent L5.2).
 
 **Tests** : fenêtre ; unicité ; plafond mensuel ; crédit émis via
-`issueCredit` (atomique, ledger) ; suspension voyageur ; IDOR.
+`issueCredit` (atomique, ledger) ; suspension voyageur ; IDOR. Nouvelle
+action `claimNoShowIndemnityAction` (`src/actions/bookings.ts`), DISTINCTE de
+`reportNoShowAction` (Rail 2 SUR_PLACE, sans indemnité — inchangée) : rail
+ESCROW uniquement. Idempotence portée par le nouveau champ
+`Booking.noShowIndemnityClaimedAt` — PAS le statut seul, qui peut aussi
+devenir TERMINEE via la complétion paresseuse normale d'un séjour
+(`completeElapsedBookings`) dans la même fenêtre de 48 h pour un court
+séjour, sans rapport avec un no-show (bloquerait sinon à tort une
+réclamation légitime). Réclamation + crédit + suspension voyageur posés dans
+LA MÊME transaction (`applySuspension` accepte un client transactionnel).
+QA_ROADMAP §6.8. Vérifié en conditions réelles (Postgres local, Playwright :
+hôte déclare un no-show sur une résa ESCROW confirmée → 190 TND crédités
+immédiatement, visibles sur `/dashboard/credits` — historique
+`INDEMNITE_NO_SHOW` — voyageur suspendu avec motif `BOOKING_NO_SHOW`).
 
 ### L5.5 — Refonte wording : « Zéro acompte au propriétaire »
 

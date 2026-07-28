@@ -85,7 +85,9 @@ export type AuditAction =
   // Garantie non-conformité (LANCEMENT_ROADMAP.md §L5.3).
   | "NON_CONFORMITY_REPORTED"
   | "NON_CONFORMITY_VALIDATED"
-  | "NON_CONFORMITY_REJECTED";
+  | "NON_CONFORMITY_REJECTED"
+  // Garantie no-show hôte (LANCEMENT_ROADMAP.md §L5.4).
+  | "NO_SHOW_INDEMNITY_CLAIMED";
 
 /**
  * Audit trail — chaque événement sensible est enregistré avec userId, IP et

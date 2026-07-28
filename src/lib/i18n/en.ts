@@ -542,6 +542,9 @@ export const en: Dictionary = {
     noShowAnnuler: "Go back",
     noShowAvertissement:
       "Only confirm if the guest genuinely didn't show up — this action suspends their account.",
+    signalerNoShowIndemnite: "Report a no-show (compensated)",
+    noShowIndemniteAvertissement:
+      "Only confirm if the guest genuinely didn't show up — you'll be compensated in Darna credits and their account will be suspended.",
     annulerReservationHote: "Cancel this booking",
     hostCancelModalTitre: "Cancel this booking?",
     hostCancelAvertissementHumain:
@@ -1385,6 +1388,12 @@ export const en: Dictionary = {
     signalementIndisponible: "This report is only available within 24h of your arrival.",
     signalementDejaEnvoye: "A report has already been filed for this booking.",
     signalementEnvoye: "Report sent — our team is reviewing it.",
+    noShowIndemnitePlafondAtteint:
+      "You've reached the maximum number of no-show compensations for this month.",
+    noShowIndemniteVersee: (montant: number) =>
+      montant > 0
+        ? `No-show reported — ${montant} TND credited to your Darna account.`
+        : "No-show reported.",
     cashConfirmeeDetail:
       "The host has accepted your request. Pay the full amount in cash on arrival — the host has been notified.",
   },
