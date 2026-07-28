@@ -35,7 +35,13 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
   },
   async headers() {
-    return [{ source: "/(.*)", headers: securityHeaders }];
+    return [
+      { source: "/(.*)", headers: securityHeaders },
+      // §L9.2 : le navigateur revérifie déjà /sw.js au moins une fois par
+      // jour de lui-même, mais no-cache évite qu'un Cache-Control par défaut
+      // trop long ne retarde la propagation d'une mise à jour du SW.
+      { source: "/sw.js", headers: [{ key: "Cache-Control", value: "no-cache" }] },
+    ];
   },
   // Désactive le header X-Powered-By (ne pas exposer la stack)
   poweredByHeader: false,
