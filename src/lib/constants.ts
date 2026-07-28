@@ -253,6 +253,19 @@ export type CreditTransactionMotif = (typeof CREDIT_TRANSACTION_MOTIFS)[number];
 export const CANCEL_POLICIES = ["FLEXIBLE", "MODEREE", "FERME", "STRICTE"] as const;
 export type CancelPolicy = (typeof CANCEL_POLICIES)[number];
 
+// Garantie non-conformité (LANCEMENT_ROADMAP.md §L5.3) : catégorie choisie
+// par le voyageur au signalement, en plus du motif libre.
+export const NON_CONFORMITY_CATEGORIES = [
+  "ANNONCE_TROMPEUSE",
+  "LOGEMENT_INACCESSIBLE",
+  "PROPRETE_SALUBRITE",
+  "AUTRE",
+] as const;
+export type NonConformityCategory = (typeof NON_CONFORMITY_CATEGORIES)[number];
+
+export const NON_CONFORMITY_STATUSES = ["RECU", "VALIDE", "REJETE"] as const;
+export type NonConformityStatus = (typeof NON_CONFORMITY_STATUSES)[number];
+
 /** Équipements proposés à la création d'annonce (libellés FR stockés tels quels). */
 export const AMENITIES = [
   "Climatisation",

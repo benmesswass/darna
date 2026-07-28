@@ -571,6 +571,22 @@ export const fr = {
     cancelledAt: (date: string) => `Annulée le ${date}`,
     rembourseLabel: (montant: number) => `Remboursé : ${montant} TND`,
     rembourseEnCoursLabel: (montant: number) => `Remboursement de ${montant} TND en cours`,
+    signalerProbleme: "Signaler un problème",
+    signalementAvertissement:
+      "Ce signalement ouvre un dossier examiné par notre équipe — il ne rembourse pas automatiquement. Décrivez précisément le problème constaté à votre arrivée.",
+    signalementCategorieLabel: "Catégorie du problème",
+    signalementCategories: {
+      ANNONCE_TROMPEUSE: "Le logement ne correspond pas à l'annonce",
+      LOGEMENT_INACCESSIBLE: "Impossible d'accéder au logement",
+      PROPRETE_SALUBRITE: "Propreté ou salubrité",
+      AUTRE: "Autre problème",
+    } as Record<string, string>,
+    signalementDescriptionPlaceholder: "Décrivez précisément le problème rencontré…",
+    signalementConfirmer: "Envoyer le signalement",
+    signalementAnnuler: "Revenir",
+    signalementStatutRecu: "Signalement en cours d'examen",
+    signalementStatutValide: "Signalement validé",
+    signalementStatutRejete: "Signalement rejeté",
     noterVoyageur: "Noter ce voyageur",
     avisVoyageurEnvoye: "Avis envoyé — merci !",
     votreAvisSurCeVoyageur: "Votre avis sur ce voyageur :",
@@ -841,6 +857,19 @@ export const fr = {
     remboursementsMarquerVirement: "Marquer réglé (virement)",
     remboursementsMarquerVirementConfirm:
       "Confirmer que le virement manuel a bien été effectué pour ce montant ?",
+    navNonConformite: "Signalements séjour",
+    nonConformiteTitre: "Signalements de non-conformité",
+    nonConformiteSousTitre:
+      "Dossiers ouverts par des voyageurs à l'arrivée. Valider rembourse 100 % des frais Darna encaissés sur la réservation (jamais le loyer) et rejoint la file des remboursements.",
+    nonConformiteVide: "Aucun signalement en attente.",
+    nonConformiteColSignaleLe: "Signalé le",
+    nonConformiteColMontantMax: "Exposition max",
+    nonConformiteValider: "Valider — rembourser les frais",
+    nonConformiteValiderConfirm:
+      "Valider ce signalement ? Les frais Darna encaissés sur cette réservation seront intégralement remboursés au voyageur.",
+    nonConformiteRejeter: "Rejeter",
+    nonConformiteRejeterConfirm:
+      "Rejeter ce signalement ? Aucun remboursement ne sera déclenché.",
     navFinancement: "Leads financement",
     financementTitre: "Leads financement (apport d'affaires)",
     financementSousTitre:
@@ -1376,6 +1405,10 @@ export const fr = {
     cashEnAttenteExpire: (date: string) => `Sans réponse avant le ${date}, la demande expirera automatiquement.`,
     noShowIndisponible: "Cette action n'est pas disponible pour cette réservation.",
     noShowSignale: "Absence signalée.",
+    signalementIndisponible:
+      "Ce signalement n'est disponible que dans les 24 h suivant votre arrivée.",
+    signalementDejaEnvoye: "Un signalement a déjà été déposé pour cette réservation.",
+    signalementEnvoye: "Signalement envoyé — notre équipe l'examine.",
     cashConfirmeeDetail:
       "L'hôte a accepté votre demande. Réglez le montant total en espèces à votre arrivée — l'hôte a été notifié.",
   },
@@ -1466,6 +1499,12 @@ export const fr = {
       `Votre réservation pour « ${titre} » n'a pas été finalisée — elle est toujours disponible si vous souhaitez reprendre.`,
     annoncePromoSuggeree: (titre: string) =>
       `« ${titre} » a des nuits vides dans les prochaines semaines — comparez votre prix à la moyenne de la ville : une promo ponctuelle peut suffire à vendre une nuit de plus.`,
+    signalementRecu: (titre: string) =>
+      `Un signalement de non-conformité a été déposé sur une réservation de « ${titre} ».`,
+    signalementValide: (titre: string) =>
+      `Votre signalement sur « ${titre} » a été validé — les frais Darna vous sont remboursés.`,
+    signalementRejete: (titre: string) =>
+      `Votre signalement sur « ${titre} » a été examiné et rejeté.`,
   },
   alaUne: {
     titre: "Mettez votre annonce à la une",

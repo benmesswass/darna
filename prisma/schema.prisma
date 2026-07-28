@@ -111,6 +111,10 @@ model User {
   // Rail 2 (PAIEMENT_SUR_PLACE_ROADMAP.md) : factures de commission dues par
   // cet utilisateur en tant qu'hôte de réservations SUR_PLACE.
   hostInvoices                     HostInvoice[]
+  // Garantie non-conformité (LANCEMENT_ROADMAP.md §L5.3) : dossiers revus par
+  // cet admin (reviewedById) — distinct des signalements qu'il aurait pu
+  // déposer en tant que voyageur (accès par Booking.nonConformityReport).
+  reviewedNonConformityReports     NonConformityReport[]
   // Achats de mise en avant (« à la une », MONETISATION_IMMO_ROADMAP.md §MI0).
   featuredOrders                   FeaturedOrder[]
   // Abonnement agence (MONETISATION_IMMO_ROADMAP.md §MI1) — au plus un par compte.
@@ -414,6 +418,7 @@ model Booking {
   guestReview        GuestReview?
   messages           Message[]
   hostInvoice        HostInvoice?
+  nonConformityReport NonConformityReport?
   // Dépenses de crédit liées à CETTE résa (motifs UTILISATION_RESERVATION /
   // _SERVICE_HOTE, CROISSANCE_ROADMAP.md §CR0) — informationnel uniquement,
   // jamais utilisé pour recalculer un solde (cf. CreditTransaction).
@@ -459,6 +464,34 @@ model HostInvoice {
 
   @@index([hostId, status])
   @@index([status, dueAt])
+}
+
+// Garantie non-conformité (LANCEMENT_ROADMAP.md §L5.3) : signalement du
+// voyageur si le logement ne correspond pas à l'annonce à l'arrivée, ouvert
+// de `checkIn` à `checkIn + 24h`, réservé au voyageur de la réservation. Un
+// seul signalement par réservation — bookingId @unique, même discipline que
+// Review. N'EST PAS un remboursement automatique : ouvre un dossier revu par
+// un admin (RECU → VALIDE/REJETE, même patron que WakilApplication) ; une
+// validation pose Booking.refundAmount = 100 % des frais ENCAISSÉS EN LIGNE
+// (amountPaid — 0 en Rail 2 SUR_PLACE, rien à rembourser dans ce cas, cohérent
+// avec §L5.2) et rejoint le circuit de règlement existant
+// (Booking.refundAmount/refundPaidAt, /dashboard/admin/remboursements).
+// Darna n'arbitre QUE ses propres frais (exposition max = 10 % du séjour) —
+// le litige sur le loyer reste bilatéral hôte↔voyageur (CGU).
+model NonConformityReport {
+  id           String    @id @default(cuid())
+  category     String // ANNONCE_TROMPEUSE | LOGEMENT_INACCESSIBLE | PROPRETE_SALUBRITE | AUTRE
+  description  String
+  status       String    @default("RECU") // RECU | VALIDE | REJETE
+  createdAt    DateTime  @default(now())
+  reviewedAt   DateTime?
+  reviewedById String?
+  reviewedBy   User?     @relation(fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  bookingId String  @unique
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([status])
 }
 
 // Abonnement agence (MONETISATION_IMMO_ROADMAP.md §MI1) : palier souscrit par

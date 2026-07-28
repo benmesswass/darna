@@ -179,6 +179,15 @@ export const PAYMENT_RECONCILIATION_STALE_MINUTES = 30;
 export const BOOKING_ABANDON_REMINDER_WINDOW_HOURS = 24;
 
 /**
+ * Garantie non-conformité (LANCEMENT_ROADMAP.md §L5.3) : fenêtre après le
+ * check-in pendant laquelle un voyageur peut signaler que le logement ne
+ * correspond pas à l'annonce. Avant `checkIn`, rien à signaler (le séjour n'a
+ * pas commencé) ; au-delà, la fenêtre est jugée trop tardive pour distinguer
+ * un problème d'arrivée d'un désagrément survenu en cours de séjour.
+ */
+export const NON_CONFORMITY_REPORT_WINDOW_HOURS = 24;
+
+/**
  * Détection de spike d'échecs de connexion (LANCEMENT_ROADMAP.md §L4.3) —
  * compteur GLOBAL (tous utilisateurs/IP confondus, distinct du rate limiting
  * par IP de src/lib/rate-limit.ts) : un volume anormal d'échecs sur une courte

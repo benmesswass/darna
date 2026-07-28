@@ -582,6 +582,22 @@ export const ar: Dictionary = {
     cancelledAt: (date: string) => `ملغى في ${date}`,
     rembourseLabel: (montant: number) => `مُسترجع: ${montant} دينار`,
     rembourseEnCoursLabel: (montant: number) => `استرجاع ${montant} دينار جاري`,
+    signalerProbleme: "بلّغ على مشكلة",
+    signalementAvertissement:
+      "هالتبليغ يفتح ملف يتفحصو الفريق متاعنا — ما يرجعش الفلوس أوتوماتيكيًا. اشرح بالتفصيل المشكلة اللي لقيتها وقت وصولك.",
+    signalementCategorieLabel: "نوع المشكلة",
+    signalementCategories: {
+      ANNONCE_TROMPEUSE: "السكن ما يتوافقش مع الإعلان",
+      LOGEMENT_INACCESSIBLE: "ما نجمتش نوصل للسكن",
+      PROPRETE_SALUBRITE: "نظافة ولا صحّة السكن",
+      AUTRE: "مشكلة أخرى",
+    } as Record<string, string>,
+    signalementDescriptionPlaceholder: "اشرح بالتفصيل المشكلة اللي صادفتك…",
+    signalementConfirmer: "ابعث التبليغ",
+    signalementAnnuler: "ارجع",
+    signalementStatutRecu: "التبليغ قيد الفحص",
+    signalementStatutValide: "التبليغ اتصادق عليه",
+    signalementStatutRejete: "التبليغ اترفض",
     noterVoyageur: "قيّم هذا المسافر",
     avisVoyageurEnvoye: "تنبعث التقييم — شكرًا!",
     votreAvisSurCeVoyageur: "تقييمك لهذا المسافر:",
@@ -842,6 +858,18 @@ export const ar: Dictionary = {
     remboursementsCrediterConfirm: "تزيد هالمبلغ كريدي لحساب المسافر؟ عملية فورية وما ترجعش لورا.",
     remboursementsMarquerVirement: "علّم متسوّى (حوالة)",
     remboursementsMarquerVirementConfirm: "تأكّد إنّ الحوالة اليدوية متاع هالمبلغ تمّت فعلاً؟",
+    navNonConformite: "تبليغات السكن",
+    nonConformiteTitre: "تبليغات عدم المطابقة",
+    nonConformiteSousTitre:
+      "ملفات فتحها المسافرين وقت الوصول. المصادقة ترجع 100% من عمولة دارنا المقبوضة على الحجز (ما تخصش الكراء) وتنضم لقائمة الاسترجاعات.",
+    nonConformiteVide: "ما فما حتى تبليغ في الانتظار.",
+    nonConformiteColSignaleLe: "تبلّغ عليه في",
+    nonConformiteColMontantMax: "أقصى تعرّض",
+    nonConformiteValider: "صادق — ارجع الفلوس",
+    nonConformiteValiderConfirm:
+      "تصادق على هالتبليغ؟ عمولة دارنا المقبوضة على هالحجز باش ترجع كاملة للمسافر.",
+    nonConformiteRejeter: "ارفض",
+    nonConformiteRejeterConfirm: "ترفض هالتبليغ؟ ما فماش استرجاع باش يتلوّج.",
     navFinancement: "لُودات التمويل",
     financementTitre: "لُودات التمويل (جلب الأعمال)",
     financementSousTitre:
@@ -1368,6 +1396,9 @@ export const ar: Dictionary = {
     cashEnAttenteExpire: (date: string) => `إذا مافماش جواب قبل ${date}، الطلب باش ينتهي أوتوماتيكيًا.`,
     noShowIndisponible: "هالإجراء ماهوش متوفّر لهالحجز.",
     noShowSignale: "الغياب اتبلّغ عليه.",
+    signalementIndisponible: "هالتبليغ متاح غير في الـ24 ساعة اللي تجي بعد وصولك.",
+    signalementDejaEnvoye: "فما تبليغ اتبعث لهالحجز من قبل.",
+    signalementEnvoye: "التبليغ اتبعث — الفريق متاعنا باش يفحصو.",
     cashConfirmeeDetail:
       "المالك قبل طلبك. خلّص المبلغ الكامل كاش وقت وصولك — المالك تعلّم بالخبر.",
   },
@@ -1455,6 +1486,11 @@ export const ar: Dictionary = {
       `الإعلان متاعك « ${titre} » عندو ليالي فارغة في الجمعات الجايّة — قارن السعر متاعك بمعدل المدينة، بروموسيون صغيّر ينجم يبيع ليلة زايدة.`,
     reservationAbandonnee: (titre: string) =>
       `الحجز متاعك لـ « ${titre} » ما كمّلتوش — مازال موجود إذا حبّيت ترجع تكمّل فيه.`,
+    signalementRecu: (titre: string) =>
+      `فمّا تبليغ عدم مطابقة اتبعث على حجز متاع « ${titre} ».`,
+    signalementValide: (titre: string) =>
+      `التبليغ متاعك على « ${titre} » اتصادق عليه — عمولة دارنا باش ترجعلك.`,
+    signalementRejete: (titre: string) => `التبليغ متاعك على « ${titre} » اتفحّص واترفض.`,
   },
   alaUne: {
     titre: "حطّ إعلانك في الواجهة",

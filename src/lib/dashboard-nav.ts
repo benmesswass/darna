@@ -71,6 +71,11 @@ export function buildDashboardLinks(user: SessionUser, fr: Dictionary): NavItem[
         label: fr.admin.navRemboursements,
         icon: "CoinsIcon",
       },
+      {
+        href: "/dashboard/admin/non-conformite",
+        label: fr.admin.navNonConformite,
+        icon: "ShieldIcon",
+      },
       { href: "/dashboard/admin/financement", label: fr.admin.navFinancement, icon: "BuildingIcon" }
     );
   }

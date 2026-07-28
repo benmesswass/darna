@@ -50,7 +50,11 @@ export type NotificationType =
   // Relance de complétude d'annonce (GROWTH_ROADMAP.md §G2).
   | "ANNONCE_INCOMPLETE"
   // Nudge promo automatique (CROISSANCE_ROADMAP.md §PM2).
-  | "ANNONCE_PROMO_SUGGEREE";
+  | "ANNONCE_PROMO_SUGGEREE"
+  // Garantie non-conformité (LANCEMENT_ROADMAP.md §L5.3).
+  | "SIGNALEMENT_RECU"
+  | "SIGNALEMENT_VALIDE"
+  | "SIGNALEMENT_REJETE";
 
 async function createNotification(
   userId: string,
@@ -153,6 +157,54 @@ export async function notifyBookingCancelledByHost(bookingId: string): Promise<v
   await createNotification(booking.property.ownerId, "ANNONCE_MASQUEE_ANNULATION", {
     propertyTitle: booking.property.title,
     href: "/dashboard/annonces",
+  });
+}
+
+/**
+ * Notifie l'HÔTE qu'un signalement de non-conformité vient d'être déposé sur
+ * une de ses réservations (LANCEMENT_ROADMAP.md §L5.3) — transparence : il ne
+ * doit pas le découvrir seulement si le dossier est validé. N'accuse rien en
+ * soi (le dossier peut être rejeté), juste une information.
+ */
+export async function notifyNonConformityReported(bookingId: string): Promise<void> {
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    select: { property: { select: { title: true, ownerId: true } } },
+  });
+  if (!booking) return;
+  await createNotification(booking.property.ownerId, "SIGNALEMENT_RECU", {
+    propertyTitle: booking.property.title,
+    href: "/dashboard/reservations",
+  });
+}
+
+/**
+ * Notifie le VOYAGEUR que son signalement de non-conformité a été VALIDÉ —
+ * le remboursement des frais rejoint le circuit §L5.2
+ * (Booking.refundAmount/refundPaidAt), visible sur /dashboard/reservations.
+ */
+export async function notifyNonConformityValidated(bookingId: string): Promise<void> {
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    select: { guestId: true, property: { select: { title: true } } },
+  });
+  if (!booking) return;
+  await createNotification(booking.guestId, "SIGNALEMENT_VALIDE", {
+    propertyTitle: booking.property.title,
+    href: "/dashboard/reservations",
+  });
+}
+
+/** Notifie le VOYAGEUR que son signalement de non-conformité a été REJETÉ. */
+export async function notifyNonConformityRejected(bookingId: string): Promise<void> {
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    select: { guestId: true, property: { select: { title: true } } },
+  });
+  if (!booking) return;
+  await createNotification(booking.guestId, "SIGNALEMENT_REJETE", {
+    propertyTitle: booking.property.title,
+    href: "/dashboard/reservations",
   });
 }
 

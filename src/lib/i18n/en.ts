@@ -562,6 +562,22 @@ export const en: Dictionary = {
     cancelledAt: (date: string) => `Cancelled on ${date}`,
     rembourseLabel: (montant: number) => `Refunded: ${montant} TND`,
     rembourseEnCoursLabel: (montant: number) => `Refund of ${montant} TND in progress`,
+    signalerProbleme: "Report a problem",
+    signalementAvertissement:
+      "This report opens a case reviewed by our team — it does not refund automatically. Describe precisely the problem found on arrival.",
+    signalementCategorieLabel: "Problem category",
+    signalementCategories: {
+      ANNONCE_TROMPEUSE: "The property doesn't match the listing",
+      LOGEMENT_INACCESSIBLE: "Unable to access the property",
+      PROPRETE_SALUBRITE: "Cleanliness or habitability",
+      AUTRE: "Other issue",
+    } as Record<string, string>,
+    signalementDescriptionPlaceholder: "Describe precisely the problem you encountered…",
+    signalementConfirmer: "Send the report",
+    signalementAnnuler: "Go back",
+    signalementStatutRecu: "Report under review",
+    signalementStatutValide: "Report validated",
+    signalementStatutRejete: "Report rejected",
     noterVoyageur: "Rate this guest",
     avisVoyageurEnvoye: "Review submitted — thank you!",
     votreAvisSurCeVoyageur: "Your review of this guest:",
@@ -828,6 +844,18 @@ export const en: Dictionary = {
     remboursementsMarquerVirement: "Mark settled (transfer)",
     remboursementsMarquerVirementConfirm:
       "Confirm that the manual transfer for this amount has been made?",
+    navNonConformite: "Stay reports",
+    nonConformiteTitre: "Non-conformity reports",
+    nonConformiteSousTitre:
+      "Cases opened by guests on arrival. Validating refunds 100% of the Darna fees collected on the booking (never the rent) and joins the refunds queue.",
+    nonConformiteVide: "No reports pending.",
+    nonConformiteColSignaleLe: "Reported on",
+    nonConformiteColMontantMax: "Max exposure",
+    nonConformiteValider: "Validate — refund the fees",
+    nonConformiteValiderConfirm:
+      "Validate this report? The Darna fees collected on this booking will be fully refunded to the guest.",
+    nonConformiteRejeter: "Reject",
+    nonConformiteRejeterConfirm: "Reject this report? No refund will be triggered.",
     navFinancement: "Financing leads",
     financementTitre: "Financing leads (business referral)",
     financementSousTitre:
@@ -1354,6 +1382,9 @@ export const en: Dictionary = {
     cashEnAttenteExpire: (date: string) => `Without a reply by ${date}, the request will expire automatically.`,
     noShowIndisponible: "This action isn't available for this booking.",
     noShowSignale: "No-show reported.",
+    signalementIndisponible: "This report is only available within 24h of your arrival.",
+    signalementDejaEnvoye: "A report has already been filed for this booking.",
+    signalementEnvoye: "Report sent — our team is reviewing it.",
     cashConfirmeeDetail:
       "The host has accepted your request. Pay the full amount in cash on arrival — the host has been notified.",
   },
@@ -1443,6 +1474,11 @@ export const en: Dictionary = {
       `“${titre}” has empty nights coming up in the next few weeks — compare your price to the city average: a short-term promo could be enough to sell one more night.`,
     reservationAbandonnee: (titre: string) =>
       `Your booking for “${titre}” wasn't completed — it's still available if you'd like to pick up where you left off.`,
+    signalementRecu: (titre: string) =>
+      `A non-conformity report was filed on a booking for “${titre}”.`,
+    signalementValide: (titre: string) =>
+      `Your report on “${titre}” was validated — the Darna fees are being refunded to you.`,
+    signalementRejete: (titre: string) => `Your report on “${titre}” was reviewed and rejected.`,
   },
   alaUne: {
     titre: "Feature your listing",

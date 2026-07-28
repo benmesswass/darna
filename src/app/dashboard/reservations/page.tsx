@@ -9,11 +9,13 @@ import { completeElapsedBookings } from "@/lib/bookings";
 import { formatDateShortFr } from "@/lib/format";
 import { Price } from "@/components/currency/Price";
 import { computeRefund } from "@/lib/cancellation";
+import { NON_CONFORMITY_REPORT_WINDOW_HOURS } from "@/lib/config";
 import { contactRevealState, type ContactGate } from "@/lib/contact-reveal";
 import type { CancelPolicy } from "@/lib/constants";
 import { CancelBookingButton } from "@/components/booking/CancelBookingButton";
 import { HostCancelButton } from "@/components/booking/HostCancelButton";
 import { NoShowButton } from "@/components/booking/NoShowButton";
+import { ReportNonConformityButton } from "@/components/booking/ReportNonConformityButton";
 import { ContactReveal } from "@/components/booking/ContactReveal";
 import { GuestReviewForm } from "@/components/booking/GuestReviewForm";
 import { GuestReviewDisplay } from "@/components/booking/GuestReviewDisplay";
@@ -45,6 +47,29 @@ function bookingStatusLabel(
     return fr.dashboard.confirmeeCashLabel;
   }
   return fr.dashboard.statutReservation[status] ?? status;
+}
+
+/**
+ * Garantie non-conformité (§L5.3) : même fenêtre que celle revérifiée
+ * serveur par reportNonConformityAction — dupliquée ici uniquement pour
+ * décider d'afficher le bouton (l'action revalide tout elle-même, jamais de
+ * confiance dans ce booléen d'affichage).
+ */
+function nonConformityReportEligible(status: string, checkIn: Date): boolean {
+  if (status !== "CONFIRMEE" && status !== "TERMINEE") return false;
+  const start = checkIn.getTime();
+  const end = start + NON_CONFORMITY_REPORT_WINDOW_HOURS * 60 * 60 * 1000;
+  const now = Date.now();
+  return now >= start && now <= end;
+}
+
+function nonConformityStatusLabel(
+  status: string,
+  fr: Awaited<ReturnType<typeof getT>>
+): string {
+  if (status === "VALIDE") return fr.dashboard.signalementStatutValide;
+  if (status === "REJETE") return fr.dashboard.signalementStatutRejete;
+  return fr.dashboard.signalementStatutRecu;
 }
 
 export default async function MesReservationsPage() {
@@ -269,6 +294,7 @@ export default async function MesReservationsPage() {
       },
       review: { select: { id: true } },
       guestReview: { select: { rating: true, comment: true } },
+      nonConformityReport: { select: { status: true } },
     },
     orderBy: { checkIn: "desc" },
   });
@@ -427,6 +453,38 @@ export default async function MesReservationsPage() {
                   <div className="space-y-0.5 text-[11px] text-body/50">
                     <p>{fr.dashboard.cancelledAt(formatDateShortFr(b.cancelledAt))}</p>
                     {b.refundAmount != null && b.refundAmount > 0 ? (
+                      <p
+                        className={`font-semibold ${b.refundPaidAt ? "text-emerald-700" : "text-amber-700"}`}
+                      >
+                        {b.refundPaidAt
+                          ? fr.dashboard.rembourseLabel(b.refundAmount)
+                          : fr.dashboard.rembourseEnCoursLabel(b.refundAmount)}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
+                {/* Garantie non-conformité (§L5.3) : disponible de checkIn à
+                    checkIn + 24h, une seule fois par réservation. */}
+                {!b.nonConformityReport &&
+                nonConformityReportEligible(b.status, b.checkIn) ? (
+                  <ReportNonConformityButton bookingId={b.id} />
+                ) : null}
+                {b.nonConformityReport ? (
+                  <div className="space-y-0.5 text-[11px] text-body/50">
+                    <p
+                      className={`font-semibold ${
+                        b.nonConformityReport.status === "VALIDE"
+                          ? "text-emerald-700"
+                          : b.nonConformityReport.status === "REJETE"
+                            ? "text-body/50"
+                            : "text-amber-700"
+                      }`}
+                    >
+                      {nonConformityStatusLabel(b.nonConformityReport.status, fr)}
+                    </p>
+                    {b.nonConformityReport.status === "VALIDE" &&
+                    b.refundAmount != null &&
+                    b.refundAmount > 0 ? (
                       <p
                         className={`font-semibold ${b.refundPaidAt ? "text-emerald-700" : "text-amber-700"}`}
                       >

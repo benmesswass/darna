@@ -11,11 +11,18 @@ import {
   SERVICE_FEE_RATE,
   SITE_URL,
   HOST_INVOICE_DUE_DAYS,
+  NON_CONFORMITY_REPORT_WINDOW_HOURS,
   computeDepositAmount,
   hostCancelBlockDays,
 } from "@/lib/config";
-import { BOOKING_EXPIRY_MS, HOST_ACCEPTANCE_EXPIRY_MS, PAYMENT_MODES } from "@/lib/constants";
+import {
+  BOOKING_EXPIRY_MS,
+  HOST_ACCEPTANCE_EXPIRY_MS,
+  PAYMENT_MODES,
+  NON_CONFORMITY_CATEGORIES,
+} from "@/lib/constants";
 import { logAudit, logStructured } from "@/lib/audit";
+import { logProductEvent } from "@/lib/product-events";
 import { recomputePropertyRating, effectiveNightlyPrice } from "@/lib/listings";
 import { blockingBookingOverlap } from "@/lib/booking-overlap";
 import {
@@ -40,6 +47,7 @@ import {
   notifyCashBookingRequested,
   notifyGuestReviewReceived,
   notifyNewBookingReceived,
+  notifyNonConformityReported,
   notifyReviewReceived,
 } from "@/lib/notification-center";
 import { isSuspended, applySuspension } from "@/lib/suspension";
@@ -959,6 +967,7 @@ export async function cancelBookingAction(
       amountPaid: true,
       createdAt: true,
       property: { select: { slug: true, cancelPolicy: true } },
+      nonConformityReport: { select: { id: true } },
     },
   });
 
@@ -967,6 +976,14 @@ export async function cancelBookingAction(
 
   if (booking.status !== "CONFIRMEE")
     return { error: fr.booking.annulationImpossible };
+
+  // Garantie non-conformité (§L5.3) : une fois un dossier ouvert (RECU,
+  // VALIDE ou REJETE), l'annulation « libre choix » du voyageur n'a plus
+  // cours sur CETTE réservation — sinon elle écraserait silencieusement
+  // (update non conditionné) un refundAmount déjà posé par
+  // validateNonConformityReportAction avec le résultat de computeRefund
+  // (quasi toujours 0 % puisque le check-in est déjà passé à ce stade).
+  if (booking.nonConformityReport) return { error: fr.booking.annulationImpossible };
 
   // Assiette = les frais Darna réellement encaissés en ligne (§L5.2 — jamais
   // le loyer, que Darna ne touche plus). En Rail 2 (SUR_PLACE), amountPaid
@@ -1368,4 +1385,99 @@ export async function reportNoShowAction(
 
   revalidatePath("/dashboard/reservations");
   return { success: fr.booking.noShowSignale };
+}
+
+export type NonConformityReportState = { error?: string; success?: string } | undefined;
+
+const reportNonConformitySchema = z.object({
+  bookingId: z.string().cuid(),
+  category: z.enum(NON_CONFORMITY_CATEGORIES),
+  description: z.string().trim().min(10).max(2000),
+});
+
+/**
+ * Garantie non-conformité (LANCEMENT_ROADMAP.md §L5.3) : signalement du
+ * voyageur si le logement ne correspond pas à l'annonce, ouvert de `checkIn`
+ * à `checkIn + NON_CONFORMITY_REPORT_WINDOW_HOURS`. N'EST PAS un
+ * remboursement automatique : ouvre un dossier RECU, revu par un admin
+ * (validateNonConformityReportAction/rejectNonConformityReportAction,
+ * src/actions/admin.ts) qui décide seul du remboursement (100 % des frais
+ * réellement encaissés si validé — cf. Booking.refundAmount, circuit §L5.2).
+ * Un seul signalement par réservation : la contrainte unique `bookingId`
+ * (schéma) est la garde RÉELLE contre une double soumission concurrente ; le
+ * pré-check ci-dessous n'est qu'un raccourci pour un message d'erreur clair.
+ */
+export async function reportNonConformityAction(
+  _prev: NonConformityReportState,
+  formData: FormData
+): Promise<NonConformityReportState> {
+  const fr = await getT();
+  const user = await requireUser();
+
+  const parsed = reportNonConformitySchema.safeParse({
+    bookingId: formData.get("bookingId"),
+    category: formData.get("category"),
+    description: formData.get("description"),
+  });
+  if (!parsed.success) return { error: fr.common.champsRequis };
+
+  const booking = await prisma.booking.findUnique({
+    where: { id: parsed.data.bookingId },
+    select: {
+      id: true,
+      guestId: true,
+      status: true,
+      checkIn: true,
+      nonConformityReport: { select: { id: true } },
+    },
+  });
+
+  if (!booking || booking.guestId !== user.id) return { error: fr.common.erreurInconnue };
+  if (booking.nonConformityReport) return { error: fr.booking.signalementDejaEnvoye };
+
+  const windowStart = booking.checkIn.getTime();
+  const windowEnd = windowStart + NON_CONFORMITY_REPORT_WINDOW_HOURS * 60 * 60 * 1000;
+  const now = Date.now();
+  if (
+    (booking.status !== "CONFIRMEE" && booking.status !== "TERMINEE") ||
+    now < windowStart ||
+    now > windowEnd
+  ) {
+    return { error: fr.booking.signalementIndisponible };
+  }
+
+  try {
+    await prisma.nonConformityReport.create({
+      data: {
+        bookingId: booking.id,
+        category: parsed.data.category,
+        description: parsed.data.description,
+      },
+    });
+  } catch (err) {
+    // Concurrence (double soumission) — la contrainte unique bookingId a
+    // tranché avant nous, même invariant que le pré-check ci-dessus.
+    if ((err as { code?: string }).code === "P2002") {
+      return { error: fr.booking.signalementDejaEnvoye };
+    }
+    throw err;
+  }
+
+  await logAudit({
+    action: "NON_CONFORMITY_REPORTED",
+    userId: user.id,
+    success: true,
+    metadata: { bookingId: booking.id, category: parsed.data.category },
+  });
+
+  await logProductEvent({
+    event: "NON_CONFORMITY_REPORTED",
+    userId: user.id,
+    metadata: { bookingId: booking.id, category: parsed.data.category },
+  });
+
+  await notifyNonConformityReported(booking.id);
+
+  revalidatePath("/dashboard/reservations");
+  return { success: fr.booking.signalementEnvoye };
 }

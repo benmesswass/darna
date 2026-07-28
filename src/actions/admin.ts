@@ -13,6 +13,8 @@ import {
   notifyAgencyQuotaReached,
   notifyAgencyOutOfVerificationCredits,
   notifyHostVerificationPaymentRequired,
+  notifyNonConformityValidated,
+  notifyNonConformityRejected,
 } from "@/lib/notification-center";
 import { sendHostInvoiceReminderEmail } from "@/lib/notifications";
 import { activeListingsLimit, countActiveListings } from "@/lib/subscriptions";
@@ -523,4 +525,105 @@ export async function creditRefundAction(formData: FormData): Promise<void> {
 
   revalidatePath("/dashboard/admin/remboursements");
   revalidatePath("/dashboard/credits");
+}
+
+// ── L5.3 — Garantie non-conformité ──────────────────────────────────────────
+// Un signalement voyageur (RECU) n'est jamais un remboursement automatique :
+// un admin tranche (VALIDE/REJETE). Une validation pose Booking.refundAmount
+// = 100 % des frais réellement encaissés (amountPaid — 0 en Rail 2, rien à
+// rembourser dans ce cas) et rejoint le circuit §L5.2 existant
+// (/dashboard/admin/remboursements). Les deux actions sont idempotentes
+// (updateMany conditionné à status: "RECU") — un double clic ne traite jamais
+// deux fois le même dossier.
+
+const reportIdSchema = z.object({ reportId: z.string().cuid() });
+
+/**
+ * Valide un signalement de non-conformité : pose le remboursement des frais
+ * ET fait passer le dossier à VALIDE dans LA MÊME transaction (même principe
+ * que creditRefundAction ci-dessus — jamais l'un sans l'autre).
+ */
+export async function validateNonConformityReportAction(formData: FormData): Promise<void> {
+  const actor = await requireAdmin();
+  const parsed = reportIdSchema.safeParse({ reportId: formData.get("reportId") });
+  if (!parsed.success) return;
+
+  const report = await prisma.nonConformityReport.findUnique({
+    where: { id: parsed.data.reportId },
+    select: {
+      id: true,
+      status: true,
+      booking: { select: { id: true, amountPaid: true } },
+    },
+  });
+  if (!report || report.status !== "RECU") return;
+
+  // 100 % des frais ENCAISSÉS EN LIGNE (jamais le loyer, que Darna ne touche
+  // plus depuis §L5.1) — null (pas 0) quand rien n'a transité, même
+  // convention que cancelBookingAction, pour ne jamais faire apparaître une
+  // ligne fantôme « 0 TND » sur /dashboard/admin/remboursements.
+  const refundAmount = report.booking.amountPaid > 0 ? report.booking.amountPaid : null;
+
+  const settled = await prisma.$transaction(async (tx) => {
+    const res = await tx.nonConformityReport.updateMany({
+      where: { id: report.id, status: "RECU" },
+      data: { status: "VALIDE", reviewedAt: new Date(), reviewedById: actor.id },
+    });
+    if (res.count === 0) return false; // déjà traité entre-temps (double clic)
+
+    await tx.booking.update({
+      where: { id: report.booking.id },
+      data: { refundAmount },
+    });
+    return true;
+  });
+  if (!settled) return;
+
+  await logAudit({
+    action: "NON_CONFORMITY_VALIDATED",
+    userId: actor.id,
+    success: true,
+    metadata: { reportId: report.id, bookingId: report.booking.id, refundAmount },
+  });
+
+  await notifyNonConformityValidated(report.booking.id);
+
+  revalidatePath("/dashboard/admin/non-conformite");
+  revalidatePath("/dashboard/admin/remboursements");
+  revalidatePath("/dashboard/reservations");
+}
+
+/**
+ * Rejette un signalement de non-conformité : aucun remboursement, le dossier
+ * passe à REJETE. Le voyageur est notifié ; le litige sur le loyer (s'il
+ * persiste) reste bilatéral hôte↔voyageur (CGU), hors du périmètre Darna.
+ */
+export async function rejectNonConformityReportAction(formData: FormData): Promise<void> {
+  const actor = await requireAdmin();
+  const parsed = reportIdSchema.safeParse({ reportId: formData.get("reportId") });
+  if (!parsed.success) return;
+
+  const report = await prisma.nonConformityReport.findUnique({
+    where: { id: parsed.data.reportId },
+    select: { id: true, status: true, bookingId: true },
+  });
+  if (!report || report.status !== "RECU") return;
+
+  const updated = await prisma.nonConformityReport.updateMany({
+    where: { id: report.id, status: "RECU" },
+    data: { status: "REJETE", reviewedAt: new Date(), reviewedById: actor.id },
+  });
+  if (updated.count === 0) return; // déjà traité entre-temps (double clic)
+
+  await logAudit({
+    action: "NON_CONFORMITY_REJECTED",
+    userId: actor.id,
+    success: true,
+    metadata: { reportId: report.id, bookingId: report.bookingId },
+  });
+
+  await notifyNonConformityRejected(report.bookingId);
+
+  revalidatePath("/dashboard/admin/non-conformite");
+  revalidatePath("/dashboard/reservations");
 }
