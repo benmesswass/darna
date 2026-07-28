@@ -59,7 +59,7 @@ export default async function PromoPage({
     <div className="mx-auto max-w-xl">
       <Link
         href="/dashboard/annonces"
-        className="inline-flex items-center gap-1 text-sm font-medium text-body/60 hover:text-heading"
+        className="inline-flex items-center gap-1 text-sm font-medium text-muted hover:text-heading"
       >
         ← {fr.promo.retour}
       </Link>
@@ -72,11 +72,11 @@ export default async function PromoPage({
         <p className="mt-2 text-sm text-body/70">{fr.promo.sousTitre}</p>
 
         <div className="mt-4 rounded-2xl bg-cream p-4 text-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-body/50">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted">
             {fr.promo.annonce}
           </p>
           <p className="mt-0.5 font-semibold text-body">{property.title}</p>
-          <p className="text-body/60">{property.city}</p>
+          <p className="text-muted">{property.city}</p>
           <p className="mt-2 text-sm font-semibold text-heading">
             {fr.promo.prixActuel(formatTndServer(property.price))}
           </p>
@@ -108,7 +108,7 @@ export default async function PromoPage({
             {canSetPromo ? (
               <>
                 <PropertyPromoForm propertyId={property.id} price={property.price} />
-                <p className="mt-4 text-center text-xs text-body/50">{fr.promo.garantie}</p>
+                <p className="mt-4 text-center text-xs text-muted">{fr.promo.garantie}</p>
               </>
             ) : null}
           </>

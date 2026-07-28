@@ -49,7 +49,7 @@ export async function ReviewsSection({
   return (
     <section id="avis" className="scroll-mt-24">
       <h2 className="text-xl font-bold text-heading">{fr.property.avis}</h2>
-      <p className="mt-1.5 flex items-center gap-1.5 text-xs text-body/60">
+      <p className="mt-1.5 flex items-center gap-1.5 text-xs text-muted">
         <ShieldIcon width={14} height={14} className="text-heading" />
         {fr.property.avisGarantie}
       </p>

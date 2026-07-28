@@ -11,7 +11,7 @@ import type { MapMarker } from "./types";
 function MapLoading() {
   const fr = useT();
   return (
-    <div className="flex h-full w-full items-center justify-center bg-darna/5 text-sm text-body/50">
+    <div className="flex h-full w-full items-center justify-center bg-darna/5 text-sm text-muted">
       {fr.search.chargementCarte}
     </div>
   );
@@ -219,7 +219,7 @@ export function PropertyMap({ markers }: { markers: MapMarker[] }) {
                     >
                       {/* Prix */}
                       <div className="flex flex-col gap-2">
-                        <span className="text-xs font-semibold text-body/60">
+                        <span className="text-xs font-semibold text-muted">
                           {fr.search.prixMin} / {fr.search.prixMax}
                         </span>
                         <div className="flex items-center gap-2">
@@ -232,7 +232,7 @@ export function PropertyMap({ markers }: { markers: MapMarker[] }) {
                             placeholder={fr.search.prixMin}
                             className={inputClass}
                           />
-                          <span className="text-body/40">–</span>
+                          <span className="text-subtle">–</span>
                           <input
                             type="number"
                             inputMode="numeric"
@@ -247,7 +247,7 @@ export function PropertyMap({ markers }: { markers: MapMarker[] }) {
 
                       {/* Note minimale */}
                       <div className="flex flex-col gap-2">
-                        <span className="text-xs font-semibold text-body/60">
+                        <span className="text-xs font-semibold text-muted">
                           {fr.search.noteMinimale}
                         </span>
                         <div className="flex flex-wrap gap-2">

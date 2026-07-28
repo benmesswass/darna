@@ -184,7 +184,7 @@ export default async function MesAnnoncesPage({
           <p className="text-lg font-semibold text-heading">
             {fr.dashboard.aucuneAnnonce}
           </p>
-          <p className="mt-1 text-sm text-body/60">{fr.dashboard.aucuneAnnonceCta}</p>
+          <p className="mt-1 text-sm text-muted">{fr.dashboard.aucuneAnnonceCta}</p>
           <Link
             href="/dashboard/annonces/nouvelle"
             className="mt-5 inline-block rounded-full bg-darna px-6 py-2.5 text-sm font-semibold text-white hover:bg-darna-light"
@@ -266,7 +266,7 @@ export default async function MesAnnoncesPage({
                     <StatusBadge status={effectiveExpired ? "EXPIREE" : p.status} />
                   </div>
                   <p className="mt-1.5 truncate font-semibold text-body">{p.title}</p>
-                  <p className="text-sm text-body/60">
+                  <p className="text-sm text-muted">
                     {p.city} ·{" "}
                     <PromoPrice
                       price={p.price}
@@ -282,7 +282,7 @@ export default async function MesAnnoncesPage({
                         ? "font-semibold text-red-600"
                         : daysLeft <= 7
                           ? "font-semibold text-amber-600"
-                          : "text-body/50"
+                          : "text-muted"
                     }`}
                   >
                     {fr.dashboard.expireDans(daysLeft)}
@@ -332,7 +332,7 @@ export default async function MesAnnoncesPage({
                           }}
                         />
                       </div>
-                      <p className="mt-1 text-[11px] text-body/50">
+                      <p className="mt-1 text-[11px] text-muted">
                         {[
                           !completeness.photosOk ? fr.dashboard.completudePhotos : null,
                           !completeness.descriptionOk ? fr.dashboard.completudeDescription : null,
@@ -390,7 +390,7 @@ export default async function MesAnnoncesPage({
                         </p>
                       ) : (
                         <>
-                          <p className="mb-1 text-center text-[11px] text-body/50">
+                          <p className="mb-1 text-center text-[11px] text-muted">
                             {fr.dashboard.verifWakilPrix} : <Price amount={HOST_VERIFICATION_PRICE_TND} />
                           </p>
                           {konnectEnabled ? (

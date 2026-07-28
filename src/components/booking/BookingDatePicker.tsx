@@ -187,7 +187,7 @@ export function BookingDatePicker({
           </span>
           <div>
             <p className="text-sm font-bold text-heading">{fr.booking.choisirDates}</p>
-            <p className="text-xs font-medium text-body/55">
+            <p className="text-xs font-medium text-muted">
               {hasRange ? (
                 <>
                   {rangeLabel} ·{" "}
@@ -209,7 +209,7 @@ export function BookingDatePicker({
                 onChange(null, null);
                 setHovered(null);
               }}
-              className="rounded-full px-3 py-1 text-xs font-semibold text-body/50 transition hover:bg-cream hover:text-heading"
+              className="rounded-full px-3 py-1 text-xs font-semibold text-muted transition hover:bg-cream hover:text-heading"
             >
               {fr.booking.effacer}
             </button>
@@ -219,7 +219,7 @@ export function BookingDatePicker({
               type="button"
               onClick={onClose}
               aria-label={fr.common.fermer}
-              className="flex h-8 w-8 items-center justify-center rounded-full text-body/50 transition hover:bg-cream hover:text-heading"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-muted transition hover:bg-cream hover:text-heading"
             >
               <CloseIcon width={18} height={18} />
             </button>
@@ -264,7 +264,7 @@ export function BookingDatePicker({
               {weekdays.map((d, i) => (
                 <span
                   key={`wd-${i}`}
-                  className="pb-1 text-center text-[11px] font-semibold uppercase text-body/35"
+                  className="pb-1 text-center text-[11px] font-semibold uppercase text-subtle"
                 >
                   {d}
                 </span>
@@ -317,9 +317,9 @@ export function BookingDatePicker({
                           : inRange
                             ? "font-semibold text-heading"
                             : isPast
-                              ? "cursor-default text-body/25"
+                              ? "cursor-default text-subtle"
                               : isUnavail
-                                ? "cursor-not-allowed text-body/30 line-through"
+                                ? "cursor-not-allowed text-subtle line-through"
                                 : "font-medium text-body hover:bg-darna/15 hover:text-heading",
                       ].join(" ")}
                     >
@@ -351,7 +351,7 @@ export function BookingDatePicker({
 
       {/* Légende (masquable : inutile dans le popover de recherche) */}
       {showLegend ? (
-        <div className={`flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-body/60 ${compact ? "mt-3" : "mt-5"}`}>
+        <div className={`flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted ${compact ? "mt-3" : "mt-5"}`}>
           <span className="flex items-center gap-1.5">
             <span className="inline-block h-3.5 w-3.5 rounded-full bg-darna" />
             {fr.booking.selectionne}

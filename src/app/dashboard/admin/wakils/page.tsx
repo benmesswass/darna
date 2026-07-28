@@ -75,10 +75,10 @@ export default async function AdminWakilsPage() {
             </span>
           )}
         </div>
-        <p className="mb-6 text-sm text-body/60">{fr.admin.candidaturesWakilDesc}</p>
+        <p className="mb-6 text-sm text-muted">{fr.admin.candidaturesWakilDesc}</p>
 
         {active.length === 0 ? (
-          <p className="text-sm text-body/50">{fr.admin.aucuneCandidature}</p>
+          <p className="text-sm text-muted">{fr.admin.aucuneCandidature}</p>
         ) : (
           <div className="space-y-4">
             {active.map((app) => (
@@ -89,13 +89,13 @@ export default async function AdminWakilsPage() {
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <div className="font-semibold text-darna-dark">{app.name}</div>
-                    <div className="mt-0.5 text-xs text-body/50">
+                    <div className="mt-0.5 text-xs text-muted">
                       {app.email} · {app.phone} · {app.city}
                     </div>
                   </div>
                   <span
                     className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                      statusColor[app.status] ?? "bg-ink/10 text-body/60"
+                      statusColor[app.status] ?? "bg-ink/10 text-muted"
                     }`}
                   >
                     {app.status}
@@ -111,7 +111,7 @@ export default async function AdminWakilsPage() {
                 ) : null}
 
                 {app.reviewedBy ? (
-                  <p className="mt-2 text-xs text-body/40">
+                  <p className="mt-2 text-xs text-subtle">
                     {fr.admin.revuePar(app.reviewedBy.name)}
                   </p>
                 ) : null}
@@ -146,17 +146,17 @@ export default async function AdminWakilsPage() {
       {/* ── Candidatures archivées ─────────────────────────────────── */}
       <section>
         <div className="mb-4 flex items-center gap-3">
-          <h3 className="text-xl font-bold text-body/50">{fr.admin.wakilsSupprimees}</h3>
+          <h3 className="text-xl font-bold text-muted">{fr.admin.wakilsSupprimees}</h3>
           {archived.length > 0 && (
-            <span className="rounded-full bg-ink/10 px-2.5 py-0.5 text-xs font-bold text-body/50">
+            <span className="rounded-full bg-ink/10 px-2.5 py-0.5 text-xs font-bold text-muted">
               {archived.length}
             </span>
           )}
         </div>
-        <p className="mb-4 text-sm text-body/50">{fr.admin.wakilsSupprimeeesDesc}</p>
+        <p className="mb-4 text-sm text-muted">{fr.admin.wakilsSupprimeeesDesc}</p>
 
         {archived.length === 0 ? (
-          <p className="text-sm text-body/40">{fr.admin.aucuneCandidatureSupprimee}</p>
+          <p className="text-sm text-subtle">{fr.admin.aucuneCandidatureSupprimee}</p>
         ) : (
           <div className="space-y-3">
             {archived.map((app) => (
@@ -166,13 +166,13 @@ export default async function AdminWakilsPage() {
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <span className="font-medium text-body/60">{app.name}</span>
-                    <span className="ms-2 text-xs text-body/40">
+                    <span className="font-medium text-muted">{app.name}</span>
+                    <span className="ms-2 text-xs text-subtle">
                       {app.email} · {app.city}
                     </span>
                     <span
                       className={`ms-2 inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
-                        statusColor[app.status] ?? "bg-ink/10 text-body/40"
+                        statusColor[app.status] ?? "bg-ink/10 text-subtle"
                       }`}
                     >
                       {app.status}

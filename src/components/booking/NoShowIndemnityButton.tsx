@@ -15,7 +15,7 @@ export function NoShowIndemnityButton({ bookingId }: { bookingId: string }) {
   const [state, action, pending] = useActionState(claimNoShowIndemnityAction, undefined);
 
   if (state?.success) {
-    return <p className="text-xs font-semibold text-body/60">{state.success}</p>;
+    return <p className="text-xs font-semibold text-muted">{state.success}</p>;
   }
 
   if (!confirming) {

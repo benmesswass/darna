@@ -82,7 +82,7 @@ export default async function RevenusPage() {
         <CoinsIcon width={20} height={20} className="text-sand" />
         {fr.dashboard.revenusTitre}
       </h2>
-      <p className="mt-1 max-w-2xl text-sm text-body/60">
+      <p className="mt-1 max-w-2xl text-sm text-muted">
         {fr.dashboard.revenusSousTitre}
       </p>
 
@@ -96,7 +96,7 @@ export default async function RevenusPage() {
       </div>
 
       {totalFraisEnLigne > 0 ? (
-        <p className="mt-3 text-xs text-body/50">
+        <p className="mt-3 text-xs text-muted">
           {fr.dashboard.revenusFraisInfo(formatTndServer(totalFraisEnLigne))}
         </p>
       ) : null}
@@ -104,7 +104,7 @@ export default async function RevenusPage() {
       {bookings.length === 0 ? (
         <div className="mt-6 rounded-3xl bg-surface p-10 text-center ring-1 ring-darna/10">
           <p className="text-lg font-semibold text-heading">{fr.dashboard.revenusAucun}</p>
-          <p className="mt-1 text-sm text-body/60">{fr.dashboard.revenusAucunCta}</p>
+          <p className="mt-1 text-sm text-muted">{fr.dashboard.revenusAucunCta}</p>
         </div>
       ) : (
         <ul className="mt-6 space-y-4">
@@ -141,10 +141,10 @@ export default async function RevenusPage() {
                   >
                     {b.property.title}
                   </Link>
-                  <p className="text-sm text-body/60">
+                  <p className="text-sm text-muted">
                     {b.property.city} · {fr.dashboard.reservePar(b.guest.name)}
                   </p>
-                  <p className="mt-0.5 text-xs text-body/50">
+                  <p className="mt-0.5 text-xs text-muted">
                     {encaisse
                       ? fr.dashboard.revenusVerseApres(formatDateShortFr(b.checkOut))
                       : fr.dashboard.revenusAEncaisserLe(formatDateShortFr(b.checkIn))}
@@ -178,7 +178,7 @@ function SummaryCard({
         emphasis ? "bg-darna ring-darna" : "bg-surface ring-darna/10"
       }`}
     >
-      <p className={`text-xs font-semibold ${emphasis ? "text-white/80" : "text-body/55"}`}>
+      <p className={`text-xs font-semibold ${emphasis ? "text-white/80" : "text-muted"}`}>
         {label}
       </p>
       <p className={`mt-1.5 text-2xl font-bold ${emphasis ? "text-white" : "text-heading"}`}>

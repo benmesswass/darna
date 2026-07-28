@@ -21,7 +21,7 @@ function SubRatingPicker({
   return (
     <div>
       <input type="hidden" name={name} value={value} />
-      <span className="text-xs font-semibold text-body/60">{label}</span>
+      <span className="text-xs font-semibold text-muted">{label}</span>
       <div className="mt-1 flex gap-0.5">
         {[1, 2, 3, 4, 5].map((n) => (
           <button
@@ -29,7 +29,7 @@ function SubRatingPicker({
             type="button"
             onClick={() => onChange(n)}
             aria-label={`${label} : ${n}/5`}
-            className={n <= value ? "text-sand" : "text-body/20"}
+            className={n <= value ? "text-sand" : "text-subtle"}
           >
             <StarIcon width={18} height={18} fill={n <= value ? "currentColor" : "none"} />
           </button>
@@ -103,7 +103,7 @@ export function ReviewForm({ bookingId }: { bookingId: string }) {
       </div>
 
       <label className="mt-4 block space-y-1">
-        <span className="text-xs font-semibold text-body/60">
+        <span className="text-xs font-semibold text-muted">
           {fr.property.votreCommentaire}
         </span>
         <textarea

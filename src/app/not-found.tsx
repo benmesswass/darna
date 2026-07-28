@@ -11,7 +11,7 @@ export default async function NotFound() {
       </span>
       <p className="mt-6 text-6xl font-bold text-heading">404</p>
       <h1 className="mt-2 text-2xl font-bold text-heading">{fr.notFound.titre}</h1>
-      <p className="mt-3 text-body/60">{fr.notFound.desc}</p>
+      <p className="mt-3 text-muted">{fr.notFound.desc}</p>
       <Link
         href="/"
         className="mt-8 rounded-full bg-sand px-7 py-3 text-sm font-bold text-darna-dark transition hover:bg-sand-light"

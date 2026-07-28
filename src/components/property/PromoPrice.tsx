@@ -30,7 +30,7 @@ export function PromoPrice({
 
   return (
     <span className="inline-flex flex-wrap items-baseline gap-2">
-      <Price amount={price} className="text-base font-medium text-body/40 line-through" />
+      <Price amount={price} className="text-base font-medium text-subtle line-through" />
       <Price amount={promoPrice} suffix={suffix} className={className} />
     </span>
   );

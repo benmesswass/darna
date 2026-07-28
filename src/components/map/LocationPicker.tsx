@@ -7,7 +7,7 @@ import { useT } from "@/components/i18n/LocaleProvider";
 function MapLoading() {
   const fr = useT();
   return (
-    <div className="flex h-full w-full items-center justify-center bg-darna/5 text-sm text-body/50">
+    <div className="flex h-full w-full items-center justify-center bg-darna/5 text-sm text-muted">
       {fr.search.chargementCarte}
     </div>
   );

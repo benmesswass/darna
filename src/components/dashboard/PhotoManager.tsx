@@ -46,7 +46,7 @@ function PhotoCaptionField({ photo }: { photo: ManagedPhoto }) {
           maxLength={140}
           defaultValue={photo.caption ?? ""}
           placeholder={fr.annonceForm.legendePlaceholder}
-          className="min-w-0 flex-1 rounded-lg bg-cream px-2.5 py-1.5 text-xs text-body ring-1 ring-darna/10 placeholder:text-body/35 focus:outline-none focus:ring-2 focus:ring-darna/40"
+          className="min-w-0 flex-1 rounded-lg bg-cream px-2.5 py-1.5 text-xs text-body ring-1 ring-darna/10 placeholder:text-subtle focus:outline-none focus:ring-2 focus:ring-darna/40"
         />
         <button
           type="submit"
@@ -83,8 +83,8 @@ export function PhotoManager({
 
   return (
     <div className="space-y-4">
-      <p className="text-xs text-body/50">{fr.annonceForm.photosAide}</p>
-      <p className="text-xs text-body/50">{fr.annonceForm.legendeAide}</p>
+      <p className="text-xs text-muted">{fr.annonceForm.photosAide}</p>
+      <p className="text-xs text-muted">{fr.annonceForm.legendeAide}</p>
 
       {/* Grille des photos existantes */}
       <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">

@@ -32,7 +32,7 @@ export function Price({
     <span className={className}>
       {label}
       {suffix ? (
-        <span className="text-[0.78em] font-normal opacity-70"> {suffix}</span>
+        <span className="text-[0.78em] font-normal opacity-90"> {suffix}</span>
       ) : null}
     </span>
   );

@@ -49,11 +49,11 @@ function StatCard({
         highlight ? "border-darna/30 bg-darna/5" : "border-ink/10 bg-surface"
       }`}
     >
-      <div className="text-xs font-semibold uppercase tracking-wide text-body/50">
+      <div className="text-xs font-semibold uppercase tracking-wide text-muted">
         {label}
       </div>
       <div className="mt-1.5 text-2xl font-bold text-heading">{value}</div>
-      {sub ? <div className="mt-0.5 text-xs text-body/50">{sub}</div> : null}
+      {sub ? <div className="mt-0.5 text-xs text-muted">{sub}</div> : null}
     </div>
   );
 }
@@ -113,8 +113,8 @@ export default async function AdminAnalyticsPage({
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold text-heading">{t.titre}</h2>
-            <p className="mt-1 max-w-2xl text-sm text-body/60">{t.sousTitre}</p>
-            <p className="mt-1 text-xs text-body/40">
+            <p className="mt-1 max-w-2xl text-sm text-muted">{t.sousTitre}</p>
+            <p className="mt-1 text-xs text-subtle">
               {t.genereLe(fmtDateTime(a.generatedAt))}
             </p>
           </div>
@@ -159,7 +159,7 @@ export default async function AdminAnalyticsPage({
       {/* ── Split par verticale STAY vs IMMO ────────────────────────── */}
       <section>
         <SectionTitle>{t.sectionVerticales}</SectionTitle>
-        <p className="mb-5 max-w-2xl text-sm text-body/60">{t.verticalesDesc}</p>
+        <p className="mb-5 max-w-2xl text-sm text-muted">{t.verticalesDesc}</p>
         <div className="grid gap-4 sm:grid-cols-2">
           {a.byVertical.map((v) => (
             <VerticalCard key={v.vertical} v={v} t={t} period={period} />
@@ -204,9 +204,9 @@ export default async function AdminAnalyticsPage({
               <div className="mb-1 text-sm font-semibold text-body/70">
                 {t.repartitionPays}
               </div>
-              <p className="mb-4 text-xs text-body/50">{t.repartitionPaysDesc}</p>
+              <p className="mb-4 text-xs text-muted">{t.repartitionPaysDesc}</p>
               {a.acquisition.byCountry.length === 0 ? (
-                <p className="text-sm text-body/40">{t.aucuneDonnee}</p>
+                <p className="text-sm text-subtle">{t.aucuneDonnee}</p>
               ) : (
                 <SegmentBars
                   segments={a.acquisition.byCountry}
@@ -226,8 +226,8 @@ export default async function AdminAnalyticsPage({
       {/* ── Funnel de découverte (recherche → vue → début, §IN3) ────── */}
       <section>
         <SectionTitle>{t.sectionDecouverte}</SectionTitle>
-        <p className="mb-2 max-w-2xl text-sm text-body/60">{t.decouverteDesc}</p>
-        <p className="mb-5 text-xs font-semibold uppercase tracking-wide text-heading/70">
+        <p className="mb-2 max-w-2xl text-sm text-muted">{t.decouverteDesc}</p>
+        <p className="mb-5 text-xs font-semibold uppercase tracking-wide text-heading-muted">
           {t.surPeriode(t.periodeNom(period))}
         </p>
         <div className="rounded-2xl border border-ink/10 bg-surface p-5 shadow-sm">
@@ -245,8 +245,8 @@ export default async function AdminAnalyticsPage({
       {/* ── Funnel de réservation ───────────────────────────────────── */}
       <section>
         <SectionTitle>{t.sectionFunnel}</SectionTitle>
-        <p className="mb-2 max-w-2xl text-sm text-body/60">{t.funnelDesc}</p>
-        <p className="mb-5 text-xs font-semibold uppercase tracking-wide text-heading/70">
+        <p className="mb-2 max-w-2xl text-sm text-muted">{t.funnelDesc}</p>
+        <p className="mb-5 text-xs font-semibold uppercase tracking-wide text-heading-muted">
           {t.surPeriode(t.periodeNom(period))}
         </p>
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
@@ -281,7 +281,7 @@ export default async function AdminAnalyticsPage({
       {/* ── Adoption de fonctionnalités (§IN2/§IN3) ─────────────────── */}
       <section>
         <SectionTitle>{t.sectionAdoption}</SectionTitle>
-        <p className="mb-5 max-w-2xl text-sm text-body/60">{t.adoptionDesc}</p>
+        <p className="mb-5 max-w-2xl text-sm text-muted">{t.adoptionDesc}</p>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <StatCard
             label={t.adoptionSimulateur}
@@ -303,7 +303,7 @@ export default async function AdminAnalyticsPage({
       {/* ── Rétention & churn ───────────────────────────────────────── */}
       <section>
         <SectionTitle>{t.sectionRetention}</SectionTitle>
-        <p className="mb-5 max-w-2xl text-sm text-body/60">{t.retentionDesc}</p>
+        <p className="mb-5 max-w-2xl text-sm text-muted">{t.retentionDesc}</p>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
             label={t.voyageursAyantReserve}
@@ -316,12 +316,12 @@ export default async function AdminAnalyticsPage({
 
         <div className="mt-6 rounded-2xl border border-ink/10 bg-surface p-5 shadow-sm">
           <div className="mb-1 text-sm font-semibold text-body/70">{t.cohortes}</div>
-          <p className="mb-4 text-xs text-body/50">{t.cohortesDesc}</p>
+          <p className="mb-4 text-xs text-muted">{t.cohortesDesc}</p>
           {a.retention.cohorts.length === 0 ? (
-            <p className="text-sm text-body/40">{t.aucuneDonnee}</p>
+            <p className="text-sm text-subtle">{t.aucuneDonnee}</p>
           ) : (
             <table className="w-full text-sm">
-              <thead className="text-xs font-semibold uppercase tracking-wide text-body/50">
+              <thead className="text-xs font-semibold uppercase tracking-wide text-muted">
                 <tr>
                   <th className="py-2 text-start">{t.moisInscription}</th>
                   <th className="py-2 text-end">{t.inscrits}</th>
@@ -355,7 +355,7 @@ export default async function AdminAnalyticsPage({
               {t.candidaturesParStatut}
             </div>
             {a.wakil.applicationsByStatus.length === 0 ? (
-              <p className="text-sm text-body/40">{t.aucuneDonnee}</p>
+              <p className="text-sm text-subtle">{t.aucuneDonnee}</p>
             ) : (
               <SegmentBars segments={a.wakil.applicationsByStatus} />
             )}
@@ -367,7 +367,7 @@ export default async function AdminAnalyticsPage({
           <div className="rounded-2xl border border-ink/10 bg-surface p-5 shadow-sm">
             <div className="mb-4 text-sm font-semibold text-body/70">{t.topWakils}</div>
             {a.wakil.topWakils.length === 0 ? (
-              <p className="text-sm text-body/40">{t.aucuneDonnee}</p>
+              <p className="text-sm text-subtle">{t.aucuneDonnee}</p>
             ) : (
               <SegmentBars segments={a.wakil.topWakils} />
             )}
@@ -378,10 +378,10 @@ export default async function AdminAnalyticsPage({
       {/* ── Activité récente (audit trail) ──────────────────────────── */}
       <section>
         <SectionTitle>{t.sectionEvenements}</SectionTitle>
-        <p className="mb-4 text-sm text-body/60">{t.evenementsDesc}</p>
+        <p className="mb-4 text-sm text-muted">{t.evenementsDesc}</p>
         <div className="overflow-hidden rounded-2xl border border-ink/10">
           {a.recentEvents.length === 0 ? (
-            <p className="p-5 text-sm text-body/40">{t.aucuneDonnee}</p>
+            <p className="p-5 text-sm text-subtle">{t.aucuneDonnee}</p>
           ) : (
             <table className="w-full text-sm">
               <thead className="bg-sand text-xs font-semibold uppercase tracking-wide text-darna-dark/70">
@@ -403,9 +403,9 @@ export default async function AdminAnalyticsPage({
                       ) : null}
                     </td>
                     <td className="px-4 py-2.5 text-body/70">
-                      {e.userName ?? <span className="text-body/40">{t.systeme}</span>}
+                      {e.userName ?? <span className="text-subtle">{t.systeme}</span>}
                     </td>
-                    <td className="px-4 py-2.5 text-end text-xs text-body/50">
+                    <td className="px-4 py-2.5 text-end text-xs text-muted">
                       {fmtDateTime(e.createdAt)}
                     </td>
                   </tr>
@@ -434,7 +434,7 @@ function PeriodSelector({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-xs font-semibold uppercase tracking-wide text-body/50">
+      <span className="text-xs font-semibold uppercase tracking-wide text-muted">
         {label}
       </span>
       <div className="inline-flex rounded-xl border border-ink/10 bg-surface p-1 shadow-sm">
@@ -447,7 +447,7 @@ function PeriodSelector({
               href={`?period=${key}`}
               scroll={false}
               className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                active ? "bg-darna text-white shadow-sm" : "text-body/60 hover:text-heading"
+                active ? "bg-darna text-white shadow-sm" : "text-muted hover:text-heading"
               }`}
             >
               {options[key]}
@@ -464,7 +464,7 @@ function MiniStat({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <div className="text-lg font-bold text-darna-dark">{value}</div>
-      <div className="mt-0.5 text-[11px] text-body/50">{label}</div>
+      <div className="mt-0.5 text-[11px] text-muted">{label}</div>
     </div>
   );
 }
@@ -504,7 +504,7 @@ function VerticalCard({
             <MiniStat label={t.vLeads} value={fmtInt(v.leads)} />
           </div>
         )}
-        <p className="mt-2 text-center text-[11px] text-body/40">
+        <p className="mt-2 text-center text-[11px] text-subtle">
           {t.surPeriode(t.periodeNom(period))}
         </p>
       </div>

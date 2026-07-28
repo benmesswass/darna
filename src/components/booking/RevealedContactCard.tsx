@@ -26,7 +26,7 @@ export async function RevealedContactCard({
       <p className="text-sm font-bold text-heading">
         {isGuestViewer ? fr.booking.contactHoteTitre : fr.booking.contactVoyageurTitre}
       </p>
-      <p className="mt-0.5 text-xs text-body/60">
+      <p className="mt-0.5 text-xs text-muted">
         {isGuestViewer ? fr.booking.contactHoteAide : fr.booking.contactVoyageurAide}
       </p>
 

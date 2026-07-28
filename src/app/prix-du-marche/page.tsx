@@ -20,7 +20,7 @@ export default async function PrixDuMarchePage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
       <h1 className="text-3xl font-bold text-heading">{fr.prixMarche.titre}</h1>
-      <p className="mt-2 max-w-2xl text-body/60">{fr.prixMarche.sousTitre}</p>
+      <p className="mt-2 max-w-2xl text-muted">{fr.prixMarche.sousTitre}</p>
 
       <div className="mt-8 space-y-10">
         <IndexTable
@@ -83,11 +83,11 @@ function IndexTable({
     <section className="rounded-3xl bg-surface p-6 ring-1 ring-darna/10">
       <h2 className="text-lg font-bold text-heading">{title}</h2>
       {rows.length === 0 ? (
-        <p className="mt-3 text-sm text-body/60">{fr.prixMarche.aucuneDonnee}</p>
+        <p className="mt-3 text-sm text-muted">{fr.prixMarche.aucuneDonnee}</p>
       ) : (
         <table className="mt-4 w-full text-sm">
           <thead>
-            <tr className="text-start text-xs font-semibold uppercase tracking-wide text-body/40">
+            <tr className="text-start text-xs font-semibold uppercase tracking-wide text-subtle">
               <th className="pb-2">{headerLabel}</th>
               <th className="pb-2 text-end">{headerValue}</th>
               <th className="hidden pb-2 ps-6 sm:table-cell" aria-hidden />
@@ -98,7 +98,7 @@ function IndexTable({
               <tr key={row.label} className="border-t border-darna/5">
                 <td className="py-2.5 font-medium text-body">
                   {row.label}
-                  <span className="ms-2 text-xs font-normal text-body/40">
+                  <span className="ms-2 text-xs font-normal text-subtle">
                     {fr.prixMarche.annonces(row.count)}
                   </span>
                 </td>

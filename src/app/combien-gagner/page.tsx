@@ -23,7 +23,7 @@ export default async function CombienGagnerPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
       <h1 className="text-3xl font-bold text-heading">{fr.simulateur.titre}</h1>
-      <p className="mt-2 max-w-2xl text-body/60">{fr.simulateur.sousTitre}</p>
+      <p className="mt-2 max-w-2xl text-muted">{fr.simulateur.sousTitre}</p>
 
       <div className="mt-8">
         <RevenueSimulatorForm allowedTypes={allowedTypes} isLoggedIn={Boolean(user)} />

@@ -69,7 +69,7 @@ export function WakilReviewButtons({ applicationId, labels }: ReviewProps) {
           <button
             type="button"
             onClick={() => setShowDateInput(false)}
-            className="text-xs text-body/50 hover:text-body"
+            className="text-xs text-muted hover:text-body"
           >
             ✕
           </button>
@@ -129,7 +129,7 @@ export function SoftDeleteWakilButton({ applicationId, label, confirmLabel }: De
       {state?.error ? <p className="text-xs text-red-600">{state.error}</p> : null}
       {confirming ? (
         <div className="flex items-center gap-2">
-          <span className="text-xs text-body/60">{confirmLabel}</span>
+          <span className="text-xs text-muted">{confirmLabel}</span>
           <button
             type="button"
             onClick={submit}
@@ -141,7 +141,7 @@ export function SoftDeleteWakilButton({ applicationId, label, confirmLabel }: De
           <button
             type="button"
             onClick={() => setConfirming(false)}
-            className="text-xs text-body/50 hover:text-body"
+            className="text-xs text-muted hover:text-body"
           >
             ✕
           </button>
@@ -150,7 +150,7 @@ export function SoftDeleteWakilButton({ applicationId, label, confirmLabel }: De
         <button
           type="button"
           onClick={() => setConfirming(true)}
-          className="text-xs text-body/40 underline-offset-2 hover:text-body/70 hover:underline"
+          className="text-xs text-subtle underline-offset-2 hover:text-body/70 hover:underline"
         >
           {label}
         </button>
@@ -182,7 +182,7 @@ export function HardDeleteWakilButton({ applicationId, label, confirmLabel }: Ha
       {state?.error ? <p className="text-xs text-red-600">{state.error}</p> : null}
       {confirming ? (
         <div className="flex items-center gap-2">
-          <span className="text-xs text-body/60">{confirmLabel}</span>
+          <span className="text-xs text-muted">{confirmLabel}</span>
           <button
             type="button"
             onClick={submit}
@@ -194,7 +194,7 @@ export function HardDeleteWakilButton({ applicationId, label, confirmLabel }: Ha
           <button
             type="button"
             onClick={() => setConfirming(false)}
-            className="text-xs text-body/50 hover:text-body"
+            className="text-xs text-muted hover:text-body"
           >
             ✕
           </button>

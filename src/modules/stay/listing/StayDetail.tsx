@@ -95,7 +95,7 @@ export async function StayDetail({
       }
       belowPrice={
         <>
-          <p className="mt-1 text-xs text-body/50">{fr.property.fraisServiceInfo}</p>
+          <p className="mt-1 text-xs text-muted">{fr.property.fraisServiceInfo}</p>
           <div className="mt-2 rounded-xl bg-cream px-3 py-2 text-xs">
             <p className="font-semibold text-body/80">
               {fr.property.politiqueAnnulation} :{" "}
@@ -104,7 +104,7 @@ export async function StayDetail({
                   property.cancelPolicy}
               </span>
             </p>
-            <p className="mt-0.5 text-body/60">
+            <p className="mt-0.5 text-muted">
               {fr.property.cancelPolicyDesc[property.cancelPolicy as CancelPolicy]}
             </p>
           </div>

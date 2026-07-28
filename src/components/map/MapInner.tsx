@@ -165,7 +165,7 @@ function MarkerCard({
         <p className="line-clamp-1 text-sm font-semibold leading-tight">
           {marker.title}
         </p>
-        <p className="line-clamp-1 text-xs text-body/55">{marker.city}</p>
+        <p className="line-clamp-1 text-xs text-muted">{marker.city}</p>
         <div className="flex items-center justify-between gap-2 pt-0.5">
           <span className="text-sm font-bold text-heading">{marker.priceLabel}</span>
           {marker.rating != null ? (
@@ -177,12 +177,12 @@ function MarkerCard({
                 className="text-sand"
               />
               {marker.rating.toFixed(1)}
-              <span className="text-body/45">
+              <span className="text-subtle">
                 · {fr.property.nbAvis(marker.reviewCount)}
               </span>
             </span>
           ) : (
-            <span className="shrink-0 text-xs text-body/40">
+            <span className="shrink-0 text-xs text-subtle">
               {fr.search.sansAvis}
             </span>
           )}

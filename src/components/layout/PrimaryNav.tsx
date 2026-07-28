@@ -98,10 +98,18 @@ export function PrimaryNav({ items }: { items: Item[] }) {
             }}
             href={item.href}
             aria-current={active ? "page" : undefined}
-            className={`relative z-10 rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
+            /* L9.1 : le fond de l'item actif est un bg réel (pas seulement la
+               pastille glissante `<span>` derrière, ignorée par l'algorithme de
+               contraste d'axe qui ne remonte que la chaîne d'ancêtres). Sur les
+               pages où l'actif vient d'`ActiveSection` (override posé dans un
+               useEffect, donc après le premier paint), `transition-colors`
+               ferait fondre ce fond depuis `bg-white/10` — laissant une frame
+               intermédiaire sous le seuil AA. Pas de transition sur la branche
+               active : bascule instantanée, toujours conforme. */
+            className={`relative z-10 rounded-full px-4 py-1.5 text-sm font-semibold ${
               active
-                ? "text-[var(--color-accent-contrast)]"
-                : "text-white/90 hover:text-white"
+                ? "bg-[var(--color-accent)] text-[var(--color-accent-contrast)]"
+                : "text-white/90 transition-colors hover:text-white"
             }`}
           >
             {item.label}

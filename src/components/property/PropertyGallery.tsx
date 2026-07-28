@@ -23,7 +23,7 @@ export function PropertyGallery({
 
   if (count === 0) {
     return (
-      <div className="mt-6 flex h-64 items-center justify-center rounded-3xl bg-surface text-sm text-body/50 ring-1 ring-darna/10">
+      <div className="mt-6 flex h-64 items-center justify-center rounded-3xl bg-surface text-sm text-muted ring-1 ring-darna/10">
         {fr.property.gallery.aucunePhoto}
       </div>
     );

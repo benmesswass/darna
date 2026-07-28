@@ -34,7 +34,7 @@ export function DepositPayment({
   return (
     <div className="mt-6">
       <h2 className="text-base font-bold text-heading">{fr.booking.montantAPayer}</h2>
-      <p className="mt-1 text-xs leading-relaxed text-body/60">
+      <p className="mt-1 text-xs leading-relaxed text-muted">
         {fr.booking.montantAPayerAide}
       </p>
 
@@ -55,7 +55,7 @@ export function DepositPayment({
         <div className="flex justify-between border-t border-darna/10 pt-2.5">
           <dt className="text-body/70">
             {fr.booking.soldeArrivee}
-            <span className="block text-[11px] font-normal text-body/45">
+            <span className="block text-[11px] font-normal text-subtle">
               {fr.booking.soldeArriveeAide}
             </span>
           </dt>

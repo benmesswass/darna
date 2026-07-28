@@ -195,7 +195,7 @@ export async function ListingDetail({
               />
             ) : null}
           </div>
-          <p className="mt-1 flex items-center gap-1.5 text-body/60">
+          <p className="mt-1 flex items-center gap-1.5 text-muted">
             <MapPinIcon width={16} height={16} />
             {property.address ? `${property.address} — ` : ""}
             {property.city}, {property.gouvernorat}
@@ -255,13 +255,13 @@ export async function ListingDetail({
                   ? fr.badges.verifieOnSite
                   : fr.badges.verifieRemote}
               </p>
-              <p className="mt-0.5 text-xs font-medium text-ink/50">
+              <p className="mt-0.5 text-xs font-medium text-ink/70">
                 {property.verificationLevel === "ON_SITE"
                   ? fr.property.verifieOnSiteCriteres
                   : fr.property.verifieRemoteCriteres}
               </p>
               {property.verifiedBy && property.verifiedAt ? (
-                <p className="mt-0.5 text-xs text-ink/50">
+                <p className="mt-0.5 text-xs text-ink/70">
                   {fr.property.verifiePar(property.verifiedBy.name)} ·{" "}
                   {property.verifiedAt.toLocaleDateString("fr-TN", {
                     day: "numeric",
@@ -277,7 +277,7 @@ export async function ListingDetail({
               </p>
               <a
                 href="/devenir-wakil"
-                className="mt-2 inline-block text-xs font-semibold underline underline-offset-2 text-ink/50 hover:text-darna"
+                className="mt-2 inline-block text-xs font-semibold underline underline-offset-2 text-ink/70 hover:text-darna"
               >
                 {property.verificationLevel === "ON_SITE"
                   ? fr.property.enSavoirPlusWakil
@@ -419,13 +419,13 @@ export async function ListingDetail({
             {activitySignal.viewCount || activitySignal.lastBookedDaysAgo !== null ? (
               <div className="mt-3 space-y-1.5">
                 {activitySignal.viewCount ? (
-                  <p className="flex items-center gap-1.5 text-xs font-medium text-body/60">
+                  <p className="flex items-center gap-1.5 text-xs font-medium text-muted">
                     <UsersIcon width={14} height={14} className="shrink-0 text-darna" />
                     {fr.property.activiteVues(activitySignal.viewCount)}
                   </p>
                 ) : null}
                 {activitySignal.lastBookedDaysAgo !== null ? (
-                  <p className="flex items-center gap-1.5 text-xs font-medium text-body/60">
+                  <p className="flex items-center gap-1.5 text-xs font-medium text-muted">
                     <ClockIcon width={14} height={14} className="shrink-0 text-darna" />
                     {fr.property.activiteDerniereResa(activitySignal.lastBookedDaysAgo)}
                   </p>
@@ -445,7 +445,7 @@ export async function ListingDetail({
 
           {/* Annonceur */}
           <div className="rounded-3xl bg-surface p-6 ring-1 ring-darna/10">
-            <p className="text-xs font-semibold uppercase tracking-wide text-body/40">
+            <p className="text-xs font-semibold uppercase tracking-wide text-subtle">
               {property.owner.role === "AGENCE"
                 ? fr.property.agence
                 : fr.property.proprietaire}
@@ -479,7 +479,7 @@ export async function ListingDetail({
             ) : property.owner.kycStatus === "DEMO_VERIFIE" ? (
               // Badge DÉMO distinct (couleur neutre, libellé explicite) : ne jamais
               // afficher une confiance « vérifié réel » pour une vérification de démo.
-              <p className="mt-2 inline-flex items-center gap-1 rounded-full bg-ink/[0.06] px-2.5 py-1 text-xs font-medium text-body/55">
+              <p className="mt-2 inline-flex items-center gap-1 rounded-full bg-ink/[0.06] px-2.5 py-1 text-xs font-medium text-muted">
                 <CheckIcon width={12} height={12} strokeWidth={3} />
                 {fr.kyc.statutVerifieDemo}
               </p>

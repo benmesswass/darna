@@ -91,7 +91,7 @@ export function VerificationsAssistant({
         <h2 className="text-2xl font-bold text-heading">
           {welcome ? fr.verifications.bienvenue : fr.verifications.titre}
         </h2>
-        <p className="mt-1 text-sm text-body/60">{fr.verifications.sousTitre}</p>
+        <p className="mt-1 text-sm text-muted">{fr.verifications.sousTitre}</p>
       </div>
 
       {/* Pourquoi vérifier ? — la confiance comme produit */}
@@ -155,7 +155,7 @@ export function VerificationsAssistant({
                       )}
                     </span>
                     <span className="min-w-0">
-                      <span className="block text-[11px] font-medium opacity-70">
+                      <span className="block text-[11px] font-medium opacity-90">
                         {fr.verifications.etape(i + 1, steps.length)}
                       </span>
                       <span className="block truncate text-xs font-semibold">{s.label}</span>
@@ -194,11 +194,11 @@ export function VerificationsAssistant({
                 type="button"
                 onClick={handleSkip}
                 disabled={skipPending}
-                className="text-sm font-medium text-body/50 underline-offset-2 hover:text-body/80 hover:underline disabled:opacity-50"
+                className="text-sm font-medium text-muted underline-offset-2 hover:text-body/80 hover:underline disabled:opacity-50"
               >
                 {fr.verifications.passer}
               </button>
-              <p className="mt-1 text-[11px] text-body/40">{fr.verifications.terminerPlusTard}</p>
+              <p className="mt-1 text-[11px] text-subtle">{fr.verifications.terminerPlusTard}</p>
             </div>
           ) : null}
         </>

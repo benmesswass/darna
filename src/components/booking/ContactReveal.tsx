@@ -47,7 +47,7 @@ export async function ContactReveal({
       <p className="mt-1 text-sm font-semibold text-body">
         {fr.booking.contactDebloqueLe(formatDateFr(contacts.revealAt))}
       </p>
-      <p className="mt-1 text-xs text-body/60">{fr.booking.contactLockedAide}</p>
+      <p className="mt-1 text-xs text-muted">{fr.booking.contactLockedAide}</p>
       {bookingId ? (
         <Link
           href={`/reservation/${bookingId}/messages`}

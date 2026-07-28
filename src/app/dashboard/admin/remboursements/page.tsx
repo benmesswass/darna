@@ -40,10 +40,10 @@ export default async function AdminRemboursementsPage() {
         <CoinsIcon width={18} height={18} className="text-sand" />
         {fr.admin.remboursementsTitre}
       </h3>
-      <p className="mt-1 text-sm text-body/60">{fr.admin.remboursementsSousTitre}</p>
+      <p className="mt-1 text-sm text-muted">{fr.admin.remboursementsSousTitre}</p>
 
       <div className="mt-5 rounded-2xl bg-surface p-4 ring-1 ring-darna/10 sm:w-64">
-        <p className="text-xs font-semibold uppercase tracking-wide text-body/50">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted">
           {fr.admin.remboursementsTotalDu}
         </p>
         <p className="mt-1 text-2xl font-bold text-heading">
@@ -53,7 +53,7 @@ export default async function AdminRemboursementsPage() {
 
       {bookings.length === 0 ? (
         <div className="mt-6 rounded-3xl bg-surface p-10 text-center ring-1 ring-darna/10">
-          <p className="text-sm text-body/60">{fr.admin.remboursementsVide}</p>
+          <p className="text-sm text-muted">{fr.admin.remboursementsVide}</p>
         </div>
       ) : (
         <ul className="mt-5 space-y-3">
@@ -64,8 +64,8 @@ export default async function AdminRemboursementsPage() {
             >
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-semibold text-body">{booking.guest.name}</span>
-                <span className="text-xs text-body/50">{booking.guest.email}</span>
-                <span className="ms-auto text-xs text-body/45">{booking.property.title}</span>
+                <span className="text-xs text-muted">{booking.guest.email}</span>
+                <span className="ms-auto text-xs text-subtle">{booking.property.title}</span>
               </div>
 
               <div className="mt-2 flex flex-wrap items-center gap-4 text-sm">
@@ -73,7 +73,7 @@ export default async function AdminRemboursementsPage() {
                   <Price amount={booking.refundAmount ?? 0} />
                 </span>
                 {booking.cancelledAt ? (
-                  <span className="text-xs text-body/60">
+                  <span className="text-xs text-muted">
                     {fr.admin.remboursementsColAnnule} : {formatDateShortFr(booking.cancelledAt)}
                   </span>
                 ) : null}

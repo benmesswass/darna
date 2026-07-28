@@ -86,15 +86,15 @@ export function ProfileForm({
               value={email}
               readOnly
               disabled
-              className={`${inputClass} cursor-not-allowed bg-darna/[0.04] text-body/60`}
+              className={`${inputClass} cursor-not-allowed bg-darna/[0.04] text-muted`}
             />
-            <span className="block text-xs text-body/45">{fr.profil.emailAide}</span>
+            <span className="block text-xs text-subtle">{fr.profil.emailAide}</span>
           </label>
 
           <label className="block space-y-1.5">
             <span className={labelClass}>
               {fr.profil.telephone}{" "}
-              <span className="font-normal text-body/40">({fr.common.optionnel})</span>
+              <span className="font-normal text-subtle">({fr.common.optionnel})</span>
             </span>
             <input
               name="phone"
@@ -124,7 +124,7 @@ export function ProfileForm({
             <LockIcon width={18} height={18} />
             {fr.profil.mdpTitre}
           </p>
-          <p className="mt-1 text-sm text-body/60">{fr.profil.mdpSousTitre}</p>
+          <p className="mt-1 text-sm text-muted">{fr.profil.mdpSousTitre}</p>
 
           <div className="mt-5 space-y-4">
             <Feedback state={pwState} />

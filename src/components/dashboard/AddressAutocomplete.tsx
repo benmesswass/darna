@@ -94,7 +94,7 @@ export function AddressAutocomplete({
       {open && (loading || searched) ? (
         <ul className="absolute z-[1100] mt-1 max-h-64 w-full overflow-auto rounded-xl border border-darna/15 bg-surface py-1 shadow-lg">
           {loading ? (
-            <li className="px-3.5 py-2 text-sm text-body/50">
+            <li className="px-3.5 py-2 text-sm text-muted">
               {fr.annonceForm.rechercheAdresse}
             </li>
           ) : suggestions.length > 0 ? (
@@ -110,7 +110,7 @@ export function AddressAutocomplete({
               </li>
             ))
           ) : (
-            <li className="px-3.5 py-2 text-sm text-body/50">
+            <li className="px-3.5 py-2 text-sm text-muted">
               {fr.annonceForm.aucuneAdresse}
             </li>
           )}

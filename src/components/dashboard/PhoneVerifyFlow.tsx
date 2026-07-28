@@ -102,7 +102,7 @@ export function PhoneVerifyFlow({
                 {fr.kyc.otpMockInfo}
               </p>
               <div className="mt-3 text-center">
-                <p className="text-xs font-semibold uppercase tracking-wide text-body/50">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted">
                   {fr.kyc.votreCode}
                 </p>
                 <p className="mt-1 font-mono text-3xl font-bold tracking-[0.4em] text-heading">{otp}</p>

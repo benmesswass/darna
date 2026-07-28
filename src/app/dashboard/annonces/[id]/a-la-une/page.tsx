@@ -105,7 +105,7 @@ export default async function AlaUnePage({
     <div className="mx-auto max-w-xl">
       <Link
         href="/dashboard/annonces"
-        className="inline-flex items-center gap-1 text-sm font-medium text-body/60 hover:text-heading"
+        className="inline-flex items-center gap-1 text-sm font-medium text-muted hover:text-heading"
       >
         ← {fr.alaUne.retour}
       </Link>
@@ -118,11 +118,11 @@ export default async function AlaUnePage({
         <p className="mt-2 text-sm text-body/70">{fr.alaUne.sousTitre}</p>
 
         <div className="mt-4 rounded-2xl bg-cream p-4 text-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-body/50">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted">
             {fr.alaUne.annonce}
           </p>
           <p className="mt-0.5 font-semibold text-body">{property.title}</p>
-          <p className="text-body/60">{property.city}</p>
+          <p className="text-muted">{property.city}</p>
         </div>
 
         {/* Argumentaire — pourquoi passer à la une */}
@@ -134,7 +134,7 @@ export default async function AlaUnePage({
               </span>
               <span className="text-sm">
                 <span className="font-semibold text-body">{a.titre}</span>
-                <span className="block text-body/60">{a.desc}</span>
+                <span className="block text-muted">{a.desc}</span>
               </span>
             </li>
           ))}
@@ -257,7 +257,7 @@ export default async function AlaUnePage({
               </form>
             )}
 
-            <p className="mt-4 text-center text-xs text-body/50">{fr.alaUne.garantie}</p>
+            <p className="mt-4 text-center text-xs text-muted">{fr.alaUne.garantie}</p>
           </>
         ) : (
           <div className="mt-5 rounded-2xl bg-red-50 p-5 text-center">

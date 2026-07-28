@@ -188,7 +188,7 @@ export function FavoriteButton({
         className={`inline-flex items-center justify-center rounded-full p-2 ring-1 shadow-sm backdrop-blur transition disabled:opacity-60 ${
           favorited
             ? "bg-red-50 text-red-600 ring-red-200"
-            : "bg-white/90 text-body/50 ring-darna/15 hover:text-red-500"
+            : "bg-white/90 text-muted ring-darna/15 hover:text-red-500"
         } ${className}`}
       >
         <HeartIcon
@@ -216,7 +216,7 @@ export function FavoriteButton({
             >
               {!creating ? (
                 <div className="max-h-80 overflow-auto p-1.5">
-                  <p className="px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-wide text-body/40">
+                  <p className="px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-wide text-subtle">
                     {fr.property.favoriChoisirDossier}
                   </p>
 
@@ -255,7 +255,7 @@ export function FavoriteButton({
                 </div>
               ) : (
                 <div className="p-3">
-                  <label className="block text-xs font-semibold uppercase tracking-wide text-body/40">
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-subtle">
                     {fr.property.favoriNomDossier}
                   </label>
                   <input
@@ -275,7 +275,7 @@ export function FavoriteButton({
                     <button
                       type="button"
                       onClick={() => setCreating(false)}
-                      className="flex-1 rounded-xl px-3 py-2 text-sm text-body/60 ring-1 ring-darna/15 transition hover:bg-darna/5"
+                      className="flex-1 rounded-xl px-3 py-2 text-sm text-muted ring-1 ring-darna/15 transition hover:bg-darna/5"
                     >
                       {fr.property.favoriAnnuler}
                     </button>

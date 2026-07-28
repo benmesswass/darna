@@ -26,12 +26,12 @@ export default async function MessageriePage() {
   return (
     <div>
       <h1 className="text-2xl font-bold text-heading">{fr.messages.hubTitre}</h1>
-      <p className="mt-1 text-sm text-body/60">{fr.messages.hubSousTitre}</p>
+      <p className="mt-1 text-sm text-muted">{fr.messages.hubSousTitre}</p>
 
       {conversations.length === 0 ? (
         <div className="mt-6 rounded-2xl bg-surface px-4 py-12 text-center ring-1 ring-darna/10">
           <MailIcon width={28} height={28} className="mx-auto text-heading/40" />
-          <p className="mt-3 text-sm text-body/55">{fr.messages.hubVide}</p>
+          <p className="mt-3 text-sm text-muted">{fr.messages.hubVide}</p>
         </div>
       ) : (
         <ul className="mt-6 space-y-2.5">
@@ -47,16 +47,16 @@ export default async function MessageriePage() {
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center justify-between gap-2">
                     <span className="truncate font-semibold text-heading">{c.otherName}</span>
-                    <span className="shrink-0 text-[11px] text-body/45">
+                    <span className="shrink-0 text-[11px] text-subtle">
                       {formatDateShortFr(c.lastAt)}
                     </span>
                   </span>
-                  <span className="mt-0.5 block truncate text-xs text-body/55">
+                  <span className="mt-0.5 block truncate text-xs text-muted">
                     {c.propertyTitle}
                   </span>
                   <span
                     className={`mt-1 block truncate text-sm ${
-                      c.unread > 0 ? "font-semibold text-body" : "text-body/60"
+                      c.unread > 0 ? "font-semibold text-body" : "text-muted"
                     }`}
                   >
                     {c.lastMine ? `${fr.messages.vous} : ` : ""}

@@ -49,10 +49,10 @@ export default async function YieldAdvisorPage() {
         <SparklesIcon width={20} height={20} className="text-sand" />
         {fr.yieldAdvisor.titre}
       </h2>
-      <p className="mt-1 max-w-2xl text-sm text-body/60">{fr.yieldAdvisor.sousTitre}</p>
+      <p className="mt-1 max-w-2xl text-sm text-muted">{fr.yieldAdvisor.sousTitre}</p>
 
       {analyses.length === 0 ? (
-        <p className="mt-6 rounded-3xl bg-surface p-8 text-center text-sm text-body/60 ring-1 ring-darna/10">
+        <p className="mt-6 rounded-3xl bg-surface p-8 text-center text-sm text-muted ring-1 ring-darna/10">
           {fr.yieldAdvisor.aucunBien}
         </p>
       ) : (
@@ -78,7 +78,7 @@ export default async function YieldAdvisorPage() {
                 className="rounded-3xl bg-surface p-6 ring-1 ring-darna/10"
               >
                 <p className="font-semibold text-body">{property.title}</p>
-                <p className="text-sm text-body/50">
+                <p className="text-sm text-muted">
                   {property.city}, {property.gouvernorat}
                 </p>
 
@@ -144,7 +144,7 @@ function BarRow({
       <div className="mt-1 h-2.5 overflow-hidden rounded-full bg-cream">
         <div className={`h-full rounded-full ${color}`} style={{ width: `${width}%` }} />
       </div>
-      <p className="mt-1 text-xs text-body/50">{detail}</p>
+      <p className="mt-1 text-xs text-muted">{detail}</p>
     </div>
   );
 }

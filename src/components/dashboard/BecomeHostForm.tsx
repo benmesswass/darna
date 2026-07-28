@@ -31,7 +31,7 @@ function ChoiceCard({
     >
       <span className="text-darna-dark">{icon}</span>
       <p className="mt-2 font-bold text-heading">{label}</p>
-      <p className="mt-1 text-sm text-body/60">{desc}</p>
+      <p className="mt-1 text-sm text-muted">{desc}</p>
     </button>
   );
 }

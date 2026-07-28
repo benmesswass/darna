@@ -22,7 +22,7 @@ export async function Footer() {
         </div>
 
         <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-white/50">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-white/70">
             {fr.footer.explorer}
           </h3>
           <ul className="mt-3 space-y-2 text-sm">
@@ -59,7 +59,7 @@ export async function Footer() {
         </div>
 
         <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-white/50">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-white/70">
             {fr.footer.confiance}
           </h3>
           <ul className="mt-3 space-y-2 text-sm">
@@ -86,7 +86,7 @@ export async function Footer() {
           </ul>
         </div>
       </div>
-      <div className="border-t border-white/10 py-4 text-center text-xs text-white/50">
+      <div className="border-t border-white/10 py-4 text-center text-xs text-white/70">
         © {new Date().getFullYear()} {fr.footer.copyright}
       </div>
     </footer>

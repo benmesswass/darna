@@ -78,17 +78,17 @@ export default async function FactureHotePage({
           <h1 className="mt-5 text-2xl font-bold text-heading">{fr.factures.statutPayee}</h1>
           <div className="mt-5 rounded-2xl bg-cream p-4 text-start text-sm">
             <p className="font-semibold text-body">{invoice.booking.property.title}</p>
-            <p className="text-body/60">{invoice.booking.property.city}</p>
+            <p className="text-muted">{invoice.booking.property.city}</p>
             <dl className="mt-3 space-y-1.5">
               <div className="flex justify-between">
-                <dt className="text-body/60">{fr.factures.montantDu}</dt>
+                <dt className="text-muted">{fr.factures.montantDu}</dt>
                 <dd>
                   <Price amount={invoice.amount} className="font-semibold text-body" />
                 </dd>
               </div>
               {invoice.paidAt ? (
                 <div className="flex justify-between">
-                  <dt className="text-body/60">{fr.factures.payeLe(formatDateFr(invoice.paidAt))}</dt>
+                  <dt className="text-muted">{fr.factures.payeLe(formatDateFr(invoice.paidAt))}</dt>
                   <dd />
                 </div>
               ) : null}
@@ -112,7 +112,7 @@ export default async function FactureHotePage({
             <p className="font-semibold text-body">
               {fr.factures.commissionPour(invoice.booking.property.title)}
             </p>
-            <p className="mt-1 text-body/60">
+            <p className="mt-1 text-muted">
               {invoice.booking.property.city} ·{" "}
               {fr.booking.sejourDates(
                 formatDateFr(invoice.booking.checkIn),
@@ -126,7 +126,7 @@ export default async function FactureHotePage({
                   <Price amount={invoice.amount} className="text-base font-bold text-heading" />
                 </dd>
               </div>
-              <div className="flex justify-between text-xs text-body/55">
+              <div className="flex justify-between text-xs text-muted">
                 <dt>{fr.factures.echeance(formatDateFr(invoice.dueAt))}</dt>
                 <dd />
               </div>

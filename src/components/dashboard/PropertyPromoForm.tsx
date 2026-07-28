@@ -57,7 +57,7 @@ export function PropertyPromoForm({
           required
           className="w-full rounded-xl bg-cream px-3.5 py-2.5 text-sm text-body ring-1 ring-darna/10 focus:outline-none focus:ring-2 focus:ring-darna/40"
         />
-        <span className="mt-1 block text-xs text-body/50">{fr.promo.formPrixAide}</span>
+        <span className="mt-1 block text-xs text-muted">{fr.promo.formPrixAide}</span>
       </label>
 
       <label className="block">

@@ -46,7 +46,7 @@ function Stars({
           width={size}
           height={size}
           fill={n <= rating ? "currentColor" : "none"}
-          className={n <= rating ? "" : "text-body/20"}
+          className={n <= rating ? "" : "text-subtle"}
         />
       ))}
     </span>
@@ -147,7 +147,7 @@ export function ReviewsList({
 
   if (total === 0) {
     return (
-      <p className="mt-4 rounded-2xl bg-surface p-5 text-sm text-body/60 ring-1 ring-darna/10">
+      <p className="mt-4 rounded-2xl bg-surface p-5 text-sm text-muted ring-1 ring-darna/10">
         {fr.property.aucunAvis}
       </p>
     );
@@ -175,11 +175,11 @@ export function ReviewsList({
             <div className="flex items-center gap-3 sm:flex-col sm:items-start sm:gap-1.5">
               <span className="text-4xl font-bold leading-none text-heading">
                 {average.toFixed(1)}
-                <span className="text-base font-semibold text-body/40">/5</span>
+                <span className="text-base font-semibold text-subtle">/5</span>
               </span>
               <div>
                 <Stars rating={Math.round(average)} size={16} />
-                <p className="mt-1 text-xs text-body/55">{fr.property.nbAvis(total)}</p>
+                <p className="mt-1 text-xs text-muted">{fr.property.nbAvis(total)}</p>
               </div>
             </div>
 
@@ -199,7 +199,7 @@ export function ReviewsList({
                       active ? "bg-cream" : ""
                     }`}
                   >
-                    <span className="flex w-9 items-center justify-end gap-0.5 text-xs font-medium text-body/60">
+                    <span className="flex w-9 items-center justify-end gap-0.5 text-xs font-medium text-muted">
                       {star}
                       <StarIcon
                         width={11}
@@ -214,7 +214,7 @@ export function ReviewsList({
                         style={{ width: `${pct}%` }}
                       />
                     </span>
-                    <span className="w-6 text-end text-xs tabular-nums text-body/50">
+                    <span className="w-6 text-end text-xs tabular-nums text-muted">
                       {count}
                     </span>
                   </button>
@@ -235,7 +235,7 @@ export function ReviewsList({
                 ] as const
               ).map(([label, value]) => (
                 <div key={label}>
-                  <p className="text-xs text-body/55">{label}</p>
+                  <p className="text-xs text-muted">{label}</p>
                   <p className="text-sm font-bold text-heading">{value.toFixed(1)}</p>
                 </div>
               ))}
@@ -257,11 +257,11 @@ export function ReviewsList({
               <CloseIcon width={13} height={13} />
             </button>
           ) : (
-            <span className="text-xs text-body/50">{fr.property.filtreToutes}</span>
+            <span className="text-xs text-muted">{fr.property.filtreToutes}</span>
           )}
         </div>
 
-        <label className="flex items-center gap-2 text-xs text-body/60">
+        <label className="flex items-center gap-2 text-xs text-muted">
           <span className="font-semibold">{fr.property.trierPar}</span>
           <select
             value={sort}
@@ -278,7 +278,7 @@ export function ReviewsList({
 
       {/* Liste filtrée / triée */}
       {visible.length === 0 ? (
-        <p className="mt-4 rounded-2xl bg-surface p-5 text-sm text-body/60 ring-1 ring-darna/10">
+        <p className="mt-4 rounded-2xl bg-surface p-5 text-sm text-muted ring-1 ring-darna/10">
           {fr.property.aucunAvisFiltre}
         </p>
       ) : (
@@ -333,7 +333,7 @@ export function ReviewsList({
                       <p className="text-sm font-semibold text-body">
                         {item.review.authorName}
                       </p>
-                      <p className="text-xs text-body/50">
+                      <p className="text-xs text-muted">
                         {dateFmt.format(new Date(item.review.createdAt))}
                         {" · "}
                         <span className="font-medium text-heading">
@@ -357,7 +357,7 @@ export function ReviewsList({
                 <p className="mt-3 text-sm leading-relaxed text-body/80">
                   {item.review.comment}
                 </p>
-                <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-darna/5 pt-2.5 text-xs text-body/50">
+                <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-darna/5 pt-2.5 text-xs text-muted">
                   <span>
                     {fr.property.sousNoteProprete}{" "}
                     <b className="text-body/70">{item.review.proprete}/5</b>

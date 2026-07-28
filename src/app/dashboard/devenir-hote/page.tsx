@@ -22,7 +22,7 @@ export default async function DevenirHotePage({
   return (
     <div className="max-w-2xl">
       <h2 className="text-xl font-bold text-heading">{fr.devenirHote.titre}</h2>
-      <p className="mt-1 text-sm text-body/60">{fr.devenirHote.sousTitre}</p>
+      <p className="mt-1 text-sm text-muted">{fr.devenirHote.sousTitre}</p>
       <div className="mt-6 rounded-3xl bg-surface p-6 ring-1 ring-darna/10">
         <BecomeHostForm callbackUrl={callbackUrl} />
       </div>

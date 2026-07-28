@@ -73,11 +73,11 @@ export default async function HostPage({
             )}
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-body/40">
+            <p className="text-xs font-semibold uppercase tracking-wide text-subtle">
               {host.role === "AGENCE" ? fr.property.agence : fr.property.proprietaire}
             </p>
             <h1 className="text-2xl font-bold text-heading">{host.name}</h1>
-            <p className="mt-1 text-sm text-body/60">
+            <p className="mt-1 text-sm text-muted">
               {fr.host.membreDepuis(host.createdAt.getFullYear())}
             </p>
           </div>
@@ -94,7 +94,7 @@ export default async function HostPage({
           ) : host.kycStatus === "DEMO_VERIFIE" ? (
             // Badge DÉMO distinct : jamais une confiance « vérifié réel » pour
             // une vérification de démo (même règle que ListingDetail).
-            <span className="inline-flex items-center gap-1 rounded-full bg-ink/[0.06] px-2.5 py-1 text-xs font-medium text-body/55">
+            <span className="inline-flex items-center gap-1 rounded-full bg-ink/[0.06] px-2.5 py-1 text-xs font-medium text-muted">
               <CheckIcon width={12} height={12} strokeWidth={3} />
               {fr.kyc.statutVerifieDemo}
             </span>
@@ -111,7 +111,7 @@ export default async function HostPage({
               {host.ratingAvg.toFixed(1)} · {fr.property.nbAvis(host.ratingCount)}
             </a>
           ) : (
-            <span className="text-sm text-body/50">{fr.search.sansAvis}</span>
+            <span className="text-sm text-muted">{fr.search.sansAvis}</span>
           )}
         </div>
       </AnimatedGrid>
@@ -132,7 +132,7 @@ export default async function HostPage({
           ))}
         </AnimatedGrid>
       ) : (
-        <p className="mt-4 rounded-2xl bg-surface p-6 text-sm text-body/60 ring-1 ring-darna/10">
+        <p className="mt-4 rounded-2xl bg-surface p-6 text-sm text-muted ring-1 ring-darna/10">
           {fr.host.aucuneAnnonceActive}
         </p>
       )}

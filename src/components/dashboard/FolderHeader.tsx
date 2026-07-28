@@ -56,7 +56,7 @@ export function FolderHeader({
           type="button"
           onClick={() => setEditing(false)}
           aria-label={fr.dashboard.favorisAnnuler}
-          className="inline-flex items-center justify-center rounded-xl p-1.5 text-body/50 ring-1 ring-darna/15 transition hover:bg-darna/5"
+          className="inline-flex items-center justify-center rounded-xl p-1.5 text-muted ring-1 ring-darna/15 transition hover:bg-darna/5"
         >
           <CloseIcon width={15} height={15} />
         </button>
@@ -68,7 +68,7 @@ export function FolderHeader({
     <div className="flex items-center gap-2">
       <FolderIcon width={18} height={18} className="shrink-0 text-heading/70" />
       <h3 className="font-semibold text-body">{name}</h3>
-      <span className="text-sm text-body/50">
+      <span className="text-sm text-muted">
         {fr.dashboard.favorisNbLogements(count)}
       </span>
       <button
@@ -76,7 +76,7 @@ export function FolderHeader({
         onClick={() => setEditing(true)}
         aria-label={fr.dashboard.favorisRenommer}
         title={fr.dashboard.favorisRenommer}
-        className="ms-1 inline-flex items-center justify-center rounded-full p-1.5 text-body/40 transition hover:bg-darna/5 hover:text-heading"
+        className="ms-1 inline-flex items-center justify-center rounded-full p-1.5 text-subtle transition hover:bg-darna/5 hover:text-heading"
       >
         <PencilIcon width={16} height={16} />
       </button>
@@ -91,7 +91,7 @@ export function FolderHeader({
           type="submit"
           aria-label={fr.dashboard.favorisSupprimerDossier}
           title={fr.dashboard.favorisSupprimerDossier}
-          className="inline-flex items-center justify-center rounded-full p-1.5 text-body/40 transition hover:bg-red-50 hover:text-red-500"
+          className="inline-flex items-center justify-center rounded-full p-1.5 text-subtle transition hover:bg-red-50 hover:text-red-500"
         >
           <TrashIcon width={16} height={16} />
         </button>

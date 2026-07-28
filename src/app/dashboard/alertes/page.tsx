@@ -27,7 +27,7 @@ export default async function AlertesPage() {
       <h2 className="text-xl font-bold text-heading">{fr.dashboard.alertesTitre}</h2>
 
       {searches.length === 0 ? (
-        <p className="mt-6 rounded-3xl bg-surface p-8 text-center text-sm text-body/60 ring-1 ring-darna/10">
+        <p className="mt-6 rounded-3xl bg-surface p-8 text-center text-sm text-muted ring-1 ring-darna/10">
           {fr.dashboard.alertesAucune}
         </p>
       ) : (
@@ -39,7 +39,7 @@ export default async function AlertesPage() {
             >
               <div>
                 <p className="font-semibold text-body">{s.city}</p>
-                <p className="text-sm text-body/60">
+                <p className="text-sm text-muted">
                   {budgetLabel(s.prixMin, s.prixMax)}
                 </p>
               </div>
@@ -49,7 +49,7 @@ export default async function AlertesPage() {
                   type="submit"
                   aria-label={fr.dashboard.alerteSupprimer}
                   title={fr.dashboard.alerteSupprimer}
-                  className="rounded-lg p-2 text-body/40 transition hover:bg-red-50 hover:text-red-600"
+                  className="rounded-lg p-2 text-subtle transition hover:bg-red-50 hover:text-red-600"
                 >
                   <TrashIcon width={16} height={16} />
                 </button>

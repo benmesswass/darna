@@ -82,7 +82,7 @@ export default async function MessagesPage({
       <h1 className="mt-4 text-2xl font-bold text-heading">{fr.messages.titre}</h1>
       <Link
         href={`/annonce/${booking.property.slug}`}
-        className="mt-1 inline-flex items-center gap-1 text-sm text-body/60 underline-offset-2 hover:text-darna hover:underline"
+        className="mt-1 inline-flex items-center gap-1 text-sm text-muted underline-offset-2 hover:text-darna hover:underline"
       >
         {booking.property.title}
         <ArrowRightIcon width={12} height={12} className="shrink-0 rtl:rotate-180" />
@@ -114,7 +114,7 @@ export default async function MessagesPage({
 
       <div className="mt-5 space-y-3">
         {booking.messages.length === 0 ? (
-          <p className="rounded-2xl bg-surface px-4 py-8 text-center text-sm text-body/50 ring-1 ring-darna/10">
+          <p className="rounded-2xl bg-surface px-4 py-8 text-center text-sm text-muted ring-1 ring-darna/10">
             {fr.messages.vide}
           </p>
         ) : (
@@ -134,7 +134,7 @@ export default async function MessagesPage({
                 >
                   <p className="whitespace-pre-wrap break-words">{m.body}</p>
                 </div>
-                <span className="mt-1 px-1 text-[11px] text-body/45">
+                <span className="mt-1 px-1 text-[11px] text-subtle">
                   {mine ? fr.messages.vous : otherLabel} ·{" "}
                   {formatDateShortFr(m.createdAt)}
                   {m.body.includes(CONTACT_MASK) ? ` · ${fr.messages.masque}` : ""}
