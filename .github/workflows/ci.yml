@@ -1,6 +1,6 @@
 name: CI
 
-# Pyramide de jobs (LANCEMENT_ROADMAP.md §L2.1) :
+# Pyramide de jobs (ROADMAP.md §P1.2) :
 #   - `fast` (niveau 1) : chaque push / mise à jour de PR — lint + typecheck +
 #     tests sans couverture, cible < 5 min.
 #   - `full`/`e2e`/`api` (niveau 2) : à la demande (`workflow_dispatch`) ou

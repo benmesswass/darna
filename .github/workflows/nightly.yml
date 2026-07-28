@@ -1,6 +1,6 @@
 name: Nightly (sécurité & perf)
 
-# Niveau 3 de la pyramide CI (LANCEMENT_ROADMAP.md §L2.1) : semgrep (SAST) +
+# Niveau 3 de la pyramide CI (ROADMAP.md §P1.2) : semgrep (SAST) +
 # ZAP baseline (DAST passif) + k6 (perf/charge) — jamais sur push/pull_request,
 # uniquement nightly + déclenchement manuel. Fusion de zap-baseline.yml et
 # perf.yml : mêmes jobs, même contenu, un seul fichier/planning pour tout le
@@ -41,7 +41,7 @@ jobs:
             src/
 
   # TEST_AUTOMATION_ROADMAP.md §6.6/§7.2/§8 Phase 5 : scan PASSIF OWASP ZAP
-  # (headers/CSP/cookies) — vérifie en boîte noire ce que §1 de QA_ROADMAP.md
+  # (headers/CSP/cookies) — vérifie en boîte noire ce que la phase 2 de ROADMAP.md
   # affirme déjà en code (CSP par nonce, HSTS, X-Frame-Options DENY, nosniff).
   zap-baseline:
     runs-on: ubuntu-latest
@@ -164,7 +164,7 @@ jobs:
         if: always()
         run: kill "$(cat server.pid)" 2>/dev/null || true
 
-  # LANCEMENT_ROADMAP.md §L9.3 : budget perf Lighthouse (mobile, throttling
+  # ROADMAP.md §P4.2 : budget perf Lighthouse (mobile, throttling
   # simulé) sur les pages clés. `ubuntu-latest` fournit Chrome stable
   # pré-installé (auto-détecté par chrome-launcher, pas de CHROME_PATH à
   # poser). Informatif seulement — LCP < 2.5 s / CLS < 0.1 en warning, jamais

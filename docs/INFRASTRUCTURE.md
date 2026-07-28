@@ -1,6 +1,7 @@
 # Darna — Infrastructure : staging + production
 
-> Écrit dans le cadre de `LANCEMENT_ROADMAP.md` §L6.1. Ce fichier est la
+> Référence opérationnelle du déploiement (aucune tâche ici : les tâches
+> vivent dans `ROADMAP.md`). Ce fichier est la
 > référence unique pour déployer Darna hors de la démo locale — architecture,
 > variables d'environnement par environnement, procédures de déploiement/
 > rollback/restauration, et la checklist pas-à-pas pour les actions humaines
@@ -162,11 +163,11 @@ explicite notée.
 - [ ] `npx prisma migrate deploy` + `npx prisma db seed` contre Neon staging
 - [ ] Vérifier `/api/health` sur le domaine staging
 - [ ] Répéter pour production (§4), **sans le seed** — jamais de données de démo en prod
-- [ ] Poser les clés Turnstile RÉELLES en production (⛔ W5 déjà noté dans `LANCEMENT_ROADMAP.md`)
+- [ ] Poser les clés Turnstile RÉELLES en production (⛔ W5 déjà noté dans `ROADMAP.md` §3)
 - [ ] Poser les clés Konnect RÉELLES en production (sandbox reste sur staging)
 - [ ] Une fois staging en ligne : exécuter §6 (test de restauration Neon) au moins une fois
 
-Une fois W1/W2 cochés : passer à **L6.3** (`LANCEMENT_ROADMAP.md`) — smoke
+Une fois W1/W2 cochés : passer à **P1.4** (`ROADMAP.md`) — smoke
 tests Playwright contre staging.
 
 ## 8. Notes techniques (découvertes en écrivant cette roadmap)

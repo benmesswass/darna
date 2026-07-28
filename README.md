@@ -31,7 +31,7 @@ Darna est une plateforme web pour le marché immobilier tunisien, combinant deux
 
 zod sur chaque server action mutante · autorisation serveur sur chaque mutation · zéro SQL brut · prix toujours recalculés serveur · bcrypt coût 12 + anti-énumération · rate limiting Redis (fallback mémoire) · CSP par nonce · audit trail complet · webhook de paiement auto-signé HMAC · CIN chiffrée au repos · ledger de crédits append-only · invalidation de session au changement de mot de passe.
 
-Détail des contrôles et des manques restants : `QA_ROADMAP.md`, `TODO-BETA.md`, `TODO-PRODUCTION.md`.
+Détail des contrôles restant à ajouter avant ouverture publique : `ROADMAP.md` (phases 2 et 3).
 
 ## Modes démo ↔ production
 
@@ -73,18 +73,17 @@ Mot de passe unique : `darna2026` (liste complète dans `CREDENTIALS.md`, non co
 
 ## Limites assumées (état honnête)
 
-- **Pas encore déployé en production** — chantier en cours : `LANCEMENT_ROADMAP.md`.
-- **Modèle V1 « commission-only »** (décision 2026-07-27, bascule du code en cours — §L5 de `LANCEMENT_ROADMAP.md`) : Darna n'encaisse en ligne que ses frais de service (10 % du loyer) ; le loyer se règle 100 % sur place. Aucun fonds de tiers ne transite par Darna. Le paiement intégral en ligne (séquestre réel) est la V2, conditionnée à un avis juridique. Les remboursements de frais restent des virements manuels (l'API Konnect n'a pas d'endpoint de remboursement).
+- **Pas encore déployé en production** — chantier en cours : `ROADMAP.md` (phase 1).
+- **Modèle V1 « commission-only »** (décision 2026-07-27, livrée) : Darna n'encaisse en ligne que ses frais de service (10 % du loyer) ; le loyer se règle 100 % sur place, directement à l'hôte. Aucun fonds de tiers ne transite par Darna. Le paiement intégral en ligne (séquestre réel) est la V2, conditionnée à un avis juridique. Les remboursements de frais restent des virements manuels (l'API Konnect n'a pas d'endpoint de remboursement).
 - Conversion EUR d'affichage à taux statique (1 € = 3,4 TND) — le montant débité est toujours en TND.
 - KYC sans provider documentaire (pas d'OCR/liveness) ; OTP réel optionnel.
 - ⚖️ La location saisonnière tunisienne évolue dans un cadre juridique flou (fiscalité, agrément séquestre BCT) — avis juridique en cours avant tout lancement commercial.
 
 ## Documentation & pilotage
 
-- `AUDIT_V2.md` — état des lieux de référence (2026-07-27).
-- `LANCEMENT_ROADMAP.md` — **chantier actif** : mise en production V1.
-- `PRIORITES_ROADMAP.md` — dispatch maître des chantiers.
-- `QA_ROADMAP.md` / `TODO-BETA.md` / `TODO-PRODUCTION.md` — qualité & sécurité par phase.
+- **`ROADMAP.md`** — **fichier unique de pilotage** : état des lieux, décisions gravées, et toutes les tâches en 8 phases (mise en ligne → solidité technique → légal → performance → opérations → terrain → croissance → dette).
+- `docs/INFRASTRUCTURE.md` — déploiement, rollback, restauration, matrice d'environnement.
+- `docs/ARGUMENTAIRE_HOTE.md` — argumentaire de recrutement d'hôtes.
 - `CLAUDE.md` — conventions de développement.
 
 ## Stack
