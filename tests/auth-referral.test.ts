@@ -61,7 +61,6 @@ function formData(ref?: string): FormData {
   fd.set("password", "azerty12");
   fd.set("confirmPassword", "azerty12");
   fd.set("phone", "");
-  fd.set("role", "VOYAGEUR");
   if (ref) fd.set("ref", ref);
   return fd;
 }

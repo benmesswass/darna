@@ -368,8 +368,6 @@ export const fr = {
     motDePasse: "Mot de passe",
     nom: "Nom complet",
     telephone: "Téléphone (+216…)",
-    role: "Je suis…",
-    roleVoyageur: "Voyageur / Locataire",
     roleHote: "Hôte / Propriétaire",
     roleAgence: "Agence immobilière",
     seConnecter: "Se connecter",
@@ -417,6 +415,7 @@ export const fr = {
     bonjour: (nom: string) => `Bonjour, ${nom}`,
     mesAnnonces: "Mes annonces",
     mesReservations: "Mes réservations",
+    devenirHote: "Devenir hôte",
     mesVoyageurs: "Mes voyageurs",
     demandesRecues: "Demandes reçues",
     yieldAdvisor: "Yield Advisor",
@@ -1293,6 +1292,14 @@ export const fr = {
     supprimerMdpRequis: "Mot de passe requis.",
     supprimerReservationActive:
       "Vous avez une réservation active (voyageur ou hôte). Attendez qu'elle soit terminée ou annulée avant de supprimer votre compte.",
+  },
+  devenirHote: {
+    titre: "Devenir hôte",
+    sousTitre:
+      "Publiez votre premier logement en quelques minutes. Vous touchez 100 % de votre prix : le voyageur paie nos frais de service.",
+    choixHoteDesc: "Je loue mon propre logement (particulier).",
+    choixAgenceDesc: "Je gère des biens pour le compte de propriétaires.",
+    cta: "Continuer",
   },
   yieldAdvisor: {
     titre: "Yield Advisor",

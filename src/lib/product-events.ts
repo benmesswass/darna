@@ -28,6 +28,9 @@ export const PRODUCT_EVENT_NAMES = [
   // Pédagogie hôte Rail 2 (§L5.7) — activation du paiement sur place après
   // avoir vu le nouvel écran explicatif (4 blocs) et accepté les CGU hôte.
   "CASH_PAYMENT_ENABLED",
+  // Friction d'entrée (§L8.1) — upgrade VOYAGEUR→HOTE/AGENCE en libre-service,
+  // mesure l'effet de la suppression du rôle à l'inscription sur le funnel IN1.
+  "ROLE_UPGRADED",
 ] as const;
 export type ProductEventName = (typeof PRODUCT_EVENT_NAMES)[number];
 

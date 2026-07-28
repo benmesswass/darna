@@ -69,7 +69,6 @@ function formData(): FormData {
   fd.set("password", "azerty12");
   fd.set("confirmPassword", "azerty12");
   fd.set("phone", "");
-  fd.set("role", "HOTE");
   return fd;
 }
 
@@ -118,7 +117,7 @@ describe("registerAction — vérification d'email à l'inscription", () => {
 
     expect(res).toEqual({
       error: "Un compte existe déjà avec cet e-mail. Connectez-vous.",
-      values: { name: "Wassim", email: "new@test.tn", phone: "", role: "HOTE" },
+      values: { name: "Wassim", email: "new@test.tn", phone: "" },
     });
     expect(prisma.user.create).not.toHaveBeenCalled();
     expect(issueOtp).not.toHaveBeenCalled();
@@ -135,7 +134,7 @@ describe("registerAction — vérification d'email à l'inscription", () => {
     // jamais renvoyés.
     expect(res).toEqual({
       error: "Les mots de passe ne sont pas identiques.",
-      values: { name: "Wassim", email: "new@test.tn", phone: "", role: "HOTE" },
+      values: { name: "Wassim", email: "new@test.tn", phone: "" },
     });
     expect(JSON.stringify(res)).not.toContain("azerty12");
     expect(prisma.user.create).not.toHaveBeenCalled();
@@ -149,7 +148,7 @@ describe("registerAction — vérification d'email à l'inscription", () => {
 
     expect(res).toEqual({
       error: "Vérification anti-robot échouée. Veuillez réessayer.",
-      values: { name: "Wassim", email: "new@test.tn", phone: "", role: "HOTE" },
+      values: { name: "Wassim", email: "new@test.tn", phone: "" },
     });
     expect(prisma.user.create).not.toHaveBeenCalled();
     expect(issueOtp).not.toHaveBeenCalled();
