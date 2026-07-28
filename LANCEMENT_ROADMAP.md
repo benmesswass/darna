@@ -837,7 +837,7 @@ le filet `?konnect=success`). Rapport + captures obligatoires.
 |---|---|---|---|
 | L7.1 | Mise en conformité `darna-vid` (régime « exemption mesure d'audience » CNIL) | P1 | ✅ PR #218 |
 | L7.2 | Purges de rétention automatisées (job L3) | P1 | ✅ PR #218 |
-| L7.3 | Export des données + suppression de compte | P1 | ❌ |
+| L7.3 | Export des données + suppression de compte | P1 | 🟡 export ✅ PR #219, suppression ⛔ voir note |
 
 **Pourquoi** : cible marketing n°1 = diaspora **France** = utilisateurs
 RGPD/CNIL. Or le bandeau actuel (`src/components/legal/CookieConsent.tsx`)
@@ -898,6 +898,49 @@ notamment : ledger crédits `SetNull`, AuditLog `SetNull` conservé pour la
 sécurité — le documenter dans la page confidentialité). Blocage si
 réservation active non terminée. AuditLog `ACCOUNT_DELETED` (sans PII).
 Tests : IDOR, cascade complète, blocage résa active.
+
+**Implémenté — export (PR #219)** : `GET /api/account/export` (session
+requise, jamais un `userId` client) télécharge un JSON — profil (jamais
+`cin`/`cinHash`, chiffrés, ne doivent jamais ressortir en clair même vers
+leur titulaire), annonces, réservations (voyageur), avis (rédigés + reçus),
+messages (envoyés en entier ; REÇUS : corps + nom de l'expéditeur seulement,
+jamais son id/e-mail), mouvements de crédits. Logique extraite dans
+`src/lib/account-export.ts` (testable sans HTTP, même patron que
+`settleKonnectBooking`). Lien « Exporter mes données » sur `/dashboard/profil`.
+Vérifié en conditions réelles (Postgres local, Playwright) : téléchargement
+réel réussi pour un compte voyageur (9 réservations, 3 messages), aucune
+donnée d'autrui au-delà du nom, `cin` absent.
+
+**⛔ Bloqué sur toi — suppression de compte, question précise (pas de choix
+arbitraire pris)** : la vérification empirique de CHAQUE `onDelete` du schéma
+(`grep -n "onDelete:" prisma/schema.prisma`) confirme que `Booking.guestId`
+et `HostInvoice.booking`/`HostInvoice.hostId` sont en **Cascade**. Conséquence
+concrète : si un VOYAGEUR supprime son compte, `prisma.user.delete()`
+cascade-supprimerait TOUTES ses réservations passées — et donc, en cascade
+transitive, les `HostInvoice` (factures de commission Rail 2) qui s'y
+rattachent. Un hôte perdrait silencieusement ses propres factures/historique
+de revenus parce qu'un VOYAGEUR (pas lui) a supprimé son compte. C'est une
+perte de donnée financière/comptable, potentiellement en tension avec une
+obligation de conservation comptable (et avec l'esprit de la fenêtre d'audit
+de 13 mois qu'on vient de coder en L7.2). Le RGPD (art. 17§3) autorise
+justement à ne PAS tout effacer quand une obligation légale de conservation
+s'applique — d'où la question, plutôt qu'un choix tranché seul :
+1. **Anonymiser plutôt que cascader** pour `Booking`/`HostInvoice`/`Review`
+   côté voyageur (garder la ligne, remplacer nom/e-mail/téléphone par
+   « Utilisateur supprimé ») — aligné sur la pratique standard des
+   marketplaces, mais demande une migration (desserrer ces `onDelete`
+   Cascade → SetNull/Restrict) + une vraie fonction d'anonymisation, pas un
+   simple `user.delete()`.
+2. **Garder la cascade telle quelle** (suppression totale, y compris
+   l'historique côté hôte) — plus simple, plus proche de l'esprit littéral
+   du droit à l'effacement, mais le risque ci-dessus reste entier.
+3. **Bloquer la suppression** tant qu'il existe une réservation/facture liée
+   (quelle que soit son ancienneté) — le plus sûr, mais peut-être trop
+   restrictif pour un compte avec un historique ancien et sans enjeu réel.
+Sans réponse, `prisma/schema.prisma` n'est pas retouché et « Supprimer mon
+compte » n'est pas codé — un mauvais choix ici serait, au choix, une perte de
+données comptables ou une fausse promesse RGPD, les deux exactement le genre
+d'erreur que ce chantier corrige ailleurs.
 
 ---
 

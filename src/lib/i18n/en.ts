@@ -1259,6 +1259,12 @@ export const en: Dictionary = {
     mdpActuelInvalide: "Current password is incorrect.",
     mdpConfirmationInvalide: "The two passwords do not match.",
     mdpIdentique: "The new password must differ from the current one.",
+    donneesTitre: "Your data",
+    donneesSousTitre:
+      "In line with GDPR, you can export a copy of your data at any time.",
+    donneesExporter: "Export my data (JSON)",
+    donneesExporterAide:
+      "Profile, listings, bookings, reviews, messages, credit movements — never someone else's data beyond what's strictly necessary.",
   },
   yieldAdvisor: {
     titre: "Yield Advisor",

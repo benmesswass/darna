@@ -1269,6 +1269,11 @@ export const ar: Dictionary = {
     mdpActuelInvalide: "كلمة السرّ الحالية غالطة.",
     mdpConfirmationInvalide: "الزوز كلمات السرّ ما يتطابقوش.",
     mdpIdentique: "كلمة السرّ الجديدة لازم تكون مختلفة على الحالية.",
+    donneesTitre: "المعطيات متاعك",
+    donneesSousTitre: "طبقًا لـ RGPD، تنجم تصدّر نسخة من معطياتك في أي وقت.",
+    donneesExporter: "صدّر معطياتي (JSON)",
+    donneesExporterAide:
+      "البروفايل، الإعلانات، الحجوزات، الآراء، الرسائل، حركات الكريدي — أبداً معطيات الغير أكثر من اللازم.",
   },
   yieldAdvisor: {
     titre: "مستشار المردودية",
