@@ -1,6 +1,6 @@
 # Argumentaire hôte — Darna
 
-> LANCEMENT_ROADMAP.md §L10.2. Document/print (pas une fonctionnalité) que
+> ROADMAP.md (livré en 2026-07). Document/print (pas une fonctionnalité) que
 > Wassim ou un Wakil montre à un propriétaire pendant une prospection —
 > pas un article de blog. Source du one-pager HTML envoyé en artifact dans
 > la même livraison ; ce fichier est la version texte éditable/versionnée.
