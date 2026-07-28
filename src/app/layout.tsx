@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { cookies } from "next/headers";
 import { Cairo, Outfit } from "next/font/google";
 import "./globals.css";
@@ -15,6 +15,7 @@ import { SectionOverrideProvider } from "@/components/layout/ActiveSection";
 import { CurrencyProvider } from "@/components/currency/CurrencyProvider";
 import { LocaleProvider } from "@/components/i18n/LocaleProvider";
 import { CookieConsent } from "@/components/legal/CookieConsent";
+import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -36,6 +37,14 @@ export const metadata: Metadata = {
     template: `%s — ${fr.meta.siteName}`,
   },
   description: fr.meta.description,
+};
+
+// Couleur de la barre de navigateur mobile (thème sable, cf. §L9.2) —
+// distinct du `theme_color` du manifest (apparence une fois l'app installée).
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#e3a93c",
 };
 
 export default async function RootLayout({
@@ -64,6 +73,7 @@ export default async function RootLayout({
               <Footer />
               <HistoryNav />
               <CookieConsent />
+              <ServiceWorkerRegister />
             </SectionOverrideProvider>
           </CurrencyProvider>
         </LocaleProvider>

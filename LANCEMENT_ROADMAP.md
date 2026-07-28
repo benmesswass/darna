@@ -1047,7 +1047,7 @@ manuellement une fois W6 posé.
 | # | Tâche | Prio | Statut |
 |---|---|---|---|
 | L9.1 | Chantier tokens de contraste + réactivation du gate axe `color-contrast` | P2 | ✅ PR #224 |
-| L9.2 | PWA minimale (manifest + SW de cache statique) | P2 | ❌ |
+| L9.2 | PWA minimale (manifest + SW de cache statique) | P2 | ✅ PR #225 |
 | L9.3 | Budget perf Lighthouse (nightly) + session device réel | P2 | ❌ (device 🧑 WASSIM) |
 
 **L9.1** : la spec existe déjà dans `TODO-PRODUCTION.md` §Accessibility :
@@ -1097,6 +1097,34 @@ cache-first sur `/_next/static` et icônes, network-first sur les pages,
 JAMAIS de cache sur `/api` ni les server actions. Pas de mode offline. Le SW
 doit être servi avec le bon scope et ne pas casser la CSP (pas de
 `unsafe-eval`).
+
+**Implémenté (PR #225)** : `src/app/manifest.ts` (convention App Router,
+servi automatiquement à `/manifest.webmanifest` + `<link rel="manifest">`
+injecté sans configuration additionnelle) — nom/description repris de
+`fr.meta`, `display: standalone`, `theme_color: #e3a93c` (sable),
+`background_color: #faf7f1` (cream). Icônes 192/512 générées en PNG
+(`public/icons/`) à partir du mark réel du Header (carré `bg-sand` +
+`HouseIcon` `text-darna-dark`, cf. `src/components/icons.tsx`), pas d'un
+placeholder générique. `viewport.themeColor` ajouté dans `layout.tsx`
+(couleur de la barre navigateur mobile, distinct du `theme_color` du
+manifest). Service worker `public/sw.js` : cache-first strict sur
+`/_next/static/*` et `/icons/*` uniquement (whitelist de regex, pas de
+liste de précache), tout le reste (pages, `/api`, server actions POST)
+ignoré par le `fetch` handler — vérifié qu'aucune page ni route `/api/`
+n'apparaît jamais dans le cache, y compris après plusieurs navigations.
+`skipWaiting()` + `clients.claim()` à l'activation (mise à jour immédiate,
+pas de flou multi-onglets pour un SW aussi minimal). Enregistrement via
+`src/components/pwa/ServiceWorkerRegister.tsx` (client component,
+**production uniquement** — en dev le cache-first gênerait le hot-reload).
+`Cache-Control: no-cache` ajouté sur `/sw.js` dans `next.config.ts` pour
+une propagation rapide des mises à jour. Aucun changement CSP requis :
+`worker-src` retombe sur `default-src 'self'`, déjà présent. Vérifié en
+conditions réelles (build de production, pas seulement `next dev`) : SW
+enregistré/activé, 19/19 requêtes `/_next/static/*` servies
+`fromServiceWorker: true` dès le 2ᵉ chargement, 0 page/route `/api/` en
+cache, `tsc`/`lint`/`vitest` (898 tests) + suite e2e `10-a11y.spec.ts`
+(15/15) et `01-auth.spec.ts`/`08-i18n.spec.ts` verts contre le build de
+prod.
 
 **L9.3** : job nightly Lighthouse CI (mobile, throttling) sur `/`, `/sejours`,
 une page annonce — seuils : LCP < 2.5 s, CLS < 0.1 (warning, pas bloquant au
