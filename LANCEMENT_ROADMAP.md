@@ -774,7 +774,7 @@ tous les items ✅ (L5.6 reste ⛔ 🧑 WASSIM, hors périmètre codable).
 
 | # | Tâche | Prio | Statut |
 |---|---|---|---|
-| L6.1 | `INFRA_ROADMAP.md` réel + configuration du dépôt pour Vercel | P0 | ❌ |
+| L6.1 | `INFRA_ROADMAP.md` réel + configuration du dépôt pour Vercel | P0 | ✅ PR #217 |
 | L6.2 | ⛔ W1/W2 — provisionner comptes + domaine, déployer staging puis prod | P0 | ❌ 🧑 WASSIM (checklist fournie par L6.1) |
 | L6.3 | Smoke tests Playwright contre staging + correctifs prod-only | P0 | ❌ (après L6.2) |
 
@@ -805,6 +805,23 @@ L3) ; vérifier que `next build` passe sans DB au build OU documenter la
 variable de build (le sitemap lit la DB — vérifier le comportement et le
 documenter) ; robots/noindex conditionnel staging (`SITE_URL` ≠ prod).
 `CLAUDE.md` référence déjà `INFRA_ROADMAP.md` — la référence redevient vraie.
+
+**Implémenté** : `INFRA_ROADMAP.md` écrit (architecture, matrice de variables
+par environnement, procédures déploiement/rollback/restauration Neon,
+checklist W1/W2 pas-à-pas). `CLAUDE.md` §Roadmaps produit référence
+maintenant `INFRA_ROADMAP.md` (vérifié : il ne le référençait PAS encore
+malgré ce que ce paragraphe supposait — corrigé). `vercel.json` déjà présent
+(crons §L3.1), rien à ajouter au lancement (Vercel déduit le reste du
+framework détecté). **Bug réel trouvé et corrigé en testant `next build`
+pour de vrai** (base injoignable) : `src/app/sitemap.ts` faisait planter le
+build ENTIER en tentant de se prérendre statiquement avec un accès DB —
+corrigé par `export const dynamic = "force-dynamic"` (cohérent avec le
+besoin métier : une annonce expirée doit sortir du sitemap sans attendre un
+redéploiement). `next build` avec DB injoignable reproduit AVANT le fix
+(échec confirmé) puis vérifié après (50/50 pages générées, aucun accès DB).
+`robots.ts` : noindex conditionnel ajouté (`disallow: "/"` tant que
+`SITE_URL` ≠ `https://darna.tn` exactement) + `tests/robots.test.ts` (3 cas :
+staging, localhost, production). — L6.1, PR #217
 
 **L6.3** : une fois staging en ligne : dérouler la suite e2e existante contre
 staging (`PLAYWRIGHT_BASE_URL` ou config dédiée), corriger ce que la prod
