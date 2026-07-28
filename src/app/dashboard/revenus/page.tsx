@@ -147,7 +147,7 @@ export default async function RevenusPage() {
                   <p className="mt-0.5 text-xs text-body/50">
                     {encaisse
                       ? fr.dashboard.revenusVerseApres(formatDateShortFr(b.checkOut))
-                      : fr.dashboard.revenusVersementPrevu(formatDateShortFr(b.checkIn))}
+                      : fr.dashboard.revenusAEncaisserLe(formatDateShortFr(b.checkIn))}
                   </p>
                 </div>
 

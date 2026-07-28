@@ -9,14 +9,14 @@ Darna est une plateforme web pour le marché immobilier tunisien, combinant deux
 
 ## Le positionnement : la confiance est le produit
 
-> *Ce que vous voyez existe. Le prix affiché est le prix payé. Votre argent est protégé.*
+> *Ce que vous voyez existe. Le prix affiché est le prix payé. Zéro acompte au propriétaire.*
 
 | Faille du marché | Réponse Darna |
 |---|---|
 | Arnaques aux acomptes, photos volées (Tayara) | Badge « Vérifié Darna » (réseau Wakil, vérification humaine, 2 niveaux REMOTE/ON_SITE) + **zéro acompte au propriétaire** : seuls les frais Darna se paient en ligne (remboursés si l'annonce n'est pas conforme), le séjour se règle sur place |
 | Annonces périmées jamais nettoyées (Mubawab) | **Expiration automatique à 30 jours**, badge fraîcheur, « Marquer loué/vendu » en 1 clic |
 | Avis inventés ou absents | Un avis est **impossible sans réservation confirmée** (contrainte au niveau du schéma) |
-| Contournement de la plateforme | Messagerie interne avec masquage des coordonnées, acompte minimum en ligne, suspension progressive |
+| Contournement de la plateforme | Messagerie interne avec masquage des coordonnées, frais de réservation fixes en ligne, suspension progressive |
 | Pas de carte, pas d'arabe | Carte Leaflet/OSM à marqueurs prix, **site trilingue FR / EN / AR (derja) avec RTL automatique** |
 
 ## Fonctionnalités actuelles

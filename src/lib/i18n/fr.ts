@@ -7,7 +7,7 @@ export const fr = {
     siteName: "Darna",
     tagline: "Notre maison, en toute confiance",
     description:
-      "Darna — séjours et immobilier en Tunisie. Annonces vérifiées, prix transparents, paiement protégé.",
+      "Darna — séjours et immobilier en Tunisie. Annonces vérifiées, prix transparents, zéro acompte au propriétaire.",
   },
   nav: {
     sejours: "Séjours",
@@ -28,9 +28,9 @@ export const fr = {
   brand: {
     heroTitle: "Ce que vous voyez existe.",
     heroLine2: "Le prix affiché est le prix payé.",
-    heroLine3: "Votre argent est protégé.",
+    heroLine3: "Zéro acompte au propriétaire.",
     heroSub:
-      "Darna est la première plateforme tunisienne où chaque annonce est vérifiable, chaque prix est transparent et chaque paiement est protégé jusqu'à la fin du séjour.",
+      "Darna est la première plateforme tunisienne où chaque annonce est vérifiable, chaque prix est transparent, et vous ne versez jamais d'acompte au propriétaire : seuls les frais de réservation se paient en ligne, remboursés si l'annonce n'est pas conforme.",
     ctaSejours: "Trouver un séjour",
     ctaImmobilier: "Explorer l'immobilier",
   },
@@ -41,20 +41,20 @@ export const fr = {
     statsAvis: "avis de séjours réels",
     verticalSejoursTitle: "Séjours",
     verticalSejoursDesc:
-      "Villas, maisons d'hôtes et appartements pour vos vacances — calendrier réel, avis de vrais voyageurs, paiement protégé.",
+      "Villas, maisons d'hôtes et appartements pour vos vacances — calendrier réel, avis de vrais voyageurs, zéro acompte au propriétaire.",
     verticalImmobilierTitle: "Immobilier",
     verticalImmobilierDesc:
       "Location longue durée et vente — annonces fraîches, prix au m² du marché, contact direct propriétaire ou agence.",
     tabSejoursSub: "Vacances vérifiées",
     tabImmoSub: "Acheter ou louer",
     tabSejoursDesc:
-      "Villas et maisons d'hôtes pour vos vacances, paiement protégé.",
+      "Villas et maisons d'hôtes pour vos vacances, zéro acompte au propriétaire.",
     tabImmoDesc:
       "Vente et location longue durée, en direct avec le propriétaire.",
     heroQuestion: "Que cherchez-vous ?",
     diffTitle: "Séjours ou Immobilier ?",
     diffSejours:
-      "Pour vos vacances : réservez un logement vérifié et payez en sécurité — l'argent n'est versé à l'hôte qu'après votre séjour.",
+      "Pour vos vacances : réservez un logement vérifié — vous ne payez en ligne que les frais de réservation, jamais d'acompte au propriétaire.",
     diffImmo:
       "Pour habiter à l'année : achat ou location longue durée, en contact direct avec le propriétaire ou l'agence — sans paiement en ligne.",
     trustTitle: "Comment Darna vous protège",
@@ -64,9 +64,9 @@ export const fr = {
     trust2Title: "Zéro frais caché",
     trust2Desc:
       "Le récapitulatif détaille chaque dinar avant paiement : prix, nuits, frais de service. Aucun frais de visite, jamais.",
-    trust3Title: "Paiement protégé",
+    trust3Title: "Zéro acompte au propriétaire",
     trust3Desc:
-      "Votre paiement n'est versé à l'hôte qu'après votre séjour : il reste protégé par Darna tant que vous n'êtes pas reparti.",
+      "Vous ne versez jamais d'acompte au propriétaire. En ligne, vous ne payez que les frais de réservation — remboursés si l'annonce n'est pas conforme. Le séjour se règle sur place, à l'arrivée.",
     featuredTitle: "Annonces vérifiées récentes",
     featuredAll: "Voir toutes les annonces",
     alaUneTitle: "À la une",
@@ -533,7 +533,7 @@ export const fr = {
     statutReservation: {
       EN_ATTENTE: "En attente de paiement",
       EN_ATTENTE_ACCEPTATION: "Demande cash — en attente de votre décision",
-      CONFIRMEE: "Confirmée — paiement protégé",
+      CONFIRMEE: "Confirmée — frais réglés",
       ANNULEE: "Annulée",
       TERMINEE: "Terminée",
     } as Record<string, string>,
@@ -606,7 +606,7 @@ export const fr = {
       "Dès qu'une réservation est confirmée, votre loyer net apparaît ici — à encaisser à l'arrivée, puis comptabilisé une fois le séjour terminé.",
     revenusBadgeEnAttente: "À encaisser à l'arrivée",
     revenusBadgeVerse: "Encaissé",
-    revenusVersementPrevu: (date: string) =>
+    revenusAEncaisserLe: (date: string) =>
       `À encaisser en espèces à l'arrivée du voyageur, le ${date}`,
     revenusVerseApres: (date: string) => `Encaissé — séjour terminé le ${date}`,
     revenusFraisInfo: (amount: string) =>
@@ -910,7 +910,7 @@ export const fr = {
 
     sectionVerticales: "Par verticale — Séjour vs Immobilier",
     verticalesDesc:
-      "Deux modèles à ne pas mélanger : le séjour est transactionnel (paiement protégé), l'immobilier est de la mise en relation (leads, sans paiement en ligne).",
+      "Deux modèles à ne pas mélanger : le séjour encaisse les frais de service en ligne, l'immobilier est de la mise en relation (leads, sans paiement en ligne).",
     verticalLabel: { STAY: "Séjour", IMMO: "Immobilier" } as Record<string, string>,
     vStayBadge: "Transactionnel",
     vImmoBadge: "Mise en relation",
@@ -1031,19 +1031,23 @@ export const fr = {
       guests: number;
       nights: number;
       total: string;
+      amountPaid: string;
+      balanceDue: string;
       url: string;
       demo: boolean;
     }) =>
       `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
       `<h1 style="color:#0f766e;font-size:20px">Réservation confirmée ✅</h1>` +
       `<p>Bonjour ${p.guestName},</p>` +
-      `<p>Votre réservation pour <strong>${p.propertyTitle}</strong> est confirmée. Votre paiement est protégé par Darna : il ne sera versé à l'hôte qu'une fois votre séjour terminé.</p>` +
+      `<p>Votre réservation pour <strong>${p.propertyTitle}</strong> est confirmée. Vous avez réglé les frais de réservation Darna — remboursés si le logement n'est pas conforme à l'annonce. Le loyer se règle en espèces à l'hôte, à votre arrivée.</p>` +
       `<table style="width:100%;border-collapse:collapse;margin:16px 0">` +
       `<tr><td style="padding:6px 0;color:#6b7280">Arrivée</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.checkIn}</td></tr>` +
       `<tr><td style="padding:6px 0;color:#6b7280">Départ</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.checkOut}</td></tr>` +
       `<tr><td style="padding:6px 0;color:#6b7280">Nuits</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.nights}</td></tr>` +
       `<tr><td style="padding:6px 0;color:#6b7280">Voyageurs</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.guests}</td></tr>` +
-      `<tr><td style="padding:10px 0;border-top:1px solid #e5e7eb;color:#6b7280">Total payé</td><td style="padding:10px 0;border-top:1px solid #e5e7eb;text-align:right;font-weight:700;color:#0f766e">${p.total}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Frais de réservation payés</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.amountPaid}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Solde à régler en espèces à l'arrivée</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.balanceDue}</td></tr>` +
+      `<tr><td style="padding:10px 0;border-top:1px solid #e5e7eb;color:#6b7280">Total du séjour</td><td style="padding:10px 0;border-top:1px solid #e5e7eb;text-align:right;font-weight:700;color:#0f766e">${p.total}</td></tr>` +
       `</table>` +
       `<p><a href="${p.url}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">Voir ma réservation</a></p>` +
       (p.demo
@@ -1065,7 +1069,7 @@ export const fr = {
       `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
       `<h1 style="color:#0f766e;font-size:20px">Nouvelle réservation 🎉</h1>` +
       `<p>Bonjour ${p.hostName},</p>` +
-      `<p><strong>${p.guestName}</strong> vient de réserver <strong>${p.propertyTitle}</strong>. Le paiement est protégé sous séquestre Darna et vous sera versé une fois le séjour terminé.</p>` +
+      `<p><strong>${p.guestName}</strong> vient de réserver <strong>${p.propertyTitle}</strong>. Les frais de réservation Darna ont été réglés en ligne — vous encaisserez le loyer intégralement en espèces, à l'arrivée.</p>` +
       `<table style="width:100%;border-collapse:collapse;margin:16px 0">` +
       `<tr><td style="padding:6px 0;color:#6b7280">Arrivée</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.checkIn}</td></tr>` +
       `<tr><td style="padding:6px 0;color:#6b7280">Départ</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.checkOut}</td></tr>` +
@@ -1303,14 +1307,14 @@ export const fr = {
     verifRequiseDesc:
       "Pour la confiance de tous sur Darna, seuls les comptes vérifiés (e-mail + téléphone) peuvent réserver. Cela prend moins de deux minutes.",
     verifRequiseCta: "Vérifier mon compte",
-    paiementTitre: "Paiement sécurisé — protégé par Darna",
-    sequestreExplication:
-      "Votre argent est protégé : Darna le conserve pendant tout votre séjour et ne le verse à l'hôte qu'après votre départ. Vous n'êtes jamais débité au profit de l'hôte avant d'avoir séjourné.",
+    paiementTitre: "Paiement des frais de réservation",
+    paiementFraisExplication:
+      "Vous ne payez en ligne que les frais de réservation Darna — remboursés si le logement ne correspond pas à l'annonce. Le loyer se règle intégralement en espèces à l'hôte, à votre arrivée.",
     paiementMockInfo:
       "Paiement Konnect / Flouci bientôt disponible. Mode démonstration : aucun débit réel.",
     payerSimulation: "Payer (simulation)",
     paiementKonnectInfo:
-      "Paiement sécurisé via Konnect — carte bancaire, e-DINAR, Flouci ou wallet. Vos fonds restent protégés par Darna jusqu'à la fin de votre séjour.",
+      "Paiement sécurisé via Konnect — carte bancaire, e-DINAR, Flouci ou wallet. Seuls les frais de réservation sont débités.",
     payerKonnect: "Payer avec Konnect",
     redirectionKonnect: "Redirection vers le paiement sécurisé…",
     paiementEchoue:
@@ -1324,7 +1328,7 @@ export const fr = {
       "Cette réservation a expiré. Merci de relancer une demande.",
     paiementConfirme: "Réservation confirmée !",
     paiementConfirmeDetail:
-      "Votre paiement est protégé jusqu'à la fin de votre séjour. L'hôte a été notifié — retrouvez les détails dans « Mes réservations ».",
+      "Vos frais de réservation sont réglés. Le loyer se règle en espèces à l'arrivée — l'hôte a été notifié. Retrouvez les détails dans « Mes réservations ».",
     voirMesReservations: "Voir mes réservations",
     sejourDates: (arrivee: string, depart: string) =>
       `Du ${arrivee} au ${depart}`,
@@ -1351,10 +1355,10 @@ export const fr = {
     soldeArrivee: "Solde à régler en cash à l'arrivée",
     soldeArriveeAide:
       "Vous payez le reste directement à l'hôte, en espèces, le jour de votre arrivée.",
-    acompteSequestreInfo:
-      "Votre acompte est bloqué en séquestre par Darna. Les coordonnées de l'hôte vous sont communiquées une fois passée la période d'annulation gratuite — votre réservation est alors ferme.",
-    commissionNonRemboursable:
-      "Annulation gratuite : vous êtes intégralement remboursé, commission Darna comprise. Passé le délai gratuit, la commission reste acquise et le reste suit la politique d'annulation de l'annonce.",
+    contactRevelationInfo:
+      "Les coordonnées de l'hôte vous sont communiquées une fois passée la période d'annulation gratuite — votre réservation est alors ferme.",
+    remboursementFraisPolitique:
+      "Le remboursement des frais suit la politique d'annulation de l'annonce (visible sur la page de l'annonce) : intégral si vous annulez suffisamment tôt, réduit ou nul passé le délai gratuit.",
     annulationGratuiteJusqu: (date: string) =>
       `Annulation gratuite jusqu'au ${date}`,
     annulationRembJusqu: (pct: number, date: string) =>
@@ -1391,7 +1395,7 @@ export const fr = {
       "Le paiement sur place exige une identité vérifiée (CIN). Complétez votre vérification avant de continuer.",
     modePaiementTitre: "Comment voulez-vous payer ?",
     modeEscrowLabel: "Payer en ligne",
-    modeEscrowAide: "Acompte protégé par Darna, solde possible en cash à l'arrivée.",
+    modeEscrowAide: "Frais de réservation payés en ligne, loyer réglé en espèces à l'arrivée.",
     modeCashLabel: "Payer sur place (cash)",
     modeCashAide:
       "0 TND en ligne — tout se règle en espèces à l'hôte. Votre demande doit d'abord être acceptée par l'hôte.",
@@ -1456,7 +1460,7 @@ export const fr = {
       `Votre compte est suspendu jusqu'au ${date} suite à des tentatives de partage de coordonnées hors Darna. Restez sur Darna pour protéger vos réservations et vos avis.`,
     pourquoiTitre: "En savoir plus — pourquoi rester sur Darna ?",
     pourquoi1:
-      "Paiement protégé : votre acompte est sous séquestre Darna. Hors plateforme, aucune garantie — c'est la porte ouverte aux arnaques.",
+      "Frais remboursables : vos frais de réservation sont remboursés si le logement n'est pas conforme à l'annonce. Hors plateforme, aucune garantie — c'est la porte ouverte aux arnaques.",
     pourquoi2:
       "Avis vérifiés : seuls les séjours réservés sur Darna donnent droit à un avis. C'est ce qui bâtit la réputation de l'hôte et la confiance du voyageur. En dehors : ni preuve, ni réputation.",
     pourquoi3:
@@ -1762,7 +1766,7 @@ export const fr = {
       "Annonces vérifiées sur le terrain par nos Wakils : ce que vous voyez depuis Paris ou Montréal existe vraiment à Hammamet.",
     arg2Titre: "Payez en toute sécurité",
     arg2Desc:
-      "Paiement protégé Darna : votre argent n'est versé à l'hôte qu'après votre séjour. Paiement par carte internationale bientôt disponible.",
+      "Vous ne payez en ligne que les frais de réservation, remboursés si le logement n'est pas conforme — jamais un acompte pour le loyer, réglé sur place. Le paiement intégral en ligne arrive avec la V2. Carte internationale bientôt disponible.",
     arg3Titre: "Visites vidéo (bientôt)",
     arg3Desc:
       "Un Wakil visite le bien en visio avec vous, avant tout engagement.",
@@ -1873,29 +1877,38 @@ export const fr = {
           titre: "4. Réservations et paiements",
           corps: [
             "Une demande de réservation bloque le créneau pendant 15 minutes. Les prix et frais (dont les frais de service) sont systématiquement recalculés côté serveur ; aucune valeur transmise par le navigateur n'est utilisée comme montant facturé.",
-            "Pendant la phase de démonstration, le séquestre des fonds est simulé par défaut : aucun mouvement d'argent réel n'a lieu. Lorsque le paiement réel (Konnect) est activé, le montant débité est toujours exprimé en dinars tunisiens (TND), l'affichage en euros n'étant qu'une conversion indicative.",
+            "Seuls les frais de service Darna (jamais le loyer) sont payés en ligne au moment de la réservation. Pendant la phase de démonstration, ce paiement est simulé par défaut : aucun mouvement d'argent réel n'a lieu. Lorsque le paiement réel (Konnect) est activé, le montant débité est toujours exprimé en dinars tunisiens (TND), l'affichage en euros n'étant qu'une conversion indicative. Le loyer se règle intégralement en espèces, directement à l'hôte, à l'arrivée.",
           ],
         },
         {
-          titre: "5. Obligations des utilisateurs",
+          titre: "5. Remboursements et garanties",
+          corps: [
+            "Les frais de service réglés en ligne sont remboursables selon la politique d'annulation choisie par l'hôte et affichée sur l'annonce, et intégralement remboursés en cas d'annulation à l'initiative de l'hôte.",
+            "Garantie non-conformité : si le logement ne correspond pas à l'annonce, vous pouvez le signaler dans les 24 heures suivant votre arrivée. Après examen par notre équipe, les frais de service sont intégralement remboursés si le signalement est validé.",
+            "Garantie no-show : si vous êtes hôte et que le voyageur ne se présente pas, vous pouvez le signaler dans les 48 heures suivant l'heure d'arrivée prévue ; Darna vous indemnise alors à hauteur des frais de service perçus sur cette réservation, sur ses fonds propres.",
+            "Ces garanties portent exclusivement sur les frais de service Darna, jamais sur le loyer, réglé directement à l'hôte : Darna n'agit ni comme assureur ni comme garant du loyer. Tout litige portant sur le loyer ou le déroulement du séjour se règle directement entre le voyageur et l'hôte.",
+          ],
+        },
+        {
+          titre: "6. Obligations des utilisateurs",
           corps: [
             "Vous vous engagez à utiliser Darna de manière loyale, à ne pas contourner les mécanismes de sécurité ou de vérification, à ne pas publier de contenu illicite et à respecter la législation tunisienne en vigueur.",
           ],
         },
         {
-          titre: "6. Responsabilité",
+          titre: "7. Responsabilité",
           corps: [
             "Darna agit en qualité d'intermédiaire. La plateforme est fournie « en l'état » pendant la phase de démonstration et ne saurait être tenue responsable des litiges entre voyageurs et annonceurs, dans les limites permises par la loi.",
           ],
         },
         {
-          titre: "7. Suspension et résiliation",
+          titre: "8. Suspension et résiliation",
           corps: [
             "Darna peut suspendre ou clôturer un compte en cas de manquement aux présentes CGU, de fraude ou d'usage abusif. Vous pouvez fermer votre compte à tout moment.",
           ],
         },
         {
-          titre: "8. Droit applicable",
+          titre: "9. Droit applicable",
           corps: [
             "Les présentes CGU sont régies par le droit tunisien. Tout litige relève de la compétence des tribunaux de Tunis, sous réserve des règles impératives protégeant les consommateurs résidant dans l'Union européenne.",
           ],

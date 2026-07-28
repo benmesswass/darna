@@ -8,7 +8,7 @@ export const en: Dictionary = {
     siteName: "Darna",
     tagline: "Our home, with full confidence",
     description:
-      "Darna — stays and real estate in Tunisia. Verified listings, transparent prices, protected payments.",
+      "Darna — stays and real estate in Tunisia. Verified listings, transparent prices, zero deposit to the owner.",
   },
   nav: {
     sejours: "Stays",
@@ -29,9 +29,9 @@ export const en: Dictionary = {
   brand: {
     heroTitle: "What you see exists.",
     heroLine2: "The price you see is the price you pay.",
-    heroLine3: "Your money is protected.",
+    heroLine3: "Zero deposit to the owner.",
     heroSub:
-      "Darna is the first Tunisian platform where every listing is verifiable, every price is transparent and every payment is protected until the stay is over.",
+      "Darna is the first Tunisian platform where every listing is verifiable, every price is transparent, and you never pay a deposit to the owner: only the booking fee is paid online, refunded if the listing isn't accurate.",
     ctaSejours: "Find a stay",
     ctaImmobilier: "Explore real estate",
   },
@@ -42,19 +42,19 @@ export const en: Dictionary = {
     statsAvis: "reviews from real stays",
     verticalSejoursTitle: "Stays",
     verticalSejoursDesc:
-      "Villas, guesthouses and apartments for your holidays — real availability calendar, reviews from real travellers, protected payment.",
+      "Villas, guesthouses and apartments for your holidays — real availability calendar, reviews from real travellers, zero deposit to the owner.",
     verticalImmobilierTitle: "Real estate",
     verticalImmobilierDesc:
       "Long-term rentals and sales — fresh listings, market price per m², direct contact with the owner or agency.",
     tabSejoursSub: "Verified holiday stays",
     tabImmoSub: "Buy or rent",
     tabSejoursDesc:
-      "Villas and guesthouses for your holidays, with protected payment.",
+      "Villas and guesthouses for your holidays, zero deposit to the owner.",
     tabImmoDesc: "Sales and long-term rentals, directly with the owner.",
     heroQuestion: "What are you looking for?",
     diffTitle: "Stays or Real estate?",
     diffSejours:
-      "For your holidays: book a verified place and pay securely — funds are released to the host only after your stay.",
+      "For your holidays: book a verified place — you only pay the booking fee online, never a deposit to the owner.",
     diffImmo:
       "To live year-round: buy or rent long-term, in direct contact with the owner or agency — no online payment.",
     trustTitle: "How Darna protects you",
@@ -64,9 +64,9 @@ export const en: Dictionary = {
     trust2Title: "Zero hidden fees",
     trust2Desc:
       "The summary breaks down every dinar before payment: price, nights, service fee. No viewing fees, ever.",
-    trust3Title: "Protected payment",
+    trust3Title: "Zero deposit to the owner",
     trust3Desc:
-      "Your payment is only released to the host after your stay: it stays protected by Darna until you have checked out.",
+      "You never pay a deposit to the owner. Online, you only pay the booking fee — refunded if the listing isn't accurate. The stay itself is settled on the spot, on arrival.",
     featuredTitle: "Recent verified listings",
     featuredAll: "See all listings",
     alaUneTitle: "Featured",
@@ -524,7 +524,7 @@ export const en: Dictionary = {
     statutReservation: {
       EN_ATTENTE: "Awaiting payment",
       EN_ATTENTE_ACCEPTATION: "Cash request — awaiting your decision",
-      CONFIRMEE: "Confirmed — payment protected",
+      CONFIRMEE: "Confirmed — fee paid",
       ANNULEE: "Cancelled",
       TERMINEE: "Completed",
     } as Record<string, string>,
@@ -597,7 +597,7 @@ export const en: Dictionary = {
       "As soon as a booking is confirmed, your net rent appears here — due on arrival, then counted once the stay is over.",
     revenusBadgeEnAttente: "Due on arrival",
     revenusBadgeVerse: "Collected",
-    revenusVersementPrevu: (date: string) =>
+    revenusAEncaisserLe: (date: string) =>
       `Cash due on the guest's arrival, ${date}`,
     revenusVerseApres: (date: string) => `Collected — stay ended on ${date}`,
     revenusFraisInfo: (amount: string) =>
@@ -895,7 +895,7 @@ export const en: Dictionary = {
 
     sectionVerticales: "By vertical — Stay vs Real estate",
     verticalesDesc:
-      "Two models that should not be mixed: stays are transactional (escrowed payment), real estate is lead generation (no online payment).",
+      "Two models that should not be mixed: stays collect the service fee online, real estate is lead generation (no online payment).",
     verticalLabel: { STAY: "Stay", IMMO: "Real estate" } as Record<string, string>,
     vStayBadge: "Transactional",
     vImmoBadge: "Lead generation",
@@ -1014,19 +1014,23 @@ export const en: Dictionary = {
       guests: number;
       nights: number;
       total: string;
+      amountPaid: string;
+      balanceDue: string;
       url: string;
       demo: boolean;
     }) =>
       `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
       `<h1 style="color:#0f766e;font-size:20px">Booking confirmed ✅</h1>` +
       `<p>Hello ${p.guestName},</p>` +
-      `<p>Your booking for <strong>${p.propertyTitle}</strong> is confirmed. Your payment is protected by Darna: it will only be released to the host once your stay is over.</p>` +
+      `<p>Your booking for <strong>${p.propertyTitle}</strong> is confirmed. You've paid the Darna booking fee — refunded if the property isn't accurate to the listing. The rent is settled in cash with the host, on arrival.</p>` +
       `<table style="width:100%;border-collapse:collapse;margin:16px 0">` +
       `<tr><td style="padding:6px 0;color:#6b7280">Check-in</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.checkIn}</td></tr>` +
       `<tr><td style="padding:6px 0;color:#6b7280">Check-out</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.checkOut}</td></tr>` +
       `<tr><td style="padding:6px 0;color:#6b7280">Nights</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.nights}</td></tr>` +
       `<tr><td style="padding:6px 0;color:#6b7280">Guests</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.guests}</td></tr>` +
-      `<tr><td style="padding:10px 0;border-top:1px solid #e5e7eb;color:#6b7280">Total paid</td><td style="padding:10px 0;border-top:1px solid #e5e7eb;text-align:right;font-weight:700;color:#0f766e">${p.total}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Booking fee paid</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.amountPaid}</td></tr>` +
+      `<tr><td style="padding:6px 0;color:#6b7280">Balance due in cash on arrival</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.balanceDue}</td></tr>` +
+      `<tr><td style="padding:10px 0;border-top:1px solid #e5e7eb;color:#6b7280">Total stay price</td><td style="padding:10px 0;border-top:1px solid #e5e7eb;text-align:right;font-weight:700;color:#0f766e">${p.total}</td></tr>` +
       `</table>` +
       `<p><a href="${p.url}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">View my booking</a></p>` +
       (p.demo
@@ -1048,7 +1052,7 @@ export const en: Dictionary = {
       `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">` +
       `<h1 style="color:#0f766e;font-size:20px">New booking 🎉</h1>` +
       `<p>Hello ${p.hostName},</p>` +
-      `<p><strong>${p.guestName}</strong> just booked <strong>${p.propertyTitle}</strong>. The payment is protected under Darna escrow and will be released to you once the stay is over.</p>` +
+      `<p><strong>${p.guestName}</strong> just booked <strong>${p.propertyTitle}</strong>. The Darna booking fee has been paid online — you'll collect the full rent in cash, on arrival.</p>` +
       `<table style="width:100%;border-collapse:collapse;margin:16px 0">` +
       `<tr><td style="padding:6px 0;color:#6b7280">Check-in</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.checkIn}</td></tr>` +
       `<tr><td style="padding:6px 0;color:#6b7280">Check-out</td><td style="padding:6px 0;text-align:right;font-weight:600">${p.checkOut}</td></tr>` +
@@ -1283,14 +1287,14 @@ export const en: Dictionary = {
     verifRequiseDesc:
       "For everyone's trust on Darna, only verified accounts (email + phone) can book. It takes less than two minutes.",
     verifRequiseCta: "Verify my account",
-    paiementTitre: "Secure payment — protected by Darna",
-    sequestreExplication:
-      "Your money is protected: Darna holds it throughout your stay and only releases it to the host after you check out. You are never charged to the host's benefit before you have stayed.",
+    paiementTitre: "Booking fee payment",
+    paiementFraisExplication:
+      "You only pay the Darna booking fee online — refunded if the property doesn't match the listing. The rent is settled in full, in cash, with the host on arrival.",
     paiementMockInfo:
       "Konnect / Flouci payment coming soon. Demo mode: no real charge.",
     payerSimulation: "Pay (simulation)",
     paiementKonnectInfo:
-      "Secure payment via Konnect — bank card, e-DINAR, Flouci or wallet. Your funds stay protected by Darna until the end of your stay.",
+      "Secure payment via Konnect — bank card, e-DINAR, Flouci or wallet. Only the booking fee is charged.",
     payerKonnect: "Pay with Konnect",
     redirectionKonnect: "Redirecting to secure payment…",
     paiementEchoue:
@@ -1302,7 +1306,7 @@ export const en: Dictionary = {
     reservationExpiree: "This booking has expired. Please start a new request.",
     paiementConfirme: "Booking confirmed!",
     paiementConfirmeDetail:
-      "Your payment is protected until the end of your stay. The host has been notified — find the details in “My bookings”.",
+      "Your booking fee is paid. The rent is settled in cash on arrival — the host has been notified. Find the details in “My bookings”.",
     voirMesReservations: "View my bookings",
     sejourDates: (arrivee: string, depart: string) =>
       `From ${arrivee} to ${depart}`,
@@ -1329,10 +1333,10 @@ export const en: Dictionary = {
     soldeArrivee: "Balance to pay in cash on arrival",
     soldeArriveeAide:
       "You pay the remainder directly to the host, in cash, on the day you arrive.",
-    acompteSequestreInfo:
-      "Your deposit is held in escrow by Darna. The host's contact details are shared with you once the free-cancellation window has passed — your booking is then firm.",
-    commissionNonRemboursable:
-      "Free cancellation: you're fully refunded, Darna commission included. After the free window, the commission is retained and the rest follows the listing's cancellation policy.",
+    contactRevelationInfo:
+      "The host's contact details are shared with you once the free-cancellation window has passed — your booking is then firm.",
+    remboursementFraisPolitique:
+      "The fee refund follows the listing's cancellation policy (shown on the listing page): full if you cancel early enough, reduced or none past the free window.",
     annulationGratuiteJusqu: (date: string) =>
       `Free cancellation until ${date}`,
     annulationRembJusqu: (pct: number, date: string) =>
@@ -1368,7 +1372,7 @@ export const en: Dictionary = {
       "Pay-at-property requires a verified identity (ID card). Complete your verification before continuing.",
     modePaiementTitre: "How would you like to pay?",
     modeEscrowLabel: "Pay online",
-    modeEscrowAide: "Deposit protected by Darna, balance possible in cash on arrival.",
+    modeEscrowAide: "Booking fee paid online, rent settled in cash on arrival.",
     modeCashLabel: "Pay at property (cash)",
     modeCashAide:
       "0 TND online — everything is settled in cash with the host. Your request must first be accepted by the host.",
@@ -1431,7 +1435,7 @@ export const en: Dictionary = {
       `Your account is suspended until ${date} following attempts to share contact details off Darna. Stay on Darna to protect your bookings and reviews.`,
     pourquoiTitre: "Learn more — why stay on Darna?",
     pourquoi1:
-      "Protected payment: your deposit is held in Darna escrow. Off-platform, no guarantee — an open door to scams.",
+      "Refundable fees: your booking fee is refunded if the property doesn't match the listing. Off-platform, no guarantee — an open door to scams.",
     pourquoi2:
       "Verified reviews: only stays booked on Darna can be reviewed. That's what builds a host's reputation and a guest's trust. Off-platform: no proof, no reputation.",
     pourquoi3:
@@ -1734,7 +1738,7 @@ export const en: Dictionary = {
       "Listings verified on the ground by our Wakils: what you see from Paris or Montreal really exists in Hammamet.",
     arg2Titre: "Pay safely",
     arg2Desc:
-      "Darna protected payment: your money is only released to the host after your stay. International card payment coming soon.",
+      "You only pay the booking fee online, refunded if the property doesn't match the listing — never a deposit for the rent, settled on the spot. Full online payment is coming with V2. International card payment coming soon.",
     arg3Titre: "Video visits (soon)",
     arg3Desc:
       "A Wakil visits the property with you by video call, before any commitment.",
@@ -1845,29 +1849,38 @@ export const en: Dictionary = {
           titre: "4. Bookings and payments",
           corps: [
             "A booking request holds the slot for 15 minutes. Prices and fees (including the service fee) are always recomputed server-side; no value sent by the browser is used as the charged amount.",
-            "During the demonstration phase, fund escrow is simulated by default: no real money movement takes place. When real payment (Konnect) is enabled, the charged amount is always expressed in Tunisian dinars (TND); the euro display is only an indicative conversion.",
+            "Only Darna's service fee (never the rent) is paid online at the time of booking. During the demonstration phase, this payment is simulated by default: no real money movement takes place. When real payment (Konnect) is enabled, the charged amount is always expressed in Tunisian dinars (TND); the euro display is only an indicative conversion. The rent is settled in full, in cash, directly to the host, on arrival.",
           ],
         },
         {
-          titre: "5. User obligations",
+          titre: "5. Refunds and guarantees",
+          corps: [
+            "Service fees paid online are refundable according to the cancellation policy chosen by the host and shown on the listing, and are fully refunded in the event of a host-initiated cancellation.",
+            "Non-conformity guarantee: if the property doesn't match the listing, you can report it within 24 hours of your arrival. After review by our team, the service fee is fully refunded if the report is validated.",
+            "No-show guarantee: if you are a host and the guest does not show up, you can report it within 48 hours of the expected arrival time; Darna then compensates you up to the service fee collected on that booking, from its own funds.",
+            "These guarantees cover only Darna's service fee, never the rent, which is settled directly with the host: Darna acts neither as an insurer nor as a guarantor of the rent. Any dispute about the rent or the stay itself is settled directly between the traveller and the host.",
+          ],
+        },
+        {
+          titre: "6. User obligations",
           corps: [
             "You agree to use Darna fairly, not to circumvent security or verification mechanisms, not to publish unlawful content, and to comply with applicable Tunisian law.",
           ],
         },
         {
-          titre: "6. Liability",
+          titre: "7. Liability",
           corps: [
             "Darna acts as an intermediary. The platform is provided “as is” during the demonstration phase and cannot be held liable for disputes between travellers and advertisers, to the extent permitted by law.",
           ],
         },
         {
-          titre: "7. Suspension and termination",
+          titre: "8. Suspension and termination",
           corps: [
             "Darna may suspend or close an account in the event of a breach of these Terms, fraud or abusive use. You may close your account at any time.",
           ],
         },
         {
-          titre: "8. Governing law",
+          titre: "9. Governing law",
           corps: [
             "These Terms are governed by Tunisian law. Any dispute falls under the jurisdiction of the courts of Tunis, subject to the mandatory rules protecting consumers residing in the European Union.",
           ],

@@ -269,15 +269,15 @@ export default async function PaiementPage({
           <div className="mt-4 rounded-2xl bg-darna p-5 text-sm leading-relaxed text-white">
             <p className="font-semibold text-sand">{fr.brand.heroLine3}</p>
             <p className="mt-1.5 text-white/85">
-              {fr.booking.sequestreExplication}
+              {fr.booking.paiementFraisExplication}
             </p>
           </div>
 
-          {/* Confiance (2) : séquestre + révélation des coordonnées à la
-              confirmation — explique pourquoi aucun contact n'est partagé avant. */}
+          {/* Confiance (2) : révélation des coordonnées à la confirmation —
+              explique pourquoi aucun contact n'est partagé avant. */}
           <p className="mt-3 flex items-start gap-2 rounded-xl bg-sand-light/50 px-4 py-3 text-xs font-medium text-darna-dark">
             <ShieldIcon width={16} height={16} className="mt-0.5 shrink-0" />
-            {fr.booking.acompteSequestreInfo}
+            {fr.booking.contactRevelationInfo}
           </p>
 
           <Recap />
