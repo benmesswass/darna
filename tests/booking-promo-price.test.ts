@@ -3,6 +3,10 @@
  * prix normal au calcul du sous-total : au devis (quoteBookingAction) ET à la
  * création (createBookingAction) — même garde aux deux endroits (leçon D11 de
  * QA_ROADMAP.md : un des deux avait été oublié pour cancelBlockedUntil).
+ *
+ * D6 (QA_ROADMAP §3) est aussi couvert ici : un prix injecté dans le
+ * formulaire de création n'a aucun effet, le total vient toujours de
+ * `property.price` relu en base.
  */
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 
@@ -183,5 +187,36 @@ describe("createBookingAction — prix promo (§PM0)", () => {
     await createBookingAction(undefined, bookingForm());
 
     expect(create.mock.calls[0][0].data).toMatchObject({ nightlyPrice: 300 });
+  });
+});
+
+describe("createBookingAction — intégrité du prix (D6, QA_ROADMAP §3)", () => {
+  it("ignore un prix injecté dans le formulaire : totalPrice/nightlyPrice/serviceFee restent calculés depuis property.price côté serveur", async () => {
+    propertyFindUnique.mockResolvedValue(baseProperty()); // price: 300, pas de promo
+    const create = vi.fn().mockResolvedValue({ id: "clbooking0000000000000001", totalPrice: 660 });
+    txRun.mockImplementation(async (cb: (tx: unknown) => Promise<unknown>) =>
+      cb({
+        booking: { updateMany: vi.fn().mockResolvedValue({ count: 0 }), create, update: vi.fn() },
+        property: { findFirst: vi.fn().mockResolvedValue(null) },
+      })
+    );
+
+    // `createSchema` ne lit même pas ces champs — on prouve ici que les
+    // injecter dans le FormData n'a AUCUN effet sur le prix enregistré,
+    // pas seulement qu'ils sont absents du schéma (garde-fou contre une
+    // régression future qui lirait `formData.get("totalPrice")` par erreur).
+    const fd = bookingForm();
+    fd.set("totalPrice", "1");
+    fd.set("nightlyPrice", "1");
+    fd.set("price", "1");
+    fd.set("serviceFee", "0");
+
+    await createBookingAction(undefined, fd);
+
+    expect(create.mock.calls[0][0].data).toMatchObject({
+      nightlyPrice: 300, // property.price, jamais "1"
+      serviceFee: 60, // 300 * 2 nuits * 10 %
+      totalPrice: 660, // 300 * 2 + 60
+    });
   });
 });
