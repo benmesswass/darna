@@ -335,7 +335,7 @@ rejouer la checklist de release (§Annexe B).
 | P2.7 | Durcissement upload : strip EXIF + ré-encodage, tests polyglotte/magic bytes | P1 | ✅ PR #237 |
 | P2.8 | Turnstile sur les formulaires publics restants (contact, wakil) | P1 | ✅ PR #238 |
 | P2.9 | Fuzzing des entrées de server actions (payloads excessifs/imbriqués) | P2 | ✅ PR #239 |
-| P2.10 | Couverture ≥ 85 % sur les modules critiques | P1 | ❌ (storage/rate-limit/crypto/actions-auth/actions-profile faits, PR #240+#241+#242 — reste lib/auth.ts) |
+| P2.10 | Couverture ≥ 85 % sur les modules critiques | P1 | ✅ PR #240+#241+#242 (périmètre nommé — global 80 % non atteint, voir note) |
 
 ### P2.1 — Secret scanning
 Job CI `gitleaks` (action officielle) sur push + PR, et hook local optionnel.
@@ -610,9 +610,21 @@ déjà à 100 % (`tests/delete-account-action.test.ts`/
 numéro change, rate limit avatar, échec de validation upload,
 remplacement avatar + suppression best-effort de l'ancien fichier,
 no-op silencieux si pas de photo). Gate cliquet remonté à 67/65/60/58
-(mesure réelle 67,48/65,64/60,67/58,78 % moins ~1 pt). **Reste** :
-`src/lib/auth.ts`/`google-auth.ts` (0 %, raison architecturale
-inchangée) ; global encore loin de 80 % (65,64 % stmt).
+(mesure réelle 67,48/65,64/60,67/58,78 % moins ~1 pt).
+
+**Clos (arbitrage Wassim, 2026-07-29)** : à ce stade, les 8 modules
+nommés + les 5 jobs + le flux RGPD sont tous ≥ 85 % (la plupart à
+100 %) — seul `src/lib/auth.ts`/`google-auth.ts` reste à 0 %, exclu
+pour la raison architecturale documentée plus haut (config NextAuth,
+exercée uniquement par les e2e Playwright, invisible du coverage
+Vitest). Le « global visé 80 % » du ticket n'est PAS atteint
+(65,64 % stmt) — combler cet écart demanderait de tester des fichiers
+hors du périmètre « modules critiques » nommé (composants UI, etc.),
+un chantier à portée ouverte distinct. Wassim a tranché : clore P2.10
+sur le périmètre nommé plutôt que d'élargir indéfiniment. Un futur
+chantier de couverture globale, s'il est repris, devrait être une
+tâche roadmap séparée avec son propre périmètre explicite plutôt qu'un
+prolongement de P2.10.
 
 ---
 
