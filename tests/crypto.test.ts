@@ -1,6 +1,14 @@
 import { afterEach, describe, expect, it } from "vitest";
 
-import { decryptSensitive, encryptSensitive, hashOtp, hashCin } from "@/lib/crypto";
+import {
+  decryptSensitive,
+  encryptSensitive,
+  ensureEncrypted,
+  hashCin,
+  hashOtp,
+  hashResetToken,
+  isEncryptionEnabled,
+} from "@/lib/crypto";
 
 describe("crypto — CIN au repos + hash OTP", () => {
   afterEach(() => {
@@ -40,5 +48,40 @@ describe("crypto — CIN au repos + hash OTP", () => {
     // CIN différentes ⇒ hash différents ; le numéro n'apparaît jamais en clair.
     expect(hashCin("08123456")).not.toBe(hashCin("00112233"));
     expect(hashCin("08123456")).not.toContain("08123456");
+  });
+
+  it("hashResetToken est déterministe et ne révèle pas le jeton (P2.10)", () => {
+    expect(hashResetToken("tok-abc")).toBe(hashResetToken("tok-abc"));
+    expect(hashResetToken("tok-abc")).not.toContain("tok-abc");
+    expect(hashResetToken("tok-abc")).not.toBe(hashResetToken("tok-def"));
+    // Poivré différemment de hashOtp (préfixe "reset:") : jamais la même sortie.
+    expect(hashResetToken("tok-abc")).not.toBe(hashOtp("tok-abc"));
+  });
+
+  it("isEncryptionEnabled reflète la présence de KYC_ENC_KEY (P2.10)", () => {
+    delete process.env.KYC_ENC_KEY;
+    expect(isEncryptionEnabled()).toBe(false);
+
+    process.env.KYC_ENC_KEY = "0123456789abcdef0123456789abcdef";
+    expect(isEncryptionEnabled()).toBe(true);
+  });
+
+  it("ensureEncrypted chiffre une valeur en clair et est idempotente (P2.10)", () => {
+    process.env.KYC_ENC_KEY = "0123456789abcdef0123456789abcdef";
+
+    const enc = ensureEncrypted("12345678");
+    expect(enc.startsWith("enc:v1:")).toBe(true);
+    expect(decryptSensitive(enc)).toBe("12345678");
+
+    // Déjà chiffrée : renvoyée telle quelle (pas de double chiffrement).
+    expect(ensureEncrypted(enc)).toBe(enc);
+  });
+
+  it("decryptSensitive lève sans KYC_ENC_KEY sur une valeur chiffrée (P2.10)", () => {
+    process.env.KYC_ENC_KEY = "0123456789abcdef0123456789abcdef";
+    const enc = encryptSensitive("12345678");
+    delete process.env.KYC_ENC_KEY;
+
+    expect(() => decryptSensitive(enc)).toThrow();
   });
 });
