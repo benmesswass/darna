@@ -143,32 +143,203 @@ Backup/Restore au moment de l'exécuter). Procédure :
    d'après la documentation Neon mais n'a pas encore été exécutée sur ce
    projet ; la valider une fois avant d'en dépendre en cas d'incident réel.
 
-## 7. Checklist W1/W2 (🧑 WASSIM — actions humaines, pas-à-pas)
+## 7. Guide pas-à-pas W1 → P1.3 (🧑 WASSIM — actions humaines)
 
-Rien ici n'est codable par Claude — comptes, paiement, choix de domaine.
-Cocher au fur et à mesure ; chaque étape est indépendante sauf dépendance
-explicite notée.
+> **C'est LE document à ouvrir quand on attaque `ROADMAP.md` §P1.3.** Rien
+> ici n'est codable par Claude (création de comptes, cartes, choix de
+> domaine). Écrit pour être suivi en cliquant, dans l'ordre, sans rien
+> improviser. Les intitulés exacts des écrans peuvent varier légèrement avec
+> le temps chez ces fournisseurs — la logique reste la même.
+>
+> **Découpage en deux paliers** : le palier 1 met Darna en ligne en 30-45 min
+> avec seulement 2 comptes ; le palier 2 rend le staging fidèle. Ne pas
+> attendre d'avoir tout pour faire le palier 1 — tous les autres services ont
+> un défaut démo sûr et l'app démarre sans eux.
 
-**Comptes & domaine (W1)** :
-- [ ] Compte Vercel (peut se créer avec le compte GitHub `benmesswass`)
-- [ ] Compte Neon (PostgreSQL) — créer DEUX projets : `darna-staging` et `darna-production` (isolation totale, jamais un seul projet avec deux branches partageant les mêmes credentials root)
-- [ ] Compte Upstash (Redis) — un projet par environnement, même logique d'isolation
-- [ ] Compte Cloudflare (R2 pour le stockage images + Turnstile pour le CAPTCHA, les deux gratuits) — un bucket R2 par environnement
-- [ ] Compte Resend (e-mail transactionnel)
-- [ ] Domaine `darna.tn` (registrar au choix) — pointer les DNS vers Vercel une fois le projet Vercel créé (Vercel fournit les enregistrements exacts à l'écran Domains)
+### PALIER 1 — Darna en ligne (30-45 min, 2 comptes)
 
-**Déploiement (W2, dépend de W1)** :
-- [ ] Suivre §4 ci-dessus pour staging d'abord (valider que tout fonctionne avant de toucher à la prod)
-- [ ] Poser toutes les variables d'environnement staging (§3) dans Vercel → Preview
-- [ ] `npx prisma migrate deploy` + `npx prisma db seed` contre Neon staging
-- [ ] Vérifier `/api/health` sur le domaine staging
-- [ ] Répéter pour production (§4), **sans le seed** — jamais de données de démo en prod
-- [ ] Poser les clés Turnstile RÉELLES en production (⛔ W5 déjà noté dans `ROADMAP.md` §3)
-- [ ] Poser les clés Konnect RÉELLES en production (sandbox reste sur staging)
-- [ ] Une fois staging en ligne : exécuter §6 (test de restauration Neon) au moins une fois
+**Étape 1 — Compte Vercel (3 min).** https://vercel.com/signup → « Continue
+with GitHub » (compte `benmesswass`). Ne pas encore créer le projet.
 
-Une fois W1/W2 cochés : passer à **P1.4** (`ROADMAP.md`) — smoke
-tests Playwright contre staging.
+**Étape 2 — Base Neon (5 min).** https://console.neon.tech/signup → GitHub →
+*Create project* : nom `darna-staging`, Postgres 16, région **AWS
+eu-central-1 (Frankfurt)** (la plus proche de la Tunisie et de la France).
+L'écran *Connection Details* propose deux chaînes via un sélecteur — il faut
+**les deux** :
+- **Pooled** (l'hôte contient `-pooler`) → deviendra `DATABASE_URL`
+- **Direct** (même hôte **sans** `-pooler`) → deviendra `DIRECT_URL`
+
+Prisma a besoin des deux : le pooler pour l'app, la connexion directe pour
+les migrations (le pooler en mode transaction ne sait pas les exécuter).
+Ajouter à la fin de la chaîne **pooled uniquement** :
+`&pgbouncer=true&connection_limit=10&pool_timeout=20`
+
+**Étape 3 — Générer `AUTH_SECRET` (30 s).** `openssl rand -base64 32` sur
+le poste local. Valeur **jamais réutilisée** ailleurs (ni prod, ni local).
+
+**Étape 4 — Créer le projet Vercel (5 min).** https://vercel.com/new →
+*Import Git Repository* → `benmesswass/darna`. Vercel détecte Next.js seul
+(ne rien changer aux commandes). **Avant de cliquer Deploy**, déplier
+*Environment Variables* et poser ces 5 lignes :
+
+| Nom | Valeur |
+|---|---|
+| `DATABASE_URL` | chaîne **pooled** (étape 2, paramètres inclus) |
+| `DIRECT_URL` | chaîne **direct** (étape 2) |
+| `AUTH_SECRET` | résultat de l'étape 3 |
+| `SITE_URL` | `https://darna-staging.vercel.app` (ajuster au nom réel donné par Vercel) |
+| `TRUSTED_PROXY` | `true` |
+
+⚠️ `SITE_URL` doit être **différent** de `https://darna.tn` : c'est ce qui
+déclenche le `noindex` automatique du staging (`src/app/robots.ts`). Ne
+jamais mettre le domaine de production ici.
+
+**Étape 5 — Créer les tables et les données de démo (5 min).** Depuis le
+poste local : pointer temporairement `DATABASE_URL`/`DIRECT_URL` du `.env`
+sur Neon, puis :
+
+```
+npx prisma migrate deploy
+npx prisma db seed
+```
+
+**Toujours `migrate deploy`, jamais `migrate dev`** sur une base distante
+(`migrate dev` peut générer une migration interactive et réécrire
+l'historique). Remettre ensuite les valeurs locales dans `.env` pour ne pas
+travailler par erreur sur Neon depuis le poste.
+
+**Étape 6 — Vérifier (2 min).**
+
+```
+curl https://darna-staging.vercel.app/api/health
+```
+
+Attendu : JSON avec `ok: true` et `db` OK. Puis ouvrir l'URL au navigateur :
+page d'accueil avec les annonces seedées, connexion possible avec
+`voyageur@darna.tn` / `darna2026`. **À ce stade Darna existe en ligne et le
+lien est partageable.**
+
+### PALIER 2 — Staging fidèle (1-2 h, 3 comptes de plus)
+
+Sans ce palier, trois choses ne marchent pas : les **uploads de photos** (le
+disque serverless est éphémère, chaque invocation peut tourner ailleurs), le
+**rate limiting** multi-instance (le repli mémoire est par instance), et les
+**e-mails**.
+
+**Étape 7 — Upstash Redis (10 min).** https://console.upstash.com → GitHub →
+*Create Database* : nom `darna-staging`, type **Regional**, région
+`eu-central-1`. Copier l'URL au format `rediss://…` (section *Connect* →
+Redis/ioredis) — **surtout pas** l'URL REST. → `REDIS_URL`.
+
+**Étape 8 — Cloudflare R2 (20 min).** https://dash.cloudflare.com → menu
+**R2** (une carte bancaire est demandée pour activer R2, **rien n'est
+facturé** sous 10 Go).
+1. *Create bucket* → `darna-staging-uploads`.
+2. *Manage R2 API Tokens* → *Create API token*, permission **Object Read &
+   Write**, limité à ce bucket. Copier l'Access Key ID et la Secret Access
+   Key (affichée **une seule fois**).
+3. L'endpoint figure sur la page du bucket :
+   `https://<account_id>.r2.cloudflarestorage.com`.
+4. Bucket → *Settings* → *Public access* → activer le domaine `r2.dev` et
+   copier l'URL publique (sinon les photos ne s'afficheront pas).
+
+| Nom | Valeur |
+|---|---|
+| `STORAGE_MODE` | `s3` |
+| `S3_ENDPOINT` | `https://<account_id>.r2.cloudflarestorage.com` |
+| `S3_BUCKET` | `darna-staging-uploads` |
+| `S3_ACCESS_KEY_ID` | Access Key ID |
+| `S3_SECRET_ACCESS_KEY` | Secret Access Key |
+| `S3_REGION` | `auto` |
+| `S3_PUBLIC_URL` | URL publique `r2.dev` |
+
+**Étape 9 — Resend (10 min).** https://resend.com/signup → *API Keys* →
+*Create API Key*. Sans domaine vérifié, Resend n'envoie **que vers l'adresse
+du compte** — suffisant et sans risque pour du staging.
+
+| Nom | Valeur |
+|---|---|
+| `EMAIL_PROVIDER` | `resend` |
+| `RESEND_API_KEY` | `re_…` |
+| `EMAIL_FROM` | `Darna <onboarding@resend.dev>` |
+
+**Étape 10 — Activer les 5 jobs planifiés (5 min).** `openssl rand -base64
+32` → `CRON_SECRET`. **Sans cette variable, les 5 jobs ne tournent jamais**,
+et en silence : pas de réconciliation Konnect, pas de relance d'abandon, pas
+de rappel de facture hôte, pas de purge RGPD. Voir aussi le piège n°1
+ci-dessous : sur le plan gratuit, poser la variable ne suffit pas.
+
+**Étape 11 — Konnect sandbox (15 min, recommandé).**
+https://sandbox.konnect.network → compte marchand sandbox → clé API +
+`receiverWalletId`.
+
+| Nom | Valeur |
+|---|---|
+| `PAYMENT_MODE` | `konnect` |
+| `KONNECT_API_KEY` | clé sandbox |
+| `KONNECT_RECEIVER_WALLET_ID` | wallet id |
+| `KONNECT_API_URL` | `https://api.sandbox.konnect.network/api/v2` |
+| `KONNECT_WEBHOOK_SECRET` | nouveau `openssl rand -base64 32` |
+
+C'est **la première occasion de valider le webhook Konnect en chemin
+nominal** : impossible en local, Konnect ne peut pas joindre `localhost`
+(seul le filet `?konnect=success` y est exercé).
+
+> Après tout ajout de variables : Vercel → *Deployments* → menu `⋯` du
+> dernier déploiement → **Redeploy**. Les variables ne s'appliquent qu'au
+> build suivant.
+
+### Les 3 pièges qui coûtent des heures
+
+1. **Le cron Vercel Hobby ne s'exécute qu'une fois par jour.**
+   `vercel.json` demande `*/15 * * * *`, mais le plan gratuit plafonne à une
+   exécution quotidienne. Les jobs tourneraient avec jusqu'à 24 h de retard —
+   inacceptable pour la relance d'abandon (qui doit partir dans l'heure).
+   Solution retenue pour le staging : un cron externe gratuit
+   (https://cron-job.org) appelant toutes les 15 min
+   `https://<domaine>/api/jobs/tick` avec l'en-tête
+   `Authorization: Bearer <CRON_SECRET>`. En production : plan Vercel Pro ou
+   le même cron externe.
+2. **Le plan Hobby de Vercel interdit l'usage commercial.** Sans risque pour
+   du staging, mais la production de Darna est commerciale : prévoir **Vercel
+   Pro (~20 $/mois)** au moment de `ROADMAP.md` §P1.8. C'est le **premier
+   coût fixe réel du projet** — la contrainte « zéro service payant » du
+   projet visait le développement, pas l'exploitation.
+3. **Ne jamais `prisma migrate dev` sur une base distante**, et **jamais de
+   seed en production** (uniquement staging). Voir étape 5.
+
+### Checklist de suivi
+
+**Palier 1 (W1 — met le site en ligne)**
+- [ ] Compte Vercel
+- [ ] Projet Neon `darna-staging` + les deux chaînes de connexion
+- [ ] `AUTH_SECRET` généré
+- [ ] Projet Vercel créé avec les 5 variables
+- [ ] `migrate deploy` + `db seed` exécutés contre Neon
+- [ ] `/api/health` répond 200 et la page d'accueil s'affiche
+
+**Palier 2 (staging fidèle)**
+- [ ] Upstash Redis → `REDIS_URL`
+- [ ] Cloudflare R2 → 7 variables `S3_*` + `STORAGE_MODE=s3`
+- [ ] Resend → `EMAIL_PROVIDER`/`RESEND_API_KEY`/`EMAIL_FROM`
+- [ ] `CRON_SECRET` posé **et** cron externe branché (piège n°1)
+- [ ] Konnect sandbox → 5 variables
+- [ ] Redeploy effectué après le dernier ajout de variables
+
+**Production (P1.8, plus tard — ⛔ W2/W5/W6)**
+- [ ] Projet Neon `darna-production` séparé (jamais une branche du staging)
+- [ ] Tous les secrets **régénérés** (jamais la valeur du staging)
+- [ ] **Aucun seed** — données réelles uniquement
+- [ ] Domaine `darna.tn` attaché + `SITE_URL` mis à jour (⛔ W2)
+- [ ] Clés Turnstile RÉELLES (⛔ W5) — les clés de test valident tout
+- [ ] Clés Konnect RÉELLES (le sandbox reste sur staging)
+- [ ] Google OAuth réel (⛔ W6)
+- [ ] `KYC_ENC_KEY` posé, jamais partagé avec staging
+- [ ] Plan Vercel Pro (piège n°2)
+- [ ] Test de restauration Neon exécuté au moins une fois (§6, `ROADMAP.md` §P1.6)
+
+Une fois le palier 1 terminé : passer à **P1.4** (`ROADMAP.md`) — smoke tests
+Playwright contre staging.
 
 ## 8. Notes techniques (découvertes en écrivant cette roadmap)
 

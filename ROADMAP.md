@@ -211,16 +211,43 @@ nightly lu et ses éventuels findings ouverts en tâches ici (phase 2).
 
 ### P1.3 — Déploiement staging 🧑
 
-**Bloqué sur W1.** Claude prépare tout ce qui est préparable et rappelle la
-checklist ; l'exécution (création de comptes, collage des secrets) est
-humaine. Procédure complète : `docs/INFRASTRUCTURE.md` §4.
+**Bloqué sur W1** (création de comptes et collage de secrets — non codable).
+
+> 📖 **GUIDE PAS-À-PAS COMPLET : `docs/INFRASTRUCTURE.md` §7.** Ouvrir ce
+> document dès qu'on attaque cette tâche et le suivre **dans l'ordre, sans
+> improviser** : liens d'inscription, réglages exacts de chaque service,
+> tableaux des variables à poser, checklists à cocher, et les 3 pièges
+> connus. Rôle de Claude sur cette tâche : dérouler ce guide avec Wassim,
+> répondre à ses blocages, vérifier `/api/health` à la fin — puis enchaîner
+> sur P1.4. Ne pas réécrire le guide dans la conversation : y renvoyer.
+
+**Découpage en 2 paliers** (détaillé dans le guide) — ne pas attendre d'avoir
+tout pour faire le palier 1 :
+- **Palier 1 — 30-45 min, 2 comptes** (Vercel + Neon) : le site est **en
+  ligne, seedé et partageable**. Tous les autres services ont un défaut démo
+  sûr, l'app démarre sans eux.
+- **Palier 2 — 1-2 h, 3 comptes de plus** (Upstash, R2, Resend, + Konnect
+  sandbox) : uploads de photos, rate limiting multi-instance, e-mails,
+  paiement, jobs. Sans lui le staging n'est pas fidèle.
+
+**Deux arbitrages de coût que cette tâche fait remonter** (à valider par
+Wassim, ils sortent de la contrainte « zéro service payant » qui visait le
+développement, pas l'exploitation) :
+1. **Le cron Vercel Hobby ne s'exécute qu'une fois par jour** alors que
+   `vercel.json` demande `*/15 * * * *` → la relance d'abandon (P7/G6)
+   arriverait jusqu'à 24 h trop tard. Solution retenue : cron externe gratuit
+   (cron-job.org) appelant `/api/jobs/tick` avec `Authorization: Bearer
+   <CRON_SECRET>`. Alternative : Vercel Pro.
+2. **Le plan Hobby interdit l'usage commercial** → **Vercel Pro (~20 $/mois)
+   sera nécessaire en P1.8**. Premier coût fixe réel du projet.
 
 **Rappel des points qui se ratent** : `DIRECT_URL` distinct du pooler pour
 les migrations · `TRUSTED_PROXY=true` · `CRON_SECRET` posé (sinon les 5 jobs
-ne tournent jamais) · `STORAGE_MODE=s3` (le disque local ne survit pas au
-serverless) · staging jamais indexé (`robots.ts` bascule sur `SITE_URL`) ·
-`prisma migrate deploy` (jamais `migrate dev`) puis `db seed` en staging
-uniquement.
+ne tournent jamais, en silence) · `STORAGE_MODE=s3` (le disque local ne
+survit pas au serverless) · staging jamais indexé (`robots.ts` bascule sur
+`SITE_URL`, qui doit donc différer de `https://darna.tn`) · `prisma migrate
+deploy` (jamais `migrate dev`) puis `db seed` en staging **uniquement** ·
+redeploy Vercel après tout ajout de variables.
 
 **Acceptation** : `curl https://<staging>/api/health` → 200 avec `db` et
 `redis` OK ; page d'accueil qui charge ; aucun avertissement `[env]` au boot.
@@ -629,6 +656,7 @@ dette signalée par une entrée dans ce fichier (phase 8), jamais un TODO muet.
 |---|---|
 | Quoi faire ensuite | **ce fichier** |
 | Conventions de code, workflow PR, identité git | `CLAUDE.md` |
+| **Créer les comptes et déployer, pas à pas (P1.3)** | **`docs/INFRASTRUCTURE.md` §7** |
 | Déployer, faire un rollback, restaurer un backup, matrice d'env | `docs/INFRASTRUCTURE.md` |
 | Argumentaire de recrutement d'hôtes | `docs/ARGUMENTAIRE_HOTE.md` |
 | Parcours de démonstration | `docs/DEMO_SCRIPT.md` (créé en P1.7) |
