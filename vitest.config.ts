@@ -3,12 +3,20 @@ import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 
 /**
- * Deux projets de test (Vitest « projects ») :
- *   - `node`   : tests unitaires + intégration serveur (fichiers `.test.ts`
- *                sous `tests/`), environnement Node (modules serveur, Prisma).
- *   - `jsdom`  : tests de COMPOSANTS React (fichiers `.test.tsx` sous
- *                `tests/components/`), environnement jsdom + @testing-library.
- * On réutilise l'alias `@/` du tsconfig dans les deux. Les tests vivent dans
+ * Trois projets de test (Vitest « projects ») :
+ *   - `node`        : tests unitaires (fichiers `.test.ts` sous `tests/`,
+ *                     Prisma mocké), environnement Node.
+ *   - `jsdom`        : tests de COMPOSANTS React (fichiers `.test.tsx` sous
+ *                     `tests/components/`), environnement jsdom + @testing-library.
+ *   - `integration`  : tests contre un VRAI Postgres (fichiers
+ *                     `*.integration.test.ts` sous `tests/integration/`,
+ *                     ROADMAP.md §P2.5) — concurrence réelle, jamais Prisma
+ *                     mocké. Projet SÉPARÉ (pas juste un `runIf(DB_ENABLED)`
+ *                     dans `node`) : invocable seul (`npm run test:integration`),
+ *                     exclu explicitement de `node` pour ne jamais tourner deux
+ *                     fois. Chaque fichier garde son propre `runIf(DB_ENABLED)`
+ *                     en filet (erreur claire si invoqué sans DATABASE_URL).
+ * On réutilise l'alias `@/` du tsconfig dans les trois. Les tests vivent dans
  * `tests/` (hors `src/`) pour ne jamais être pris pour des routes par Next.
  *
  * Couverture (Phase 1) : provider v8, scope cœur backend (`src/lib`+`src/actions`),
@@ -72,6 +80,7 @@ export default defineConfig({
           name: "node",
           environment: "node",
           include: ["tests/**/*.test.ts"],
+          exclude: ["tests/integration/**"],
         },
       },
       {
@@ -82,6 +91,22 @@ export default defineConfig({
           environment: "jsdom",
           include: ["tests/components/**/*.test.tsx"],
           setupFiles: ["tests/components/setup.ts"],
+        },
+      },
+      {
+        resolve: { alias },
+        test: {
+          name: "integration",
+          environment: "node",
+          include: ["tests/integration/**/*.integration.test.ts"],
+          // Fichiers exécutés en SÉRIE (jamais en parallèle entre eux) : ce
+          // sont de VRAIES transactions Postgres, contrairement à `node`/
+          // `jsdom` (Prisma mocké). Deux fichiers d'intégration lancés en
+          // parallèle peuvent se contentionner l'un l'autre au niveau moteur
+          // (abandon de sérialisation P2034 sur une transaction sans rapport
+          // avec l'autre fichier) — observé empiriquement en CI complète.
+          // Coût négligeable : quelques fichiers, quelques secondes au total.
+          fileParallelism: false,
         },
       },
     ],

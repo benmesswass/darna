@@ -329,8 +329,8 @@ rejouer la checklist de release (§Annexe B).
 | P2.1 | Secret scanning (`gitleaks`) en CI + hook pre-commit | P0 | ✅ PR #232 |
 | P2.2 | Protection de branche sur `main` | P0 | ❌ 🧑 (réglage GitHub) |
 | P2.3 | Batch tests sécurité web : CSRF/SameSite, open redirect, SSRF, XSS stocké, headers, bypass de rate limit | P0 | ✅ PR #233 |
-| P2.4 | Batch tests auth/session : flags de cookie, expiration, JWT altéré/`alg:none`/expiré, backoff progressif | P0 | ❌ (backoff progressif seul, ⛔ arbitrage Wassim — reste fait dans PR #234) |
-| P2.5 | Projet de tests **d'intégration** sur Postgres éphémère (concurrence réelle) | P1 | ❌ |
+| P2.4 | Batch tests auth/session : flags de cookie, expiration, JWT altéré/`alg:none`/expiré, backoff progressif | P0 | ❌ 🧑 (backoff progressif seul — reste fait dans PR #234) |
+| P2.5 | Projet de tests **d'intégration** sur Postgres éphémère (concurrence réelle) | P1 | ✅ PR #235 |
 | P2.6 | Batch tests base : contraintes uniques, cascades FK, atomicité transactionnelle | P1 | ❌ |
 | P2.7 | Durcissement upload : strip EXIF + ré-encodage, tests polyglotte/magic bytes | P1 | ❌ |
 | P2.8 | Turnstile sur les formulaires publics restants (contact, wakil) | P1 | ❌ |
@@ -441,6 +441,33 @@ concurrence de double-réservation (vraies transactions parallèles), la
 course paiement + réservation simultanée, l'expiration du hold de 15 min qui
 libère le créneau, l'intégrité du prix (le serveur ignore le total client).
 **Acceptation** : le skip disparaît, le job tourne dans le niveau 2 de la CI.
+
+**Fait (PR #235)** : correction du diagnostic d'abord — le fichier
+existant n'était pas réellement « skippé » (`describe.runIf(DB_ENABLED)`
+le faisait déjà tourner dès que `DATABASE_URL` est défini, y compris dans
+le job `full` qui a toujours eu un service Postgres). Le vrai manque était
+l'ABSENCE d'un projet Vitest dédié (les 3 nouveaux scénarios demandés) et
+l'ambiguïté du mécanisme `runIf`. Troisième projet `integration` ajouté à
+`vitest.config.ts` (`tests/integration/**/*.integration.test.ts`, exclu du
+projet `node` pour ne jamais tourner deux fois), `npm run test:integration`
+pour l'invoquer seul. Aucun changement CI nécessaire : `npm run
+test:coverage` (déjà dans le job `full`, déjà avec un service Postgres)
+inclut désormais ce projet automatiquement — confirmé en local (coverage
+inchangée, légèrement remontée : 61,33/54,69/57,67/63,10 %).
+Les 3 scénarios promus : course paiement (webhook vs retour user —
+`settleKonnectBooking` appelé 2× en parallèle, une seule confirmation, un
+seul jeu de notifications) ; expiration paresseuse du hold (un hold
+`EN_ATTENTE` expiré n'empêche pas une nouvelle réservation sur les mêmes
+dates, prouve l'invariant « zéro cron pour l'état ») ; intégrité du prix
+(prix/total injectés dans le `FormData` sans aucun effet sur le montant
+persisté). **Flakiness trouvée et corrigée en cours de route** : les 2
+fichiers d'intégration exécutés en parallèle (comportement par défaut
+Vitest) pouvaient se contentionner mutuellement au niveau moteur (abandon
+de sérialisation P2034 sur une transaction sans rapport avec l'autre
+fichier) — confirmé non reproductible en isolation, uniquement dans la
+suite complète. `fileParallelism: false` sur le seul projet `integration`
+(vraies transactions Postgres, contrairement à `node`/`jsdom` où Prisma
+est mocké) : 3 runs complets consécutifs stables après le fix.
 
 ### P2.6 — Batch tests base
 Contraintes uniques (`email`, `cinHash`, `slug`, `paymentRef`,
