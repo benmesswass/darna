@@ -69,7 +69,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # Niveau 2 : coverage + build + audit. Ne relance PAS lint/typecheck
-  # (déjà couverts par `fast` sur ce même commit de tête).
+  # (déjà couverts par `fast` sur ce même commit de tête). `test:coverage`
+  # inclut le projet Vitest `integration` (ROADMAP.md §P2.5, tests contre le
+  # Postgres jetable ci-dessous) — même service, aucun job dédié nécessaire.
   full:
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'ready-to-merge')
     runs-on: ubuntu-latest
