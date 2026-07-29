@@ -328,7 +328,7 @@ rejouer la checklist de release (§Annexe B).
 |---|---|---|---|
 | P2.1 | Secret scanning (`gitleaks`) en CI + hook pre-commit | P0 | ✅ PR #232 |
 | P2.2 | Protection de branche sur `main` | P0 | ❌ 🧑 (réglage GitHub) |
-| P2.3 | Batch tests sécurité web : CSRF/SameSite, open redirect, SSRF, XSS stocké, headers, bypass de rate limit | P0 | ❌ |
+| P2.3 | Batch tests sécurité web : CSRF/SameSite, open redirect, SSRF, XSS stocké, headers, bypass de rate limit | P0 | ✅ PR #233 |
 | P2.4 | Batch tests auth/session : flags de cookie, expiration, JWT altéré/`alg:none`/expiré, backoff progressif | P0 | ❌ |
 | P2.5 | Projet de tests **d'intégration** sur Postgres éphémère (concurrence réelle) | P1 | ❌ |
 | P2.6 | Batch tests base : contraintes uniques, cascades FK, atomicité transactionnelle | P1 | ❌ |
@@ -360,6 +360,25 @@ Un fichier de tests par thème, tous listés dans l'ancien `TODO-BETA` :
 - **Headers** : HSTS, `X-Frame-Options: DENY`, `nosniff`, nonce CSP présents.
 - **Bypass de rate limit** : `x-forwarded-for` forgé est ignoré quand
   `TRUSTED_PROXY` est absent.
+
+**Fait (PR #233)** : `safeCallbackUrl` vit en réalité dans `src/lib/redirect.ts`
+(texte ci-dessus imprécis — `src/actions/auth.ts` ne fait que l'importer).
+CSRF et Open redirect étaient déjà entièrement couverts par
+`tests/api/security-regressions.spec.ts` (aucun doublon ajouté). SSRF
+complété pour Konnect/Resend/Meta WhatsApp (même fichier, même patron de
+capture `global.fetch` que le test géocodage déjà là) — les 4 intégrations
+épinglent leur hôte en dur ou via variable d'env serveur, jamais depuis une
+entrée utilisateur. Headers : nouveau `tests/api/security-headers.spec.ts`
+(HSTS/XFO/nosniff/Referrer-Policy/Permissions-Policy de `next.config.ts`, via
+une vraie requête HTTP) + `tests/middleware-csp.test.ts` (directives CSP et
+fraîcheur du nonce — sert aussi de régression CSP pour le thème XSS). XSS
+stocké : `tests/no-dangerous-html.test.ts` (garde-fou statique — aucun
+`dangerouslySetInnerHTML` hors l'exception `JsonLd.tsx`) +
+`tests/components/reviews-list.test.tsx` (preuve DOM qu'un commentaire/nom
+contenant `<script>`/`<img onerror>` reste du texte inerte). Bypass de rate
+limit : nouveau `tests/rate-limit-clientip.test.ts` (`clientIp()` — aucun test
+existant n'exerçait un vrai en-tête forgé, tous mockaient `next/headers` à
+vide ou remplaçaient `clientIp` elle-même).
 
 ### P2.4 — Batch tests auth/session
 Flags de cookie (HttpOnly/Secure/SameSite) · expiration de session

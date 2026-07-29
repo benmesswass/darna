@@ -108,3 +108,31 @@ describe("ReviewsList — entrée système « annulé par l'hôte » (§AHC7)", 
     expect(screen.getByText(/soyez le premier/i)).toBeInTheDocument();
   });
 });
+
+// P2.3 (ROADMAP.md, XSS stocké) — un commentaire d'avis stocké tel quel en
+// base (aucun sanitize-html côté écriture, cf. src/actions/bookings.ts) ne
+// doit jamais s'exécuter à l'affichage : React échappe {item.review.comment}
+// par défaut (interpolation texte, jamais dangerouslySetInnerHTML).
+describe("ReviewsList — contenu utilisateur toujours affiché en texte inerte (P2.3)", () => {
+  it("un commentaire contenant une balise <script> ne crée aucun élément <script>", () => {
+    const payload = '<script>window.__xss__="pwned"</script>';
+    renderWithProviders(
+      <ReviewsList reviews={[review({ comment: payload })]} cancellations={[]} />
+    );
+
+    expect(document.querySelector("script[src], script:not([type])")).toBeNull();
+    // Le payload apparaît tel quel, comme TEXTE — preuve que React l'a échappé
+    // plutôt que de l'interpréter comme du balisage.
+    expect(screen.getByText(payload)).toBeInTheDocument();
+  });
+
+  it("un nom d'auteur contenant du balisage reste du texte inerte", () => {
+    const payload = '<img src=x onerror=alert(1)>';
+    renderWithProviders(
+      <ReviewsList reviews={[review({ authorName: payload })]} cancellations={[]} />
+    );
+
+    expect(document.querySelector("img[src='x']")).toBeNull();
+    expect(screen.getByText(payload)).toBeInTheDocument();
+  });
+});
