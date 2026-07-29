@@ -59,21 +59,20 @@ export default defineConfig({
       exclude: ["src/lib/i18n/**", "**/*.d.ts"],
       reporter: ["text-summary", "html", "lcov", "json-summary"],
       // Gate cliquet (ROADMAP.md §P1.2, remonté §P2.10) : plancher fixé juste
-      // sous la couverture RÉELLE mesurée le 2026-07-29 après P2.10 (2e
-      // tranche, src/actions/auth.ts) — 64,92 % stmt / 58,22 % branches /
-      // 60,48 % functions / 66,73 % lignes —, avec une petite marge de
-      // sécurité (~1 pt) contre le bruit de mesure — pas au-dessus, sinon ce
-      // commit lui-même échouerait le gate qu'il introduit. À remonter au
-      // fil des PR suivantes de P2.10 (reste : src/lib/auth.ts/
-      // google-auth.ts — fichiers de config NextAuth exercés uniquement par
-      // les e2e Playwright, invisibles du coverage Vitest par construction —
-      // et le reste des modules cités par P2.10 non encore mesurés
-      // individuellement), jamais à redescendre.
+      // sous la couverture RÉELLE mesurée le 2026-07-29 après P2.10 (3e
+      // tranche, src/actions/profile.ts — flux RGPD) — 65,64 % stmt /
+      // 58,78 % branches / 60,67 % functions / 67,48 % lignes —, avec une
+      // petite marge de sécurité (~1 pt) contre le bruit de mesure — pas
+      // au-dessus, sinon ce commit lui-même échouerait le gate qu'il
+      // introduit. À remonter au fil des PR suivantes de P2.10 (reste :
+      // src/lib/auth.ts/google-auth.ts — fichiers de config NextAuth
+      // exercés uniquement par les e2e Playwright, invisibles du coverage
+      // Vitest par construction), jamais à redescendre.
       thresholds: {
-        lines: 66,
-        statements: 64,
+        lines: 67,
+        statements: 65,
         functions: 60,
-        branches: 57,
+        branches: 58,
       },
     },
     projects: [
