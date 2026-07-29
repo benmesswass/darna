@@ -31,6 +31,7 @@ vi.mock("@/lib/i18n/server", () => ({
 import { addPhotosAction } from "@/actions/properties";
 import { prisma } from "@/lib/prisma";
 import { requireLister, requireUser } from "@/lib/session";
+import { MAX_PHOTOS_PER_PROPERTY } from "@/lib/constants";
 
 const propertyFindUnique = prisma.property.findUnique as unknown as Mock;
 const photoCount = prisma.photo.count as unknown as Mock;
@@ -77,6 +78,21 @@ describe("addPhotosAction — rejet d'un fichier malveillant (D7)", () => {
 
     // Filtré en amont (`f.size > 0`) : aucun fichier valide → même erreur.
     expect(result).toEqual({ error: "Fichier refusé." });
+    expect(photoCreateMany).not.toHaveBeenCalled();
+  });
+});
+
+describe("addPhotosAction — borne MAX_PHOTOS_PER_PROPERTY (P2.7)", () => {
+  it("refuse un ajout qui dépasserait la limite (existantes + nouvelles), sans jamais écrire de Photo", async () => {
+    photoCount.mockResolvedValue(MAX_PHOTOS_PER_PROPERTY);
+    // Le contrôle de borne précède la validation/le ré-encodage de l'image :
+    // même une signature falsifiée (fixture partagée) doit être bloquée ici,
+    // sans jamais atteindre readValidatedImage.
+    const file = new File([FAKE_JPEG_BYTES], "x.jpg", { type: "image/jpeg" });
+
+    const result = await addPhotosAction(undefined, formWith(file));
+
+    expect(result).toEqual({ error: `Maximum ${MAX_PHOTOS_PER_PROPERTY} photos.` });
     expect(photoCreateMany).not.toHaveBeenCalled();
   });
 });
