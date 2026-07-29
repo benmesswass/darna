@@ -332,7 +332,7 @@ rejouer la checklist de release (§Annexe B).
 | P2.4 | Batch tests auth/session : flags de cookie, expiration, JWT altéré/`alg:none`/expiré, backoff progressif | P0 | ❌ 🧑 (backoff progressif seul — reste fait dans PR #234) |
 | P2.5 | Projet de tests **d'intégration** sur Postgres éphémère (concurrence réelle) | P1 | ✅ PR #235 |
 | P2.6 | Batch tests base : contraintes uniques, cascades FK, atomicité transactionnelle | P1 | ✅ PR #236 |
-| P2.7 | Durcissement upload : strip EXIF + ré-encodage, tests polyglotte/magic bytes | P1 | ❌ |
+| P2.7 | Durcissement upload : strip EXIF + ré-encodage, tests polyglotte/magic bytes | P1 | ✅ PR #237 |
 | P2.8 | Turnstile sur les formulaires publics restants (contact, wakil) | P1 | ❌ |
 | P2.9 | Fuzzing des entrées de server actions (payloads excessifs/imbriqués) | P2 | ❌ |
 | P2.10 | Couverture ≥ 85 % sur les modules critiques | P1 | ❌ |
@@ -497,6 +497,21 @@ coordonnées GPS du domicile de l'hôte. Ré-encoder à l'upload (supprime EXIF
 et neutralise les polyglottes), et tester le rejet des fichiers à magic
 bytes incohérents / surdimensionnés. La limite de 8 photos existe déjà
 (`MAX_PHOTOS_PER_PROPERTY`) — juste la couvrir par un test.
+
+**Fait (PR #237)** : `readValidatedImage()` (`src/lib/storage.ts`) décode
+puis ré-encode chaque image via `sharp` après la vérif de magic bytes —
+supprime EXIF/GPS (jamais de `.withMetadata()`), neutralise tout octet
+superflu après les données image valides (polyglotte), et rejette en plus
+un buffer aux magic bytes valides mais non décodable. `sharp` était déjà
+une dépendance directe (ajoutée incidemment via PR #235) — première
+utilisation réelle ici, aucun changement `package.json`. Tests :
+EXIF/GPS prouvé supprimé après ré-encodage, payload polyglotte prouvé
+neutralisé, buffer non décodable rejeté, borne `MAX_PHOTOS_PER_PROPERTY`
+couverte dans `addPhotosAction`. Vérifié aussi en conditions réelles
+(serveur `next dev` + Playwright ad hoc) : upload d'une vraie photo à EXIF
+GPS embarqué via `/dashboard/annonces/[id]/modifier`, comparaison directe
+du fichier écrit sur disque par le serveur — EXIF bien absent du fichier
+stocké.
 
 ### P2.8 — Turnstile sur contact et wakil
 Le CAPTCHA n'est câblé que sur inscription/connexion
