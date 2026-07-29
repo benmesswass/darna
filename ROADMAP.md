@@ -159,7 +159,7 @@ SORTANTES »** (`/api/jobs/tick`).
 
 | # | Tâche | Prio | Statut |
 |---|---|---|---|
-| P1.1 | Rattrapage e2e/API en local (angle mort d'une semaine) | P0 | ❌ |
+| P1.1 | Rattrapage e2e/API en local (angle mort d'une semaine) | P0 | ✅ PR #230 |
 | P1.2 | CI verte de bout en bout (+ ⛔ W3) | P0 | ❌ |
 | P1.3 | Déploiement **staging** (⛔ W1) | P0 | ❌ 🧑 |
 | P1.4 | Smoke tests contre staging + correctifs prod-only | P0 | ❌ (après P1.3) |
