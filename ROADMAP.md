@@ -333,7 +333,7 @@ rejouer la checklist de release (§Annexe B).
 | P2.5 | Projet de tests **d'intégration** sur Postgres éphémère (concurrence réelle) | P1 | ✅ PR #235 |
 | P2.6 | Batch tests base : contraintes uniques, cascades FK, atomicité transactionnelle | P1 | ✅ PR #236 |
 | P2.7 | Durcissement upload : strip EXIF + ré-encodage, tests polyglotte/magic bytes | P1 | ✅ PR #237 |
-| P2.8 | Turnstile sur les formulaires publics restants (contact, wakil) | P1 | ❌ |
+| P2.8 | Turnstile sur les formulaires publics restants (contact, wakil) | P1 | ✅ PR #238 |
 | P2.9 | Fuzzing des entrées de server actions (payloads excessifs/imbriqués) | P2 | ❌ |
 | P2.10 | Couverture ≥ 85 % sur les modules critiques | P1 | ❌ |
 
@@ -518,6 +518,21 @@ Le CAPTCHA n'est câblé que sur inscription/connexion
 (`src/components/auth/`). Les formulaires publics de contact d'annonce et de
 candidature Wakil sont ouverts au spam — mêmes composants, même helper
 `verifyTurnstile()` fail-closed.
+
+**Fait (PR #238)** : `verifyTurnstile()` câblé dans `createContactRequestAction`
+(`src/actions/contact.ts`) et `applyWakilAction` (`src/actions/wakil.ts`),
+même ordre que l'auth (rate-limit → CAPTCHA → écriture). `TurnstileWidget`
+ajouté dans `ContactForm.tsx`/`WakilForm.tsx` via une prop `captchaSiteKey`
+calculée côté serveur (`ImmoContactSection.tsx`, `devenir-wakil/page.tsx`),
+même pattern que `connexion`/`inscription`. Dual-mode inchangé : rien de
+visible sans `CAPTCHA_MODE=turnstile`. CSP déjà conditionnée globalement
+dans `middleware.ts`, aucun changement requis. Tests : 4 nouveaux
+(succès/rejet avant écriture) dans `tests/contact-action.test.ts` et
+`tests/wakil-action.test.ts`. Vérifié aussi en conditions réelles
+(captures avant/après démo + mode actif) : CSP élargie et widget injecté
+au bon endroit du DOM confirmés ; rendu visuel final du challenge
+Cloudflare non capturable dans ce sandbox (`challenges.cloudflare.com`
+bloqué par le proxy sortant de l'environnement — hors code applicatif).
 
 ### P2.9 — Fuzzing des server actions
 Pour chaque action mutante : payload invalide, champs requis manquants,
