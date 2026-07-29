@@ -329,7 +329,7 @@ rejouer la checklist de release (§Annexe B).
 | P2.1 | Secret scanning (`gitleaks`) en CI + hook pre-commit | P0 | ✅ PR #232 |
 | P2.2 | Protection de branche sur `main` | P0 | ❌ 🧑 (réglage GitHub) |
 | P2.3 | Batch tests sécurité web : CSRF/SameSite, open redirect, SSRF, XSS stocké, headers, bypass de rate limit | P0 | ✅ PR #233 |
-| P2.4 | Batch tests auth/session : flags de cookie, expiration, JWT altéré/`alg:none`/expiré, backoff progressif | P0 | ❌ |
+| P2.4 | Batch tests auth/session : flags de cookie, expiration, JWT altéré/`alg:none`/expiré, backoff progressif | P0 | ❌ (backoff progressif seul, ⛔ arbitrage Wassim — reste fait dans PR #234) |
 | P2.5 | Projet de tests **d'intégration** sur Postgres éphémère (concurrence réelle) | P1 | ❌ |
 | P2.6 | Batch tests base : contraintes uniques, cascades FK, atomicité transactionnelle | P1 | ❌ |
 | P2.7 | Durcissement upload : strip EXIF + ré-encodage, tests polyglotte/magic bytes | P1 | ❌ |
@@ -388,6 +388,50 @@ déjà implémenté — le tester) · JWT altéré, `alg:none`, expiré → reje
 `src/lib/rate-limit.ts`. Ajouter aussi la **matrice de permissions**
 rôle × server action si `tests/permissions-gates.test.ts` ne la couvre pas
 intégralement (le vérifier avant d'écrire du doublon).
+
+**État au 2026-07-29 (PR #234)** :
+- **Cookie/JWT** : fait. `tests/e2e/01-auth.spec.ts` — cookie
+  `authjs.session-token` vérifié empiriquement (login réel via curl avant
+  d'écrire le test) : `HttpOnly`, `SameSite=Lax`, `Path=/`, expiration
+  ~30 j (défaut Auth.js v5, aucune config `cookies` personnalisée dans
+  `src/lib/auth.ts` — comportement du framework, figé ici comme
+  régression). Pas de `Secure` observé : normal en HTTP local, Auth.js
+  l'ajoute automatiquement (+ préfixe `__Secure-`) dès qu'il détecte
+  HTTPS, non testable dans ce sandbox. JWT altéré : Auth.js v5 chiffre
+  la session (JWE, pas juste signée) — pas d'équivalent direct à
+  l'attaque classique `alg:none` (rien à décoder sans la clé). Testé
+  l'équivalent réel : un cookie corrompu (octets finaux altérés) →
+  redirection propre vers `/connexion`, jamais une erreur serveur ou un
+  accès accordé (vérifié empiriquement en curl avant d'écrire le test
+  aussi). Expiration : couverte par la même assertion `maxAge`.
+- **tokenVersion** : déjà entièrement couvert par
+  `tests/session-token-version.test.ts` (6 cas) — rien ajouté, doublon
+  évité.
+- **Matrice de permissions** : investiguée en profondeur (agent dédié,
+  10 fichiers d'actions lus intégralement + 6 scannés). Verdict : **aucune
+  faille trouvée**. Les 6 fichiers sans gate nommé
+  (`auth.ts`, `destination.ts`, `geocode.ts`, `listing-activity.ts`,
+  `onboarding.ts`, `wakil.ts`) sont légitimement publics/pré-auth ; la
+  review Wakil (sensible) est bien gate-ée par `requireAdmin()` dans
+  `admin.ts`, pas dans `wakil.ts` (juste une question d'organisation de
+  fichiers). L'invariant CLAUDE.md « propriété vérifiée en base » tient
+  partout : `requireOwnProperty()` (`properties.ts`, déjà couvert par
+  `tests/property-idor.test.ts`) + contrôles inline `ownerId`/`guestId`/
+  `hostId === user.id` dans `bookings.ts` (déjà couvert par
+  `tests/booking-idor.test.ts`, 11 cas), `host-invoices.ts`,
+  `messages.ts`. Rien ajouté : la matrice existe déjà, fédérée entre
+  plusieurs fichiers `*-idor.test.ts` plutôt que centralisée dans
+  `permissions-gates.test.ts` (qui ne teste que les 4 fonctions de garde
+  elles-mêmes, pas leur usage par action — les deux niveaux sont
+  couverts, juste dans des fichiers séparés). Note hors-scope (pas un
+  trou d'autorisation) : `searchAddressAction` (`geocode.ts`) n'a aucun
+  rate limiting, contrairement à toutes les autres actions publiques —
+  item de durcissement coût/abus, à ouvrir séparément si besoin.
+- **Backoff progressif** : ⛔ **non fait, arbitrage produit nécessaire**.
+  Aucune implémentation existante (`grep backoff` ne trouve que cette
+  ligne de roadmap), aucun paramètre spécifié (courbe de montée, plafond,
+  condition de reset) — une implémentation nécessite un choix produit
+  que la roadmap ne tranche pas. Demandé à Wassim séparément.
 
 ### P2.5 — Tests d'intégration sur Postgres réel
 Aujourd'hui `tests/integration/booking-concurrency.integration.test.ts` est
