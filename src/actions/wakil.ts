@@ -3,7 +3,8 @@
 import { z } from "zod";
 import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
-import { assertRateLimit } from "@/lib/rate-limit";
+import { assertRateLimit, clientIp } from "@/lib/rate-limit";
+import { verifyTurnstile } from "@/lib/turnstile";
 import { notifyAdmins } from "@/lib/admin-notify";
 
 export type WakilFormState = { error?: string; success?: string } | undefined;
@@ -24,6 +25,13 @@ export async function applyWakilAction(
   if (!(await assertRateLimit("wakil"))) {
     return { error: fr.common.tropDeTentatives };
   }
+
+  // CAPTCHA anti-robot (no-op si désactivé). Vérifié AVANT toute écriture.
+  const captchaOk = await verifyTurnstile(
+    formData.get("cf-turnstile-response") as string | null,
+    await clientIp()
+  );
+  if (!captchaOk) return { error: fr.auth.captchaEchec };
 
   const parsed = wakilSchema.safeParse({
     name: formData.get("name"),
