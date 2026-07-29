@@ -2,6 +2,7 @@ import { getT } from "@/lib/i18n/server";
 import { markerPriceLabel } from "@/lib/format";
 import { ContactForm } from "@/components/property/ContactForm";
 import { toWhatsAppNumber } from "@/components/property/PropertyCtas";
+import { isCaptchaEnabled, turnstileSiteKey } from "@/lib/turnstile";
 import type { ListingData, ListingViewer } from "@/modules/core/listing/types";
 
 /**
@@ -16,6 +17,7 @@ export async function ImmoContactSection({
   user: ListingViewer;
 }) {
   const fr = await getT();
+  const captchaSiteKey = isCaptchaEnabled() ? turnstileSiteKey() : "";
 
   return (
     <section id="contact">
@@ -24,6 +26,7 @@ export async function ImmoContactSection({
         <ContactForm
           propertyId={property.id}
           propertyTitle={property.title}
+          captchaSiteKey={captchaSiteKey}
           whatsappHref={
             property.owner.phone
               ? `https://wa.me/${toWhatsAppNumber(property.owner.phone)}?text=${encodeURIComponent(

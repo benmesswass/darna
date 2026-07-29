@@ -4,7 +4,8 @@ import { z } from "zod";
 import { getT } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
-import { assertRateLimit } from "@/lib/rate-limit";
+import { assertRateLimit, clientIp } from "@/lib/rate-limit";
+import { verifyTurnstile } from "@/lib/turnstile";
 
 export type ContactFormState = { error?: string; success?: string } | undefined;
 
@@ -24,6 +25,13 @@ export async function createContactRequestAction(
   if (!(await assertRateLimit("contact"))) {
     return { error: fr.common.tropDeTentatives };
   }
+
+  // CAPTCHA anti-robot (no-op si désactivé). Vérifié AVANT toute écriture.
+  const captchaOk = await verifyTurnstile(
+    formData.get("cf-turnstile-response") as string | null,
+    await clientIp()
+  );
+  if (!captchaOk) return { error: fr.auth.captchaEchec };
 
   const parsed = contactSchema.safeParse({
     propertyId: formData.get("propertyId"),

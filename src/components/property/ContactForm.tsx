@@ -7,6 +7,7 @@ import {
 } from "@/actions/contact";
 import { useT } from "@/components/i18n/LocaleProvider";
 import { WhatsAppIcon } from "@/components/icons";
+import { TurnstileWidget } from "@/components/auth/TurnstileWidget";
 
 const inputClass =
   "w-full rounded-xl border border-darna/15 bg-cream px-3.5 py-2.5 text-sm outline-none focus:border-darna";
@@ -16,11 +17,13 @@ export function ContactForm({
   propertyTitle,
   whatsappHref,
   defaults,
+  captchaSiteKey = "",
 }: {
   propertyId: string;
   propertyTitle: string;
   whatsappHref: string | null;
   defaults: { name: string; email: string; phone: string };
+  captchaSiteKey?: string;
 }) {
   const fr = useT();
   const [state, action, pending] = useActionState<ContactFormState, FormData>(
@@ -91,6 +94,7 @@ export function ContactForm({
           className={inputClass}
         />
       </label>
+      <TurnstileWidget siteKey={captchaSiteKey} />
       <div className="flex flex-wrap items-center gap-3">
         <button
           type="submit"

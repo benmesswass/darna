@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getT } from "@/lib/i18n/server";
 import { fr as frMeta } from "@/lib/i18n/fr";
 import { WakilForm } from "@/components/wakil/WakilForm";
+import { isCaptchaEnabled, turnstileSiteKey } from "@/lib/turnstile";
 import {
   CheckIcon,
   CoinsIcon,
@@ -17,6 +18,7 @@ export const metadata: Metadata = {
 
 export default async function DevenirWakilPage() {
   const fr = await getT();
+  const captchaSiteKey = isCaptchaEnabled() ? turnstileSiteKey() : "";
   return (
     <div>
       {/* Hero */}
@@ -82,7 +84,7 @@ export default async function DevenirWakilPage() {
           <section className="h-fit rounded-3xl bg-surface p-7 ring-1 ring-darna/10 lg:sticky lg:top-20">
             <h2 className="text-xl font-bold text-heading">{fr.wakil.formTitre}</h2>
             <div className="mt-5">
-              <WakilForm />
+              <WakilForm captchaSiteKey={captchaSiteKey} />
             </div>
           </section>
         </div>
