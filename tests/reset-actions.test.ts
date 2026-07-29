@@ -52,6 +52,7 @@ import { requestPasswordResetAction, resetPasswordAction } from "@/actions/auth"
 import { prisma } from "@/lib/prisma";
 import { issueResetToken, consumeResetToken } from "@/lib/reset-token";
 import { sendEmail, getEmailProvider } from "@/lib/mailer";
+import { assertRateLimit } from "@/lib/rate-limit";
 
 const findUnique = prisma.user.findUnique as unknown as Mock;
 const update = prisma.user.update as unknown as Mock;
@@ -70,12 +71,22 @@ function resetFd(token: string, password: string): FormData {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  (assertRateLimit as unknown as Mock).mockResolvedValue(true);
   (prisma.auditLog.create as unknown as Mock).mockResolvedValue({});
   (issueResetToken as unknown as Mock).mockResolvedValue("a".repeat(43));
   (getEmailProvider as unknown as Mock).mockReturnValue("demo");
 });
 
 describe("requestPasswordResetAction", () => {
+  it("respecte le rate limit, sans lire la base (P2.10)", async () => {
+    (assertRateLimit as unknown as Mock).mockResolvedValue(false);
+
+    const res = await requestPasswordResetAction(undefined, reqFd("w@darna.tn"));
+
+    expect(res).toEqual({ error: "Trop de tentatives." });
+    expect(findUnique).not.toHaveBeenCalled();
+  });
+
   it("compte inconnu : message générique, aucun jeton émis (anti-énumération)", async () => {
     findUnique.mockResolvedValue(null);
     const res = await requestPasswordResetAction(undefined, reqFd("ghost@darna.tn"));
@@ -116,6 +127,15 @@ describe("requestPasswordResetAction", () => {
 });
 
 describe("resetPasswordAction", () => {
+  it("respecte le rate limit, sans consommer le jeton (P2.10)", async () => {
+    (assertRateLimit as unknown as Mock).mockResolvedValue(false);
+
+    const res = await resetPasswordAction(undefined, resetFd("t".repeat(43), "azerty12"));
+
+    expect(res).toEqual({ error: "Trop de tentatives." });
+    expect(consumeResetToken).not.toHaveBeenCalled();
+  });
+
   it("jeton valide : pose un nouveau hash et confirme", async () => {
     (consumeResetToken as unknown as Mock).mockResolvedValue("u1");
     update.mockResolvedValue({});

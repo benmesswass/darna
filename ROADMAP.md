@@ -335,7 +335,7 @@ rejouer la checklist de release (§Annexe B).
 | P2.7 | Durcissement upload : strip EXIF + ré-encodage, tests polyglotte/magic bytes | P1 | ✅ PR #237 |
 | P2.8 | Turnstile sur les formulaires publics restants (contact, wakil) | P1 | ✅ PR #238 |
 | P2.9 | Fuzzing des entrées de server actions (payloads excessifs/imbriqués) | P2 | ✅ PR #239 |
-| P2.10 | Couverture ≥ 85 % sur les modules critiques | P1 | ❌ (storage/rate-limit/crypto faits, PR #240 — reste auth) |
+| P2.10 | Couverture ≥ 85 % sur les modules critiques | P1 | ❌ (storage/rate-limit/crypto/actions-auth faits, PR #240+#241 — reste lib/auth.ts) |
 
 ### P2.1 — Secret scanning
 Job CI `gitleaks` (action officielle) sur push + PR, et hook local optionnel.
@@ -584,6 +584,20 @@ chantier à part, pas tranché ici) ; `bookings`/`otp`/`session`/jobs
 individuels déjà à 100 % avant même cette tranche, rien à faire ; flux
 RGPD (account-export/delete-account) pas encore mesuré isolément ; global
 encore loin de 80 % (64,26 % stmt).
+
+**Fait (2ᵉ tranche, PR #241)** : `src/actions/auth.ts` (73,86 % → 95,45 %
+lignes) — `loginAction()` n'avait aucune couverture Vitest (seulement des
+mocks côté composant + des e2e Playwright réels, invisibles du coverage
+v8) : nouveau `tests/login-action.test.ts` (validation, CAPTCHA, calcul
+de la destination de redirection avec `@/lib/redirect` NON mocké,
+`AuthError` → générique, erreur non-`AuthError` laissée passer). Branche
+« rate limit dépassé » ajoutée à `registerAction`/
+`requestPasswordResetAction`/`resetPasswordAction` (jamais testée avant,
+toujours mockée à `true`). Gate cliquet remonté à 66/64/60/57 (mesure
+réelle 66,73/64,92/60,48/58,22 % moins ~1 pt). **Reste identique** :
+`src/lib/auth.ts`/`google-auth.ts` (0 %, raison architecturale
+inchangée) ; flux RGPD pas mesuré isolément ; global encore loin de 80 %
+(64,92 % stmt).
 
 ---
 

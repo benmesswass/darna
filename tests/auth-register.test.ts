@@ -61,6 +61,7 @@ import { prisma } from "@/lib/prisma";
 import { issueOtp } from "@/lib/otp";
 import { sendEmail } from "@/lib/mailer";
 import { verifyTurnstile } from "@/lib/turnstile";
+import { assertRateLimit } from "@/lib/rate-limit";
 
 function formData(): FormData {
   const fd = new FormData();
@@ -79,6 +80,7 @@ beforeEach(() => {
   (prisma.auditLog.create as unknown as Mock).mockResolvedValue({});
   (issueOtp as unknown as Mock).mockResolvedValue("123456");
   (verifyTurnstile as unknown as Mock).mockResolvedValue(true);
+  (assertRateLimit as unknown as Mock).mockResolvedValue(true);
 });
 
 describe("registerAction — vérification d'email à l'inscription", () => {
@@ -137,6 +139,16 @@ describe("registerAction — vérification d'email à l'inscription", () => {
       values: { name: "Wassim", email: "new@test.tn", phone: "" },
     });
     expect(JSON.stringify(res)).not.toContain("azerty12");
+    expect(prisma.user.create).not.toHaveBeenCalled();
+    expect(issueOtp).not.toHaveBeenCalled();
+  });
+
+  it("respecte le rate limit, sans jamais écrire (P2.10)", async () => {
+    (assertRateLimit as unknown as Mock).mockResolvedValue(false);
+
+    const res = await registerAction(undefined, formData());
+
+    expect(res).toEqual({ error: "Trop de tentatives." });
     expect(prisma.user.create).not.toHaveBeenCalled();
     expect(issueOtp).not.toHaveBeenCalled();
   });
