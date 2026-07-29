@@ -335,7 +335,7 @@ rejouer la checklist de release (§Annexe B).
 | P2.7 | Durcissement upload : strip EXIF + ré-encodage, tests polyglotte/magic bytes | P1 | ✅ PR #237 |
 | P2.8 | Turnstile sur les formulaires publics restants (contact, wakil) | P1 | ✅ PR #238 |
 | P2.9 | Fuzzing des entrées de server actions (payloads excessifs/imbriqués) | P2 | ✅ PR #239 |
-| P2.10 | Couverture ≥ 85 % sur les modules critiques | P1 | ❌ |
+| P2.10 | Couverture ≥ 85 % sur les modules critiques | P1 | ❌ (storage/rate-limit/crypto faits, PR #240 — reste auth) |
 
 ### P2.1 — Secret scanning
 Job CI `gitleaks` (action officielle) sur push + PR, et hook local optionnel.
@@ -565,6 +565,25 @@ Cible **85 %** sur `payments`, `bookings`, `auth`, `crypto`, `otp`,
 flux de suppression/anonymisation RGPD (il touche une vingtaine de relations
 — une erreur y est irréversible). Global visé : 80 %. Monter le gate cliquet
 de P1.2 au fur et à mesure.
+
+**Fait (1ʳᵉ tranche, PR #240)** : `storage.ts` (36,66 % → 98,33 % lignes —
+les deux drivers disque/S3 n'avaient aucune couverture directe, seule
+`readValidatedImage()` l'était), `rate-limit.ts` (60,41 % → 95,83 % lignes —
+`incrementWindowedCounter()` n'avait aucune couverture, ni le repli
+in-memory sur erreur Redis), `crypto.ts` (75 % → 100 % fonctions —
+`isEncryptionEnabled`/`ensureEncrypted`/`hashResetToken` non testés). Gate
+cliquet remonté à 65/63/59/56 (mesure réelle 66,04/64,26/60,11/57,34 %
+moins ~1 pt de marge). **Reste** : `src/actions/auth.ts` (73,86 %, à
+reprendre) ; `src/lib/auth.ts`/`google-auth.ts` (0 % — raison
+architecturale documentée dans la PR #240, pas un oubli : c'est la
+config NextAuth elle-même, exercée en réalité par les e2e Playwright
+contre un vrai serveur, invisible du coverage Vitest qui n'instrumente
+que le code exécuté DANS le process Vitest ; refactorer `authorize()` en
+fonction exportée séparément pour la rendre unit-testable serait un
+chantier à part, pas tranché ici) ; `bookings`/`otp`/`session`/jobs
+individuels déjà à 100 % avant même cette tranche, rien à faire ; flux
+RGPD (account-export/delete-account) pas encore mesuré isolément ; global
+encore loin de 80 % (64,26 % stmt).
 
 ---
 
