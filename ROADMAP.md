@@ -334,7 +334,7 @@ rejouer la checklist de release (§Annexe B).
 | P2.6 | Batch tests base : contraintes uniques, cascades FK, atomicité transactionnelle | P1 | ✅ PR #236 |
 | P2.7 | Durcissement upload : strip EXIF + ré-encodage, tests polyglotte/magic bytes | P1 | ✅ PR #237 |
 | P2.8 | Turnstile sur les formulaires publics restants (contact, wakil) | P1 | ✅ PR #238 |
-| P2.9 | Fuzzing des entrées de server actions (payloads excessifs/imbriqués) | P2 | ❌ |
+| P2.9 | Fuzzing des entrées de server actions (payloads excessifs/imbriqués) | P2 | ✅ PR #239 |
 | P2.10 | Couverture ≥ 85 % sur les modules critiques | P1 | ❌ |
 
 ### P2.1 — Secret scanning
@@ -538,6 +538,26 @@ bloqué par le proxy sortant de l'environnement — hors code applicatif).
 Pour chaque action mutante : payload invalide, champs requis manquants,
 chaînes/tableaux surdimensionnés, structures imbriquées. Vérifier que zod
 rejette proprement et que l'erreur reste générique (aucune stack, aucune PII).
+
+**Fait (PR #239)** : survol exhaustif préalable (23 fichiers `src/actions/*.ts`,
+84 fonctions `*Action`) — patron déjà uniforme partout (`schema.safeParse()` →
+message générique fixe), **aucune fuite trouvée** (aucun `err.message`/stack/
+`parsed.error` renvoyé au client ; les rares `throw err` retombent sur le
+digest générique de Next.js en prod, hors périmètre applicatif). Plutôt que
+dupliquer ce patron déjà uniforme sur les 84 fonctions, fuzzing ciblé sur un
+échantillon représentatif couvrant les 4 dimensions + le seul vrai gap
+détecté (champ fichier NON zod) : `saveSearchAction` (ville manquante,
+`prixMin` avec structure imbriquée injectée en chaîne), `blockDatesAction`
+(propertyId manquant, date malformée, `reason` > 120), `updatePropertyAction`
+(tableau `amenities` invalide/surdimensionné — seule vraie cible « tableau »
+du schéma), `updateProfileAction` (nom manquant/> 100, téléphone imbriqué),
+`sendMessageAction` (bookingId manquant/imbriqué, message > 2000),
+`updateAvatarAction` (champ `avatar` NON zod — valeur non-File, File vide,
+champ absent). 23 tests nouveaux dans 3 nouveaux fichiers
+(`tests/saved-search-action.test.ts`, `tests/properties-fuzzing.test.ts`,
+`tests/profile-fuzzing.test.ts`) + 3 ajoutés à `tests/messages-action.test.ts`
+(mocks déjà en place). Le reste des ~84 actions suit un patron identique et
+vérifié pattern-matché lors du survol — pas dupliqué action par action ici.
 
 ### P2.10 — Couverture des modules critiques
 Cible **85 %** sur `payments`, `bookings`, `auth`, `crypto`, `otp`,

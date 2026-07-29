@@ -185,3 +185,25 @@ describe("sendMessageAction", () => {
     expect(res).toEqual({ sent: true, warned: false, masked: false, escalated: false, suspended: false });
   });
 });
+
+describe("sendMessageAction — fuzzing (P2.9)", () => {
+  it("rejette un bookingId manquant, sans écriture", async () => {
+    const res = await sendMessageAction(undefined, fd("coucou", ""));
+    expect(res).toEqual({ error: "champs" });
+    expect(prisma.message.create).not.toHaveBeenCalled();
+  });
+
+  it("rejette un message démesurément long (> 2000), sans écriture", async () => {
+    const huge = "a".repeat(5000);
+    const res = await sendMessageAction(undefined, fd(huge));
+    expect(res).toEqual({ error: "champs" });
+    expect(prisma.message.create).not.toHaveBeenCalled();
+  });
+
+  it("rejette un bookingId malformé (structure imbriquée injectée en chaîne), sans écriture", async () => {
+    const nested = JSON.stringify({ $ne: null });
+    const res = await sendMessageAction(undefined, fd("coucou", nested));
+    expect(res).toEqual({ error: "champs" });
+    expect(prisma.message.create).not.toHaveBeenCalled();
+  });
+});
