@@ -331,7 +331,7 @@ rejouer la checklist de release (§Annexe B).
 | P2.3 | Batch tests sécurité web : CSRF/SameSite, open redirect, SSRF, XSS stocké, headers, bypass de rate limit | P0 | ✅ PR #233 |
 | P2.4 | Batch tests auth/session : flags de cookie, expiration, JWT altéré/`alg:none`/expiré, backoff progressif | P0 | ❌ 🧑 (backoff progressif seul — reste fait dans PR #234) |
 | P2.5 | Projet de tests **d'intégration** sur Postgres éphémère (concurrence réelle) | P1 | ✅ PR #235 |
-| P2.6 | Batch tests base : contraintes uniques, cascades FK, atomicité transactionnelle | P1 | ❌ |
+| P2.6 | Batch tests base : contraintes uniques, cascades FK, atomicité transactionnelle | P1 | ✅ PR #236 |
 | P2.7 | Durcissement upload : strip EXIF + ré-encodage, tests polyglotte/magic bytes | P1 | ❌ |
 | P2.8 | Turnstile sur les formulaires publics restants (contact, wakil) | P1 | ❌ |
 | P2.9 | Fuzzing des entrées de server actions (payloads excessifs/imbriqués) | P2 | ❌ |
@@ -475,6 +475,20 @@ Contraintes uniques (`email`, `cinHash`, `slug`, `paymentRef`,
 (supprimer un utilisateur, un dossier de favoris) · atomicité (création de
 réservation, réordonnancement de photos). Ces tests protègent des invariants
 qui ne se voient qu'en base — à écrire dans le projet P2.5.
+
+**Fait (PR #236)** : `tests/integration/db-constraints.integration.test.ts`
+(projet `integration` de P2.5, VRAI Postgres) — 11 tests. Contraintes
+uniques : `User.email`, `User.cinHash`, `Property.slug`,
+`Booking.paymentRef`, `Review.bookingId`, `Favorite[userId,propertyId]`
+(P2002 attendu sur le doublon). Cascades/SetNull : supprimer un hôte
+supprime ses annonces, supprimer un voyageur supprime ses réservations
+(`onDelete: Cascade`) ; supprimer un dossier de favoris déclasse ses
+favoris sans les supprimer (`onDelete: SetNull`). Atomicité :
+réordonnancement de photos (`setCoverPhotoAction`) laisse des positions
+consécutives/uniques après coup + preuve directe qu'un `$transaction`
+batch échoue TOUT ENTIER si une seule étape est invalide (aucune mise à
+jour partielle ne persiste). Création de réservation déjà couverte par
+P2.5 (course/expiration/prix), pas dupliquée ici.
 
 ### P2.7 — Durcissement upload
 Aucun strip EXIF aujourd'hui (vérifié : rien dans `storage.ts` /
