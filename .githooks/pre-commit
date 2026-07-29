@@ -1,0 +1,10 @@
+#!/bin/sh
+# Hook local optionnel (P2.1, ROADMAP.md) — activé via :
+#   git config core.hooksPath .githooks
+# No-op silencieux si le binaire gitleaks n'est pas installé : ce hook ne
+# doit jamais bloquer un développeur qui ne l'a pas configuré.
+if ! command -v gitleaks >/dev/null 2>&1; then
+  exit 0
+fi
+
+gitleaks protect --staged --source . --config .gitleaks.toml --redact

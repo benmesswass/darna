@@ -1,0 +1,13 @@
+title = "gitleaks — Darna"
+
+# Étend les règles par défaut de gitleaks (P2.1, ROADMAP.md) sans les redéfinir.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Fixtures de test connues, jamais des secrets réels"
+regexes = [
+  # tests/crypto.test.ts — clé AES-256-GCM factice (32 hex) pour tester
+  # KYC_ENC_KEY sans jamais toucher une vraie clé de chiffrement.
+  '''0123456789abcdef0123456789abcdef''',
+]

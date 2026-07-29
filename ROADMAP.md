@@ -326,7 +326,7 @@ rejouer la checklist de release (§Annexe B).
 
 | # | Tâche | Prio | Statut |
 |---|---|---|---|
-| P2.1 | Secret scanning (`gitleaks`) en CI + hook pre-commit | P0 | ❌ |
+| P2.1 | Secret scanning (`gitleaks`) en CI + hook pre-commit | P0 | ✅ PR #232 |
 | P2.2 | Protection de branche sur `main` | P0 | ❌ 🧑 (réglage GitHub) |
 | P2.3 | Batch tests sécurité web : CSRF/SameSite, open redirect, SSRF, XSS stocké, headers, bypass de rate limit | P0 | ❌ |
 | P2.4 | Batch tests auth/session : flags de cookie, expiration, JWT altéré/`alg:none`/expiré, backoff progressif | P0 | ❌ |

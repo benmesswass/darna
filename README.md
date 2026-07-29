@@ -33,6 +33,8 @@ zod sur chaque server action mutante · autorisation serveur sur chaque mutation
 
 Détail des contrôles restant à ajouter avant ouverture publique : `ROADMAP.md` (phases 2 et 3).
 
+Secret scanning (`gitleaks`) sur chaque push/PR (config `.gitleaks.toml`). Hook local optionnel (nécessite le binaire `gitleaks` installé) : `git config core.hooksPath .githooks`.
+
 ## Modes démo ↔ production
 
 L'app démarre **sans aucune clé** avec des défauts démo sûrs ; chaque mode réel exige sa configuration complète, validée au boot (fail-fast) :

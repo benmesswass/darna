@@ -52,6 +52,22 @@ jobs:
       - name: Tests (sans couverture)
         run: npx vitest run
 
+  # P2.1 (ROADMAP.md) : scanne tout l'historique de la PR à la recherche de
+  # secrets commis. Action officielle, licence gratuite hors repo
+  # d'organisation (ce dépôt appartient à un compte personnel). Faux positif
+  # connu allowlisté dans .gitleaks.toml (fixture de test crypto.test.ts).
+  gitleaks:
+    if: github.event_name != 'pull_request' || github.event.action != 'labeled'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   # Niveau 2 : coverage + build + audit. Ne relance PAS lint/typecheck
   # (déjà couverts par `fast` sur ce même commit de tête).
   full:
