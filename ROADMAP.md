@@ -335,7 +335,7 @@ rejouer la checklist de release (§Annexe B).
 | P2.7 | Durcissement upload : strip EXIF + ré-encodage, tests polyglotte/magic bytes | P1 | ✅ PR #237 |
 | P2.8 | Turnstile sur les formulaires publics restants (contact, wakil) | P1 | ✅ PR #238 |
 | P2.9 | Fuzzing des entrées de server actions (payloads excessifs/imbriqués) | P2 | ✅ PR #239 |
-| P2.10 | Couverture ≥ 85 % sur les modules critiques | P1 | ❌ (storage/rate-limit/crypto/actions-auth faits, PR #240+#241 — reste lib/auth.ts) |
+| P2.10 | Couverture ≥ 85 % sur les modules critiques | P1 | ❌ (storage/rate-limit/crypto/actions-auth/actions-profile faits, PR #240+#241+#242 — reste lib/auth.ts) |
 
 ### P2.1 — Secret scanning
 Job CI `gitleaks` (action officielle) sur push + PR, et hook local optionnel.
@@ -598,6 +598,21 @@ réelle 66,73/64,92/60,48/58,22 % moins ~1 pt). **Reste identique** :
 `src/lib/auth.ts`/`google-auth.ts` (0 %, raison architecturale
 inchangée) ; flux RGPD pas mesuré isolément ; global encore loin de 80 %
 (64,92 % stmt).
+
+**Fait (3ᵉ tranche, PR #242)** : `src/actions/profile.ts` — c'est le
+fichier qui porte le flux RGPD cité par P2.10 ; vérifié en premier que
+le chemin irréversible (`deleteAccountAction`/`becomeHostAction`) était
+déjà à 100 % (`tests/delete-account-action.test.ts`/
+`tests/become-host-action.test.ts` existants) — le vrai trou était
+`updateProfileAction`/`updateAvatarAction`/`removeAvatarAction`
+(profil/avatar, pas le chemin sensible), 74,25 % → 99 % lignes. Nouveau
+`tests/profile-update.test.ts` (recalcul `phoneVerified` seulement si le
+numéro change, rate limit avatar, échec de validation upload,
+remplacement avatar + suppression best-effort de l'ancien fichier,
+no-op silencieux si pas de photo). Gate cliquet remonté à 67/65/60/58
+(mesure réelle 67,48/65,64/60,67/58,78 % moins ~1 pt). **Reste** :
+`src/lib/auth.ts`/`google-auth.ts` (0 %, raison architecturale
+inchangée) ; global encore loin de 80 % (65,64 % stmt).
 
 ---
 
