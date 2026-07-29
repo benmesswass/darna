@@ -160,7 +160,7 @@ SORTANTES »** (`/api/jobs/tick`).
 | # | Tâche | Prio | Statut |
 |---|---|---|---|
 | P1.1 | Rattrapage e2e/API en local (angle mort d'une semaine) | P0 | ✅ PR #230 |
-| P1.2 | CI verte de bout en bout (+ ⛔ W3) | P0 | ❌ |
+| P1.2 | CI verte de bout en bout (+ ⛔ W3) | P0 | ❌ (d fait, PR #231 — a/b/c attendent le quota) |
 | P1.3 | Déploiement **staging** (⛔ W1) | P0 | ❌ 🧑 |
 | P1.4 | Smoke tests contre staging + correctifs prod-only | P0 | ❌ (après P1.3) |
 | P1.5 | Brancher les yeux : Sentry, alertes, uptime (⛔ W8) | P0 | ❌ 🧑 |
@@ -208,6 +208,18 @@ appliqué au job `full` — effet cliquet, la couverture ne peut plus régresser
 
 **Acceptation** : un run vert sur `main`, gate de couverture actif, rapport
 nightly lu et ses éventuels findings ouverts en tâches ici (phase 2).
+
+**État au 2026-07-29** : (a) fait — rappel ci-dessous ; (d) **fait** (PR
+#231) : seuils remplacés par couverture réelle mesurée (61,25 % stmt /
+54,53 % branches / 57,67 % fn / 63,01 % lignes) moins ~1 pt de marge —
+lines 62 / statements 60 / functions 56 / branches 53 — les anciens seuils
+(43/41/36/35) ne protégeaient plus rien depuis longtemps. (b)/(c) **encore
+bloqués** : les 19 derniers runs `ci.yml`/`nightly.yml` échouent tous en
+2-11 s sans logs (rejet immédiat par quota, vérifié aussi sur `main` et des
+branches sans rapport avec le projet en cours) — confirmé non résolu au
+29/07, à réessayer après le 31/07 ou dès W3 débloqué. 🧑 **Rappel à
+Wassim (W3)** : dépôt public (aucun secret commité, vérifié) ou runner
+self-hosted — sans ça le problème revient chaque mois.
 
 ### P1.3 — Déploiement staging 🧑
 
