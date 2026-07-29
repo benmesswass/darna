@@ -19,19 +19,27 @@ test("KYC : gate bloque la création d'annonce tant que non vérifié, puis se l
   const email = `e2e-kyc-host-${test.info().workerIndex}@darna.tn`;
   const password = "KycHostPass2026!";
 
-  await allure.step("Inscrire un nouvel hôte", async () => {
+  await allure.step("Inscrire un nouveau voyageur", async () => {
     await page.goto("/inscription");
     await page.locator('input[name="name"]').fill("E2E KYC Host");
     await page.locator('input[name="email"]').fill(email);
     await page.locator('input[name="password"]').fill(password);
     await page.locator('input[name="confirmPassword"]').fill(password);
-    await page.locator('select[name="role"]').selectOption("HOTE");
     await page.locator('form button[type="submit"]').click();
 
     await page.waitForURL((url) => url.pathname === "/connexion");
     await page.locator('input[name="password"]').fill(password);
     await page.locator('form button[type="submit"]').click();
     await page.waitForURL((url) => url.pathname !== "/connexion");
+  });
+
+  // Le rôle ne se choisit plus à l'inscription (L8.1) : tout nouveau compte
+  // est VOYAGEUR par défaut, puis passe hôte via /dashboard/devenir-hote
+  // (BecomeHostForm, rôle "HOTE" présélectionné).
+  await allure.step("Devenir hôte", async () => {
+    await page.goto("/dashboard/devenir-hote");
+    await page.locator('form button[type="submit"]').click();
+    await page.waitForURL((url) => url.pathname !== "/dashboard/devenir-hote");
   });
 
   await allure.step("Vérifier que le gate bloque la création d'annonce (kycStatus NON_VERIFIE)", async () => {

@@ -28,6 +28,17 @@ test.afterAll(async () => {
 });
 
 test.describe("GET /api/payments/konnect/webhook", () => {
+  // `fullyParallel` (config) distribue par défaut les tests d'un même fichier
+  // sur plusieurs workers — chacun exécute alors SA PROPRE copie du hook
+  // `afterAll` dès que SON lot de tests se termine, sans attendre les autres
+  // workers. `cleanupByPrefix` (afterAll) pouvait donc supprimer la
+  // réservation du test "rejeu idempotent" pendant qu'il tournait encore dans
+  // un autre worker (flaky : tantôt INTROUVABLE au 1er appel, tantôt
+  // `findUniqueOrThrow` en échec après coup). `mode: "serial"` force ce
+  // fichier dans un seul worker, dans l'ordre — `afterAll` ne s'exécute alors
+  // qu'une fois, réellement après tous les tests.
+  test.describe.configure({ mode: "serial" });
+
   test("payment_ref manquant → 400", async ({ request }) => {
     const bid = randomUUID();
     const sig = signKonnectWebhook(bid);
