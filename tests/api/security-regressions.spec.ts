@@ -1,6 +1,9 @@
 import { test, expect } from "@playwright/test";
 import { safeCallbackUrl } from "@/lib/redirect";
 import { searchAddressAction } from "@/actions/geocode";
+import { initKonnectPayment } from "@/lib/konnect";
+import { sendEmail } from "@/lib/mailer";
+import { sendMetaWhatsApp } from "@/lib/otp-channel";
 
 /**
  * Régressions sécurité figées (TEST_AUTOMATION_ROADMAP.md Phase 4). Chaque
@@ -67,6 +70,105 @@ test.describe("SSRF geocode — searchAddressAction", () => {
       }
     } finally {
       global.fetch = originalFetch;
+    }
+  });
+});
+
+test.describe("SSRF Konnect — initKonnectPayment", () => {
+  test("l'hôte de sortie reste celui de KONNECT_API_URL, jamais dérivé des paramètres", async () => {
+    const originalFetch = global.fetch;
+    let capturedUrl: string | undefined;
+    global.fetch = (async (input: RequestInfo | URL) => {
+      capturedUrl = typeof input === "string" ? input : input.toString();
+      return new Response(
+        JSON.stringify({ payUrl: "https://pay.example/x", paymentRef: "ref-1" }),
+        { status: 200 }
+      );
+    }) as typeof fetch;
+
+    try {
+      // orderId/description/email : des champs texte libres jamais utilisés
+      // pour construire l'URL de requête (seul KONNECT_API_URL l'est) — on
+      // vérifie qu'une valeur hostile n'a aucune influence sur l'hôte réel.
+      await initKonnectPayment({
+        amountTND: 10,
+        orderId: "@evil.com",
+        description: "http://169.254.169.254/latest/meta-data/",
+        webhook: "https://darna.tn/api/payments/konnect/webhook",
+        successUrl: "https://darna.tn/success",
+        failUrl: "https://darna.tn/fail",
+        lifespanMinutes: 15,
+        email: "t@t.com",
+      });
+      expect(capturedUrl).toBeDefined();
+      const expectedHost = new URL(
+        process.env.KONNECT_API_URL ?? "https://api.sandbox.konnect.network/api/v2"
+      ).host;
+      expect(new URL(capturedUrl!).host).toBe(expectedHost);
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
+});
+
+test.describe("SSRF Resend — sendEmail", () => {
+  test("l'hôte de sortie reste api.resend.com quel que soit le contenu", async () => {
+    const originalFetch = global.fetch;
+    const originalProvider = process.env.EMAIL_PROVIDER;
+    const originalKey = process.env.RESEND_API_KEY;
+    process.env.EMAIL_PROVIDER = "resend";
+    process.env.RESEND_API_KEY = "test-key-not-real";
+
+    let capturedUrl: string | undefined;
+    global.fetch = (async (input: RequestInfo | URL) => {
+      capturedUrl = typeof input === "string" ? input : input.toString();
+      return new Response("{}", { status: 200 });
+    }) as typeof fetch;
+
+    try {
+      await sendEmail({
+        to: "victim@darna.tn",
+        subject: "http://169.254.169.254/ SSRF via subject",
+        html: "<script>@evil.com</script>",
+      });
+      expect(capturedUrl).toBeDefined();
+      expect(new URL(capturedUrl!).host).toBe("api.resend.com");
+    } finally {
+      global.fetch = originalFetch;
+      if (originalProvider === undefined) delete process.env.EMAIL_PROVIDER;
+      else process.env.EMAIL_PROVIDER = originalProvider;
+      if (originalKey === undefined) delete process.env.RESEND_API_KEY;
+      else process.env.RESEND_API_KEY = originalKey;
+    }
+  });
+});
+
+test.describe("SSRF Meta WhatsApp — sendMetaWhatsApp", () => {
+  test("l'hôte de sortie reste graph.facebook.com quel que soit le contenu", async () => {
+    const originalFetch = global.fetch;
+    const originalToken = process.env.META_WHATSAPP_ACCESS_TOKEN;
+    const originalPhoneId = process.env.META_WHATSAPP_PHONE_ID;
+    process.env.META_WHATSAPP_ACCESS_TOKEN = "test-token-not-real";
+    process.env.META_WHATSAPP_PHONE_ID = "@evil.com";
+
+    let capturedUrl: string | undefined;
+    global.fetch = (async (input: RequestInfo | URL) => {
+      capturedUrl = typeof input === "string" ? input : input.toString();
+      return new Response("{}", { status: 200 });
+    }) as typeof fetch;
+
+    try {
+      // META_WHATSAPP_PHONE_ID ci-dessus est hostile à dessein : seul le PATH
+      // de la requête l'utilise (jamais l'hôte) — on vérifie que ça reste vrai.
+      await sendMetaWhatsApp("+21622345678", "123456");
+      expect(capturedUrl).toBeDefined();
+      expect(new URL(capturedUrl!).host).toBe("graph.facebook.com");
+    } finally {
+      global.fetch = originalFetch;
+      if (originalToken === undefined) delete process.env.META_WHATSAPP_ACCESS_TOKEN;
+      else process.env.META_WHATSAPP_ACCESS_TOKEN = originalToken;
+      if (originalPhoneId === undefined) delete process.env.META_WHATSAPP_PHONE_ID;
+      else process.env.META_WHATSAPP_PHONE_ID = originalPhoneId;
     }
   });
 });

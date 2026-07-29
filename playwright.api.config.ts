@@ -10,6 +10,18 @@ import { defineConfig } from "@playwright/test";
  * qui dépend du paiement démo (Konnect désactivé). Un seul `next dev` ne peut
  * pas avoir les deux valeurs en même temps ; d'où un serveur/job dédié.
  */
+
+// P2.3 (ROADMAP.md, SSRF) — tests/api/security-regressions.spec.ts importe
+// src/lib/konnect.ts DIRECTEMENT dans CE process (pas seulement dans le
+// serveur ci-dessous, cf. webServer.env) pour vérifier que l'hôte de sortie
+// de initKonnectPayment reste épinglé quels que soient les paramètres.
+// KONNECT_API_KEY/KONNECT_RECEIVER_WALLET_ID y sont figées en constantes de
+// module au premier import : doivent donc être posées ICI, avant tout import
+// de fichier de test, pas dans un test individuel (trop tard, le module
+// serait déjà chargé). Mêmes valeurs factices que webServer.env, jamais une
+// vraie clé.
+process.env.KONNECT_API_KEY ??= "api-tests-dummy-key-not-real";
+process.env.KONNECT_RECEIVER_WALLET_ID ??= "api-tests-dummy-wallet-not-real";
 export default defineConfig({
   testDir: "./tests/api",
   fullyParallel: true,
