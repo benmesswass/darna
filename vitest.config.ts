@@ -50,11 +50,19 @@ export default defineConfig({
       include: ["src/lib/**", "src/actions/**"],
       exclude: ["src/lib/i18n/**", "**/*.d.ts"],
       reporter: ["text-summary", "html", "lcov", "json-summary"],
+      // Gate cliquet (ROADMAP.md §P1.2) : plancher fixé juste sous la couverture
+      // RÉELLE mesurée le 2026-07-29 (61,25 % stmt / 54,53 % branches / 57,67 %
+      // functions / 63,01 % lignes), avec une petite marge de sécurité (~1 pt)
+      // contre le bruit de mesure — pas au-dessus, sinon ce commit lui-même
+      // échouerait le gate qu'il introduit. Les seuils précédents (43/41/36/35)
+      // dataient d'un stade antérieur du projet et ne protégeaient plus rien
+      // depuis longtemps. À remonter au fil des PR (cf. P2.10), jamais à
+      // redescendre.
       thresholds: {
-        lines: 43,
-        statements: 41,
-        functions: 36,
-        branches: 35,
+        lines: 62,
+        statements: 60,
+        functions: 56,
+        branches: 53,
       },
     },
     projects: [
