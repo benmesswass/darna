@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 import { mkdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { AwsClient } from "aws4fetch";
+import sharp from "sharp";
 import { MAX_PHOTO_SIZE } from "@/lib/constants";
 import { logStructured } from "@/lib/audit";
 import { storageMode } from "@/lib/modes";
@@ -55,9 +56,16 @@ function hasValidMagicBytes(buffer: Buffer, mime: string): boolean {
 
 /**
  * Validation stricte PARTAGÉE par tous les drivers : type MIME autorisé, taille
- * ≤ MAX_PHOTO_SIZE ET signature binaire (magic bytes) — le MIME annoncé par le
- * client ne suffit jamais. Retourne le buffer validé + l'extension, ou null.
- * Exportée pour les tests (c'est la barrière de sécurité des uploads).
+ * ≤ MAX_PHOTO_SIZE, signature binaire (magic bytes) — le MIME annoncé par le
+ * client ne suffit jamais — PUIS ré-encodage serveur via sharp (P2.7). Le
+ * ré-encodage a deux effets : il supprime EXIF/GPS (sharp ne préserve les
+ * métadonnées que si `.withMetadata()` est appelé, jamais le cas ici) et il
+ * neutralise tout octet superflu après les données image valides (polyglot —
+ * payload caché après la fin du flux JPEG/PNG/WebP), puisque seuls les pixels
+ * décodés sont réencodés. Un buffer qui ne décode pas (corrompu ou pas
+ * réellement une image malgré des magic bytes valides) est rejeté ici aussi.
+ * Retourne le buffer validé + l'extension, ou null. Exportée pour les tests
+ * (c'est la barrière de sécurité des uploads).
  */
 export async function readValidatedImage(
   file: File
@@ -65,10 +73,21 @@ export async function readValidatedImage(
   const ext = ALLOWED_TYPES[file.type];
   if (!ext || file.size === 0 || file.size > MAX_PHOTO_SIZE) return null;
 
-  const buffer = Buffer.from(await file.arrayBuffer());
-  if (!hasValidMagicBytes(buffer, file.type)) return null;
+  const rawBuffer = Buffer.from(await file.arrayBuffer());
+  if (!hasValidMagicBytes(rawBuffer, file.type)) return null;
 
-  return { buffer, ext };
+  try {
+    const image = sharp(rawBuffer);
+    const buffer =
+      file.type === "image/png"
+        ? await image.png().toBuffer()
+        : file.type === "image/webp"
+          ? await image.webp().toBuffer()
+          : await image.jpeg().toBuffer();
+    return { buffer, ext };
+  } catch {
+    return null;
+  }
 }
 
 /** Nom de fichier aléatoire : aucun path traversal, aucune collision. */
