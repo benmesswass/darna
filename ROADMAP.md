@@ -821,7 +821,7 @@ installée depuis l'écran d'accueil. Jamais fait. Rapport + captures.
 |---|---|---|---|
 | P5.1 | Runbook opérationnel « jour 1 » | P1 | ✅ PR #260 |
 | P5.2 | Balayage d'intégrité des données (job) | P1 | ✅ PR #262 |
-| P5.3 | Tests de dégradation gracieuse (Redis/Konnect/Resend down) | P1 | ❌ |
+| P5.3 | Tests de dégradation gracieuse (Redis/Konnect/Resend down) | P1 | ✅ PR #263 |
 | P5.4 | Budget d'erreur + seuils d'alerte | P2 | ❌ |
 | P5.5 | Gate de sécurité des migrations | P2 | ❌ |
 | P5.6 | Scan d'image/dépendances + SBOM | P2 | ❌ |
@@ -866,6 +866,15 @@ Tester que l'app survit à : Redis indisponible (le rate limiting doit
 retomber en mémoire sans planter), Konnect en timeout (la réservation reste
 `EN_ATTENTE`, aucune confirmation fantôme), Resend en erreur (l'action
 métier réussit quand même, l'e-mail est journalisé comme échoué).
+
+**Fait (PR #263)** : les 3 scénarios investigués individuellement. Redis
+et Resend étaient déjà couverts (Redis depuis P2.10 ; Resend dans
+plusieurs flux existants, vérifié qu'ils couvrent bien les DEUX exigences
+— résout sans exception ET journalise l'échec, pas seulement l'un des
+deux). Konnect en timeout était le seul trou réel : le code
+(`startKonnectPaymentAction`) gérait déjà correctement le cas, juste
+jamais testé — 2 tests ajoutés. Aucun changement de code applicatif,
+seule la couverture manquait.
 
 ### P5.4
 Définir les seuils qui déclenchent une alerte : taux de 5xx, pic d'échecs
