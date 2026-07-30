@@ -634,7 +634,7 @@ prolongement de P2.10.
 |---|---|---|---|
 | P3.1 | ⛔ W4 — avis juridique (flux, TVA, CGU, fiscalité, V2) | P0 | ❌ 🧑 |
 | P3.2 | Intégrer les conclusions de W4 (CGU, affichage TVA, mentions) | P0 | ❌ (après P3.1) |
-| P3.3 | Versionnement des CGU + traçabilité de l'acceptation | P1 | ❌ |
+| P3.3 | Versionnement des CGU + traçabilité de l'acceptation | P1 | ❌ (CGU hôte fait, PR #253 — CGU générale hors scope, voir note) |
 | P3.4 | Revue de périmètre PCI + politique de rétention/rotation CIN | P1 | ❌ |
 | P3.5 | Intégrité du journal d'audit (anti-altération) | P2 | ❌ |
 
@@ -655,6 +655,35 @@ Aujourd'hui l'acceptation des CGU hôte est horodatée
 cas de litige, impossible de prouver ce que l'hôte a accepté. Ajouter un
 numéro de version aux CGU/CGU hôte et le stocker à l'acceptation ; imposer
 une ré-acceptation quand la version change.
+
+**Fait pour la CGU hôte (PR #253)** : investigation préalable a montré que
+« CGU / CGU hôte » recouvrait deux chantiers de taille très différente —
+la CGU hôte (paiement cash) avait déjà un mécanisme d'acceptation
+(`cashTermsAcceptedAt` sur `Property`) à qui il suffisait d'ajouter une
+version ; la CGU générale du site (`/cgu`) n'a **aucun** mécanisme
+d'acceptation aujourd'hui (page statique, jamais cochée à l'inscription)
+— la versionner exigerait de construire ce mécanisme de zéro et de
+trancher le sort des comptes existants (backfill silencieux ou
+ré-acceptation forcée), un vrai chantier produit distinct. Question posée
+explicitement à Wassim : périmètre limité à la CGU hôte, CGU générale
+non traitée.
+
+Implémenté : `Property.cashTermsVersion` (migration avec backfill à 1
+pour les acceptations déjà enregistrées — elles ont accepté le texte
+ACTUEL, qui EST la version 1, donc aucun hôte existant n'est forcé de
+ré-accepter immédiatement), `CURRENT_CASH_TERMS_VERSION` dans
+`src/lib/config.ts` (à incrémenter au prochain changement de contenu),
+`resolveCashPayment()` force la ré-acceptation quand le mode est déjà
+actif mais la version stockée est obsolète (pas seulement sur la
+transition false→true comme avant). Bug latent corrigé au passage : le
+ProductEvent `CASH_PAYMENT_ENABLED` partait sur toute pose de
+`cashTermsAcceptedAt` y compris une ré-acceptation — aurait faussé le
+taux d'adoption (§L5.7 discipline IN4) une fois la ré-acceptation
+possible ; isolé via un nouveau champ `isNewActivation`.
+
+**Reste** : CGU générale (site entier) — non planifiée ici, à traiter
+comme un futur point roadmap séparé si Wassim le priorise, avec son
+propre arbitrage sur les comptes existants.
 
 ### P3.4
 Confirmer par écrit qu'aucune donnée de carte ne touche jamais Darna
