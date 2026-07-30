@@ -636,7 +636,7 @@ prolongement de P2.10.
 | P3.2 | Intégrer les conclusions de W4 (CGU, affichage TVA, mentions) | P0 | ❌ (après P3.1) |
 | P3.3 | Versionnement des CGU + traçabilité de l'acceptation | P1 | ❌ (CGU hôte fait, PR #253 — CGU générale hors scope, voir note) |
 | P3.4 | Revue de périmètre PCI + politique de rétention/rotation CIN | P1 | ✅ PR #254 |
-| P3.5 | Intégrité du journal d'audit (anti-altération) | P2 | ❌ |
+| P3.5 | Intégrité du journal d'audit (anti-altération) | P2 | ✅ PR #255 |
 
 ### P3.1 🧑
 Envoyer le brief en 5 points (§3, W4). Non bloquant pour un staging en mode
@@ -714,6 +714,29 @@ dans le runbook.
 Le journal d'audit est la preuve en cas de litige ou de contrôle. Le rendre
 détectablement inaltérable (par exemple un chaînage de hachage par
 enregistrement) pour les événements financiers et d'identité.
+
+**Fait (PR #255)** : chaînage SHA-256 (`hash`/`prevHash`) sur
+`CHAINED_ACTIONS` (`src/lib/audit.ts`) — paiements, réservations, factures
+hôte, crédits, remboursements, vérifications KYC/CIN/téléphone/e-mail,
+vérification d'annonce, promotion Wakil, suspension/réactivation/
+suppression de compte. Écritures concurrentes protégées par
+compare-and-swap (`updateMany`, même idiome que `settleKonnectBooking`),
+zéro SQL brut. **Deux bugs réels trouvés via un test de charge à 25
+écritures vraiment concurrentes contre Postgres réel** (pas de simples
+mocks) : (1) effet troupeau sans jitter entre les tentatives de CAS — 3/25
+échouaient même après 20 tentatives, corrigé ; (2) le script de
+vérification triait par `createdAt` au lieu de suivre les liens
+`prevHash`/`hash` — produisait de fausses alertes de rupture sous
+concurrence réelle, corrigé avant tout usage. `scripts/backfill-audit-
+chain.ts` (historique) et `scripts/verify-audit-chain.ts` (lecture seule,
+exit 1 si rupture) testés de bout en bout, y compris une altération
+manuelle directe d'une ligne détectée avec précision. Détail complet :
+`docs/SECURITE_DONNEES.md` §4.
+
+**Phase 3 close ici** pour tout ce qui ne dépend pas de Wassim — P3.1
+(brief W4) et P3.2 (intégration des conclusions) restent ⛔🧑, bloquants
+avant tout encaissement réel mais non bloquants pour la suite du
+développement.
 
 ---
 

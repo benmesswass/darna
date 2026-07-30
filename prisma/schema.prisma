@@ -948,10 +948,32 @@ model AuditLog {
   metadata  String   @default("{}") // JSON stringifié
   success   Boolean  @default(true)
   createdAt DateTime @default(now())
+  // Chaînage de hachage (ROADMAP.md §P3.5) : posé UNIQUEMENT pour les actions
+  // financières/identité (CHAINED_ACTIONS, src/lib/audit.ts) — null pour le
+  // reste, comportement inchangé. hash = sha256(prevHash + action + userId +
+  // metadata + success + createdAt) ; prevHash = hash de l'enregistrement
+  // chaîné précédent ("genesis" pour le tout premier). Un enregistrement
+  // altéré après coup casse la chaîne de façon détectable (scripts/
+  // verify-audit-chain.ts) sans empêcher l'écriture (jamais bloquant pour
+  // le flux métier, cf. logAudit()).
+  hash      String?
+  prevHash  String?
 
   @@index([userId])
   @@index([action, createdAt])
   @@index([createdAt]) // Pour les purges de rétention
+}
+
+/**
+ * Pointeur singleton vers le dernier hash de la chaîne d'audit (§P3.5).
+ * Écrit via compare-and-swap (update conditionné sur l'ancienne valeur lue)
+ * pour serialiser les écritures concurrentes SANS SQL brut ni verrou
+ * explicite (`SELECT ... FOR UPDATE` nécessiterait $queryRaw, exclu par
+ * CLAUDE.md). Une seule ligne, id fixe "singleton".
+ */
+model AuditChainState {
+  id       String @id
+  lastHash String
 }
 
 /**
