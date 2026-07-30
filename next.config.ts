@@ -1,5 +1,9 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
+import bundleAnalyzer from "@next/bundle-analyzer";
+
+// ROADMAP.md §P4.1 — ANALYZE=true npm run build. Dev-only, no-op sinon.
+const withBundleAnalyzer = bundleAnalyzer({ enabled: process.env.ANALYZE === "true" });
 
 // Nonces CSP sont gérés par src/middleware.ts (générés par requête).
 // Ce fichier positionne les headers statiques qui ne nécessitent pas de nonce.
@@ -53,7 +57,7 @@ const nextConfig: NextConfig = {
 // DSN réel obtenu). tunnelRoute proxie les events via /monitoring (same-
 // origin) — pas besoin d'élargir la CSP à un domaine tiers pour autant
 // (connect-src 'self' suffit déjà, cf. src/middleware.ts).
-export default withSentryConfig(nextConfig, {
+export default withSentryConfig(withBundleAnalyzer(nextConfig), {
   silent: true,
   tunnelRoute: "/monitoring",
 });
