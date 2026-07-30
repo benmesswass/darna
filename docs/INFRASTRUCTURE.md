@@ -258,6 +258,16 @@ facturé** sous 10 Go).
 | `S3_REGION` | `auto` |
 | `S3_PUBLIC_URL` | URL publique `r2.dev` |
 
+⚠️ **Seuils gratuits R2 à surveiller** : 10 Go stockage, 1M opérations
+Class A (écritures/uploads), 10M Class B (lectures/affichage) par mois —
+au-delà, facturation automatique sur la carte enregistrée (pas de plafond
+dur, pas de reconfirmation). Vérifié le 2026-07-30 : très largement
+suffisant pour un staging à trafic humain/interne (336 photos seedées,
+non indexé donc pas de bots). **Repasser sur ces chiffres dès que le
+trafic devient réel** — passage en production (§P1.8) ou terrain (phase 6,
+`ROADMAP.md`) — dans le dashboard Cloudflare → *Storage & databases* → *R2*
+→ `darna-staging-uploads` (stats d'usage affichées en haut de la page).
+
 **Étape 9 — Resend (10 min).** https://resend.com/signup → *API Keys* →
 *Create API Key*. Sans domaine vérifié, Resend n'envoie **que vers l'adresse
 du compte** — suffisant et sans risque pour du staging.
