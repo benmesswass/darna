@@ -117,3 +117,68 @@ la nouvelle clé.
 - Suspicion de fuite de `KYC_ENC_KEY`.
 - Rotation périodique de routine (pas de fréquence imposée aujourd'hui —
   à trancher si un jour exigé par un partenaire/audit).
+
+## 4. Intégrité du journal d'audit (chaînage de hachage, §P3.5)
+
+`AuditLog` (`src/lib/audit.ts`) est la preuve en cas de litige ou de
+contrôle. Les actions **financières et identité** (liste `CHAINED_ACTIONS`
+dans `src/lib/audit.ts` — paiements, réservations, factures hôte, crédits,
+remboursements, vérifications KYC/CIN/téléphone/e-mail, vérification
+d'annonce, promotion Wakil, suspension/réactivation/suppression de compte)
+sont chaînées par hachage SHA-256 : chaque ligne inclut `hash` (dépend de
+`prevHash` + ses propres champs) et `prevHash` (le `hash` de la ligne
+chaînée précédente). Modifier une ligne après coup casse la chaîne de façon
+détectable. Le reste de l'audit log (connexions, mise à jour de profil,
+etc.) garde son comportement actuel, sans surcoût — périmètre volontairement
+resserré, ajustable dans `CHAINED_ACTIONS` (dupliqué intentionnellement dans
+les deux scripts ci-dessous, cf. commentaire dans `audit.ts`).
+
+### Concurrence — pourquoi ce n'est pas trivial
+
+Le journal reçoit des écritures de partout dans l'app, potentiellement en
+parallèle (plusieurs requêtes serveur simultanées). Deux écritures
+concurrentes qui liraient le même "dernier hash" produiraient une
+**fourche** (deux lignes revendiquant le même prédécesseur) — la chaîne ne
+serait plus une preuve fiable. `logAudit()` protège contre ça par
+compare-and-swap sur `AuditChainState` (pointeur singleton vers le dernier
+hash) via `updateMany({ where: { lastHash: <valeur lue> } })` : si une autre
+écriture a déjà avancé le pointeur entre-temps, `count === 0` et on relit +
+retente — même idiome que `settleKonnectBooking`
+(`src/lib/payments.ts`), zéro SQL brut, zéro verrou explicite.
+
+**Testé sous charge réelle** (pas seulement en théorie) : 25 écritures
+vraiment concurrentes (`Promise.all`) contre Postgres réel.
+- 1ʳᵉ version (retry immédiat, sans délai) : **3/25 échouaient** même après
+  20 tentatives — effet troupeau, les perdants d'un round se réveillent
+  tous au même instant et retentent tous ensemble, donc certains n'ont
+  jamais l'occasion de gagner. Corrigé par un jitter aléatoire entre les
+  tentatives (`chainRetryDelayMs`) — **25/25 réussies, de façon reproductible
+  sur plusieurs runs** après le correctif.
+- Piège écarté en vérifiant : l'ordre dans lequel une écriture GAGNE la
+  course CAS peut différer de l'ordre dans lequel son `createdAt` a été
+  capturé (un writer peut capturer un timestamp plus tôt mais perdre la
+  course et être chaîné après). `scripts/verify-audit-chain.ts` suit donc
+  les liens `prevHash`/`hash` de la chaîne elle-même, jamais un tri par
+  date — la première version du script (triée par `createdAt`) produisait
+  de **fausses alertes de rupture** sur des écritures pourtant intactes dès
+  qu'il y avait de la vraie concurrence. Corrigé avant tout usage réel.
+
+### Scripts
+
+- `scripts/backfill-audit-chain.ts` — chaîne les lignes historiques
+  (écrites avant l'introduction de cette fonctionnalité). Lancement **une
+  seule fois**, juste après la migration, avant toute écriture chaînée en
+  conditions réelles. Ne prouve l'absence d'altération qu'à partir de son
+  exécution, pas rétroactivement sur l'historique déjà existant — limite
+  inhérente, pas un bug.
+- `scripts/verify-audit-chain.ts` — lecture seule, vérifie toute la chaîne,
+  exit 1 si une rupture est détectée (utilisable en job planifié). Signale
+  précisément quelle(s) ligne(s) posent problème.
+
+Testé de bout en bout (base locale) : lignes historiques manufacturées →
+backfill → vérification (intacte) → écritures live réelles en plus →
+vérification (toujours intacte) → **altération manuelle directe d'une
+ligne** (`UPDATE` du `metadata` en laissant le `hash` intact, comme un
+attaquant qui ignorerait le mécanisme de chaînage) → vérification :
+**la ligne altérée est détectée avec précision**, une seule rupture
+signalée, exactement la ligne modifiée.
