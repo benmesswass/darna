@@ -5,10 +5,13 @@ import { logStructured } from "@/lib/audit";
 import { runJobs } from "@/lib/jobs/runner";
 
 /**
- * Socle scheduler (LANCEMENT_ROADMAP.md §L3.1) — appelé par Vercel Cron
- * toutes les 15 min (`vercel.json`), qui envoie automatiquement
- * `Authorization: Bearer ${CRON_SECRET}` quand la variable existe côté
- * projet Vercel. En dev/local : `CRON_SECRET` dans `.env`, puis
+ * Socle scheduler (LANCEMENT_ROADMAP.md §L3.1) — appelé toutes les 15 min
+ * par un cron EXTERNE (cron-job.org, `docs/INFRASTRUCTURE.md` §3 piège n°1),
+ * PAS le Cron natif Vercel (`vercel.json` supprimé — un cron plus fréquent
+ * que quotidien y bloque le déploiement ENTIER sur le plan Hobby, pas
+ * seulement en retard). Le cron externe doit donc envoyer lui-même
+ * `Authorization: Bearer ${CRON_SECRET}` (aucune injection automatique côté
+ * plateforme). En dev/local : `CRON_SECRET` dans `.env`, puis
  * `curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/jobs/tick`
  * (voir `.env.example`).
  *

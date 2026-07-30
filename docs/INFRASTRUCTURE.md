@@ -83,8 +83,12 @@ etc.) fait échouer le **démarrage** du serveur (`src/lib/env.ts`, validé par
 2. **Variables d'environnement** : les poser dans Vercel → Project Settings →
    Environment Variables, **séparément pour `Preview` (staging) et
    `Production`** — jamais la même valeur de secret des deux côtés (cf. §2).
-   Vercel injecte automatiquement `Authorization: Bearer $CRON_SECRET` sur
-   les appels Cron : rien à câbler côté `vercel.json` au-delà du `path`.
+   Le scheduler n'utilise **pas** le Cron natif Vercel (retiré de
+   `vercel.json`, cf. « piège n°1 » ci-dessous — bloquait le déploiement
+   entier sur le plan Hobby) : c'est le cron externe (cron-job.org) qui doit
+   envoyer lui-même `Authorization: Bearer $CRON_SECRET`, à configurer
+   explicitement côté cron-job.org (pas d'injection automatique comme
+   l'aurait fait Vercel Cron).
 3. **Neon** : créer un projet Neon, copier `DATABASE_URL` (pooler,
    `?pgbouncer=true&connection_limit=10&pool_timeout=20&sslmode=require`) et
    `DIRECT_URL` (connexion directe, port 5432) dans les variables Vercel.
@@ -291,15 +295,21 @@ nominal** : impossible en local, Konnect ne peut pas joindre `localhost`
 
 ### Les 3 pièges qui coûtent des heures
 
-1. **Le cron Vercel Hobby ne s'exécute qu'une fois par jour.**
-   `vercel.json` demande `*/15 * * * *`, mais le plan gratuit plafonne à une
-   exécution quotidienne. Les jobs tourneraient avec jusqu'à 24 h de retard —
-   inacceptable pour la relance d'abandon (qui doit partir dans l'heure).
-   Solution retenue pour le staging : un cron externe gratuit
-   (https://cron-job.org) appelant toutes les 15 min
+1. **Le cron Vercel Hobby ne se contente pas de s'exécuter en retard — il
+   bloque le déploiement ENTIER.** Découvert le 2026-07-30 (statut Vercel
+   sur PR #263, corrigé en PR #264) : un
+   `vercel.json` déclarant `*/15 * * * *` fait échouer **tout déploiement**
+   sur le plan Hobby (« Hobby accounts are limited to daily cron jobs »,
+   pas juste « le job tournera en retard » comme on l'avait d'abord estimé).
+   `vercel.json` a donc été **supprimé** (plus aucun cron natif Vercel) — la
+   seule source de vérité du scheduling est désormais le cron externe
+   gratuit (https://cron-job.org) appelant toutes les 15 min
    `https://<domaine>/api/jobs/tick` avec l'en-tête
-   `Authorization: Bearer <CRON_SECRET>`. En production : plan Vercel Pro ou
-   le même cron externe.
+   `Authorization: Bearer <CRON_SECRET>` **posé explicitement côté
+   cron-job.org** (Vercel n'injecte plus rien automatiquement, puisque ce
+   n'est plus lui qui appelle). Vercel Pro règlerait aussi la limite native,
+   mais n'est plus nécessaire pour le scheduling — seulement pour le point 2
+   ci-dessous (usage commercial).
 2. **Le plan Hobby de Vercel interdit l'usage commercial.** Sans risque pour
    du staging, mais la production de Darna est commerciale : prévoir **Vercel
    Pro (~20 $/mois)** au moment de `ROADMAP.md` §P1.8. C'est le **premier
@@ -358,9 +368,11 @@ Playwright contre staging.
   `SITE_URL` ≠ `https://darna.tn` exactement (staging, preview, localhost),
   `robots.txt` renvoie `disallow: "/"` — aucune donnée de démo ne doit
   jamais être indexée par un moteur de recherche.
-- **`vercel.json`** : ne contient aujourd'hui que le cron `/api/jobs/tick`
-  (§L3.1) — c'est suffisant, Vercel déduit le reste (build command, output)
-  du framework Next.js détecté automatiquement. Aucune configuration
-  `functions`/`regions` supplémentaire nécessaire au lancement (à revisiter
+- **`vercel.json`** : **supprimé** (2026-07-30, §3 piège n°1 — le cron natif
+  qu'il portait bloquait tout déploiement sur le plan Hobby). Aucun fichier
+  de config nécessaire : Vercel déduit tout (build command, output) du
+  framework Next.js détecté automatiquement. Le scheduler (§L3.1) tourne
+  désormais exclusivement via le cron externe cron-job.org. Aucune
+  configuration `functions`/`regions` nécessaire au lancement (à revisiter
   si la latence Vercel↔Neon devient un problème mesuré — choisir la région
   Vercel la plus proche de la région Neon choisie, pas avant).

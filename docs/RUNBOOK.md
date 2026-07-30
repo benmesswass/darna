@@ -72,9 +72,10 @@ réconciliation Konnect ne rattrape plus les paiements manqués (cf. §1), la
 purge de rétention RGPD ne s'exécute plus (`/confidentialite` fait alors
 une promesse non tenue — cf. §L7.2).
 
-**Vérifier** : dashboard Vercel → Cron Jobs → dernière exécution de
-`/api/jobs/tick` et son statut. `vercel.json` le programme toutes les
-15 min.
+**Vérifier** : dashboard cron-job.org (pas Vercel — le Cron natif Vercel a
+été retiré le 2026-07-30, `docs/INFRASTRUCTURE.md` §3 piège n°1, il
+bloquait tout déploiement sur le plan Hobby) → historique d'exécution de
+la tâche appelant `/api/jobs/tick` toutes les 15 min et son statut.
 
 **Déclencher manuellement** (utile pour tester ou rattraper un trou) :
 ```
