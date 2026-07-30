@@ -635,7 +635,7 @@ prolongement de P2.10.
 | P3.1 | ⛔ W4 — avis juridique (flux, TVA, CGU, fiscalité, V2) | P0 | ❌ 🧑 |
 | P3.2 | Intégrer les conclusions de W4 (CGU, affichage TVA, mentions) | P0 | ❌ (après P3.1) |
 | P3.3 | Versionnement des CGU + traçabilité de l'acceptation | P1 | ❌ (CGU hôte fait, PR #253 — CGU générale hors scope, voir note) |
-| P3.4 | Revue de périmètre PCI + politique de rétention/rotation CIN | P1 | ✅ PR #TODO |
+| P3.4 | Revue de périmètre PCI + politique de rétention/rotation CIN | P1 | ✅ PR #254 |
 | P3.5 | Intégrité du journal d'audit (anti-altération) | P2 | ❌ |
 
 ### P3.1 🧑
@@ -692,7 +692,7 @@ partenaire. Documenter la durée de conservation de la CIN chiffrée, qui y
 accède, et **tester une rotation de `KYC_ENC_KEY`** (procédure jamais
 éprouvée : si la clé fuit, il faut savoir la changer sans perdre les données).
 
-**Fait (PR #TODO)** : `docs/SECURITE_DONNEES.md` (référencé depuis
+**Fait (PR #254)** : `docs/SECURITE_DONNEES.md` (référencé depuis
 `CLAUDE.md`) couvre les trois volets. Périmètre PCI confirmé en lisant le
 code (`src/lib/konnect.ts` : `initKonnectPayment()` ne manipule que
 `payUrl`/`paymentRef`, jamais de données de carte). Rétention/accès CIN
