@@ -246,7 +246,7 @@ tout pour faire le palier 1 :
 Wassim, ils sortent de la contrainte « zéro service payant » qui visait le
 développement, pas l'exploitation) :
 1. **Le cron Vercel Hobby ne se contente pas de tourner en retard — il
-   bloque le déploiement entier** (découvert le 2026-07-30, PR #TODO :
+   bloque le déploiement entier** (découvert le 2026-07-30, PR #264 :
    un `vercel.json` déclarant `*/15 * * * *` fait échouer tout déploiement
    sur Hobby). `vercel.json` supprimé — solution retenue, désormais seule
    source de vérité : cron externe gratuit (cron-job.org) appelant

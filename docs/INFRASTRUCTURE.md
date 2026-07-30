@@ -297,7 +297,7 @@ nominal** : impossible en local, Konnect ne peut pas joindre `localhost`
 
 1. **Le cron Vercel Hobby ne se contente pas de s'exécuter en retard — il
    bloque le déploiement ENTIER.** Découvert le 2026-07-30 (statut Vercel
-   sur PR #263, corrigé en PR #TODO) : un
+   sur PR #263, corrigé en PR #264) : un
    `vercel.json` déclarant `*/15 * * * *` fait échouer **tout déploiement**
    sur le plan Hobby (« Hobby accounts are limited to daily cron jobs »,
    pas juste « le job tournera en retard » comme on l'avait d'abord estimé).
