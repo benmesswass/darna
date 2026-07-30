@@ -245,11 +245,14 @@ tout pour faire le palier 1 :
 **Deux arbitrages de coût que cette tâche fait remonter** (à valider par
 Wassim, ils sortent de la contrainte « zéro service payant » qui visait le
 développement, pas l'exploitation) :
-1. **Le cron Vercel Hobby ne s'exécute qu'une fois par jour** alors que
-   `vercel.json` demande `*/15 * * * *` → la relance d'abandon (P7/G6)
-   arriverait jusqu'à 24 h trop tard. Solution retenue : cron externe gratuit
-   (cron-job.org) appelant `/api/jobs/tick` avec `Authorization: Bearer
-   <CRON_SECRET>`. Alternative : Vercel Pro.
+1. **Le cron Vercel Hobby ne se contente pas de tourner en retard — il
+   bloque le déploiement entier** (découvert le 2026-07-30, PR #TODO :
+   un `vercel.json` déclarant `*/15 * * * *` fait échouer tout déploiement
+   sur Hobby). `vercel.json` supprimé — solution retenue, désormais seule
+   source de vérité : cron externe gratuit (cron-job.org) appelant
+   `/api/jobs/tick` avec `Authorization: Bearer <CRON_SECRET>` posé
+   explicitement côté cron-job.org. Détail complet :
+   `docs/INFRASTRUCTURE.md` §3 piège n°1.
 2. **Le plan Hobby interdit l'usage commercial** → **Vercel Pro (~20 $/mois)
    sera nécessaire en P1.8**. Premier coût fixe réel du projet.
 
