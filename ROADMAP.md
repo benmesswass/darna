@@ -635,7 +635,7 @@ prolongement de P2.10.
 | P3.1 | ⛔ W4 — avis juridique (flux, TVA, CGU, fiscalité, V2) | P0 | ❌ 🧑 |
 | P3.2 | Intégrer les conclusions de W4 (CGU, affichage TVA, mentions) | P0 | ❌ (après P3.1) |
 | P3.3 | Versionnement des CGU + traçabilité de l'acceptation | P1 | ❌ (CGU hôte fait, PR #253 — CGU générale hors scope, voir note) |
-| P3.4 | Revue de périmètre PCI + politique de rétention/rotation CIN | P1 | ❌ |
+| P3.4 | Revue de périmètre PCI + politique de rétention/rotation CIN | P1 | ✅ PR #TODO |
 | P3.5 | Intégrité du journal d'audit (anti-altération) | P2 | ❌ |
 
 ### P3.1 🧑
@@ -691,6 +691,24 @@ Confirmer par écrit qu'aucune donnée de carte ne touche jamais Darna
 partenaire. Documenter la durée de conservation de la CIN chiffrée, qui y
 accède, et **tester une rotation de `KYC_ENC_KEY`** (procédure jamais
 éprouvée : si la clé fuit, il faut savoir la changer sans perdre les données).
+
+**Fait (PR #TODO)** : `docs/SECURITE_DONNEES.md` (référencé depuis
+`CLAUDE.md`) couvre les trois volets. Périmètre PCI confirmé en lisant le
+code (`src/lib/konnect.ts` : `initKonnectPayment()` ne manipule que
+`payUrl`/`paymentRef`, jamais de données de carte). Rétention/accès CIN
+documentés en identifiant le SEUL chemin de code qui déchiffre
+(`src/app/contrat/[id]/page.tsx`, accès restreint propriétaire/auteur de
+la demande). Rotation `KYC_ENC_KEY` : `scripts/rotate-kyc-key.ts` écrit
+ET testé (pas seulement documenté) contre une base locale avec une CIN
+chiffrée manufacturée — rotation réussie vérifiée via le vrai
+`decryptSensitive()`/`hashCin()`, dry-run vérifié sans écriture, échec
+avec une mauvaise clé vérifié sans corruption (échec net, aucune CIN
+loguée). Runbook §3 documente l'ordre impératif des étapes (la rotation
+doit terminer intégralement avant que l'environnement de prod ne bascule
+sur la nouvelle clé, `KYC_ENC_KEY` servant à la fois de clé ET de poivre
+pour `cinHash`). Testé uniquement en local — aucune base de production
+accessible depuis cet environnement, limite documentée explicitement
+dans le runbook.
 
 ### P3.5
 Le journal d'audit est la preuve en cas de litige ou de contrôle. Le rendre
