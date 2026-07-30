@@ -18,6 +18,7 @@ import {
 } from "@/lib/constants";
 import { verticalEnabled, kycGatingEnabled } from "@/lib/modes";
 import {
+  CURRENT_CASH_TERMS_VERSION,
   FEATURED_DURATION_DAYS,
   FEATURED_PRICE_TND,
   HOST_CANCELLATION_SIGNAL_DAYS,
@@ -41,27 +42,58 @@ export type PropertyFormState = { error?: string } | undefined;
 /**
  * Résout l'activation du paiement sur place (Rail 2, PAIEMENT_SUR_PLACE_ROADMAP.md
  * §PSP2) — factorisé entre création et modification pour ne pas dupliquer la garde.
- * Réservé aux annonces SEJOUR. L'horodatage d'acceptation des CGU hôte n'est posé
- * QUE lors de la transition false → true (jamais confiance au client pour la
- * date elle-même) ; `undefined` signifie « ne pas toucher au champ existant ».
+ * Réservé aux annonces SEJOUR. L'horodatage + la version des CGU hôte acceptées
+ * (ROADMAP.md §P3.3) ne sont posés QUE lors d'une transition false → true OU
+ * quand `storedVersion` diffère de CURRENT_CASH_TERMS_VERSION (jamais confiance
+ * au client) ; `undefined` signifie « ne pas toucher au champ existant ».
+ * `isNewActivation` distingue une VRAIE première activation (false → true)
+ * d'une simple ré-acceptation d'une version obsolète sur un toggle déjà actif
+ * — seule la première doit déclencher le ProductEvent CASH_PAYMENT_ENABLED
+ * (§L5.7, discipline IN4 : pas de faux signal d'adoption sur une resauvegarde).
  */
 function resolveCashPayment(
   type: string,
   requestedEnabled: boolean,
   termsAccepted: boolean,
   wasEnabled: boolean,
+  storedVersion: number | null,
   fr: Awaited<ReturnType<typeof getT>>
 ):
-  | { ok: true; cashPaymentEnabled: boolean; cashTermsAcceptedAt: Date | undefined }
+  | {
+      ok: true;
+      cashPaymentEnabled: boolean;
+      cashTermsAcceptedAt: Date | undefined;
+      cashTermsVersion: number | undefined;
+      isNewActivation: boolean;
+    }
   | { ok: false; error: string } {
   if (type !== "SEJOUR" || !requestedEnabled) {
-    return { ok: true, cashPaymentEnabled: false, cashTermsAcceptedAt: undefined };
+    return {
+      ok: true,
+      cashPaymentEnabled: false,
+      cashTermsAcceptedAt: undefined,
+      cashTermsVersion: undefined,
+      isNewActivation: false,
+    };
   }
-  if (!wasEnabled) {
+  const needsAcceptance = !wasEnabled || storedVersion !== CURRENT_CASH_TERMS_VERSION;
+  if (needsAcceptance) {
     if (!termsAccepted) return { ok: false, error: fr.annonceForm.cashTermsRequise };
-    return { ok: true, cashPaymentEnabled: true, cashTermsAcceptedAt: new Date() };
+    return {
+      ok: true,
+      cashPaymentEnabled: true,
+      cashTermsAcceptedAt: new Date(),
+      cashTermsVersion: CURRENT_CASH_TERMS_VERSION,
+      isNewActivation: !wasEnabled,
+    };
   }
-  return { ok: true, cashPaymentEnabled: true, cashTermsAcceptedAt: undefined };
+  return {
+    ok: true,
+    cashPaymentEnabled: true,
+    cashTermsAcceptedAt: undefined,
+    cashTermsVersion: undefined,
+    isNewActivation: false,
+  };
 }
 
 const createSchema = z
@@ -126,12 +158,14 @@ export async function createPropertyAction(
     return { error: fr.common.erreurInconnue };
   }
 
-  // Paiement sur place (Rail 2) : à la création, "wasEnabled" est toujours faux.
+  // Paiement sur place (Rail 2) : à la création, "wasEnabled" est toujours faux
+  // (pas de version stockée non plus, l'annonce n'existe pas encore).
   const cashPayment = resolveCashPayment(
     data.type,
     data.cashPaymentEnabled,
     data.cashTermsAccepted,
     false,
+    null,
     fr
   );
   if (!cashPayment.ok) return { error: cashPayment.error };
@@ -205,6 +239,7 @@ export async function createPropertyAction(
       cancelPolicy: data.type === "SEJOUR" ? data.cancelPolicy : "MODEREE",
       cashPaymentEnabled: cashPayment.cashPaymentEnabled,
       cashTermsAcceptedAt: cashPayment.cashTermsAcceptedAt,
+      cashTermsVersion: cashPayment.cashTermsVersion,
       expiresAt: new Date(Date.now() + LISTING_LIFETIME_DAYS * 24 * 60 * 60 * 1000),
       ownerId: user.id,
       photos: { create: photoRecords },
@@ -223,7 +258,7 @@ export async function createPropertyAction(
     metadata: { propertyId: property.id, type: data.type, city: cityRef.name },
   });
 
-  if (cashPayment.cashTermsAcceptedAt) {
+  if (cashPayment.isNewActivation) {
     void logProductEvent({
       event: "CASH_PAYMENT_ENABLED",
       userId: user.id,
@@ -272,6 +307,7 @@ async function requireOwnProperty(propertyId: string) {
       slug: true,
       title: true,
       cashPaymentEnabled: true,
+      cashTermsVersion: true,
     },
   });
   if (!property || property.ownerId !== user.id) {
@@ -341,6 +377,7 @@ export async function updatePropertyAction(
     data.cashPaymentEnabled,
     data.cashTermsAccepted,
     property.cashPaymentEnabled,
+    property.cashTermsVersion,
     fr
   );
   if (!cashPayment.ok) return { error: cashPayment.error };
@@ -365,6 +402,7 @@ export async function updatePropertyAction(
       cancelPolicy: property.type === "SEJOUR" ? data.cancelPolicy : "MODEREE",
       cashPaymentEnabled: cashPayment.cashPaymentEnabled,
       cashTermsAcceptedAt: cashPayment.cashTermsAcceptedAt,
+      cashTermsVersion: cashPayment.cashTermsVersion,
       // Détails séjour (table satellite, M2) : tenu synchrone avec le shadow.
       stay:
         property.type === "SEJOUR" && data.maxGuests && data.stayKind
@@ -387,7 +425,7 @@ export async function updatePropertyAction(
     metadata: { propertyId: property.id },
   });
 
-  if (cashPayment.cashTermsAcceptedAt) {
+  if (cashPayment.isNewActivation) {
     void logProductEvent({
       event: "CASH_PAYMENT_ENABLED",
       userId: user.id,

@@ -254,9 +254,14 @@ model Property {
   // Paiement sur place (Rail 2, PAIEMENT_SUR_PLACE_ROADMAP.md) : opt-in HÔTE,
   // annonce SEJOUR uniquement. `cashTermsAcceptedAt` = horodatage d'acceptation
   // des CGU hôte dédiées, posé SERVEUR uniquement à l'activation (jamais confiance
-  // au client) — null tant que jamais activé.
+  // au client) — null tant que jamais activé. `cashTermsVersion` (ROADMAP.md §P3.3)
+  // = version des CGU hôte acceptée à cet horodatage ; une version stockée
+  // différente de CURRENT_CASH_TERMS_VERSION (src/lib/config.ts) force une
+  // ré-acceptation (resolveCashPayment) au prochain enregistrement, même si
+  // cashPaymentEnabled était déjà true.
   cashPaymentEnabled        Boolean   @default(false)
   cashTermsAcceptedAt       DateTime?
+  cashTermsVersion          Int?
   // Annulation hôte (ANNULATION_HOTE_ROADMAP.md) : date de fin du blocage
   // temporaire de l'annonce suite à une annulation par l'hôte (null = pas
   // bloquée). Même esprit que `expiresAt` : filtre paresseux sur une date,

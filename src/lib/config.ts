@@ -139,6 +139,15 @@ export const LISTING_LIFETIME_DAYS = 30;
  *  « bientôt expirée » dans le centre de notifications (F9). */
 export const LISTING_EXPIRE_SOON_DAYS = 5;
 
+/**
+ * Version courante des CGU hôte (paiement sur place, ROADMAP.md §P3.3).
+ * Incrémenter à chaque changement de contenu des CGU hôte
+ * (src/lib/i18n/{fr,en,ar}.ts, clé `annonceForm.cashTerms*`) : tout hôte
+ * dont `Property.cashTermsVersion` stocké diffère de cette valeur devra
+ * ré-accepter au prochain enregistrement (resolveCashPayment).
+ */
+export const CURRENT_CASH_TERMS_VERSION = 1;
+
 /** Seuil (jours restants) à partir duquel une HostInvoice EN_ATTENTE est
  *  signalée « bientôt due » (PAIEMENT_SUR_PLACE_ROADMAP.md §PSP5). */
 export const HOST_INVOICE_DUE_SOON_DAYS = 3;

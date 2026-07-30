@@ -3,8 +3,10 @@
  * sur place (Rail 2, §PSP2) sur updatePropertyAction. `cashTermsAcceptedAt` ne
  * doit JAMAIS être posé sans passer par la garde serveur (resolveCashPayment,
  * src/actions/properties.ts) : un hôte ne peut pas activer le toggle sans
- * accepter les CGU (transition false→true), ni forcer une re-acceptation
- * quand le mode est déjà actif (undefined = ne pas toucher au champ existant).
+ * accepter les CGU (transition false→true), ni sans ré-accepter quand la
+ * version stockée (`cashTermsVersion`, ROADMAP.md §P3.3) est obsolète — mais
+ * PAS de re-acceptation forcée quand le mode est déjà actif ET la version à
+ * jour (undefined = ne pas toucher au champ existant).
  */
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 
@@ -49,6 +51,7 @@ function baseProperty(over: Record<string, unknown> = {}) {
     slug: "villa-hammamet-abc123",
     title: "Villa",
     cashPaymentEnabled: false,
+    cashTermsVersion: null,
     ...over,
   };
 }
@@ -89,7 +92,7 @@ describe("updatePropertyAction — non-bypass de cashTermsAcceptedAt (§PSP7)", 
     expect(propertyUpdate).not.toHaveBeenCalled();
   });
 
-  it("active le paiement sur place et pose cashTermsAcceptedAt SEULEMENT si les CGU sont acceptées (contrôle positif)", async () => {
+  it("active le paiement sur place et pose cashTermsAcceptedAt + cashTermsVersion SEULEMENT si les CGU sont acceptées (contrôle positif)", async () => {
     propertyFindUnique.mockResolvedValue(baseProperty({ cashPaymentEnabled: false }));
 
     await updatePropertyAction(
@@ -101,6 +104,7 @@ describe("updatePropertyAction — non-bypass de cashTermsAcceptedAt (§PSP7)", 
     const data = propertyUpdate.mock.calls[0][0].data;
     expect(data.cashPaymentEnabled).toBe(true);
     expect(data.cashTermsAcceptedAt).toBeInstanceOf(Date);
+    expect(data.cashTermsVersion).toBe(1);
     // §L5.7 — discipline IN4 : le ProductEvent part uniquement sur une VRAIE
     // activation (transition false→true avec CGU acceptées).
     expect(logProductEventMock).toHaveBeenCalledWith(
@@ -108,8 +112,10 @@ describe("updatePropertyAction — non-bypass de cashTermsAcceptedAt (§PSP7)", 
     );
   });
 
-  it("ne force PAS une nouvelle acceptation quand le mode est déjà actif (cashTermsAcceptedAt intact, undefined = pas de mutation)", async () => {
-    propertyFindUnique.mockResolvedValue(baseProperty({ cashPaymentEnabled: true }));
+  it("ne force PAS une nouvelle acceptation quand le mode est déjà actif ET la version à jour (undefined = pas de mutation)", async () => {
+    propertyFindUnique.mockResolvedValue(
+      baseProperty({ cashPaymentEnabled: true, cashTermsVersion: 1 })
+    );
 
     const result = await updatePropertyAction(
       undefined,
@@ -121,8 +127,44 @@ describe("updatePropertyAction — non-bypass de cashTermsAcceptedAt (§PSP7)", 
     const data = propertyUpdate.mock.calls[0][0].data;
     expect(data.cashPaymentEnabled).toBe(true);
     expect(data.cashTermsAcceptedAt).toBeUndefined();
+    expect(data.cashTermsVersion).toBeUndefined();
     // Pas de nouvelle activation → pas de nouveau ProductEvent (éviterait de
     // fausser le taux d'adoption avec des resauvegardes).
+    expect(logProductEventMock).not.toHaveBeenCalled();
+  });
+
+  it("refuse l'enregistrement si le mode est déjà actif mais la version stockée est obsolète, sans ré-acceptation (§P3.3)", async () => {
+    // Simule un hôte pré-versionnement (jamais backfillé) ou une future version 2.
+    propertyFindUnique.mockResolvedValue(
+      baseProperty({ cashPaymentEnabled: true, cashTermsVersion: 0 })
+    );
+
+    const result = await updatePropertyAction(
+      undefined,
+      updateForm({ cashPaymentEnabled: "true", cashTermsAccepted: "false" })
+    );
+
+    expect(result).toEqual({ error: "CGU hôte requises." });
+    expect(propertyUpdate).not.toHaveBeenCalled();
+  });
+
+  it("ré-accepte et remonte la version quand le mode est déjà actif mais la version stockée est obsolète (§P3.3)", async () => {
+    propertyFindUnique.mockResolvedValue(
+      baseProperty({ cashPaymentEnabled: true, cashTermsVersion: 0 })
+    );
+
+    await updatePropertyAction(
+      undefined,
+      updateForm({ cashPaymentEnabled: "true", cashTermsAccepted: "true" })
+    );
+
+    expect(propertyUpdate).toHaveBeenCalledTimes(1);
+    const data = propertyUpdate.mock.calls[0][0].data;
+    expect(data.cashTermsAcceptedAt).toBeInstanceOf(Date);
+    expect(data.cashTermsVersion).toBe(1);
+    // Ré-acceptation après version obsolète : pas une PREMIÈRE activation,
+    // donc pas de nouveau ProductEvent CASH_PAYMENT_ENABLED (le hôte utilisait
+    // déjà le paiement sur place, ce n'est pas une nouvelle adoption).
     expect(logProductEventMock).not.toHaveBeenCalled();
   });
 
