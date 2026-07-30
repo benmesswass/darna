@@ -744,7 +744,7 @@ développement.
 
 | # | Tâche | Prio | Statut |
 |---|---|---|---|
-| P4.1 | Analyse de bundle et réduction du JS partagé | P1 | ❌ |
+| P4.1 | Analyse de bundle et réduction du JS partagé | P1 | ❌ (motion + Leaflet traités, PR #256 — bundler/i18n reportés par choix de Wassim) |
 | P4.2 | Budget Lighthouse **bloquant** | P2 | ❌ (après P4.1) |
 | P4.3 | Session de test sur device réel (FR + AR/RTL) | P1 | ❌ 🧑 |
 
@@ -759,6 +759,40 @@ librairie UI lourde »), l'embarquement simultané des 3 dictionnaires côté
 client (seule la locale active devrait l'être), et la confirmation que
 Leaflet reste bien hors du bundle initial.
 **Acceptation** : rapport chiffré avant/après ; cible < 200 kB partagé.
+
+**Fait (PR #256)** : les 3 suspects nommés, tous investigués et chiffrés
+(pas estimés). **Leaflet** déjà correctement en import dynamique
+`ssr:false` — confirmé hors bundle initial, rien à faire. **`motion`**
+retiré entièrement (4 usages simples réécrits en CSS pur +
+`IntersectionObserver`, `useRevealOnScroll.ts`) — gain réel mesuré sur
+les pages qui l'utilisaient : `/sejours` 364→326 kB, `/hote/[id]`
+355→317 kB, `/immobilier` 359→322 kB (mais **pas** sur le chiffre
+« partagé par toutes les pages », motion n'en faisait pas partie).
+**i18n** (fr/en/ar bundlés ensemble, ~390 Ko de source) confirmé comme
+contributeur réel du JS partagé — tentative de correctif par rendu
+conditionnel serveur de 3 `LocaleProviderFr/En/Ar` : hypothèse fausse
+(vérifiée sur deux builds réels, Turbopack et webpack), le chunking
+Next.js se décide au build, pas par requête, donc une branche
+conditionnée par une valeur runtime (cookie) ne se découpe pas
+statiquement — refactor annulé proprement, aucune régression mais aucun
+gain. Un vrai correctif exigerait un chargement async (Suspense, risque
+de flash sur ~100 composants clients) ou des URLs par locale (routage
+plus large) — soumis à Wassim.
+
+**Découverte hors périmètre** : sous Turbopack (config actuelle),
+326 kB partagé ; le MÊME code compilé en webpack classique ne fait que
+191 kB (déjà sous la cible 200 kB) — le choix du bundler est le levier
+le plus important pour ce ticket, plus que le code applicatif.
+
+**Tranché par Wassim (2026-07-30)** : rester sur Turbopack pour
+l'instant (webpack ralentirait probablement les builds CI/Vercel) et ne
+pas lancer le chantier i18n maintenant (limite documentée, à reprendre
+si le poids de page devient un problème mesuré). Le JS partagé reste
+donc à 326 kB — cible < 200 kB **non atteinte**, décision produit
+assumée plutôt qu'un chantier supplémentaire non demandé.
+
+`@next/bundle-analyzer` branché (`ANALYZE=true npm run build`) pour
+rejouer la mesure facilement si repris plus tard.
 
 ### P4.2
 Rendre bloquant le job Lighthouse (aujourd'hui informatif, `nightly.yml`) :
