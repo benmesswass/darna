@@ -634,7 +634,7 @@ prolongement de P2.10.
 |---|---|---|---|
 | P3.1 | ⛔ W4 — avis juridique (flux, TVA, CGU, fiscalité, V2) | P0 | ❌ 🧑 |
 | P3.2 | Intégrer les conclusions de W4 (CGU, affichage TVA, mentions) | P0 | ❌ (après P3.1) |
-| P3.3 | Versionnement des CGU + traçabilité de l'acceptation | P1 | ❌ (CGU hôte fait, PR #244 — CGU générale hors scope, voir note) |
+| P3.3 | Versionnement des CGU + traçabilité de l'acceptation | P1 | ❌ (CGU hôte fait, PR #253 — CGU générale hors scope, voir note) |
 | P3.4 | Revue de périmètre PCI + politique de rétention/rotation CIN | P1 | ❌ |
 | P3.5 | Intégrité du journal d'audit (anti-altération) | P2 | ❌ |
 
@@ -656,7 +656,7 @@ cas de litige, impossible de prouver ce que l'hôte a accepté. Ajouter un
 numéro de version aux CGU/CGU hôte et le stocker à l'acceptation ; imposer
 une ré-acceptation quand la version change.
 
-**Fait pour la CGU hôte (PR #244)** : investigation préalable a montré que
+**Fait pour la CGU hôte (PR #253)** : investigation préalable a montré que
 « CGU / CGU hôte » recouvrait deux chantiers de taille très différente —
 la CGU hôte (paiement cash) avait déjà un mécanisme d'acceptation
 (`cashTermsAcceptedAt` sur `Property`) à qui il suffisait d'ajouter une
