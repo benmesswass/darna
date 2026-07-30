@@ -24,7 +24,7 @@ Jamais livrer du code sans dire à Wassim comment le vérifier. Si une migration
 
 **Dès qu'une tâche est livrée (mergée)** : cocher `✅` dans `ROADMAP.md` et noter la PR **dans la même PR que la livraison** — une roadmap qui dérive du code est un piège pour la session suivante.
 
-**Références de fond** (ne sont pas des roadmaps, ne contiennent aucune tâche) : `docs/INFRASTRUCTURE.md` (déploiement, rollback, restauration, matrice d'environnement) et `docs/ARGUMENTAIRE_HOTE.md` (asset commercial). Les commentaires de code contiennent encore des renvois historiques (`§PM1`, `§MI3`, `§L5.3`, `§G5`…) vers ces fichiers supprimés : ils documentent l'origine d'une fonctionnalité, ne pas chercher à ouvrir le fichier cité — la table de correspondance est en annexe D de `ROADMAP.md`.
+**Références de fond** (ne sont pas des roadmaps, ne contiennent aucune tâche) : `docs/INFRASTRUCTURE.md` (déploiement, rollback, restauration, matrice d'environnement), `docs/ARGUMENTAIRE_HOTE.md` (asset commercial) et `docs/SECURITE_DONNEES.md` (périmètre PCI, rétention/accès CIN, runbook de rotation `KYC_ENC_KEY`). Les commentaires de code contiennent encore des renvois historiques (`§PM1`, `§MI3`, `§L5.3`, `§G5`…) vers ces fichiers supprimés : ils documentent l'origine d'une fonctionnalité, ne pas chercher à ouvrir le fichier cité — la table de correspondance est en annexe D de `ROADMAP.md`.
 
 ## Workflow PR (règle absolue)
 
