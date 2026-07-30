@@ -8,6 +8,10 @@ name: CI
 #     audit + e2e + api. Règle de merge : `fast` ET `full`/`e2e`/`api` verts
 #     sur le commit de tête (voir CLAUDE.md §Workflow PR).
 #   - Niveau 3 (semgrep + ZAP + k6, nightly) : voir `nightly.yml`, jamais ici.
+#   - `migration-gate` (P5.5, ROADMAP.md) : gate indépendant de la pyramide
+#     ci-dessus, sur tout événement de PR (y compris `labeled`) — bloque une
+#     migration destructive sans le label `migration-approved`. Requis dans
+#     « CI verte » au même titre que `fast`/`gitleaks`.
 # `paths-ignore` sur push/pull_request : une grosse part des PR du projet
 # sont des PR de roadmap (*.md) — zéro CI consommée pour ça.
 on:
@@ -67,6 +71,29 @@ jobs:
       - uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Gate migration (P5.5, ROADMAP.md) : bloque toute migration Prisma
+  # potentiellement destructive (DROP TABLE/COLUMN, ALTER COLUMN, TRUNCATE,
+  # DROP DATABASE/SCHEMA) tant que la PR ne porte pas le label
+  # `migration-approved`. Contrairement à `fast`/`gitleaks` ci-dessus (qui
+  # sautent l'événement `labeled` car un label ne change pas le code), CE
+  # job doit au contraire tourner sur `labeled` : c'est précisément l'ajout
+  # du label qui fait passer le job d'échec à succès. Zéro dépendance npm
+  # (script Node builtins uniquement) : pas de `npm ci`, job très rapide.
+  migration-gate:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Vérifie l'absence de migration destructive non approuvée
+        env:
+          MIGRATION_GATE_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          MIGRATION_GATE_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          MIGRATION_GATE_PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: node scripts/check-destructive-migrations.mjs
 
   # Niveau 2 : coverage + build + audit. Ne relance PAS lint/typecheck
   # (déjà couverts par `fast` sur ce même commit de tête). `test:coverage`

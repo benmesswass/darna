@@ -825,8 +825,8 @@ installée depuis l'écran d'accueil. Jamais fait. Rapport + captures.
 | P5.1 | Runbook opérationnel « jour 1 » | P1 | ✅ PR #260 |
 | P5.2 | Balayage d'intégrité des données (job) | P1 | ✅ PR #262 |
 | P5.3 | Tests de dégradation gracieuse (Redis/Konnect/Resend down) | P1 | ✅ PR #263 |
-| P5.4 | Budget d'erreur + seuils d'alerte | P2 | ❌ |
-| P5.5 | Gate de sécurité des migrations | P2 | ❌ |
+| P5.4 | Budget d'erreur + seuils d'alerte | P2 | ❌ (après P1.5 — ⛔ W8) |
+| P5.5 | Gate de sécurité des migrations | P2 | ✅ PR #265 |
 | P5.6 | Scan d'image/dépendances + SBOM | P2 | ❌ |
 
 ### P5.1
@@ -884,10 +884,36 @@ Définir les seuils qui déclenchent une alerte : taux de 5xx, pic d'échecs
 d'authentification, taux d'échec de paiement, job qui ne tourne plus depuis
 1 h. Brancher sur le canal W8.
 
+**Sauté (bloqué transitivement)** : brancher des seuils d'alerte sur un
+canal (W8) qui n'existe pas encore n'a pas de sens — P1.5 (⛔ W8, Sentry +
+webhook d'alertes) n'est pas tranché. Reprendre dès que P1.5 l'est.
+
 ### P5.5
 Une migration destructive (DROP/ALTER de colonne) ne doit pas passer sans
 approbation explicite : job CI qui détecte les mots-clés destructifs dans
 `prisma/migrations/` et exige un label sur la PR.
+
+**Fait (PR #265)** : `scripts/check-destructive-migrations.mjs` (zéro
+dépendance npm, Node builtins uniquement) — scanne les fichiers `.sql`
+ajoutés/modifiés par la PR sous `prisma/migrations/` à la recherche de
+`DROP TABLE`, `DROP COLUMN`, `DROP DATABASE`, `DROP SCHEMA`, `TRUNCATE`,
+`ALTER COLUMN` (insensible à la casse, ignore les lignes de commentaire SQL).
+Volontairement conservateur : `ALTER COLUMN` déclenche même pour un simple
+`SET DEFAULT` — le coût d'un label superflu est négligeable face au risque
+qu'un vrai changement de type/downtime passe inaperçu. Nouveau job CI
+`migration-gate` (`ci.yml`), tourne sur tout événement de PR (y compris
+`labeled`, contrairement à `fast`/`gitleaks` : c'est justement l'ajout du
+label qui doit faire passer le job d'échec à succès) — échoue si une
+migration destructive n'a pas le label `migration-approved` posé sur la PR.
+Label créé au premier usage réel (le picker GitHub propose « create new
+label » à la pose si absent — aucun outil MCP disponible ici pour le créer à
+l'avance). 17 tests unitaires sur la logique pure (mots-clés, parsing du
+label) + vérification manuelle en conditions réelles (worktree jetable,
+vraies migrations/commits Git, 6 scénarios : destructive sans label bloque,
+destructive avec label passe, aucune migration touchée passe, migration
+sûre (ADD COLUMN) passe, SHA invalide échoue fermé, fallback local
+`origin/main...HEAD` fonctionne) — la plomberie git/CLI n'est pas
+unit-testée (même convention que les autres scripts de `scripts/`).
 
 ### P5.6
 `npm audit --audit-level=high` est déjà dans la CI. Ajouter la génération
