@@ -819,7 +819,7 @@ installée depuis l'écran d'accueil. Jamais fait. Rapport + captures.
 
 | # | Tâche | Prio | Statut |
 |---|---|---|---|
-| P5.1 | Runbook opérationnel « jour 1 » | P1 | ❌ |
+| P5.1 | Runbook opérationnel « jour 1 » | P1 | ✅ PR #260 |
 | P5.2 | Balayage d'intégrité des données (job) | P1 | ❌ |
 | P5.3 | Tests de dégradation gracieuse (Redis/Konnect/Resend down) | P1 | ❌ |
 | P5.4 | Budget d'erreur + seuils d'alerte | P2 | ❌ |
@@ -833,6 +833,14 @@ site est down, comment faire un rollback (renvoi vers
 `docs/INFRASTRUCTURE.md` §5). Public : Wassim en tant qu'opérateur unique.
 Une réponse « je regarde le matin » est acceptable — mais elle doit être
 écrite.
+
+**Fait (PR #260)** : chaque section vérifiée contre le comportement réel du
+code (pas rédigée de mémoire) — notamment que le modèle commission-only
+rend un échec de paiement Konnect sans conséquence sur l'hébergement
+(la réservation expire d'elle-même), que le traitement des factures hôte
+impayées est déjà entièrement automatique, et — honnêteté assumée — qu'il
+n'existe aujourd'hui aucune alerte qui réveillerait Wassim la nuit
+(⛔ W8 non tranché).
 
 ### P5.2
 Job ajouté à `/api/jobs/tick` : détecte les incohérences silencieuses
