@@ -820,7 +820,7 @@ installée depuis l'écran d'accueil. Jamais fait. Rapport + captures.
 | # | Tâche | Prio | Statut |
 |---|---|---|---|
 | P5.1 | Runbook opérationnel « jour 1 » | P1 | ✅ PR #260 |
-| P5.2 | Balayage d'intégrité des données (job) | P1 | ❌ |
+| P5.2 | Balayage d'intégrité des données (job) | P1 | ✅ PR #262 |
 | P5.3 | Tests de dégradation gracieuse (Redis/Konnect/Resend down) | P1 | ❌ |
 | P5.4 | Budget d'erreur + seuils d'alerte | P2 | ❌ |
 | P5.5 | Gate de sécurité des migrations | P2 | ❌ |
@@ -848,6 +848,18 @@ Job ajouté à `/api/jobs/tick` : détecte les incohérences silencieuses
 pendante, crédit dont le ledger ne somme pas au solde du wallet) et alerte
 via `notifyObservability`. Sur un produit financier, une corruption
 silencieuse coûte plus cher qu'une panne visible.
+
+**Fait (PR #262)** : 5ᵉ job (`data-integrity-check`), lecture seule.
+Vérifié en lisant le schéma que toutes les FK couvertes sont déjà
+appliquées par Postgres/Prisma (`onDelete: Cascade`) — un résultat non
+nul signale donc une manipulation hors application ou un bug de
+migration, jamais un chemin d'usage normal. `notifyObservability` du
+ticket ne correspond à aucune fonction existante — utilisé le
+mécanisme réel (`captureError`). Ledger de crédits vérifié contre
+`CreditWallet.balance = SUM(CreditTransaction.amount)`
+(`VerificationWallet` exclu, pas de ledger associé par design).
+Requêtes testées contre la base locale réelle en plus des mocks (0
+incohérence sur données saines).
 
 ### P5.3
 Tester que l'app survit à : Redis indisponible (le rate limiting doit

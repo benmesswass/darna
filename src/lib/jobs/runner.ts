@@ -4,6 +4,7 @@ import { reconcileKonnectPayments } from "@/lib/jobs/konnect-reconciliation";
 import { remindAbandonedBookings } from "@/lib/jobs/booking-abandon-reminder";
 import { remindHostInvoices } from "@/lib/jobs/host-invoice-reminder";
 import { purgeRetention } from "@/lib/jobs/retention-purge";
+import { checkDataIntegrity } from "@/lib/jobs/data-integrity-check";
 
 /**
  * Socle scheduler (LANCEMENT_ROADMAP.md §L3.1) — amendement au principe
@@ -66,6 +67,7 @@ const jobs: Job[] = [
   { name: "booking-abandon-reminder", run: remindAbandonedBookings },
   { name: "host-invoice-reminder", run: remindHostInvoices },
   { name: "retention-purge", run: purgeRetention },
+  { name: "data-integrity-check", run: checkDataIntegrity },
 ];
 
 export async function runJobs(): Promise<JobResult[]> {
