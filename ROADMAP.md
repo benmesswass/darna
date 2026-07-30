@@ -826,7 +826,7 @@ installée depuis l'écran d'accueil. Jamais fait. Rapport + captures.
 | P5.2 | Balayage d'intégrité des données (job) | P1 | ✅ PR #262 |
 | P5.3 | Tests de dégradation gracieuse (Redis/Konnect/Resend down) | P1 | ✅ PR #263 |
 | P5.4 | Budget d'erreur + seuils d'alerte | P2 | ❌ (après P1.5 — ⛔ W8) |
-| P5.5 | Gate de sécurité des migrations | P2 | ✅ PR #TODO |
+| P5.5 | Gate de sécurité des migrations | P2 | ✅ PR #265 |
 | P5.6 | Scan d'image/dépendances + SBOM | P2 | ❌ |
 
 ### P5.1
@@ -893,7 +893,7 @@ Une migration destructive (DROP/ALTER de colonne) ne doit pas passer sans
 approbation explicite : job CI qui détecte les mots-clés destructifs dans
 `prisma/migrations/` et exige un label sur la PR.
 
-**Fait (PR #TODO)** : `scripts/check-destructive-migrations.mjs` (zéro
+**Fait (PR #265)** : `scripts/check-destructive-migrations.mjs` (zéro
 dépendance npm, Node builtins uniquement) — scanne les fichiers `.sql`
 ajoutés/modifiés par la PR sous `prisma/migrations/` à la recherche de
 `DROP TABLE`, `DROP COLUMN`, `DROP DATABASE`, `DROP SCHEMA`, `TRUNCATE`,
