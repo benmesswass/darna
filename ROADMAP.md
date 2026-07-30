@@ -745,7 +745,7 @@ développement.
 | # | Tâche | Prio | Statut |
 |---|---|---|---|
 | P4.1 | Analyse de bundle et réduction du JS partagé | P1 | ❌ (motion + Leaflet traités, PR #256 — bundler/i18n reportés par choix de Wassim) |
-| P4.2 | Budget Lighthouse **bloquant** | P2 | ❌ (après P4.1) |
+| P4.2 | Budget Lighthouse **bloquant** | P2 | ❌ (mesuré, non actionné par choix de Wassim — voir note) |
 | P4.3 | Session de test sur device réel (FR + AR/RTL) | P1 | ❌ 🧑 |
 
 ### P4.1
@@ -797,6 +797,17 @@ rejouer la mesure facilement si repris plus tard.
 ### P4.2
 Rendre bloquant le job Lighthouse (aujourd'hui informatif, `nightly.yml`) :
 LCP < 2,5 s en mobile throttlé sur `/`, `/sejours` et une page annonce.
+
+**Mesuré (2026-07-30, build prod local, mobile throttlé simulé)** avant de
+rendre quoi que ce soit bloquant : les 3 pages échouent LARGEMENT la
+cible aujourd'hui — Accueil LCP 4,61 s, Recherche 4,53 s, Annonce
+4,12 s (CLS bon, 0.000 partout). Très probablement lié au même poids JS
+que P4.1 (326 Ko partagé, cf. note P4.1) — rendre le check bloquant
+maintenant l'aurait fait échouer immédiatement sans qu'aucun travail de
+perf n'ait encore été fait. **Tranché par Wassim (2026-07-30)** :
+cohérent avec sa décision P4.1, ne pas rendre bloquant pour l'instant —
+Lighthouse reste informatif (`nightly.yml`, comportement inchangé). À
+reprendre en même temps que le chantier bundle si/quand repriorisé.
 
 ### P4.3 🧑
 Un Android milieu de gamme, en 4G, parcours complet FR puis AR/RTL, PWA
