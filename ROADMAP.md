@@ -827,7 +827,7 @@ installée depuis l'écran d'accueil. Jamais fait. Rapport + captures.
 | P5.3 | Tests de dégradation gracieuse (Redis/Konnect/Resend down) | P1 | ✅ PR #263 |
 | P5.4 | Budget d'erreur + seuils d'alerte | P2 | ❌ (après P1.5 — ⛔ W8) |
 | P5.5 | Gate de sécurité des migrations | P2 | ✅ PR #265 |
-| P5.6 | Scan d'image/dépendances + SBOM | P2 | ✅ PR #TODO |
+| P5.6 | Scan d'image/dépendances + SBOM | P2 | ✅ PR #268 |
 | P5.7 | Vulnérabilité résiduelle `brace-expansion` (ESLint, devDependency) | P3 | ❌ (bloqué en amont) |
 
 ### P5.1
@@ -921,7 +921,7 @@ unit-testée (même convention que les autres scripts de `scripts/`).
 d'un SBOM et un scan de vulnérabilités (Trivy) pour la chaîne
 d'approvisionnement.
 
-**Fait (PR #TODO)** : nouveau job CI `supply-chain` (même déclenchement que
+**Fait (PR #268)** : nouveau job CI `supply-chain` (même déclenchement que
 `full`/`e2e`/`api` — label `ready-to-merge` ou `workflow_dispatch`). Génère
 un SBOM CycloneDX via `npm sbom` (natif npm ≥ 9, aucune dépendance
 supplémentaire), uploadé comme artifact CI (14 jours, même convention que
