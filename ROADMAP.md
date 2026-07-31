@@ -920,6 +920,26 @@ unit-testée (même convention que les autres scripts de `scripts/`).
 d'un SBOM et un scan de vulnérabilités (Trivy) pour la chaîne
 d'approvisionnement.
 
+**Fait** : nouveau job `sbom-scan` dans `nightly.yml` (même niveau 3 que
+semgrep/ZAP/Lighthouse/k6 — jamais sur push/pull_request). SBOM via
+`npm sbom --sbom-format cyclonedx` (natif npm ≥ 9.7, zéro dépendance
+ajoutée, vérifié en local : CycloneDX 1.5 valide, 659 composants), publié
+en artifact (14 j, même convention que les autres rapports du repo). Scan
+Trivy (`aquasecurity/trivy-action@v0.36.0`, `scan-type: fs`) en
+HIGH/CRITICAL, rapport publié dans `$GITHUB_STEP_SUMMARY` (même patron que
+ZAP). **Volontairement informatif** (`exit-code: "0"`) pour ce premier
+run — même posture que ZAP/Lighthouse à leur introduction : `npm audit`
+seul remonte déjà 9 failles « high » sur l'état actuel des dépendances
+(vérifié en local via `npm install`, non trié rupture/faux positif/déjà
+connu) et personne n'a encore lu un premier rapport Trivy sur ce dépôt —
+le rendre bloquant aujourd'hui casserait le nightly à l'aveugle. Prochaine
+étape naturelle une fois le premier rapport lu : calibrer un seuil et
+passer en bloquant (comme suggéré pour Lighthouse en P4.2).
+**Non vérifiable de bout en bout depuis le sandbox Claude** : Trivy n'est
+pas installable ici (binaire non-npm, hôte de distribution hors liste
+blanche réseau) — seul `npm sbom` a pu être testé en conditions réelles, le
+job complet doit être vérifié sur son premier run CI réel.
+
 ---
 
 # PHASE 6 — TERRAIN & PREMIERS UTILISATEURS (business — dès staging en ligne)

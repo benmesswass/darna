@@ -332,3 +332,63 @@ jobs:
             tail -30 /tmp/k6-booking.log
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+
+  # ROADMAP.md §P5.6 : SBOM (inventaire des dépendances, CycloneDX via
+  # `npm sbom` — natif npm ≥ 9.7, zéro dépendance ajoutée, cf. l'esprit
+  # « zéro dépendance » de scripts/check-destructive-migrations.mjs) + scan
+  # de vulnérabilités de la chaîne d'approvisionnement (Trivy). Complète
+  # `npm audit --audit-level=high` (déjà bloquant dans `full`, ci.yml) par un
+  # scan plus large (composants transitifs, format standard exploitable par
+  # un outil tiers). Nightly comme semgrep/ZAP/k6 ci-dessus, jamais sur
+  # push/pull_request. Informatif pour ce premier run (même posture que
+  # ZAP/Lighthouse à leur introduction, cf. commentaires ci-dessus) : seuils
+  # pas encore calibrés sur un vrai résultat de CE dépôt — à rendre bloquant
+  # une fois le premier rapport lu.
+  sbom-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Générer le SBOM (CycloneDX)
+        run: npm sbom --sbom-format cyclonedx > sbom.cyclonedx.json
+
+      - name: Upload SBOM (artifact)
+        uses: actions/upload-artifact@v7
+        with:
+          name: sbom
+          path: sbom.cyclonedx.json
+          retention-days: 14
+
+      - name: Trivy — scan de vulnérabilités (chaîne d'approvisionnement)
+        # exit-code 0 volontaire (informatif) : premier run réel sur ce
+        # dépôt, seuils non calibrés — voir commentaire du job ci-dessus.
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          format: table
+          output: trivy-report.txt
+          exit-code: "0"
+
+      - name: Rapport Trivy (page du run)
+        if: always()
+        run: |
+          {
+            echo "## 🔎 Rapport Trivy (chaîne d'approvisionnement)"
+            echo ""
+            if [ -f trivy-report.txt ]; then
+              echo '```'
+              cat trivy-report.txt
+              echo '```'
+            else
+              echo "Rapport introuvable — voir les logs du step Trivy ci-dessus."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
