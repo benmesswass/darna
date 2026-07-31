@@ -187,6 +187,18 @@ en bas, **Danger Zone** → **Change repository visibility** → **Make public**
 | 4 | **⛔ W4 — envoyer le brief avocat** (5 points déjà rédigés, §3) | 🧑 5 min, **en parallèle, dès maintenant** | Zéro dépendance code — peut partir aujourd'hui pendant que 1-3 se déroulent. Le staging Konnect sandbox réduit la distance au premier dinar réel : le délai juridique doit courir avant P1.8, pas au moment de P1.8 |
 | 5 | **⛔ W7 — 3 premières conversations propriétaires**, URL du staging sur le téléphone (§3) | 🧑, **en parallèle, dès maintenant** | L'excuse « rien à montrer » est morte depuis que le staging existe. Zéro dépendance code. Dix conversations valent plus que dix PR de plus |
 
+**Ligne 2 ✅ (31/07)** : #261 était déjà mergée en arrivant sur cette section ;
+run `workflow_dispatch` complet déclenché directement sur `main` (détail en
+P1.3) — `fast`/`gitleaks`/`api`/`supply-chain`/`full` verts avec logs
+complets, `e2e` en cours de finalisation. **Lignes 1/3(partiel)/4/5
+restent 🧑** — la partie « Claude » de la ligne 3 (smoke Playwright + webhook
+Konnect contre le staging) s'est heurtée à une limite déjà documentée en
+P1.3 : ce sandbox n'a pas d'accès réseau sortant vers `*.vercel.app`/Neon
+(liste blanche restreinte, vérifié en testant) — infaisable depuis cet
+environnement, pas juste non fait. Cette section reste donc **non vidée**,
+mais son seul point non-🧑 encore ouvert (le smoke test) est bloqué par une
+contrainte d'environnement, pas par une tâche de code restante.
+
 **Ce qu'il ne faut PAS faire pendant que ceci est en cours** : merger les PR
 Dependabot majeures ouvertes (#247/#248/#249/#250/#251/#252 — Next 16, Prisma
 7, ESLint 10, jsdom 30…) — elles sont phase 8 (dette), un bump majeur
@@ -224,7 +236,7 @@ au fonctionnement normal (§0 : première tâche non cochée de la phase 1).
 |---|---|---|---|
 | P1.1 | Rattrapage e2e/API en local (angle mort d'une semaine) | P0 | ✅ PR #230 |
 | P1.2 | CI verte de bout en bout (+ ⛔ W3) | P0 | ❌ (d fait, PR #231 — a/b/c attendent le quota) |
-| P1.3 | Déploiement **staging** (⛔ W1) | P0 | ❌ (palier 1+2 en ligne — PR #261, R2 restant + CI bloquée par quota) |
+| P1.3 | Déploiement **staging** (⛔ W1) | P0 | ❌ (palier 1+2 en ligne, PR #261 mergée, CI débloquée — R2 seul restant, 🧑) |
 | P1.4 | Smoke tests contre staging + correctifs prod-only | P0 | ❌ (après P1.3) |
 | P1.5 | Brancher les yeux : Sentry, alertes, uptime (⛔ W8) | P0 | ❌ 🧑 |
 | P1.6 | Drill de restauration de backup + vérif du cron réel | P0 | ❌ (après P1.3) |
@@ -299,14 +311,18 @@ pour l'instant : sans lui tout ce qui existait déjà au déploiement fonctionne
 normalement, seul un nouvel upload via le site déployé ne persisterait pas
 (disque serverless éphémère).
 
-PR #261 propre après fusion de `main` (résolution du conflit avec PR #264
-sur `vercel.json` — voir note juste en dessous) mais **reste bloquée sur la
-CI** : quota GitHub Actions toujours épuisé au 31/07 (`fast`/`gitleaks`
-rejetés en ~10 s sans logs, même signature que le 29/07 malgré l'estimation
-« reset ~31/07 » du §1) — donc pas encore mergeable, conformément à la règle
-absolue CI verte + validation Wassim. W3 (dépôt public ou runner
-self-hosted) reste le vrai correctif : le quota s'épuise en quelques heures
-dès qu'une session enchaîne beaucoup de PR, pas seulement une fois par mois.
+**Mergée (31/07)**, après résolution du conflit avec PR #264 sur
+`vercel.json` (voir note juste en dessous). Le quota GitHub Actions s'est
+reconstitué le 31/07 au soir (les runs qui échouaient en ~10 s sans logs
+tournent de nouveau à terme, plusieurs minutes chacun, logs complets
+disponibles) : `workflow_dispatch` déclenché directement sur `main` (run
+`30671201222`) — `fast`/`gitleaks`/`api`/`supply-chain`/`full` tous verts
+avec logs complets, `e2e` en cours au moment d'écrire ceci. Satisfait le
+point 2 de §2bis. W3 (dépôt public) **reste** le vrai correctif structurel :
+rien ne garantit que le quota ne se réépuise pas dès qu'une session enchaîne
+de nouveau plusieurs PR — cette reconstitution ponctuelle n'est pas une
+preuve que le problème est résolu durablement, seulement qu'il n'est pas
+bloquant *là, maintenant*.
 
 > 📖 **GUIDE PAS-À-PAS COMPLET : `docs/INFRASTRUCTURE.md` §7.** Ouvrir ce
 > document dès qu'on attaque cette tâche et le suivre **dans l'ordre, sans
@@ -911,7 +927,7 @@ installée depuis l'écran d'accueil. Jamais fait. Rapport + captures.
 | P5.4 | Budget d'erreur + seuils d'alerte | P2 | ❌ (après P1.5 — ⛔ W8) |
 | P5.5 | Gate de sécurité des migrations | P2 | ✅ PR #265 |
 | P5.6 | Scan d'image/dépendances + SBOM | P2 | ✅ PR #268 |
-| P5.7 | Vulnérabilité résiduelle `brace-expansion` (ESLint, devDependency) | P3 | ❌ (bloqué en amont) |
+| P5.7 | Vulnérabilité résiduelle `brace-expansion` (ESLint, devDependency) | P3 | ✅ PR #270 |
 
 ### P5.1
 `docs/RUNBOOK.md` : que faire si un paiement échoue, si une facture hôte
