@@ -827,7 +827,7 @@ installée depuis l'écran d'accueil. Jamais fait. Rapport + captures.
 | P5.3 | Tests de dégradation gracieuse (Redis/Konnect/Resend down) | P1 | ✅ PR #263 |
 | P5.4 | Budget d'erreur + seuils d'alerte | P2 | ❌ (après P1.5 — ⛔ W8) |
 | P5.5 | Gate de sécurité des migrations | P2 | ✅ PR #265 |
-| P5.6 | Scan d'image/dépendances + SBOM | P2 | ❌ |
+| P5.6 | Scan d'image/dépendances + SBOM | P2 | ✅ PR #266 |
 
 ### P5.1
 `docs/RUNBOOK.md` : que faire si un paiement échoue, si une facture hôte
