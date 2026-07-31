@@ -866,7 +866,8 @@ installée depuis l'écran d'accueil. Jamais fait. Rapport + captures.
 | P5.3 | Tests de dégradation gracieuse (Redis/Konnect/Resend down) | P1 | ✅ PR #263 |
 | P5.4 | Budget d'erreur + seuils d'alerte | P2 | ❌ (après P1.5 — ⛔ W8) |
 | P5.5 | Gate de sécurité des migrations | P2 | ✅ PR #265 |
-| P5.6 | Scan d'image/dépendances + SBOM | P2 | ❌ |
+| P5.6 | Scan d'image/dépendances + SBOM | P2 | ✅ PR #268 |
+| P5.7 | Vulnérabilité résiduelle `brace-expansion` (ESLint, devDependency) | P3 | ❌ (bloqué en amont) |
 
 ### P5.1
 `docs/RUNBOOK.md` : que faire si un paiement échoue, si une facture hôte
@@ -958,6 +959,61 @@ unit-testée (même convention que les autres scripts de `scripts/`).
 `npm audit --audit-level=high` est déjà dans la CI. Ajouter la génération
 d'un SBOM et un scan de vulnérabilités (Trivy) pour la chaîne
 d'approvisionnement.
+
+**Fait (PR #268)** : nouveau job CI `supply-chain` (même déclenchement que
+`full`/`e2e`/`api` — label `ready-to-merge` ou `workflow_dispatch`). Génère
+un SBOM CycloneDX via `npm sbom` (natif npm ≥ 9, aucune dépendance
+supplémentaire), uploadé comme artifact CI (14 jours, même convention que
+coverage/allure). Scan Trivy en mode `fs` (système de fichiers — **aucune
+image Docker dans ce projet**, déploiement Vercel sans Dockerfile, vérifié
+avant d'implémenter), `scanners: vuln` uniquement (gitleaks couvre déjà les
+secrets, zéro chevauchement voulu), seuil `HIGH,CRITICAL` — même barre que
+`npm audit --audit-level=high`.
+
+**Découverte importante en cours de route** : `npm audit --audit-level=high`
+échoue **déjà, indépendamment de cette PR**, avec 9 vulnérabilités « high »
+— en réalité un seul CVE (`brace-expansion` — DoS par expansion illimitée,
+GHSA-mh99-v99m-4gvg) qui se propage en cascade via `eslint-config-next` →
+`eslint`/`eslint-plugin-*`. Resté invisible tout ce chantier car `full` (le
+seul job qui exécute `npm audit`) n'a jamais fini de tourner une seule fois
+cette session, toujours tué en 2-10 s par le quota GitHub Actions avant
+d'atteindre cette étape — le nouveau job `supply-chain` va très probablement
+reproduire le même échec via Trivy (base de vulnérabilités différente, même
+CVE public) dès qu'il aura vraiment l'occasion de tourner.
+
+Trois tentatives de correctif via `overrides` (le mécanisme déjà utilisé
+dans ce repo pour `sharp`/`postcss`) — **aucune n'a abouti proprement**,
+détaillées en P5.7 : la vraie cause est que le CVE touche à la fois l'ancien
+`brace-expansion@1.x` (utilisé par `minimatch@3.1.5`, dépendance figée
+profondément dans `@eslint/eslintrc`) et le récent `5.x` (API
+incompatible entre les deux lignes) — aucune version unique ne satisfait
+les deux en même temps sans casser `eslint` ou `npm sbom`. Correctif complet
+hors de portée de ce repo tant qu'une dépendance amont
+(`@eslint/eslintrc`/`eslint-config-next`) n'a pas elle-même mis à jour son
+`minimatch`. Impact réel : **nul** — chaîne 100 % devDependency (outillage
+lint), jamais exécutée en production, aucune exposition utilisateur.
+
+### P5.7
+Suite de P5.6 : `npm audit --audit-level=high` (job `full`) et le nouveau
+`supply-chain` (Trivy) échoueront tous les deux sur `brace-expansion`
+(GHSA-mh99-v99m-4gvg, cascade via `eslint-config-next`) tant qu'aucun
+correctif amont n'est disponible — **hors de portée** d'un `overrides` dans
+ce repo (voir P5.6, 3 tentatives échouées : casse soit `eslint`, soit
+`npm sbom`, selon la portée du override). Zéro exposition production
+(devDependency, outillage lint uniquement).
+
+**À faire quand `full`/`supply-chain` bloquent réellement un merge** (pas
+avant — le quota GitHub Actions a empêché `full` de tourner à terme toute
+cette session, donc pas urgent) :
+1. Vérifier si une version plus récente de `eslint-config-next`, `eslint`,
+   ou `@typescript-eslint/*` a corrigé sa dépendance `minimatch`/
+   `brace-expansion` en amont (`npm outdated`, `npm audit` à nouveau).
+2. Si oui : mise à jour normale (pas un `overrides`), revérifier
+   `npm run lint` + `npx tsc --noEmit`.
+3. Si toujours pas corrigé en amont : discuter avec Wassim d'une exception
+   documentée et datée (allowlist Trivy/`npm audit` pour ce CVE précis, avec
+   justification écrite) plutôt que de bloquer indéfiniment tout merge sur
+   un faux positif de risque réel — décision produit, pas à prendre seul.
 
 ---
 
