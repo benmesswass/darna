@@ -5,7 +5,7 @@
  * HOTE part de 0 et doit payer à l'unité) et consommation atomique (jamais de
  * solde négatif, jamais de double-consommation).
  */
-import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -83,6 +83,13 @@ describe("verificationCreditsRemaining", () => {
 });
 
 describe("consumeVerificationCredit", () => {
+  // P6.2 : le bypass AGENCE (jamais de consommation) n'est actif que quand le
+  // flag est DÉSACTIVÉ — ces tests verrouillent le comportement de
+  // consommation réelle (opt-in), donc l'activent explicitement. Le bypass
+  // lui-même a son propre test plus bas.
+  beforeEach(() => vi.stubEnv("GROWTH_MONETIZATION_ENABLED", "true"));
+  afterEach(() => vi.unstubAllEnvs());
+
   it("AGENCE : consomme un crédit quand le solde est positif", async () => {
     updateMany.mockResolvedValue({ count: 1 });
     expect(await consumeVerificationCredit("u1", "AGENCE")).toBe(true);
@@ -124,5 +131,19 @@ describe("consumeVerificationCredit", () => {
     const upsertOrder = upsert.mock.invocationCallOrder[0];
     const updateManyOrder = updateMany.mock.invocationCallOrder[0];
     expect(upsertOrder).toBeLessThan(updateManyOrder);
+  });
+
+  it("P6.2 — AGENCE : retourne true SANS toucher la base tant que le flag n'est pas actif", async () => {
+    vi.stubEnv("GROWTH_MONETIZATION_ENABLED", "false");
+    expect(await consumeVerificationCredit("agence-x", "AGENCE")).toBe(true);
+    expect(upsert).not.toHaveBeenCalled();
+    expect(updateMany).not.toHaveBeenCalled();
+  });
+
+  it("P6.2 — HOTE : le bypass ne s'applique jamais, même flag désactivé (régime toujours payant)", async () => {
+    vi.stubEnv("GROWTH_MONETIZATION_ENABLED", "false");
+    updateMany.mockResolvedValue({ count: 0 });
+    expect(await consumeVerificationCredit("hote-x", "HOTE")).toBe(false);
+    expect(upsert).toHaveBeenCalled();
   });
 });

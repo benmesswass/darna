@@ -1081,7 +1081,7 @@ suivie avant de trancher :
 | # | Tâche | Prio | Statut |
 |---|---|---|---|
 | P6.1 | ⛔ W7 — 10 conversations propriétaires, 5 annonces réelles | P0 | ❌ 🧑 |
-| P6.2 | Élaguer la surface visible au lancement (flags) | P1 | ❌ |
+| P6.2 | Élaguer la surface visible au lancement (flags) | P1 | ✅ PR #271 |
 | P6.3 | Intégrer les objections terrain en tâches produit | P1 | ❌ (après P6.1) |
 | P6.4 | Recruter et former 1-2 Wakils réels | P1 | ❌ 🧑 |
 | P6.5 | Conformité comme argument commercial (page diaspora) | P2 | ❌ |
@@ -1100,6 +1100,58 @@ Le produit porte 4 mécanismes de monétisation, 3 systèmes de crédits et
 abonnements agence, packs de crédits de vérification — on ne vend pas de la
 visibilité sur une place vide. Garder visible : frais 10 %, vérification
 (gratuite au lancement), garanties. Réversible en une variable.
+
+**Fait (PR #271)** : `growthMonetizationEnabled()` (`src/lib/modes.ts`,
+défaut `false`, même patron que `isKonnectEnabled()`/`captchaMode()`) —
+`GROWTH_MONETIZATION_ENABLED=true` pour réactiver au lancement.
+
+- **UI masquée quand le flag est faux** : lien nav « Abonnement » (agence
+  uniquement), bannière promo « mettre à la une » sur `/dashboard/annonces`,
+  section prix/paiement de `/dashboard/annonces/[id]/a-la-une` (les rails
+  **gratuits** — boost offert par abonnement Pro, boost Super-Hôte au mérite
+  — restent actifs, hors périmètre monétisation), page `/dashboard/
+  abonnement` entière (remplacée par un message, pas une 404 — un lien déjà
+  partagé ne casse pas).
+- **Risque réel trouvé en cartographiant l'existant** (agent de recherche
+  dédié) : `verifyPropertyAction` (`src/actions/admin.ts`) applique le quota
+  d'annonces AGENCE et consomme le crédit de vérification **côté serveur,
+  indépendamment de toute UI**. Masquer seulement les pages d'achat aurait
+  laissé un vrai cul-de-sac : un admin/Wakil incapable de vérifier une
+  annonce légitime d'une agence au quota/crédit épuisé, sans plus aucune
+  page pour le résoudre. Corrigé à la source, point de vérité unique :
+  `activeListingsLimit()` (`src/lib/subscriptions.ts`) renvoie `Infinity`
+  pour AGENCE tant que le flag est faux (corrige du même coup
+  `verifyPropertyAction`, `createPropertyAction` et l'affichage du quota) ;
+  `consumeVerificationCredit()` (`src/lib/verification-credits.ts`) renvoie
+  `true` sans écriture pour AGENCE dans les mêmes conditions. Le régime HOTE
+  (vérification à l'unité, jamais gratuite, décision Wassim du 2026-07-20)
+  n'est **pas** concerné — hors périmètre P6.2, vérifié explicitement par
+  test.
+- **Défense en profondeur** : les 6 server actions d'achat
+  (`featureListingAction`, `startFeaturedOrderPaymentAction`,
+  `subscribeAgencyPlanAction`, `startSubscriptionPaymentAction`,
+  `buyVerificationCreditPackDemoAction`, `startVerificationCreditPaymentAction`)
+  refusent aussi explicitement quand le flag est faux — jamais confiance au
+  bouton masqué côté client seul.
+- **Scope écarté explicitement** : « vérification (gratuite au lancement) »
+  dans la liste « garder visible » du ticket ne correspond pas exactement au
+  code — un HOTE individuel n'a **jamais** de vérification gratuite (toujours
+  20 TND/annonce, décision Wassim datée), seule l'AGENCE a un crédit gratuit
+  à vie. Périmètre P6.2 pris au sens strict (« packs » = lots agence
+  uniquement) : `src/actions/host-verification-payments.ts` intégralement
+  hors scope, non modifié. Écart de formulation à trancher séparément si
+  l'intention était réellement une vérification gratuite universelle au
+  lancement — pas une décision prise ici.
+- **Vérifié en conditions réelles** (pas seulement mocks) : `agence@darna.tn`
+  (compte de démo seedé) est déjà à 11 annonces actives sur une limite
+  gratuite de 3 — exactement le scénario de cul-de-sac ci-dessus. Avec le
+  flag désactivé, connecté en `admin@darna.tn`, vérification réelle d'une de
+  ses annonces `EN_ATTENTE_VALIDATION` — succès confirmé en base
+  (`status: ACTIVE`, `verified: true`), aucun blocage quota/crédit. Captures
+  d'écran avant/après (flag off ET on) envoyées à Wassim dans le rapport de
+  test de la PR.
+- 25 tests unitaires nouveaux/étendus (7 fichiers) + suite complète
+  148 fichiers / 1058 tests verts.
 
 ### P6.3
 Transformer les objections de P6.1 en tâches ici, priorisées. C'est la

@@ -17,6 +17,7 @@
 import { prisma } from "@/lib/prisma";
 import { VERIFICATION_CREDIT_PACKS, type VerificationCreditPackKey } from "@/lib/constants";
 import { FREE_VERIFICATION_CREDITS } from "@/lib/config";
+import { growthMonetizationEnabled } from "@/lib/modes";
 
 export function verificationCreditPack(key: string) {
   return VERIFICATION_CREDIT_PACKS.find((p) => p.key === key);
@@ -62,8 +63,17 @@ export async function verificationCreditsRemaining(userId: string, role: string)
  * `updateMany` gardé par `balance: { gt: 0 }` — jamais de lecture-puis-
  * décrément qui pourrait faire passer le solde sous zéro en cas de requêtes
  * concurrentes (même principe que settleFeaturedOrder/settleSubscriptionPayment).
+ *
+ * P6.2 : tant que `growthMonetizationEnabled()` est faux, une AGENCE ne
+ * consomme jamais de crédit (retour `true` immédiat, aucune écriture) — les
+ * lots sont masqués (cf. dashboard/abonnement), donc appliquer l'épuisement
+ * laisserait une agence bloquée sans aucune page pour en acheter. Un HOTE
+ * n'est PAS concerné (régime différent et délibéré, jamais gratuit — cf.
+ * src/lib/modes.ts) : cette branche ne touche que le rôle AGENCE.
  */
 export async function consumeVerificationCredit(userId: string, role: string): Promise<boolean> {
+  if (role === "AGENCE" && !growthMonetizationEnabled()) return true;
+
   await prisma.verificationWallet.upsert({
     where: { userId },
     create: { userId, balance: freeVerificationCreditsFor(role) },

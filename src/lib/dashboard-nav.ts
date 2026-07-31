@@ -1,6 +1,7 @@
 import type { SessionUser } from "@/lib/session";
 import type { Dictionary } from "@/lib/i18n";
 import type { NavItem } from "@/components/dashboard/DashboardNav";
+import { growthMonetizationEnabled } from "@/lib/modes";
 
 /**
  * Liste ordonnée des pages de l'espace personnel, selon le rôle — source UNIQUE
@@ -26,7 +27,10 @@ export function buildDashboardLinks(user: SessionUser, fr: Dictionary): NavItem[
     );
     // Abonnement (MONETISATION_IMMO_ROADMAP.md §MI2) : ne concerne que les
     // comptes agence, le mécanisme ne cible pas les hôtes individuels.
-    if (user.role === "AGENCE") {
+    // P6.2 : masqué tant que growthMonetizationEnabled() est faux (avant
+    // lancement) — la page reste jointe par URL directe (message dédié),
+    // mais aucun lien n'y pousse.
+    if (user.role === "AGENCE" && growthMonetizationEnabled()) {
       links.push({ href: "/dashboard/abonnement", label: fr.abonnement.titre, icon: "CoinsIcon" });
     }
   } else {

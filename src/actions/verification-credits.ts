@@ -19,6 +19,7 @@ import { SITE_URL, FREE_VERIFICATION_CREDITS } from "@/lib/config";
 import { verificationCreditPack } from "@/lib/verification-credits";
 import { logAudit, logStructured } from "@/lib/audit";
 import { initKonnectPayment, isKonnectEnabled, signKonnectWebhook } from "@/lib/konnect";
+import { growthMonetizationEnabled } from "@/lib/modes";
 
 const packSchema = z.object({ pack: z.string().min(1).max(40) });
 
@@ -29,6 +30,10 @@ const packSchema = z.object({ pack: z.string().min(1).max(40) });
  */
 export async function buyVerificationCreditPackDemoAction(formData: FormData): Promise<void> {
   if (isKonnectEnabled()) return;
+  // P6.2 (ROADMAP.md) : achat masqué avant lancement — défense en profondeur.
+  // Ne concerne QUE les lots agence — src/actions/host-verification-payments.ts
+  // (paiement à l'unité HOTE) est un régime différent, hors périmètre.
+  if (!growthMonetizationEnabled()) return;
 
   const user = await requireUser();
   if (user.role !== "AGENCE") return;
@@ -71,6 +76,8 @@ export async function startVerificationCreditPaymentAction(
   const user = await requireUser();
 
   if (!isKonnectEnabled()) return { error: fr.common.erreurInconnue };
+  // P6.2 (ROADMAP.md) : achat masqué avant lancement — défense en profondeur.
+  if (!growthMonetizationEnabled()) return { error: fr.common.erreurInconnue };
   // Réservé aux comptes agence — les particuliers ont la vérification gratuite.
   if (user.role !== "AGENCE") return { error: fr.common.erreurInconnue };
 

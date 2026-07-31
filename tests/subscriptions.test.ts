@@ -5,7 +5,7 @@
  * (jamais un statut stocké) : un abonnement ACTIF dont `currentPeriodEnd` est
  * dépassée ne compte plus comme actif.
  */
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   activeListingsLimit,
   cheapestPlanForQuota,
@@ -45,6 +45,12 @@ describe("isSubscriptionActive", () => {
 });
 
 describe("activeListingsLimit", () => {
+  // P6.2 : le quota AGENCE n'est appliqué que si le flag est actif — ces
+  // tests verrouillent le comportement d'ENFORCEMENT lui-même (opt-in), pas
+  // le défaut avant lancement (couvert dans tests/modes.test.ts).
+  beforeEach(() => vi.stubEnv("GROWTH_MONETIZATION_ENABLED", "true"));
+  afterEach(() => vi.unstubAllEnvs());
+
   it("illimité pour un compte HOTE, même sans abonnement", () => {
     expect(activeListingsLimit("HOTE", null)).toBe(Infinity);
   });
@@ -75,6 +81,14 @@ describe("activeListingsLimit", () => {
     expect(
       activeListingsLimit("AGENCE", { status: "ACTIF", plan: "INEXISTANT", currentPeriodEnd: future })
     ).toBe(FREE_TIER_LISTINGS_LIMIT);
+  });
+
+  it("P6.2 — illimité pour un compte AGENCE tant que le flag n'est pas actif (avant lancement)", () => {
+    vi.stubEnv("GROWTH_MONETIZATION_ENABLED", "false");
+    expect(activeListingsLimit("AGENCE", null)).toBe(Infinity);
+    expect(
+      activeListingsLimit("AGENCE", { status: "ACTIF", plan: STANDARD.key, currentPeriodEnd: future })
+    ).toBe(Infinity);
   });
 });
 

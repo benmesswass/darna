@@ -5,7 +5,7 @@
  * d'un autre, et le mock (featureListingAction) ne s'exécute jamais quand
  * Konnect est actif.
  */
-import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -75,7 +75,14 @@ beforeEach(() => {
   orderCreate.mockResolvedValue({ id: "order_1" });
   orderUpdate.mockResolvedValue({});
   propertyUpdate.mockResolvedValue({});
+  // P6.2 (ROADMAP.md) : l'achat de boost est masqué par défaut avant
+  // lancement — ce fichier teste l'IDOR/l'exclusivité démo-réel du boost
+  // lui-même (hors périmètre P6.2), donc l'active pour ne pas court-circuiter
+  // ces tests sur la nouvelle garde.
+  vi.stubEnv("GROWTH_MONETIZATION_ENABLED", "true");
 });
+
+afterEach(() => vi.unstubAllEnvs());
 
 describe("startFeaturedOrderPaymentAction — IDOR", () => {
   it("refuse de booster l'annonce d'un autre hôte", async () => {
@@ -134,6 +141,17 @@ describe("startFeaturedOrderPaymentAction — IDOR", () => {
     expect(result).toEqual({ error: "Annonce indisponible." });
     expect(orderCreate).not.toHaveBeenCalled();
   });
+
+  it("P6.2 — refuse tant que l'achat de boost est masqué (avant lancement)", async () => {
+    vi.stubEnv("GROWTH_MONETIZATION_ENABLED", "false");
+    isKonnectEnabledMock.mockReturnValue(true);
+    requireListerMock.mockResolvedValue(OWNER);
+
+    const result = await startFeaturedOrderPaymentAction(undefined, idForm());
+
+    expect(result).toEqual({ error: "Erreur inconnue." });
+    expect(propertyFindUnique).not.toHaveBeenCalled();
+  });
 });
 
 describe("featureListingAction (démo) — garde d'exclusivité", () => {
@@ -145,5 +163,15 @@ describe("featureListingAction (démo) — garde d'exclusivité", () => {
     expect(requireListerMock).not.toHaveBeenCalled();
     expect(propertyUpdate).not.toHaveBeenCalled();
     expect(logAuditMock).not.toHaveBeenCalled();
+  });
+
+  it("P6.2 — ne fait rien tant que l'achat de boost est masqué (avant lancement)", async () => {
+    vi.stubEnv("GROWTH_MONETIZATION_ENABLED", "false");
+    isKonnectEnabledMock.mockReturnValue(false);
+
+    await featureListingAction(idForm());
+
+    expect(requireListerMock).not.toHaveBeenCalled();
+    expect(propertyUpdate).not.toHaveBeenCalled();
   });
 });

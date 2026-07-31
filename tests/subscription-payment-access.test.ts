@@ -7,7 +7,7 @@
  * donc pas de test IDOR "mauvais propriétaire" à écrire, juste le rôle et
  * l'exclusivité démo/réel.
  */
-import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -63,7 +63,14 @@ beforeEach(() => {
   subUpdate.mockResolvedValue({});
   subFindUnique.mockResolvedValue(null);
   walletUpsert.mockResolvedValue({});
+  // P6.2 (ROADMAP.md) : l'abonnement agence est masqué par défaut avant
+  // lancement — ce fichier teste le rôle/l'exclusivité démo-réel de
+  // l'abonnement lui-même (hors périmètre P6.2), donc l'active pour ne pas
+  // court-circuiter ces tests sur la nouvelle garde.
+  vi.stubEnv("GROWTH_MONETIZATION_ENABLED", "true");
 });
+
+afterEach(() => vi.unstubAllEnvs());
 
 describe("startSubscriptionPaymentAction — non-bypass", () => {
   it("refuse un compte HOTE (le mécanisme d'abonnement ne cible que les agences)", async () => {
@@ -117,6 +124,17 @@ describe("startSubscriptionPaymentAction — non-bypass", () => {
     fd.set("plan", "PALIER_INEXISTANT");
 
     const result = await startSubscriptionPaymentAction(undefined, fd);
+
+    expect(result).toEqual({ error: "Erreur inconnue." });
+    expect(subUpsert).not.toHaveBeenCalled();
+  });
+
+  it("P6.2 — refuse tant que l'abonnement agence est masqué (avant lancement)", async () => {
+    vi.stubEnv("GROWTH_MONETIZATION_ENABLED", "false");
+    isKonnectEnabledMock.mockReturnValue(true);
+    requireUserMock.mockResolvedValue(AGENCE);
+
+    const result = await startSubscriptionPaymentAction(undefined, planForm());
 
     expect(result).toEqual({ error: "Erreur inconnue." });
     expect(subUpsert).not.toHaveBeenCalled();

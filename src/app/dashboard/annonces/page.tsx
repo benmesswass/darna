@@ -30,6 +30,7 @@ import { settleVerificationCreditOrder } from "@/lib/verification-credit-payment
 import { isKonnectEnabled } from "@/lib/konnect";
 import { HOST_VERIFICATION_PRICE_TND } from "@/lib/config";
 import { computeListingCompleteness } from "@/lib/listing-completeness";
+import { growthMonetizationEnabled } from "@/lib/modes";
 
 export default async function MesAnnoncesPage({
   searchParams,
@@ -164,8 +165,12 @@ export default async function MesAnnoncesPage({
         </>
       ) : null}
 
-      {/* Publicité : pousser l'hôte à mettre ses annonces à la une */}
-      {properties.length > 0 ? (
+      {/* Publicité : pousser l'hôte à mettre ses annonces à la une.
+          P6.2 (ROADMAP.md) : masquée avant lancement — on ne vend pas de la
+          visibilité sur une place vide. Le bouton "mettre à la une" par
+          annonce plus bas reste affiché (mène aux rails gratuits éventuels
+          — abonnement Pro, Super-Hôte — gérés sur la page cible elle-même). */}
+      {properties.length > 0 && growthMonetizationEnabled() ? (
         <div className="mt-5 flex items-start gap-4 rounded-3xl bg-gradient-to-r from-amber-400 to-sand p-5 text-darna-dark shadow-sm">
           <span className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/40 sm:inline-flex">
             <StarIcon width={22} height={22} className="fill-darna-dark" />

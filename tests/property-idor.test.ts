@@ -9,7 +9,7 @@
  *      (deletePhotoAction, setCoverPhotoAction, …).
  * On couvre les deux + un contrôle positif (le propriétaire passe).
  */
-import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -61,7 +61,13 @@ beforeEach(() => {
   propertyUpdate.mockResolvedValue({});
   photoDelete.mockResolvedValue({});
   deleteUploadedImageMock.mockResolvedValue(undefined);
+  // P6.2 (ROADMAP.md) : l'achat de boost est masqué par défaut avant
+  // lancement — ce fichier teste l'IDOR de featureListingAction lui-même
+  // (hors périmètre P6.2), donc l'active pour atteindre le vrai check.
+  vi.stubEnv("GROWTH_MONETIZATION_ENABLED", "true");
 });
+
+afterEach(() => vi.unstubAllEnvs());
 
 function form(field: string, value: string): FormData {
   const fd = new FormData();

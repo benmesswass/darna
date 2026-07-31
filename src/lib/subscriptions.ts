@@ -9,6 +9,7 @@
 import { prisma } from "@/lib/prisma";
 import { AGENCY_PLANS, type AgencyPlanKey } from "@/lib/constants";
 import { FREE_TIER_LISTINGS_LIMIT } from "@/lib/config";
+import { growthMonetizationEnabled } from "@/lib/modes";
 
 export function agencyPlan(key: string) {
   return AGENCY_PLANS.find((p) => p.key === key);
@@ -40,9 +41,16 @@ export function isSubscriptionActive(subscription: SubscriptionLike): boolean {
  * les comptes AGENCE (cf. roadmap §MI1) — un compte HOTE n'est jamais limité.
  * Une agence sans abonnement ACTIF retombe sur le palier gratuit
  * (FREE_TIER_LISTINGS_LIMIT).
+ *
+ * P6.2 : tant que `growthMonetizationEnabled()` est faux (avant lancement),
+ * le quota est illimité pour tout le monde — l'achat d'un palier est masqué
+ * (cf. dashboard/abonnement), donc l'appliquer laisserait une agence bloquée
+ * sans aucune page pour en sortir. Point de vérité UNIQUE : corrige du même
+ * coup verifyPropertyAction, createPropertyAction et l'affichage du quota.
  */
 export function activeListingsLimit(role: string, subscription: SubscriptionLike): number {
   if (role !== "AGENCE") return Infinity;
+  if (!growthMonetizationEnabled()) return Infinity;
   if (isSubscriptionActive(subscription)) {
     const plan = agencyPlan(subscription!.plan);
     if (plan) return plan.listingsIncluded;

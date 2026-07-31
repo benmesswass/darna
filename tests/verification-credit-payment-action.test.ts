@@ -4,7 +4,7 @@
  * buyVerificationCreditPackDemoAction ne s'exécute JAMAIS quand Konnect est
  * actif). Miroir de subscription-payment-action.test.ts.
  */
-import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -59,7 +59,14 @@ beforeEach(() => {
   orderCreate.mockResolvedValue({ id: "vco_1" });
   orderUpdate.mockResolvedValue({});
   walletUpsert.mockResolvedValue({});
+  // P6.2 (ROADMAP.md) : les lots de crédits agence sont masqués par défaut
+  // avant lancement — ce fichier teste le rôle/l'exclusivité démo-réel de
+  // l'achat lui-même (hors périmètre P6.2), donc l'active pour ne pas
+  // court-circuiter ces tests sur la nouvelle garde.
+  vi.stubEnv("GROWTH_MONETIZATION_ENABLED", "true");
 });
+
+afterEach(() => vi.unstubAllEnvs());
 
 describe("startVerificationCreditPaymentAction", () => {
   it("refuse un compte non-AGENCE (HOTE)", async () => {
@@ -82,6 +89,15 @@ describe("startVerificationCreditPaymentAction", () => {
     requireUserMock.mockResolvedValue(AGENCY);
     isKonnectEnabledMock.mockReturnValue(true);
     const res = await startVerificationCreditPaymentAction(undefined, packForm("INCONNU"));
+    expect(res).toEqual({ error: "Erreur inconnue." });
+    expect(orderCreate).not.toHaveBeenCalled();
+  });
+
+  it("P6.2 — refuse tant que les lots de crédits agence sont masqués (avant lancement)", async () => {
+    vi.stubEnv("GROWTH_MONETIZATION_ENABLED", "false");
+    requireUserMock.mockResolvedValue(AGENCY);
+    isKonnectEnabledMock.mockReturnValue(true);
+    const res = await startVerificationCreditPaymentAction(undefined, packForm());
     expect(res).toEqual({ error: "Erreur inconnue." });
     expect(orderCreate).not.toHaveBeenCalled();
   });
@@ -133,6 +149,15 @@ describe("buyVerificationCreditPackDemoAction (démo)", () => {
     isKonnectEnabledMock.mockReturnValue(false);
     requireUserMock.mockResolvedValue(HOST);
     await buyVerificationCreditPackDemoAction(packForm());
+    expect(walletUpsert).not.toHaveBeenCalled();
+  });
+
+  it("P6.2 — ne fait rien tant que les lots de crédits agence sont masqués (avant lancement)", async () => {
+    vi.stubEnv("GROWTH_MONETIZATION_ENABLED", "false");
+    isKonnectEnabledMock.mockReturnValue(false);
+    requireUserMock.mockResolvedValue(AGENCY);
+    await buyVerificationCreditPackDemoAction(packForm());
+    expect(requireUserMock).not.toHaveBeenCalled();
     expect(walletUpsert).not.toHaveBeenCalled();
   });
 });

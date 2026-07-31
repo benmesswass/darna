@@ -21,6 +21,7 @@ import { SITE_URL, SUBSCRIPTION_DURATION_DAYS, FREE_VERIFICATION_CREDITS } from 
 import { agencyPlan } from "@/lib/subscriptions";
 import { logAudit, logStructured } from "@/lib/audit";
 import { initKonnectPayment, isKonnectEnabled, signKonnectWebhook } from "@/lib/konnect";
+import { growthMonetizationEnabled } from "@/lib/modes";
 
 const planSchema = z.object({ plan: z.string().min(1).max(40) });
 
@@ -31,6 +32,8 @@ const planSchema = z.object({ plan: z.string().min(1).max(40) });
  */
 export async function subscribeAgencyPlanAction(formData: FormData): Promise<void> {
   if (isKonnectEnabled()) return;
+  // P6.2 (ROADMAP.md) : achat masqué avant lancement — défense en profondeur.
+  if (!growthMonetizationEnabled()) return;
 
   const user = await requireUser();
   if (user.role !== "AGENCE") return;
@@ -112,6 +115,8 @@ export async function startSubscriptionPaymentAction(
   const user = await requireUser();
 
   if (!isKonnectEnabled()) return { error: fr.common.erreurInconnue };
+  // P6.2 (ROADMAP.md) : achat masqué avant lancement — défense en profondeur.
+  if (!growthMonetizationEnabled()) return { error: fr.common.erreurInconnue };
   // Réservé aux comptes agence — le mécanisme d'abonnement ne cible pas les
   // hôtes individuels (cf. roadmap §MI1).
   if (user.role !== "AGENCE") return { error: fr.common.erreurInconnue };

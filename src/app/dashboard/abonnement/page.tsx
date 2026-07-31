@@ -20,6 +20,7 @@ import {
 } from "@/lib/subscriptions";
 import { verificationCreditsRemaining } from "@/lib/verification-credits";
 import { FREE_VERIFICATION_CREDITS } from "@/lib/config";
+import { growthMonetizationEnabled } from "@/lib/modes";
 import { SubscriptionPayButton } from "@/components/dashboard/SubscriptionPayButton";
 import { VerificationCreditPayButton } from "@/components/dashboard/VerificationCreditPayButton";
 import { formatDateFr } from "@/lib/format";
@@ -38,6 +39,27 @@ export default async function AbonnementPage({
   const user = await getSessionUser();
   if (!user) redirect("/connexion");
   if (user.role !== "AGENCE") redirect("/dashboard/annonces");
+
+  // P6.2 (ROADMAP.md) : abonnement + crédits de vérification agence masqués
+  // avant lancement (aucun lien n'y pousse non plus, cf. dashboard-nav.ts) —
+  // gardé joignable par URL directe avec un message plutôt qu'une 404, pour
+  // ne pas casser un lien déjà partagé/mis en favori.
+  if (!growthMonetizationEnabled()) {
+    return (
+      <div className="mx-auto max-w-xl">
+        <Link
+          href="/dashboard/annonces"
+          className="inline-flex items-center gap-1 text-sm font-medium text-muted hover:text-heading"
+        >
+          ← {fr.dashboard.mesAnnonces}
+        </Link>
+        <div className="mt-4 rounded-3xl bg-surface p-8 text-center ring-1 ring-darna/10">
+          <CoinsIcon width={28} height={28} className="mx-auto text-amber-500" />
+          <p className="mt-3 text-sm font-medium text-body">{fr.common.fonctionnaliteBientot}</p>
+        </div>
+      </div>
+    );
+  }
 
   const konnectEnabled = isKonnectEnabled();
 
