@@ -122,6 +122,7 @@ export const en: Dictionary = {
     champsRequis: "Please check the form fields.",
     tropDeTentatives: "Too many attempts. Please wait a few minutes and try again.",
     optionnel: "optional",
+    fonctionnaliteBientot: "This feature is coming soon — check back a little later.",
   },
   badges: {
     verifie: "Darna Verified",

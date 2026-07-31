@@ -15,6 +15,7 @@ import { isListingFeatured } from "@/lib/listings";
 import { isKonnectEnabled } from "@/lib/konnect";
 import { settleFeaturedOrder } from "@/lib/featured-payments";
 import { hasUnclaimedFreeBoost } from "@/lib/subscriptions";
+import { growthMonetizationEnabled } from "@/lib/modes";
 import { isSuperHost, superHostBoostClaimEligible } from "@/lib/super-host";
 import { FeaturedPayButton } from "@/components/dashboard/FeaturedPayButton";
 import { formatDateFr } from "@/lib/format";
@@ -194,70 +195,80 @@ export default async function AlaUnePage({
               </p>
             ) : null}
 
-            <dl className="mt-5 space-y-2.5 border-t border-darna/10 pt-5 text-sm">
-              <div className="flex justify-between">
-                <dt className="text-body/70">{fr.alaUne.duree}</dt>
-                <dd className="font-semibold text-body">
-                  {fr.alaUne.dureeValeur(FEATURED_DURATION_DAYS)}
-                </dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-body/70">{fr.alaUne.prix}</dt>
-                <dd>
-                  <Price amount={FEATURED_PRICE_TND} className="font-semibold" />
-                </dd>
-              </div>
-              <div className="flex justify-between border-t border-darna/10 pt-3">
-                <dt className="text-base font-bold text-heading">{fr.alaUne.total}</dt>
-                <dd>
-                  <Price
-                    amount={FEATURED_PRICE_TND}
-                    className="text-xl font-bold text-heading"
-                  />
-                </dd>
-              </div>
-            </dl>
+            {growthMonetizationEnabled() ? (
+              <>
+                <dl className="mt-5 space-y-2.5 border-t border-darna/10 pt-5 text-sm">
+                  <div className="flex justify-between">
+                    <dt className="text-body/70">{fr.alaUne.duree}</dt>
+                    <dd className="font-semibold text-body">
+                      {fr.alaUne.dureeValeur(FEATURED_DURATION_DAYS)}
+                    </dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-body/70">{fr.alaUne.prix}</dt>
+                    <dd>
+                      <Price amount={FEATURED_PRICE_TND} className="font-semibold" />
+                    </dd>
+                  </div>
+                  <div className="flex justify-between border-t border-darna/10 pt-3">
+                    <dt className="text-base font-bold text-heading">{fr.alaUne.total}</dt>
+                    <dd>
+                      <Price
+                        amount={FEATURED_PRICE_TND}
+                        className="text-xl font-bold text-heading"
+                      />
+                    </dd>
+                  </div>
+                </dl>
 
-            {!konnectEnabled ? (
-              <p className="mt-5 flex items-start gap-2 rounded-xl bg-sand-light/50 px-4 py-3 text-xs font-medium text-darna-dark">
-                <CoinsIcon width={16} height={16} className="mt-0.5 shrink-0" />
-                {fr.alaUne.mockInfo}
-              </p>
-            ) : konnect === "fail" ? (
-              <p
-                role="alert"
-                className="mt-5 rounded-xl bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700"
-              >
-                {fr.alaUne.paiementEchoue}
-              </p>
-            ) : konnect === "success" ? (
-              <p className="mt-5 flex items-center justify-between gap-3 rounded-xl bg-sand-light/50 px-4 py-2.5 text-sm font-medium text-darna-dark">
-                {fr.alaUne.paiementEnVerification}
-                <Link
-                  href={`/dashboard/annonces/${property.id}/a-la-une`}
-                  className="shrink-0 font-bold underline"
-                >
-                  {fr.alaUne.actualiser}
-                </Link>
-              </p>
-            ) : null}
+                {!konnectEnabled ? (
+                  <p className="mt-5 flex items-start gap-2 rounded-xl bg-sand-light/50 px-4 py-3 text-xs font-medium text-darna-dark">
+                    <CoinsIcon width={16} height={16} className="mt-0.5 shrink-0" />
+                    {fr.alaUne.mockInfo}
+                  </p>
+                ) : konnect === "fail" ? (
+                  <p
+                    role="alert"
+                    className="mt-5 rounded-xl bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700"
+                  >
+                    {fr.alaUne.paiementEchoue}
+                  </p>
+                ) : konnect === "success" ? (
+                  <p className="mt-5 flex items-center justify-between gap-3 rounded-xl bg-sand-light/50 px-4 py-2.5 text-sm font-medium text-darna-dark">
+                    {fr.alaUne.paiementEnVerification}
+                    <Link
+                      href={`/dashboard/annonces/${property.id}/a-la-une`}
+                      className="shrink-0 font-bold underline"
+                    >
+                      {fr.alaUne.actualiser}
+                    </Link>
+                  </p>
+                ) : null}
 
-            {konnectEnabled ? (
-              <FeaturedPayButton propertyId={property.id} />
+                {konnectEnabled ? (
+                  <FeaturedPayButton propertyId={property.id} />
+                ) : (
+                  <form action={featureListingAction} className="mt-5">
+                    <input type="hidden" name="propertyId" value={property.id} />
+                    <button
+                      type="submit"
+                      className="flex w-full items-center justify-center gap-2 rounded-2xl bg-amber-400 px-6 py-3.5 text-base font-bold text-darna-dark transition hover:bg-amber-300"
+                    >
+                      <StarIcon width={18} height={18} className="fill-current" />
+                      {alreadyFeatured ? fr.dashboard.prolongerALaUne : fr.alaUne.payer}
+                    </button>
+                  </form>
+                )}
+
+                <p className="mt-4 text-center text-xs text-muted">{fr.alaUne.garantie}</p>
+              </>
             ) : (
-              <form action={featureListingAction} className="mt-5">
-                <input type="hidden" name="propertyId" value={property.id} />
-                <button
-                  type="submit"
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-amber-400 px-6 py-3.5 text-base font-bold text-darna-dark transition hover:bg-amber-300"
-                >
-                  <StarIcon width={18} height={18} className="fill-current" />
-                  {alreadyFeatured ? fr.dashboard.prolongerALaUne : fr.alaUne.payer}
-                </button>
-              </form>
+              // P6.2 (ROADMAP.md) : achat masqué avant lancement — les rails
+              // gratuits ci-dessus (abonnement Pro, Super-Hôte) restent actifs.
+              <p className="mt-5 rounded-xl bg-cream px-4 py-3 text-center text-xs font-medium text-body/70">
+                {fr.common.fonctionnaliteBientot}
+              </p>
             )}
-
-            <p className="mt-4 text-center text-xs text-muted">{fr.alaUne.garantie}</p>
           </>
         ) : (
           <div className="mt-5 rounded-2xl bg-red-50 p-5 text-center">

@@ -123,6 +123,7 @@ export const fr = {
     tropDeTentatives:
       "Trop de tentatives. Merci de patienter quelques minutes avant de réessayer.",
     optionnel: "optionnel",
+    fonctionnaliteBientot: "Cette fonctionnalité arrive bientôt — revenez un peu plus tard.",
   },
   badges: {
     verifie: "Vérifié Darna",

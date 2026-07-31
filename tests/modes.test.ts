@@ -4,7 +4,7 @@
  * pour ne jamais accorder un statut démo après un OTP réellement envoyé.
  */
 import { afterEach, describe, expect, it } from "vitest";
-import { kycMode, getOtpProvider } from "@/lib/modes";
+import { kycMode, getOtpProvider, growthMonetizationEnabled } from "@/lib/modes";
 
 const ORIGINAL = { ...process.env };
 
@@ -47,5 +47,24 @@ describe("kycMode (dérivé du canal)", () => {
     process.env.KYC_MODE = "production";
     process.env.OTP_PROVIDER = "sms";
     expect(kycMode()).toBe("production");
+  });
+});
+
+describe("growthMonetizationEnabled (P6.2)", () => {
+  it("masqué par défaut (aucune config)", () => {
+    delete process.env.GROWTH_MONETIZATION_ENABLED;
+    expect(growthMonetizationEnabled()).toBe(false);
+  });
+
+  it("masqué sur toute valeur autre que \"true\" (sécurité par défaut = masqué)", () => {
+    process.env.GROWTH_MONETIZATION_ENABLED = "false";
+    expect(growthMonetizationEnabled()).toBe(false);
+    process.env.GROWTH_MONETIZATION_ENABLED = "1";
+    expect(growthMonetizationEnabled()).toBe(false);
+  });
+
+  it("activé seulement sur \"true\" explicite", () => {
+    process.env.GROWTH_MONETIZATION_ENABLED = "true";
+    expect(growthMonetizationEnabled()).toBe(true);
   });
 });

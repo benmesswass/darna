@@ -112,3 +112,19 @@ export type CaptchaMode = "off" | "turnstile";
 export function captchaMode(): CaptchaMode {
   return process.env.CAPTCHA_MODE === "turnstile" ? "turnstile" : "off";
 }
+
+/**
+ * P6.2 (ROADMAP.md) — surface de monétisation sans utilisateur au lancement :
+ * boost payant (« à la une »), abonnement agence, packs de crédits de
+ * vérification agence. Défaut : `false` (masqué) — « on ne vend pas de la
+ * visibilité sur une place vide ». Passer à `true` au lancement réel, aucune
+ * suppression de code nécessaire (réversible en une variable).
+ *
+ * NE couvre PAS la vérification Wakil à l'unité pour un compte HOTE
+ * (src/actions/host-verification-payments.ts) : régime différent et
+ * délibéré (décision Wassim du 2026-07-20, jamais gratuit), hors périmètre
+ * de ce flag.
+ */
+export function growthMonetizationEnabled(): boolean {
+  return process.env.GROWTH_MONETIZATION_ENABLED === "true";
+}

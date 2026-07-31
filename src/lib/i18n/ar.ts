@@ -125,6 +125,7 @@ export const ar: Dictionary = {
     champsRequis: "الرجاء التثبّت من خانات الاستمارة.",
     tropDeTentatives: "برشة محاولات. استنّى دقايق وعاود جرّب.",
     optionnel: "اختياري",
+    fonctionnaliteBientot: "الخدمة هاذي مازالت ماجاتش، عاود تفقّد من بعد شويّة.",
   },
   badges: {
     verifie: "موثّق دارنا",

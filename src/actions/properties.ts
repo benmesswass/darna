@@ -16,7 +16,7 @@ import {
   STAY_KINDS,
   verticalOfType,
 } from "@/lib/constants";
-import { verticalEnabled, kycGatingEnabled } from "@/lib/modes";
+import { verticalEnabled, kycGatingEnabled, growthMonetizationEnabled } from "@/lib/modes";
 import {
   CURRENT_CASH_TERMS_VERSION,
   FEATURED_DURATION_DAYS,
@@ -491,6 +491,9 @@ export async function republishPropertyAction(formData: FormData): Promise<void>
  */
 export async function featureListingAction(formData: FormData): Promise<void> {
   if (isKonnectEnabled()) return;
+  // P6.2 (ROADMAP.md) : achat masqué avant lancement — défense en profondeur,
+  // jamais confiance au client même si le bouton est masqué côté UI.
+  if (!growthMonetizationEnabled()) return;
 
   const user = await requireLister();
 
@@ -819,6 +822,8 @@ export async function startFeaturedOrderPaymentAction(
   const user = await requireLister();
 
   if (!isKonnectEnabled()) return { error: fr.common.erreurInconnue };
+  // P6.2 (ROADMAP.md) : achat masqué avant lancement — défense en profondeur.
+  if (!growthMonetizationEnabled()) return { error: fr.common.erreurInconnue };
 
   const parsed = idSchema.safeParse(formData.get("propertyId"));
   if (!parsed.success) return { error: fr.common.erreurInconnue };

@@ -39,6 +39,10 @@ const envSchema = z
     STAY_ENABLED: z.enum(["true", "false"]).optional(),
     IMMO_ENABLED: z.enum(["true", "false"]).optional(),
 
+    // P6.2 (ROADMAP.md) — boost payant/abonnement agence/crédits de
+    // vérification agence. Absent/"false" ⇒ masqué (défaut avant lancement).
+    GROWTH_MONETIZATION_ENABLED: z.enum(["true", "false"]).optional(),
+
     KONNECT_API_KEY: z.string().optional(),
     KONNECT_RECEIVER_WALLET_ID: z.string().optional(),
     KONNECT_API_URL: z.string().url().optional(),
@@ -327,5 +331,6 @@ console.info(
     KYC_GATING: env.KYC_GATING ?? "off",
     OTP_PROVIDER: env.OTP_PROVIDER ?? "sms",
     EMAIL_PROVIDER: env.EMAIL_PROVIDER ?? "demo",
+    GROWTH_MONETIZATION_ENABLED: env.GROWTH_MONETIZATION_ENABLED ?? "false",
   })
 );

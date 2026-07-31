@@ -2,7 +2,7 @@
  * Tests PR1 — verifyPropertyAction / unverifyPropertyAction
  * Tests PR2 — reviewWakilApplicationAction
  */
-import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
@@ -115,6 +115,13 @@ beforeEach(() => {
 // ── PR1 : verifyPropertyAction ────────────────────────────────────────────────
 
 describe("verifyPropertyAction", () => {
+  // P6.2 (ROADMAP.md) : le quota AGENCE et la consommation de crédit ne
+  // s'appliquent que si le flag est actif — ce describe teste l'ENFORCEMENT
+  // (§MI2/§MI3, opt-in), donc l'active explicitement. Le bypass avant
+  // lancement a ses propres tests dédiés en fin de bloc.
+  beforeEach(() => vi.stubEnv("GROWTH_MONETIZATION_ENABLED", "true"));
+  afterEach(() => vi.unstubAllEnvs());
+
   it("vérifie une annonce si le propriétaire est VERIFIE", async () => {
     (requireWakilOrAdmin as unknown as Mock).mockResolvedValue(mockAdmin);
     propertyFindUnique.mockResolvedValue({
@@ -417,6 +424,54 @@ describe("verifyPropertyAction", () => {
     fd.set("propertyId", PROP_ID);
     const result = await verifyPropertyAction(undefined, fd);
     expect(result?.error).toBeDefined();
+  });
+
+  // ── P6.2 : bypass AGENCE tant que la monétisation n'est pas lancée ─────────
+
+  it("P6.2 — n'applique plus le quota d'annonces d'une agence tant que le flag est désactivé", async () => {
+    vi.stubEnv("GROWTH_MONETIZATION_ENABLED", "false");
+    (requireWakilOrAdmin as unknown as Mock).mockResolvedValue(mockAdmin);
+    propertyFindUnique.mockResolvedValue({
+      id: PROP_ID,
+      verified: false,
+      ownerId: "clowner00000000000000000008",
+      owner: { kycStatus: "VERIFIE", role: "AGENCE" },
+    });
+    subscriptionFindUnique.mockResolvedValue(null);
+    propertyCount.mockResolvedValue(50); // très au-delà du palier gratuit (3)
+
+    const fd = new FormData();
+    fd.set("propertyId", PROP_ID);
+    fd.set("verificationLevel", "REMOTE");
+    const result = await verifyPropertyAction(undefined, fd);
+
+    expect(result?.success).toBeDefined();
+    expect(propertyUpdate).toHaveBeenCalled();
+    expect(notifyAgencyQuotaReached).not.toHaveBeenCalled();
+  });
+
+  it("P6.2 — ne consomme plus de crédit de vérification d'une agence tant que le flag est désactivé", async () => {
+    vi.stubEnv("GROWTH_MONETIZATION_ENABLED", "false");
+    (requireWakilOrAdmin as unknown as Mock).mockResolvedValue(mockAdmin);
+    propertyFindUnique.mockResolvedValue({
+      id: PROP_ID,
+      verified: false,
+      ownerId: "clowner00000000000000000009",
+      owner: { kycStatus: "VERIFIE", role: "AGENCE" },
+    });
+    subscriptionFindUnique.mockResolvedValue(null);
+    propertyCount.mockResolvedValue(0);
+    walletUpdateMany.mockResolvedValue({ count: 0 }); // solde épuisé — ne doit pas bloquer
+
+    const fd = new FormData();
+    fd.set("propertyId", PROP_ID);
+    fd.set("verificationLevel", "REMOTE");
+    const result = await verifyPropertyAction(undefined, fd);
+
+    expect(result?.success).toBeDefined();
+    expect(propertyUpdate).toHaveBeenCalled();
+    expect(walletUpsert).not.toHaveBeenCalled();
+    expect(notifyAgencyOutOfVerificationCredits).not.toHaveBeenCalled();
   });
 });
 
