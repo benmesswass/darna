@@ -1022,7 +1022,7 @@ cette session, donc pas urgent) :
 | # | Tâche | Prio | Statut |
 |---|---|---|---|
 | P6.1 | ⛔ W7 — 10 conversations propriétaires, 5 annonces réelles | P0 | ❌ 🧑 |
-| P6.2 | Élaguer la surface visible au lancement (flags) | P1 | ✅ PR #TODO |
+| P6.2 | Élaguer la surface visible au lancement (flags) | P1 | ✅ PR #271 |
 | P6.3 | Intégrer les objections terrain en tâches produit | P1 | ❌ (après P6.1) |
 | P6.4 | Recruter et former 1-2 Wakils réels | P1 | ❌ 🧑 |
 | P6.5 | Conformité comme argument commercial (page diaspora) | P2 | ❌ |
@@ -1042,7 +1042,7 @@ abonnements agence, packs de crédits de vérification — on ne vend pas de la
 visibilité sur une place vide. Garder visible : frais 10 %, vérification
 (gratuite au lancement), garanties. Réversible en une variable.
 
-**Fait (PR #TODO)** : `growthMonetizationEnabled()` (`src/lib/modes.ts`,
+**Fait (PR #271)** : `growthMonetizationEnabled()` (`src/lib/modes.ts`,
 défaut `false`, même patron que `isKonnectEnabled()`/`captchaMode()`) —
 `GROWTH_MONETIZATION_ENABLED=true` pour réactiver au lancement.
 
