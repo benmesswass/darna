@@ -22,9 +22,12 @@
 ## 0. Comment cette roadmap s'utilise (règles de session — À LIRE EN PREMIER)
 
 1. **« suivant » / « enchaîne » / « prochaine étape » = la PREMIÈRE tâche non
-   cochée en partant du haut** (phase 1 → phase 8, dans l'ordre du fichier).
-   Ne jamais choisir une tâche plus loin parce qu'elle semble plus facile ou
-   plus intéressante. Ne jamais improviser une tâche absente de ce fichier.
+   cochée en partant du haut** (phase 1 → phase 8, dans l'ordre du fichier)
+   — **sauf si §2bis contient encore des lignes non cochées : dans ce cas
+   §2bis prime sur tout**, c'est une priorité exceptionnelle posée après une
+   analyse CTO, pas l'ordre normal. Ne jamais choisir une tâche plus loin
+   parce qu'elle semble plus facile ou plus intéressante. Ne jamais
+   improviser une tâche absente de ce fichier.
 2. **Une tâche = une branche = une PR.** Jamais de push direct sur `main`.
    Après le push : ouvrir la PR (`mcp__github__create_pull_request`).
 3. **Une tâche bloquée sur Wassim (🧑) se saute** : la signaler dans la
@@ -133,6 +136,42 @@ sur chaque mutation · prix recalculés serveur · zéro SQL brut · zéro
 librairie UI lourde · i18n dans les 3 dictionnaires · CSP par nonce ·
 **« zéro cron pour l'ÉTAT (lazy-expiry), un scheduler pour les ACTIONS
 SORTANTES »** (`/api/jobs/tick`).
+
+---
+
+## 2bis. 🎯 Priorité absolue de la semaine (analyse CTO du 2026-07-31 — à lire avant toute tâche)
+
+> Cette section prime sur l'ordre normal des phases tant qu'elle n'est pas
+> vidée. Raison : trois actions **purement humaines, à zéro dépendance
+> code**, sont plus rentables aujourd'hui que n'importe quelle tâche P0-P8 —
+> et deux d'entre elles sont actuellement le vrai goulot du projet, pas le
+> code. Une session qui applique la règle « première tâche non cochée en
+> partant du haut » doit lire CETTE section en premier.
+
+**Fait marquant du 2026-07-31 : le staging est en ligne** (paliers 1+2 du
+guide, sauf R2 — projet Vercel `darna-staging`, équipe `darna1`, Neon
+migrée/seedée, Upstash, Resend, Konnect sandbox, cron externe branché). Livré
+par PR #261, **pas encore mergée** — `main` affiche donc P1.3 ❌ alors que
+le staging existe réellement. Ne pas laisser cet écart durer : c'est le
+premier symptôme du blocage ci-dessous.
+
+| Ordre | Action | Qui | Pourquoi maintenant plutôt que plus tard |
+|---|---|---|---|
+| 1 | **⛔ W3 — trancher public/runner** (voir tableau §3) | 🧑 5 min | **Devenu LE bouchon unique.** Bloque la CI de PR #261 (le staging livré !) et #266, donc P1.2 ET P1.3 sont gelées dessus. Le quota ne « revient » pas au repos mensuel comme estimé au §1 — il s'épuise en quelques heures dès qu'une session enchaîne des PR (observé de nouveau le 31/07 malgré le reset attendu). Ce n'est pas un incident, c'est une incompatibilité structurelle entre le mode de développement du projet et un dépôt privé gratuit. Chaque jour d'indécision coûte plus que la décision |
+| 2 | Merger #261 dès la CI verte, puis lancer un **run complet niveau 2 sur `main`** avant toute nouvelle feature | Claude | ~50 PR de code sont sur `main` sans qu'une CI complète (e2e/API/coverage/audit) ait jamais tourné dessus depuis une semaine — l'assurance s'amincit à chaque merge de plus |
+| 3 | **P1.4** : smoke Playwright contre staging + **test du webhook Konnect en chemin nominal** (jamais fait — impossible en local) + brancher **R2** (20 min, seul morceau manquant du palier 2) | Claude + 🧑 20 min (R2) | Valide le code ET le déploiement d'un coup ; R2 manquant = un nouvel upload de photo ne persisterait pas en prod (disque serverless éphémère) |
+| 4 | **⛔ W4 — envoyer le brief avocat** (5 points déjà rédigés, §3) | 🧑 5 min, **en parallèle, dès maintenant** | Zéro dépendance code — peut partir aujourd'hui pendant que 1-3 se déroulent. Le staging Konnect sandbox réduit la distance au premier dinar réel : le délai juridique doit courir avant P1.8, pas au moment de P1.8 |
+| 5 | **⛔ W7 — 3 premières conversations propriétaires**, URL du staging sur le téléphone (§3) | 🧑, **en parallèle, dès maintenant** | L'excuse « rien à montrer » est morte depuis que le staging existe. Zéro dépendance code. Dix conversations valent plus que dix PR de plus |
+
+**Ce qu'il ne faut PAS faire pendant que ceci est en cours** : merger les PR
+Dependabot majeures ouvertes (#247/#248/#249/#250/#251/#252 — Next 16, Prisma
+7, ESLint 10, jsdom 30…) — elles sont phase 8 (dette), un bump majeur
+maintenant ajouterait un risque de régression sur un stock déjà non
+entièrement vérifié par CI. Les laisser en attente, Dependabot les tient à
+jour tant qu'on ne les ferme pas.
+
+**Cette section se vide** dès que les 5 lignes sont ✅ — à ce moment, revenir
+au fonctionnement normal (§0 : première tâche non cochée de la phase 1).
 
 ---
 
