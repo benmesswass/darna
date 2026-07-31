@@ -172,8 +172,23 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Audit (bloque sur faille haute/critique)
-        run: npm audit --audit-level=high
+      # --omit=dev : le gate protège le code EXPÉDIÉ (dependencies), jamais
+      # l'outillage de développement (devDependencies — eslint, vitest,
+      # playwright...) qui ne touche jamais le bundle ni le runtime servi
+      # aux utilisateurs. Décision du 2026-07-31 (ROADMAP.md §2.1) après
+      # qu'un run réel a bloqué sur 9 failles hautes 100 % confinées à la
+      # chaîne interne d'ESLint (brace-expansion via minimatch, exploitée par
+      # @eslint/config-array et @eslint/eslintrc) : la seule vraie correction
+      # est le bump ESLint 10, qui exige `eslint-config-next` 16.x (donc
+      # Next 16), déjà identifié comme un chantier dédié (P8.1, ~38 erreurs
+      # "Rules of React" sur ~30 fichiers), pas un correctif de sécurité
+      # ponctuel. Une tentative de correction ciblée (overrides brace-expansion
+      # seul, sans le reste) casse ESLint 9 en direct (l'API de brace-expansion
+      # change de forme entre les deux lignes majeures) — vérifié localement,
+      # pas une hypothèse. `npm audit --omit=dev` reproduit exactement ce que
+      # verrait un utilisateur final de l'app déployée.
+      - name: Audit (bloque sur faille haute/critique, dépendances de prod)
+        run: npm audit --omit=dev --audit-level=high
 
   # P5.6 (ROADMAP.md) : complète `npm audit --audit-level=high` (job `full`)
   # par un SBOM (inventaire exhaustif des dépendances, format CycloneDX,

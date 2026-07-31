@@ -1002,18 +1002,33 @@ ce repo (voir P5.6, 3 tentatives échouées : casse soit `eslint`, soit
 `npm sbom`, selon la portée du override). Zéro exposition production
 (devDependency, outillage lint uniquement).
 
-**À faire quand `full`/`supply-chain` bloquent réellement un merge** (pas
-avant — le quota GitHub Actions a empêché `full` de tourner à terme toute
-cette session, donc pas urgent) :
-1. Vérifier si une version plus récente de `eslint-config-next`, `eslint`,
-   ou `@typescript-eslint/*` a corrigé sa dépendance `minimatch`/
-   `brace-expansion` en amont (`npm outdated`, `npm audit` à nouveau).
-2. Si oui : mise à jour normale (pas un `overrides`), revérifier
-   `npm run lint` + `npx tsc --noEmit`.
-3. Si toujours pas corrigé en amont : discuter avec Wassim d'une exception
-   documentée et datée (allowlist Trivy/`npm audit` pour ce CVE précis, avec
-   justification écrite) plutôt que de bloquer indéfiniment tout merge sur
-   un faux positif de risque réel — décision produit, pas à prendre seul.
+**Arrivé le 2026-07-31** : dès le dépôt public (W3), `full` a enfin tourné
+pour de vrai sur une PR et a bloqué exactement comme prévu ici. Séquence
+suivie avant de trancher :
+1. **Vérifié** : pas de version plus récente compatible. `eslint-config-next
+   @15.5.21` exige `eslint@"^7 || ^8 || ^9"` en peer — bloque `eslint@10`
+   net (`npm ci` échoue avec `ERESOLVE`, testé en checkoutant réellement
+   `dependabot/npm_and_yarn/eslint-10.8.0`). Le seul chemin amont réel est
+   `eslint-config-next@16.2.12`, qui va avec Next 16 — exactement P8.1
+   (~38 erreurs "Rules of React" sur ~30 fichiers), un chantier, pas un bump.
+2. **Tentative de correctif ciblé retestée** : `overrides.brace-expansion`
+   forcé à `^5.0.8` (le seuil sûr) — `npm ci` passe, `npm audit` passe (0
+   vuln), mais **`npm run lint` casse en dur** :
+   `TypeError: expand is not a function` dans `minimatch@3.1.5` (celui
+   qu'utilise encore `@eslint/config-array` en ESLint 9) — l'API de
+   `brace-expansion` change de forme entre la ligne 1.x/≤5.0.7 et 5.0.8+,
+   aucune version ne satisfait les deux consommateurs à la fois. Confirme et
+   clôt définitivement la piste `overrides` déjà explorée trois fois (P5.6).
+3. **Décision retenue (proposée par Claude, à valider par Wassim avant
+   merge — engage la CI de tout le repo)** : `npm audit --omit=dev
+   --audit-level=high` dans `ci.yml`, au lieu de l'audit complet. Vérifié :
+   `npm audit --omit=dev` = **0 vulnérabilité** — les 9 failles sont
+   100 % confinées à la chaîne interne d'ESLint (jamais expédiée en
+   production). Le gate protège désormais ce qu'un utilisateur final reçoit
+   réellement, pas l'outillage de développement. P8.1 (Next 16 +
+   eslint-config-next 16 + ESLint 10, le vrai correctif complet) reste la
+   tâche de fond, non urgente, sans pression de sécurité puisque le gate ne
+   bloque plus dessus.
 
 ---
 
