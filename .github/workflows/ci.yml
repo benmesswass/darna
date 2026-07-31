@@ -3,10 +3,11 @@ name: CI
 # Pyramide de jobs (ROADMAP.md §P1.2) :
 #   - `fast` (niveau 1) : chaque push / mise à jour de PR — lint + typecheck +
 #     tests sans couverture, cible < 5 min.
-#   - `full`/`e2e`/`api` (niveau 2) : à la demande (`workflow_dispatch`) ou
-#     quand le label `ready-to-merge` est posé sur la PR — coverage + build +
-#     audit + e2e + api. Règle de merge : `fast` ET `full`/`e2e`/`api` verts
-#     sur le commit de tête (voir CLAUDE.md §Workflow PR).
+#   - `full`/`e2e`/`api`/`supply-chain` (niveau 2) : à la demande
+#     (`workflow_dispatch`) ou quand le label `ready-to-merge` est posé sur la
+#     PR — coverage + build + audit + e2e + api + SBOM/Trivy. Règle de merge :
+#     `fast` ET les jobs du niveau 2 verts sur le commit de tête (voir
+#     CLAUDE.md §Workflow PR).
 #   - Niveau 3 (semgrep + ZAP + k6, nightly) : voir `nightly.yml`, jamais ici.
 #   - `migration-gate` (P5.5, ROADMAP.md) : gate indépendant de la pyramide
 #     ci-dessus, sur tout événement de PR (y compris `labeled`) — bloque une
@@ -173,6 +174,54 @@ jobs:
 
       - name: Audit (bloque sur faille haute/critique)
         run: npm audit --audit-level=high
+
+  # P5.6 (ROADMAP.md) : complète `npm audit --audit-level=high` (job `full`)
+  # par un SBOM (inventaire exhaustif des dépendances, format CycloneDX,
+  # généré nativement par npm ≥ 9, aucune dépendance supplémentaire) et un
+  # scan de vulnérabilités indépendant (Trivy — base de données distincte de
+  # celle de npm/GitHub, réduit le risque d'angle mort d'une source unique).
+  # Aucune image Docker dans ce projet (déploiement Vercel, pas de
+  # Dockerfile) : le scan porte sur le système de fichiers (`fs`), pas une
+  # image de conteneur. Job isolé, pas de `needs:`, même déclenchement que
+  # `full`/`e2e`/`api`.
+  supply-chain:
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'ready-to-merge')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Génère le SBOM (CycloneDX)
+        run: npm sbom --sbom-format cyclonedx > sbom.cdx.json
+
+      - name: Upload SBOM (artifact)
+        # if: always() : le SBOM (inventaire, pas un verdict) reste utile même
+        # si l'étape Trivy suivante fait échouer le job.
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: sbom
+          path: sbom.cdx.json
+          retention-days: 14
+
+      - name: Scan de vulnérabilités (Trivy, filesystem)
+        # scanners: vuln seul (pas secret/misconfig) : gitleaks couvre déjà
+        # les secrets (job dédié ci-dessus), zéro chevauchement voulu.
+        # severity HIGH,CRITICAL : même seuil que `npm audit --audit-level=high`.
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+          skip-dirs: node_modules
 
   # Job isolé (§7.4 TEST_AUTOMATION_ROADMAP.md) : pas de `needs: full` — reste
   # relançable indépendamment même si `full` échoue ou n'a pas encore tourné.
