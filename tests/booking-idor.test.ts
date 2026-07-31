@@ -205,6 +205,53 @@ describe("startKonnectPaymentAction (paiement réel) — IDOR", () => {
   });
 });
 
+describe("startKonnectPaymentAction — résilience Konnect (ROADMAP.md §P5.3)", () => {
+  function pendingBooking() {
+    return {
+      id: BOOKING_ID,
+      guestId: OWNER.id,
+      status: "EN_ATTENTE",
+      expiresAt: new Date(Date.now() + 600_000),
+      totalPrice: 216,
+      depositAmount: 22,
+      property: { title: "Villa" },
+    };
+  }
+
+  it("Konnect en timeout réseau : la réservation reste EN_ATTENTE, aucune confirmation fantôme", async () => {
+    isKonnectEnabledMock.mockReturnValue(true);
+    requireUserMock.mockResolvedValue({ ...OWNER, name: "Voyageur Test", email: "v@test.tn" });
+    bookingFindUnique.mockResolvedValue(pendingBooking());
+    initKonnectMock.mockRejectedValue(new Error("init-payment réseau: fetch failed (timeout)"));
+
+    const result = await startKonnectPaymentAction(undefined, idForm());
+
+    expect(result).toEqual({ error: "Erreur de paiement." });
+    // Aucune écriture sur la réservation : ni paymentRef, ni amountPaid, ni
+    // changement de statut — elle reste EN_ATTENTE telle quelle en base.
+    expect(bookingUpdate).not.toHaveBeenCalled();
+    expect(logAuditMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: "PAYMENT_FAILED",
+        success: false,
+        metadata: expect.objectContaining({ bookingId: BOOKING_ID, stage: "init" }),
+      })
+    );
+  });
+
+  it("Konnect répond en erreur HTTP (ex. 503) : même dégradation gracieuse que le timeout", async () => {
+    isKonnectEnabledMock.mockReturnValue(true);
+    requireUserMock.mockResolvedValue({ ...OWNER, name: "Voyageur Test", email: "v@test.tn" });
+    bookingFindUnique.mockResolvedValue(pendingBooking());
+    initKonnectMock.mockRejectedValue(new Error("init-payment 503: service indisponible"));
+
+    const result = await startKonnectPaymentAction(undefined, idForm());
+
+    expect(result).toEqual({ error: "Erreur de paiement." });
+    expect(bookingUpdate).not.toHaveBeenCalled();
+  });
+});
+
 describe("submitReviewAction — IDOR", () => {
   function reviewForm(): FormData {
     const fd = new FormData();

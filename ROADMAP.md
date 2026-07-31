@@ -245,11 +245,14 @@ tout pour faire le palier 1 :
 **Deux arbitrages de coût que cette tâche fait remonter** (à valider par
 Wassim, ils sortent de la contrainte « zéro service payant » qui visait le
 développement, pas l'exploitation) :
-1. **Le cron Vercel Hobby ne s'exécute qu'une fois par jour** alors que
-   `vercel.json` demande `*/15 * * * *` → la relance d'abandon (P7/G6)
-   arriverait jusqu'à 24 h trop tard. Solution retenue : cron externe gratuit
-   (cron-job.org) appelant `/api/jobs/tick` avec `Authorization: Bearer
-   <CRON_SECRET>`. Alternative : Vercel Pro.
+1. **Le cron Vercel Hobby ne se contente pas de tourner en retard — il
+   bloque le déploiement entier** (découvert le 2026-07-30, PR #264 :
+   un `vercel.json` déclarant `*/15 * * * *` fait échouer tout déploiement
+   sur Hobby). `vercel.json` supprimé — solution retenue, désormais seule
+   source de vérité : cron externe gratuit (cron-job.org) appelant
+   `/api/jobs/tick` avec `Authorization: Bearer <CRON_SECRET>` posé
+   explicitement côté cron-job.org. Détail complet :
+   `docs/INFRASTRUCTURE.md` §3 piège n°1.
 2. **Le plan Hobby interdit l'usage commercial** → **Vercel Pro (~20 $/mois)
    sera nécessaire en P1.8**. Premier coût fixe réel du projet.
 
@@ -744,8 +747,8 @@ développement.
 
 | # | Tâche | Prio | Statut |
 |---|---|---|---|
-| P4.1 | Analyse de bundle et réduction du JS partagé | P1 | ❌ |
-| P4.2 | Budget Lighthouse **bloquant** | P2 | ❌ (après P4.1) |
+| P4.1 | Analyse de bundle et réduction du JS partagé | P1 | ❌ (motion + Leaflet traités, PR #256 — bundler/i18n reportés par choix de Wassim) |
+| P4.2 | Budget Lighthouse **bloquant** | P2 | ❌ (mesuré, non actionné par choix de Wassim — voir note) |
 | P4.3 | Session de test sur device réel (FR + AR/RTL) | P1 | ❌ 🧑 |
 
 ### P4.1
@@ -760,9 +763,54 @@ client (seule la locale active devrait l'être), et la confirmation que
 Leaflet reste bien hors du bundle initial.
 **Acceptation** : rapport chiffré avant/après ; cible < 200 kB partagé.
 
+**Fait (PR #256)** : les 3 suspects nommés, tous investigués et chiffrés
+(pas estimés). **Leaflet** déjà correctement en import dynamique
+`ssr:false` — confirmé hors bundle initial, rien à faire. **`motion`**
+retiré entièrement (4 usages simples réécrits en CSS pur +
+`IntersectionObserver`, `useRevealOnScroll.ts`) — gain réel mesuré sur
+les pages qui l'utilisaient : `/sejours` 364→326 kB, `/hote/[id]`
+355→317 kB, `/immobilier` 359→322 kB (mais **pas** sur le chiffre
+« partagé par toutes les pages », motion n'en faisait pas partie).
+**i18n** (fr/en/ar bundlés ensemble, ~390 Ko de source) confirmé comme
+contributeur réel du JS partagé — tentative de correctif par rendu
+conditionnel serveur de 3 `LocaleProviderFr/En/Ar` : hypothèse fausse
+(vérifiée sur deux builds réels, Turbopack et webpack), le chunking
+Next.js se décide au build, pas par requête, donc une branche
+conditionnée par une valeur runtime (cookie) ne se découpe pas
+statiquement — refactor annulé proprement, aucune régression mais aucun
+gain. Un vrai correctif exigerait un chargement async (Suspense, risque
+de flash sur ~100 composants clients) ou des URLs par locale (routage
+plus large) — soumis à Wassim.
+
+**Découverte hors périmètre** : sous Turbopack (config actuelle),
+326 kB partagé ; le MÊME code compilé en webpack classique ne fait que
+191 kB (déjà sous la cible 200 kB) — le choix du bundler est le levier
+le plus important pour ce ticket, plus que le code applicatif.
+
+**Tranché par Wassim (2026-07-30)** : rester sur Turbopack pour
+l'instant (webpack ralentirait probablement les builds CI/Vercel) et ne
+pas lancer le chantier i18n maintenant (limite documentée, à reprendre
+si le poids de page devient un problème mesuré). Le JS partagé reste
+donc à 326 kB — cible < 200 kB **non atteinte**, décision produit
+assumée plutôt qu'un chantier supplémentaire non demandé.
+
+`@next/bundle-analyzer` branché (`ANALYZE=true npm run build`) pour
+rejouer la mesure facilement si repris plus tard.
+
 ### P4.2
 Rendre bloquant le job Lighthouse (aujourd'hui informatif, `nightly.yml`) :
 LCP < 2,5 s en mobile throttlé sur `/`, `/sejours` et une page annonce.
+
+**Mesuré (2026-07-30, build prod local, mobile throttlé simulé)** avant de
+rendre quoi que ce soit bloquant : les 3 pages échouent LARGEMENT la
+cible aujourd'hui — Accueil LCP 4,61 s, Recherche 4,53 s, Annonce
+4,12 s (CLS bon, 0.000 partout). Très probablement lié au même poids JS
+que P4.1 (326 Ko partagé, cf. note P4.1) — rendre le check bloquant
+maintenant l'aurait fait échouer immédiatement sans qu'aucun travail de
+perf n'ait encore été fait. **Tranché par Wassim (2026-07-30)** :
+cohérent avec sa décision P4.1, ne pas rendre bloquant pour l'instant —
+Lighthouse reste informatif (`nightly.yml`, comportement inchangé). À
+reprendre en même temps que le chantier bundle si/quand repriorisé.
 
 ### P4.3 🧑
 Un Android milieu de gamme, en 4G, parcours complet FR puis AR/RTL, PWA
@@ -774,11 +822,11 @@ installée depuis l'écran d'accueil. Jamais fait. Rapport + captures.
 
 | # | Tâche | Prio | Statut |
 |---|---|---|---|
-| P5.1 | Runbook opérationnel « jour 1 » | P1 | ❌ |
-| P5.2 | Balayage d'intégrité des données (job) | P1 | ❌ |
-| P5.3 | Tests de dégradation gracieuse (Redis/Konnect/Resend down) | P1 | ❌ |
-| P5.4 | Budget d'erreur + seuils d'alerte | P2 | ❌ |
-| P5.5 | Gate de sécurité des migrations | P2 | ❌ |
+| P5.1 | Runbook opérationnel « jour 1 » | P1 | ✅ PR #260 |
+| P5.2 | Balayage d'intégrité des données (job) | P1 | ✅ PR #262 |
+| P5.3 | Tests de dégradation gracieuse (Redis/Konnect/Resend down) | P1 | ✅ PR #263 |
+| P5.4 | Budget d'erreur + seuils d'alerte | P2 | ❌ (après P1.5 — ⛔ W8) |
+| P5.5 | Gate de sécurité des migrations | P2 | ✅ PR #265 |
 | P5.6 | Scan d'image/dépendances + SBOM | P2 | ❌ |
 
 ### P5.1
@@ -789,6 +837,14 @@ site est down, comment faire un rollback (renvoi vers
 Une réponse « je regarde le matin » est acceptable — mais elle doit être
 écrite.
 
+**Fait (PR #260)** : chaque section vérifiée contre le comportement réel du
+code (pas rédigée de mémoire) — notamment que le modèle commission-only
+rend un échec de paiement Konnect sans conséquence sur l'hébergement
+(la réservation expire d'elle-même), que le traitement des factures hôte
+impayées est déjà entièrement automatique, et — honnêteté assumée — qu'il
+n'existe aujourd'hui aucune alerte qui réveillerait Wassim la nuit
+(⛔ W8 non tranché).
+
 ### P5.2
 Job ajouté à `/api/jobs/tick` : détecte les incohérences silencieuses
 (réservation sans annonce, `escrow` orphelin, facture sans réservation, FK
@@ -796,21 +852,68 @@ pendante, crédit dont le ledger ne somme pas au solde du wallet) et alerte
 via `notifyObservability`. Sur un produit financier, une corruption
 silencieuse coûte plus cher qu'une panne visible.
 
+**Fait (PR #262)** : 5ᵉ job (`data-integrity-check`), lecture seule.
+Vérifié en lisant le schéma que toutes les FK couvertes sont déjà
+appliquées par Postgres/Prisma (`onDelete: Cascade`) — un résultat non
+nul signale donc une manipulation hors application ou un bug de
+migration, jamais un chemin d'usage normal. `notifyObservability` du
+ticket ne correspond à aucune fonction existante — utilisé le
+mécanisme réel (`captureError`). Ledger de crédits vérifié contre
+`CreditWallet.balance = SUM(CreditTransaction.amount)`
+(`VerificationWallet` exclu, pas de ledger associé par design).
+Requêtes testées contre la base locale réelle en plus des mocks (0
+incohérence sur données saines).
+
 ### P5.3
 Tester que l'app survit à : Redis indisponible (le rate limiting doit
 retomber en mémoire sans planter), Konnect en timeout (la réservation reste
 `EN_ATTENTE`, aucune confirmation fantôme), Resend en erreur (l'action
 métier réussit quand même, l'e-mail est journalisé comme échoué).
 
+**Fait (PR #263)** : les 3 scénarios investigués individuellement. Redis
+et Resend étaient déjà couverts (Redis depuis P2.10 ; Resend dans
+plusieurs flux existants, vérifié qu'ils couvrent bien les DEUX exigences
+— résout sans exception ET journalise l'échec, pas seulement l'un des
+deux). Konnect en timeout était le seul trou réel : le code
+(`startKonnectPaymentAction`) gérait déjà correctement le cas, juste
+jamais testé — 2 tests ajoutés. Aucun changement de code applicatif,
+seule la couverture manquait.
+
 ### P5.4
 Définir les seuils qui déclenchent une alerte : taux de 5xx, pic d'échecs
 d'authentification, taux d'échec de paiement, job qui ne tourne plus depuis
 1 h. Brancher sur le canal W8.
 
+**Sauté (bloqué transitivement)** : brancher des seuils d'alerte sur un
+canal (W8) qui n'existe pas encore n'a pas de sens — P1.5 (⛔ W8, Sentry +
+webhook d'alertes) n'est pas tranché. Reprendre dès que P1.5 l'est.
+
 ### P5.5
 Une migration destructive (DROP/ALTER de colonne) ne doit pas passer sans
 approbation explicite : job CI qui détecte les mots-clés destructifs dans
 `prisma/migrations/` et exige un label sur la PR.
+
+**Fait (PR #265)** : `scripts/check-destructive-migrations.mjs` (zéro
+dépendance npm, Node builtins uniquement) — scanne les fichiers `.sql`
+ajoutés/modifiés par la PR sous `prisma/migrations/` à la recherche de
+`DROP TABLE`, `DROP COLUMN`, `DROP DATABASE`, `DROP SCHEMA`, `TRUNCATE`,
+`ALTER COLUMN` (insensible à la casse, ignore les lignes de commentaire SQL).
+Volontairement conservateur : `ALTER COLUMN` déclenche même pour un simple
+`SET DEFAULT` — le coût d'un label superflu est négligeable face au risque
+qu'un vrai changement de type/downtime passe inaperçu. Nouveau job CI
+`migration-gate` (`ci.yml`), tourne sur tout événement de PR (y compris
+`labeled`, contrairement à `fast`/`gitleaks` : c'est justement l'ajout du
+label qui doit faire passer le job d'échec à succès) — échoue si une
+migration destructive n'a pas le label `migration-approved` posé sur la PR.
+Label créé au premier usage réel (le picker GitHub propose « create new
+label » à la pose si absent — aucun outil MCP disponible ici pour le créer à
+l'avance). 17 tests unitaires sur la logique pure (mots-clés, parsing du
+label) + vérification manuelle en conditions réelles (worktree jetable,
+vraies migrations/commits Git, 6 scénarios : destructive sans label bloque,
+destructive avec label passe, aucune migration touchée passe, migration
+sûre (ADD COLUMN) passe, SHA invalide échoue fermé, fallback local
+`origin/main...HEAD` fonctionne) — la plomberie git/CLI n'est pas
+unit-testée (même convention que les autres scripts de `scripts/`).
 
 ### P5.6
 `npm audit --audit-level=high` est déjà dans la CI. Ajouter la génération
