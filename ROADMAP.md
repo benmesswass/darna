@@ -161,7 +161,7 @@ SORTANTES »** (`/api/jobs/tick`).
 |---|---|---|---|
 | P1.1 | Rattrapage e2e/API en local (angle mort d'une semaine) | P0 | ✅ PR #230 |
 | P1.2 | CI verte de bout en bout (+ ⛔ W3) | P0 | ❌ (d fait, PR #231 — a/b/c attendent le quota) |
-| P1.3 | Déploiement **staging** (⛔ W1) | P0 | ❌ 🧑 |
+| P1.3 | Déploiement **staging** (⛔ W1) | P0 | ❌ (palier 1+2 en ligne — PR #261, R2 restant + CI bloquée par quota) |
 | P1.4 | Smoke tests contre staging + correctifs prod-only | P0 | ❌ (après P1.3) |
 | P1.5 | Brancher les yeux : Sentry, alertes, uptime (⛔ W8) | P0 | ❌ 🧑 |
 | P1.6 | Drill de restauration de backup + vérif du cron réel | P0 | ❌ (après P1.3) |
@@ -221,9 +221,29 @@ branches sans rapport avec le projet en cours) — confirmé non résolu au
 Wassim (W3)** : dépôt public (aucun secret commité, vérifié) ou runner
 self-hosted — sans ça le problème revient chaque mois.
 
-### P1.3 — Déploiement staging 🧑
+### P1.3 — Déploiement staging
 
-**Bloqué sur W1** (création de comptes et collage de secrets — non codable).
+**Fait (2026-07-31, PR #261)** : palier 1 + palier 2 déployés en ligne sur
+le projet Vercel `darna-staging` (équipe `darna1`) — Neon créée/migrée/
+seedée, Upstash Redis, Resend, `CRON_SECRET` + cron externe (cron-job.org)
+branché sur `/api/jobs/tick`, Konnect sandbox. Vérification `/api/health`
+non faisable **depuis le sandbox Claude** (réseau sortant restreint à une
+liste blanche — ni Neon ni `*.vercel.app` joignables directement, confirmé
+en testant ; à refaire depuis un poste avec accès normal) : page d'accueil,
+recherche et annonces seedées confirmées visuellement par Wassim à la place.
+Seul reste **R2** (upload de photos) — pas branché, choix assumé de Wassim
+pour l'instant : sans lui tout ce qui existait déjà au déploiement fonctionne
+normalement, seul un nouvel upload via le site déployé ne persisterait pas
+(disque serverless éphémère).
+
+PR #261 propre après fusion de `main` (résolution du conflit avec PR #264
+sur `vercel.json` — voir note juste en dessous) mais **reste bloquée sur la
+CI** : quota GitHub Actions toujours épuisé au 31/07 (`fast`/`gitleaks`
+rejetés en ~10 s sans logs, même signature que le 29/07 malgré l'estimation
+« reset ~31/07 » du §1) — donc pas encore mergeable, conformément à la règle
+absolue CI verte + validation Wassim. W3 (dépôt public ou runner
+self-hosted) reste le vrai correctif : le quota s'épuise en quelques heures
+dès qu'une session enchaîne beaucoup de PR, pas seulement une fois par mois.
 
 > 📖 **GUIDE PAS-À-PAS COMPLET : `docs/INFRASTRUCTURE.md` §7.** Ouvrir ce
 > document dès qu'on attaque cette tâche et le suivre **dans l'ordre, sans
