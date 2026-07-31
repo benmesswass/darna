@@ -199,18 +199,23 @@ déclenche le `noindex` automatique du staging (`src/app/robots.ts`). Ne
 jamais mettre le domaine de production ici.
 
 **Étape 5 — Créer les tables et les données de démo (5 min).** Depuis le
-poste local : pointer temporairement `DATABASE_URL`/`DIRECT_URL` du `.env`
-sur Neon, puis :
+poste local, **sans toucher au `.env`** — préfixer la commande en ligne avec
+les deux valeurs Neon (évite d'oublier de les poser ET d'oublier de les
+retirer ensuite) :
 
 ```
-npx prisma migrate deploy
-npx prisma db seed
+DATABASE_URL="<pooled>" DIRECT_URL="<direct>" npx prisma migrate deploy
+DATABASE_URL="<pooled>" DIRECT_URL="<direct>" npx prisma db seed
 ```
 
 **Toujours `migrate deploy`, jamais `migrate dev`** sur une base distante
 (`migrate dev` peut générer une migration interactive et réécrire
-l'historique). Remettre ensuite les valeurs locales dans `.env` pour ne pas
-travailler par erreur sur Neon depuis le poste.
+l'historique). ⚠️ Piège vécu (2026-07-30) : sans le préfixe inline, la
+commande retombe **silencieusement** sur le `.env` local (`localhost:5432`),
+sans erreur — Neon reste vide et l'app affiche une erreur générique une fois
+déployée. Toujours vérifier la ligne `Datasource "db": ... at "<host>"`
+affichée par Prisma avant de continuer : elle doit montrer l'hôte Neon, pas
+`localhost`.
 
 **Étape 6 — Vérifier (2 min).**
 
@@ -256,6 +261,16 @@ facturé** sous 10 Go).
 | `S3_SECRET_ACCESS_KEY` | Secret Access Key |
 | `S3_REGION` | `auto` |
 | `S3_PUBLIC_URL` | URL publique `r2.dev` |
+
+⚠️ **Seuils gratuits R2 à surveiller** : 10 Go stockage, 1M opérations
+Class A (écritures/uploads), 10M Class B (lectures/affichage) par mois —
+au-delà, facturation automatique sur la carte enregistrée (pas de plafond
+dur, pas de reconfirmation). Vérifié le 2026-07-30 : très largement
+suffisant pour un staging à trafic humain/interne (336 photos seedées,
+non indexé donc pas de bots). **Repasser sur ces chiffres dès que le
+trafic devient réel** — passage en production (§P1.8) ou terrain (phase 6,
+`ROADMAP.md`) — dans le dashboard Cloudflare → *Storage & databases* → *R2*
+→ `darna-staging-uploads` (stats d'usage affichées en haut de la page).
 
 **Étape 9 — Resend (10 min).** https://resend.com/signup → *API Keys* →
 *Create API Key*. Sans domaine vérifié, Resend n'envoie **que vers l'adresse
