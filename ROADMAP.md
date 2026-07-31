@@ -155,9 +155,33 @@ par PR #261, **pas encore mergée** — `main` affiche donc P1.3 ❌ alors que
 le staging existe réellement. Ne pas laisser cet écart durer : c'est le
 premier symptôme du blocage ci-dessous.
 
+**W3 — TRANCHÉ le 2026-07-31 : Option A, dépôt public** (décision explicite
+de Wassim après comparaison public / runner self-hosted / dépassement payant
+sur dépôt privé — cette dernière recommandée par Claude, écartée par Wassim
+« pour l'instant »). **Scan de sécurité pré-publication exécuté avant tout
+basculement** (gitleaks 8.21.2 sur les 412 commits de l'historique complet,
+`git log --all`, config `.gitleaks.toml` du projet) : **aucune fuite**. Vérifs
+manuelles complémentaires : `.env`/`.env.local`/`.env.production` jamais
+commités (historique entier) ; aucun motif de clé API/secret réel dans les
+diffs complets (hors placeholders `.env.example` du type `ta_cle_x_api_key`) ;
+liste exhaustive des fichiers un jour retirés du suivi passée en revue —
+`CREDENTIALS.md` a été commité une fois (10/06) avant d'être ignoré (16/06),
+contenu = comptes de démo (`darna2026`) déjà publics dans le README actuel,
+aucun risque ; le reste sont les roadmaps/audits consolidés (raisonnement
+stratégique, pas des secrets — risque de nature différente, déjà assumé par
+Wassim en tranchant l'option A) et des fichiers infra/tests renommés.
+
+**Action restante, 🧑 3 clics (aucun outil GitHub MCP n'expose ce réglage —
+volontairement laissé à l'humain, c'est un changement de compte, pas du
+code) :** Settings du repo (`github.com/benmesswass/darna/settings`) → tout
+en bas, **Danger Zone** → **Change repository visibility** → **Make public**
+→ confirmer en tapant le nom du repo. Cocher ci-dessous une fois fait :
+
+- [ ] Dépôt basculé en public
+
 | Ordre | Action | Qui | Pourquoi maintenant plutôt que plus tard |
 |---|---|---|---|
-| 1 | **⛔ W3 — trancher public/runner** (voir tableau §3) | 🧑 5 min | **Devenu LE bouchon unique.** Bloque la CI de PR #261 (le staging livré !) et #266, donc P1.2 ET P1.3 sont gelées dessus. Le quota ne « revient » pas au repos mensuel comme estimé au §1 — il s'épuise en quelques heures dès qu'une session enchaîne des PR (observé de nouveau le 31/07 malgré le reset attendu). Ce n'est pas un incident, c'est une incompatibilité structurelle entre le mode de développement du projet et un dépôt privé gratuit. Chaque jour d'indécision coûte plus que la décision |
+| 1 | **⛔ W3 — basculer le dépôt en public** (3 clics ci-dessus, scan déjà fait) | 🧑 2 min | **Devenu LE bouchon unique.** Bloque la CI de PR #261 (le staging livré !) et #266, donc P1.2 ET P1.3 sont gelées dessus. Le quota ne « revient » pas au repos mensuel comme estimé au §1 — il s'épuise en quelques heures dès qu'une session enchaîne des PR (observé de nouveau le 31/07 malgré le reset attendu). Ce n'est pas un incident, c'est une incompatibilité structurelle entre le mode de développement du projet et un dépôt privé gratuit. Chaque jour d'indécision coûte plus que la décision |
 | 2 | Merger #261 dès la CI verte, puis lancer un **run complet niveau 2 sur `main`** avant toute nouvelle feature | Claude | ~50 PR de code sont sur `main` sans qu'une CI complète (e2e/API/coverage/audit) ait jamais tourné dessus depuis une semaine — l'assurance s'amincit à chaque merge de plus |
 | 3 | **P1.4** : smoke Playwright contre staging + **test du webhook Konnect en chemin nominal** (jamais fait — impossible en local) + brancher **R2** (20 min, seul morceau manquant du palier 2) | Claude + 🧑 20 min (R2) | Valide le code ET le déploiement d'un coup ; R2 manquant = un nouvel upload de photo ne persisterait pas en prod (disque serverless éphémère) |
 | 4 | **⛔ W4 — envoyer le brief avocat** (5 points déjà rédigés, §3) | 🧑 5 min, **en parallèle, dès maintenant** | Zéro dépendance code — peut partir aujourd'hui pendant que 1-3 se déroulent. Le staging Konnect sandbox réduit la distance au premier dinar réel : le délai juridique doit courir avant P1.8, pas au moment de P1.8 |
@@ -181,7 +205,7 @@ au fonctionnement normal (§0 : première tâche non cochée de la phase 1).
 |---|---|---|---|
 | W1 | Créer les comptes free tier : **Vercel, Neon, Upstash, Cloudflare R2, Resend** et coller les variables (checklist pas-à-pas dans `docs/INFRASTRUCTURE.md` §4) | P1.3 → tout | Le goulot d'étranglement unique du projet |
 | W2 | **Domaine** : `darna.tn` (registrar tunisien, délai) — fallback `.com`/`.co`. Ne PAS bloquer staging dessus (`*.vercel.app` suffit) | P1.8 | `SITE_URL` définitif avant indexation/HSTS |
-| W3 | **Dépôt public ou runner self-hosted** — le quota Actions est la cause racine de la CI rouge. Recommandation : public (aucun secret commité, atout crédibilité) | P1.2 | Sans ça, le problème revient chaque mois |
+| W3 | **✅ TRANCHÉ (2026-07-31) : dépôt public.** Scan gitleaks historique complet (412 commits) : aucune fuite. Reste 🧑 2 min : Settings → Danger Zone → Change visibility → Make public (aucun outil ne peut le faire à ta place) — détail et checklist en §2bis | P1.2 | Le quota Actions est la cause racine de la CI rouge — le dépôt public donne des minutes illimitées |
 | W4 | **Avocat d'affaires tunisien** — brief en 5 points : (a) le modèle commission-only n'est pas un service de paiement, (b) TVA sur les frais, (c) validation des CGU réécrites, (d) statut fiscal de la location saisonnière, (e) cadrage du séquestre V2 | P3 → argent réel | Tout le modèle repose sur une hypothèse non validée |
 | W5 | **Clés Turnstile réelles** (Cloudflare, widget Managed, gratuit) | P1.8 | Les clés de test valident tout et ne protègent RIEN |
 | W6 | **Projet Google Cloud OAuth** (écran de consentement + client ID/secret) | P1.8 | Code livré, inactif sans clés |
@@ -248,17 +272,17 @@ appliqué au job `full` — effet cliquet, la couverture ne peut plus régresser
 **Acceptation** : un run vert sur `main`, gate de couverture actif, rapport
 nightly lu et ses éventuels findings ouverts en tâches ici (phase 2).
 
-**État au 2026-07-29** : (a) fait — rappel ci-dessous ; (d) **fait** (PR
+**État au 2026-07-31** : (a) fait — W3 **tranché** (dépôt public, scan
+gitleaks historique complet propre, détail en §2bis/§3) ; (d) **fait** (PR
 #231) : seuils remplacés par couverture réelle mesurée (61,25 % stmt /
 54,53 % branches / 57,67 % fn / 63,01 % lignes) moins ~1 pt de marge —
 lines 62 / statements 60 / functions 56 / branches 53 — les anciens seuils
 (43/41/36/35) ne protégeaient plus rien depuis longtemps. (b)/(c) **encore
-bloqués** : les 19 derniers runs `ci.yml`/`nightly.yml` échouent tous en
-2-11 s sans logs (rejet immédiat par quota, vérifié aussi sur `main` et des
-branches sans rapport avec le projet en cours) — confirmé non résolu au
-29/07, à réessayer après le 31/07 ou dès W3 débloqué. 🧑 **Rappel à
-Wassim (W3)** : dépôt public (aucun secret commité, vérifié) ou runner
-self-hosted — sans ça le problème revient chaque mois.
+bloqués au 31/07** : les runs `ci.yml`/`nightly.yml` échouent tous en 2-11 s
+sans logs (rejet immédiat par quota) — reste sur le basculement effectif du
+dépôt en public (§2bis checklist), pas sur un arbitrage. Dès la checklist
+cochée : relancer (b)/(c) immédiatement, sans attendre de reset de quota
+(le dépôt public donne des minutes illimitées dès le basculement).
 
 ### P1.3 — Déploiement staging 🧑
 
