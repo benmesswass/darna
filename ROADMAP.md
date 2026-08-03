@@ -461,12 +461,17 @@ ouvert en tâche ici.
 la création d'annonce échouait en 500 — `Error: Failed to load external
 module sharp: Could not load the "sharp" module using the linux-x64
 runtime`. Cause : `sharp` (validation/ré-encodage des photos, P2.7) a un
-binaire natif que Next.js tentait de bundler dans le code serveur au lieu de
-le `require()` nativement au runtime — bug indépendant du driver de
-stockage (aurait cassé pareil en mode `local`), jamais détecté avant faute
-d'un vrai upload testé sur un déploiement Vercel. Corrigé en ajoutant
-`serverExternalPackages: ["sharp"]` à `next.config.ts` — validation en
-cours (PR à suivre).
+binaire natif — bug indépendant du driver de stockage (aurait cassé pareil
+en mode `local`), jamais détecté avant faute d'un vrai upload testé sur un
+déploiement Vercel. **Deux causes superposées, deux correctifs** dans
+`next.config.ts` : (1) `serverExternalPackages: ["sharp"]` (empêche Next.js
+de bundler `sharp` dans le code serveur) — **insuffisant seul**, même
+erreur persistante après ce premier correctif ; (2)
+`outputFileTracingIncludes` forçant l'inclusion de `node_modules/sharp` et
+`node_modules/@img` dans le traçage de fichiers Vercel (`@vercel/nft`), qui
+ne détecte pas le chargement dynamique du binaire natif par analyse
+statique et ne le copiait donc jamais dans la fonction serverless déployée.
+Validation en cours (PR #276).
 
 ### P1.5 — Brancher les yeux 🧑 (W8)
 
