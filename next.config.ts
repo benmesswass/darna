@@ -24,6 +24,13 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // `sharp` (validation/ré-encodage des photos uploadées, src/lib/storage.ts,
+  // P2.7) a un binaire natif : sans ce flag, Next.js tente de le bundler dans
+  // le code serveur au lieu de le require() nativement au runtime, ce qui
+  // casse le chargement du binaire linux-x64 sur Vercel ("Could not load the
+  // sharp module using the linux-x64 runtime" — constaté le 2026-08-03 sur
+  // tout upload de photo réel sur le staging déployé).
+  serverExternalPackages: ["sharp"],
   experimental: {
     serverActions: {
       // Upload de photos d'annonces : 8 photos max, compressées côté client
