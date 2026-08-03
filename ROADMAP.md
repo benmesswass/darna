@@ -243,8 +243,8 @@ au fonctionnement normal (§0 : première tâche non cochée de la phase 1).
 | # | Tâche | Prio | Statut |
 |---|---|---|---|
 | P1.1 | Rattrapage e2e/API en local (angle mort d'une semaine) | P0 | ✅ PR #230 |
-| P1.2 | CI verte de bout en bout (+ ⛔ W3) | P0 | ❌ (a/b/d faits — repo public + run complet niveau 2 100 % vert sur `main`, PR #231 ; c reste : rapport `nightly.yml` pas encore lu) |
-| P1.3 | Déploiement **staging** (⛔ W1) | P0 | ❌ (palier 1+2 en ligne, bon domaine confirmé `darna-staging-two.vercel.app` — R2 et Redis (`/api/health` : `redis:false`) restants, 🧑) |
+| P1.2 | CI verte de bout en bout (+ ⛔ W3) | P0 | ✅ (a/b/c/d faits — voir détail sous P1.2 : repo public, run complet niveau 2 vert sur `main`, gate couverture PR #231, `nightly.yml` déclenché et lu) |
+| P1.3 | Déploiement **staging** (⛔ W1) | P0 | ❌ (palier 1+2 en ligne, bon domaine confirmé `darna-staging-two.vercel.app`, Redis corrigé (`/api/health` : `ok:true`) — R2 seul restant, 🧑) |
 | P1.4 | Smoke tests contre staging + correctifs prod-only | P0 | ❌ (après P1.3) |
 | P1.5 | Brancher les yeux : Sentry, alertes, uptime (⛔ W8) | P0 | ❌ 🧑 |
 | P1.6 | Drill de restauration de backup + vérif du cron réel | P0 | ❌ (après P1.3) |
@@ -292,16 +292,42 @@ appliqué au job `full` — effet cliquet, la couverture ne peut plus régresser
 **Acceptation** : un run vert sur `main`, gate de couverture actif, rapport
 nightly lu et ses éventuels findings ouverts en tâches ici (phase 2).
 
-**État au 2026-08-03** : (a) **fait** — dépôt basculé en public, confirmé
+**✅ Terminé (2026-08-03)** : (a) **fait** — dépôt basculé en public, confirmé
 via l'API GitHub (`"visibility":"public"`) ; (d) **fait** (PR #231) : seuils
 remplacés par couverture réelle mesurée (61,25 % stmt / 54,53 % branches /
 57,67 % fn / 63,01 % lignes) moins ~1 pt de marge — lines 62 / statements 60
 / functions 56 / branches 53 — les anciens seuils (43/41/36/35) ne
 protégeaient plus rien depuis longtemps. (b) **fait** : `workflow_dispatch`
 complet déclenché directement sur `main` — `fast`/`gitleaks`/`api`/
-`supply-chain`/`full`/`e2e` tous verts. (c) **reste ouvert** : `nightly.yml`
-(semgrep + ZAP + k6 + Lighthouse) pas encore déclenché/lu depuis le
-basculement en public — à faire avant de considérer P1.2 entièrement acquis.
+`supply-chain`/`full`/`e2e` tous verts. (c) **fait** : `nightly.yml`
+déclenché manuellement (run `30802235639`) et son premier rapport lu —
+**semgrep : 0 finding** (bloquant, gate propre) ; **ZAP baseline : 59 PASS,
+8 WARN informatifs** (`fail_action: false`, jamais bloquant par design —
+détail et suite en P2.11) ; **Lighthouse** : mesure CI confirmant P4.2
+(détail ajouté à cette section). **Découverte au passage, corrigée dans la
+même PR** : le job `perf` (k6) échouait silencieusement depuis toujours —
+`k6` n'était jamais installé sur le runner (`k6: not found`), et l'échec
+était masqué par un `| tee` sans `pipefail` (le job répondait « success »
+sans qu'aucun test de charge ne se soit exécuté). Corrigé dans
+`nightly.yml` : ajout de `grafana/setup-k6-action` + `set -o pipefail` sur
+les deux steps k6, pour que les futures pannes de charge soient enfin
+visibles. **P1.2 est maintenant intégralement acquis.**
+
+**Validation du correctif (run `30803720328`, sur la branche de la PR
+avant merge)** : `k6` s'installe et s'exécute réellement — et, pour la
+première fois, un vrai résultat apparaît : le test recherche
+(`tests/perf/search.js`) dépasse son seuil `p(95)<2000ms` (mesuré 2,94 s)
+sur ce runner GitHub Actions partagé, contre 1,31 s mesuré localement le
+2026-07-09 (seuil déjà calibré avec marge à l'époque, cf. commentaire du
+fichier). Pas de correctif de seuil dans cette PR — recalibrer un seuil de
+perf est un choix qui mérite son propre arbitrage, pas un effet de bord
+d'un fix CI. Deux bugs annexes corrigés au passage (mêmes PR) : le step
+k6 charge/réservation était `skip`-é dès que le step recherche échouait
+(`if: always()` ajouté, les deux mesures sont utiles indépendamment), et
+le step Résumé plantait si un des deux logs n'existait pas (garde ajoutée).
+**Nouveau point ouvert, à traiter séparément** : calibrer ce seuil contre
+la réalité d'un runner GitHub Actions partagé (probablement plus lent qu'un
+poste de dev local) plutôt que de le laisser rouge à chaque nightly.
 
 ### P1.3 — Déploiement staging
 
@@ -314,11 +340,11 @@ liste blanche — ni Neon ni `*.vercel.app` joignables directement, confirmé
 en testant, reconfirmé le 2026-08-03) : page d'accueil, recherche et
 annonces seedées confirmées visuellement par Wassim à la place ;
 `/api/health` vérifié par Wassim le 2026-08-03 (détail plus bas) — db ok,
-**redis en échec**. Restent **R2** (upload de photos, pas branché — choix
-assumé de Wassim pour l'instant, sans lui tout ce qui existait déjà au
-déploiement fonctionne normalement, seul un nouvel upload via le site
-déployé ne persisterait pas, disque serverless éphémère) **et Redis** (voir
-constat 2026-08-03 plus bas).
+redis en échec puis **corrigé le même jour** (détail plus bas). Seul reste
+**R2** (upload de photos, pas branché — choix assumé de Wassim pour
+l'instant, sans lui tout ce qui existait déjà au déploiement fonctionne
+normalement, seul un nouvel upload via le site déployé ne persisterait pas,
+disque serverless éphémère).
 
 **Mergée (31/07)**, après résolution du conflit avec PR #264 sur
 `vercel.json` (voir note juste en dessous). Le quota GitHub Actions s'est
@@ -350,22 +376,30 @@ générique) :
 ```
 
 `db: true` — Postgres/Neon opérationnel. `mode: "konnect"` — confirme le
-paiement Konnect sandbox actif, cohérent avec le palier 2. **`redis: false`
-est un nouveau problème à corriger** : `getRedis()` (`src/lib/redis.ts`) ne
-renvoie un client non-null que si `REDIS_URL` est définie sur Vercel — la
-variable est donc bien posée, mais le `.ping()` échoue, ce qui fait répondre
-`/api/health` en `503` (`src/app/api/health/route.ts`). Pistes à vérifier
-côté Wassim (dashboard Upstash + variables d'env Vercel du projet
-`darna-staging`) : `REDIS_URL` mal copiée/expirée, base Upstash suspendue
-(inactivité sur le free tier), ou région Upstash injoignable depuis la
-région de déploiement Vercel. Dégradation déjà couverte par P5.3
-(rate limiting retombe en mono-instance, pas un blocage total du site), mais
-à corriger avant de considérer le palier 2 complet.
+paiement Konnect sandbox actif, cohérent avec le palier 2. `redis: false`
+au moment de ce constat : `getRedis()` (`src/lib/redis.ts`) ne renvoie un
+client non-null que si `REDIS_URL` est définie sur Vercel — la variable
+était donc bien posée, mais le `.ping()` échouait, ce qui faisait répondre
+`/api/health` en `503` (`src/app/api/health/route.ts`).
 
-Le bon domaine étant confirmé, le reste du smoke test (page d'accueil,
-recherche, webhook Konnect, cookies) peut démarrer sur
-`darna-staging-two.vercel.app` — seul le point Redis reste à corriger avant
-de clore P1.3 entièrement.
+**✅ Corrigé (2026-08-03)** : cause identifiée par Wassim — `REDIS_URL`
+utilisait le schéma `redis://` (sans TLS) au lieu de `rediss://` (TLS),
+alors qu'`ioredis` n'active le chiffrement que si l'URL commence par
+`rediss://` et qu'Upstash exige TLS sur le port TCP 6379. Corrigé en
+recopiant la valeur exacte fournie par Upstash (onglet Connect → TCP,
+`rediss://default:…@in-mutt-153979.upstash.io:6379`) dans les variables
+d'environnement Vercel du projet `darna-staging`, suivi d'un redéploiement.
+Reconfirmé sur `darna-staging-two.vercel.app/api/health` :
+
+```json
+{"ok":true,"db":true,"redis":true,"mode":"konnect"}
+```
+
+Tous les indicateurs sont au vert. Seul **R2** (upload de photos, jamais
+branché) reste ouvert avant de considérer le palier 2 intégralement
+complet — reste 🧑 (comptes Cloudflare, §P1.3 guide `docs/INFRASTRUCTURE.md`
+§7 étape 8). Le smoke test (page d'accueil, recherche, webhook Konnect,
+cookies) peut démarrer sur `darna-staging-two.vercel.app`.
 
 > 📖 **GUIDE PAS-À-PAS COMPLET : `docs/INFRASTRUCTURE.md` §7.** Ouvrir ce
 > document dès qu'on attaque cette tâche et le suivre **dans l'ordre, sans
@@ -481,6 +515,7 @@ rejouer la checklist de release (§Annexe B).
 | P2.8 | Turnstile sur les formulaires publics restants (contact, wakil) | P1 | ✅ PR #238 |
 | P2.9 | Fuzzing des entrées de server actions (payloads excessifs/imbriqués) | P2 | ✅ PR #239 |
 | P2.10 | Couverture ≥ 85 % sur les modules critiques | P1 | ✅ PR #240+#241+#242 (périmètre nommé — global 80 % non atteint, voir note) |
+| P2.11 | Triage du premier rapport ZAP baseline réel (`nightly.yml`) | P2 | ❌ (informatif, non bloquant — voir note) |
 
 ### P2.1 — Secret scanning
 Job CI `gitleaks` (action officielle) sur push + PR, et hook local optionnel.
@@ -771,6 +806,40 @@ chantier de couverture globale, s'il est repris, devrait être une
 tâche roadmap séparée avec son propre périmètre explicite plutôt qu'un
 prolongement de P2.10.
 
+### P2.11 — Triage ZAP baseline (premier rapport réel, 2026-08-03)
+
+Premier run réel de `nightly.yml` depuis le passage du dépôt en public (run
+`30802235639`, cf. P1.2) : ZAP baseline scan, 382 URLs, **59 PASS, 0 FAIL,
+8 catégories WARN-NEW** (`fail_action: false` — jamais bloquant par design,
+seuils pas encore calibrés, cf. commentaire du job). Triage rapide, aucune
+action immédiate décidée ici :
+
+- **CSP `style-src unsafe-inline` [10055]** — probable candidat réel à
+  durcir un jour (nonce déjà en place pour `script-src` via
+  `src/middleware.ts`, pas pour les styles). Pas trivial : dépend de si le
+  CSS inline vient de Tailwind/Next ou de composants — à investiguer avant
+  de toucher `middleware.ts`.
+- **Cross-Origin-Embedder-Policy manquant [90004]** — durcissement
+  possible (`next.config.ts`), risque de casser des ressources tierces
+  sans `Cross-Origin-Resource-Policy` correspondant — à tester avant
+  d'activer.
+- **Absence de tokens anti-CSRF [10202]** — flaggé sur des pages 100 % en
+  lecture seule (`/annonce/[slug]`, `/combien-gagner`, `/devenir-wakil`),
+  sans formulaire POST natif dessus ; CSRF sur les mutations réelles
+  (server actions) déjà couvert par P2.3/SameSite. Probable faux positif
+  de la règle ZAP générique — à confirmer, pas à corriger en l'état.
+- **XSS potentiel via attribut contrôlable [10031]**, sur `/sejours?ville=…`
+  et `/devenir-wakil` — à vérifier que la valeur reflétée est bien encodée
+  (cohérent avec P2.3, mais sur un vecteur différent : attribut HTML plutôt
+  que contenu stocké).
+- **Non-Storable Content [10049]**, **Modern Web Application [10109]**,
+  **Authentication/Session Response Identified [10111]/[10112]** —
+  informatifs, pas des vulnérabilités (ZAP documente le comportement
+  observé, aucune action attendue).
+
+**Acceptation** : chaque point ci-dessus confirmé réel ou classé faux
+positif, avec correctif ou justification écrite.
+
 ---
 
 # PHASE 3 — SOLIDITÉ LÉGALE (P0 avant le premier dinar réel)
@@ -953,6 +1022,12 @@ perf n'ait encore été fait. **Tranché par Wassim (2026-07-30)** :
 cohérent avec sa décision P4.1, ne pas rendre bloquant pour l'instant —
 Lighthouse reste informatif (`nightly.yml`, comportement inchangé). À
 reprendre en même temps que le chantier bundle si/quand repriorisé.
+
+**Confirmé par CI (2026-08-03, premier run réel de `nightly.yml` depuis le
+dépôt public, run `30802235639`)** : Accueil 52/100 (LCP 5,39 s), Recherche
+82/100 (LCP 4,59 s), Annonce 93/100 (LCP 3,05 s) — CLS 0.000 partout. Chiffres
+CI cohérents avec la mesure locale du 2026-07-30, décision de Wassim
+inchangée (informatif, non bloquant).
 
 ### P4.3 🧑
 Un Android milieu de gamme, en 4G, parcours complet FR puis AR/RTL, PWA
