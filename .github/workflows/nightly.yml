@@ -321,6 +321,11 @@ jobs:
 
       - name: k6 — charge sur la réservation concurrente
         id: perf_booking
+        # if: always() : indépendant du résultat du test précédent — sinon un
+        # seuil dépassé sur la recherche empêche ce test de tourner du tout,
+        # alors que les deux mesures sont utiles indépendamment (constaté le
+        # 2026-08-03 : le seuil recherche a sauté et ce step a été skippé).
+        if: always()
         run: set -o pipefail; npm run test:perf:booking 2>&1 | tee /tmp/k6-booking.log
 
       - name: Résumé (page du run)
@@ -331,11 +336,11 @@ jobs:
             echo ""
             echo "### Recherche (/sejours)"
             echo '```'
-            tail -30 /tmp/k6-search.log
+            if [ -f /tmp/k6-search.log ]; then tail -30 /tmp/k6-search.log; else echo "(non exécuté)"; fi
             echo '```'
             echo ""
             echo "### Charge — réservation concurrente"
             echo '```'
-            tail -30 /tmp/k6-booking.log
+            if [ -f /tmp/k6-booking.log ]; then tail -30 /tmp/k6-booking.log; else echo "(non exécuté)"; fi
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"

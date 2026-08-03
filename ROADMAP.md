@@ -313,6 +313,22 @@ sans qu'aucun test de charge ne se soit exécuté). Corrigé dans
 les deux steps k6, pour que les futures pannes de charge soient enfin
 visibles. **P1.2 est maintenant intégralement acquis.**
 
+**Validation du correctif (run `30803720328`, sur la branche de la PR
+avant merge)** : `k6` s'installe et s'exécute réellement — et, pour la
+première fois, un vrai résultat apparaît : le test recherche
+(`tests/perf/search.js`) dépasse son seuil `p(95)<2000ms` (mesuré 2,94 s)
+sur ce runner GitHub Actions partagé, contre 1,31 s mesuré localement le
+2026-07-09 (seuil déjà calibré avec marge à l'époque, cf. commentaire du
+fichier). Pas de correctif de seuil dans cette PR — recalibrer un seuil de
+perf est un choix qui mérite son propre arbitrage, pas un effet de bord
+d'un fix CI. Deux bugs annexes corrigés au passage (mêmes PR) : le step
+k6 charge/réservation était `skip`-é dès que le step recherche échouait
+(`if: always()` ajouté, les deux mesures sont utiles indépendamment), et
+le step Résumé plantait si un des deux logs n'existait pas (garde ajoutée).
+**Nouveau point ouvert, à traiter séparément** : calibrer ce seuil contre
+la réalité d'un runner GitHub Actions partagé (probablement plus lent qu'un
+poste de dev local) plutôt que de le laisser rouge à chaque nightly.
+
 ### P1.3 — Déploiement staging
 
 **Fait (2026-07-31, PR #261)** : palier 1 + palier 2 déployés en ligne sur
