@@ -177,7 +177,8 @@ code) :** Settings du repo (`github.com/benmesswass/darna/settings`) → tout
 en bas, **Danger Zone** → **Change repository visibility** → **Make public**
 → confirmer en tapant le nom du repo. Cocher ci-dessous une fois fait :
 
-- [ ] Dépôt basculé en public
+- [x] Dépôt basculé en public (confirmé le 2026-08-03 via l'API GitHub :
+  `"visibility":"public","private":false`)
 
 | Ordre | Action | Qui | Pourquoi maintenant plutôt que plus tard |
 |---|---|---|---|
@@ -187,17 +188,24 @@ en bas, **Danger Zone** → **Change repository visibility** → **Make public**
 | 4 | **⛔ W4 — envoyer le brief avocat** (5 points déjà rédigés, §3) | 🧑 5 min, **en parallèle, dès maintenant** | Zéro dépendance code — peut partir aujourd'hui pendant que 1-3 se déroulent. Le staging Konnect sandbox réduit la distance au premier dinar réel : le délai juridique doit courir avant P1.8, pas au moment de P1.8 |
 | 5 | **⛔ W7 — 3 premières conversations propriétaires**, URL du staging sur le téléphone (§3) | 🧑, **en parallèle, dès maintenant** | L'excuse « rien à montrer » est morte depuis que le staging existe. Zéro dépendance code. Dix conversations valent plus que dix PR de plus |
 
-**Ligne 2 ✅ (31/07)** : #261 était déjà mergée en arrivant sur cette section ;
-run `workflow_dispatch` complet déclenché directement sur `main` (détail en
-P1.3) — `fast`/`gitleaks`/`api`/`supply-chain`/`full` verts avec logs
-complets, `e2e` en cours de finalisation. **Lignes 1/3(partiel)/4/5
-restent 🧑** — la partie « Claude » de la ligne 3 (smoke Playwright + webhook
-Konnect contre le staging) s'est heurtée à une limite déjà documentée en
-P1.3 : ce sandbox n'a pas d'accès réseau sortant vers `*.vercel.app`/Neon
-(liste blanche restreinte, vérifié en testant) — infaisable depuis cet
-environnement, pas juste non fait. Cette section reste donc **non vidée**,
-mais son seul point non-🧑 encore ouvert (le smoke test) est bloqué par une
-contrainte d'environnement, pas par une tâche de code restante.
+**Ligne 1 ✅ (2026-08-03)** : dépôt basculé en public, confirmé via l'API
+GitHub (`"visibility":"public","private":false`). Checklist ci-dessus cochée.
+
+**Ligne 2 ✅ (31/07, `e2e` confirmé vert le 2026-08-03)** : #261 était déjà
+mergée en arrivant sur cette section ; run `workflow_dispatch` complet
+déclenché directement sur `main` (détail en P1.3) — `fast`/`gitleaks`/
+`api`/`supply-chain`/`full`/`e2e` tous verts avec logs complets (`e2e`
+n'était qu'« en cours de finalisation » lors de la rédaction initiale de
+cette ligne le 31/07 ; run confirmé 100 % vert au 2026-08-03). **Lignes
+3(partiel)/4/5 restent 🧑** — la partie « Claude » de la ligne 3 (smoke
+Playwright + webhook Konnect contre le staging) s'est heurtée à une limite
+déjà documentée en P1.3 : ce sandbox n'a pas d'accès réseau sortant vers
+`*.vercel.app`/Neon (liste blanche restreinte, vérifié en testant, reconfirmé
+le 2026-08-03 — `curl` échoue en `CONNECT tunnel failed, response 403`) —
+infaisable depuis cet environnement, pas juste non fait. Cette section
+reste donc **non vidée**, mais son seul point non-🧑 encore ouvert (le
+smoke test) est bloqué par une contrainte d'environnement, pas par une
+tâche de code restante.
 
 **Ce qu'il ne faut PAS faire pendant que ceci est en cours** : merger les PR
 Dependabot majeures ouvertes (#247/#248/#249/#250/#251/#252 — Next 16, Prisma
@@ -217,7 +225,7 @@ au fonctionnement normal (§0 : première tâche non cochée de la phase 1).
 |---|---|---|---|
 | W1 | Créer les comptes free tier : **Vercel, Neon, Upstash, Cloudflare R2, Resend** et coller les variables (checklist pas-à-pas dans `docs/INFRASTRUCTURE.md` §4) | P1.3 → tout | Le goulot d'étranglement unique du projet |
 | W2 | **Domaine** : `darna.tn` (registrar tunisien, délai) — fallback `.com`/`.co`. Ne PAS bloquer staging dessus (`*.vercel.app` suffit) | P1.8 | `SITE_URL` définitif avant indexation/HSTS |
-| W3 | **✅ TRANCHÉ (2026-07-31) : dépôt public.** Scan gitleaks historique complet (412 commits) : aucune fuite. Reste 🧑 2 min : Settings → Danger Zone → Change visibility → Make public (aucun outil ne peut le faire à ta place) — détail et checklist en §2bis | P1.2 | Le quota Actions est la cause racine de la CI rouge — le dépôt public donne des minutes illimitées |
+| W3 | **✅ FAIT (2026-08-03) : dépôt basculé en public.** Scan gitleaks historique complet (412 commits) avant bascule : aucune fuite. Confirmé via l'API GitHub (`"visibility":"public"`) — détail en §2bis | P1.2 | Le quota Actions est la cause racine de la CI rouge — le dépôt public donne désormais des minutes illimitées |
 | W4 | **Avocat d'affaires tunisien** — brief en 5 points : (a) le modèle commission-only n'est pas un service de paiement, (b) TVA sur les frais, (c) validation des CGU réécrites, (d) statut fiscal de la location saisonnière, (e) cadrage du séquestre V2 | P3 → argent réel | Tout le modèle repose sur une hypothèse non validée |
 | W5 | **Clés Turnstile réelles** (Cloudflare, widget Managed, gratuit) | P1.8 | Les clés de test valident tout et ne protègent RIEN |
 | W6 | **Projet Google Cloud OAuth** (écran de consentement + client ID/secret) | P1.8 | Code livré, inactif sans clés |
@@ -235,8 +243,8 @@ au fonctionnement normal (§0 : première tâche non cochée de la phase 1).
 | # | Tâche | Prio | Statut |
 |---|---|---|---|
 | P1.1 | Rattrapage e2e/API en local (angle mort d'une semaine) | P0 | ✅ PR #230 |
-| P1.2 | CI verte de bout en bout (+ ⛔ W3) | P0 | ❌ (d fait, PR #231 — a/b/c attendent le quota) |
-| P1.3 | Déploiement **staging** (⛔ W1) | P0 | ❌ (palier 1+2 en ligne, PR #261 mergée, CI débloquée — R2 seul restant, 🧑) |
+| P1.2 | CI verte de bout en bout (+ ⛔ W3) | P0 | ❌ (a/b/d faits — repo public + run complet niveau 2 100 % vert sur `main`, PR #231 ; c reste : rapport `nightly.yml` pas encore lu) |
+| P1.3 | Déploiement **staging** (⛔ W1) | P0 | ❌ (palier 1+2 en ligne, PR #261 mergée, CI débloquée — mais URL de staging à vérifier avant toute chose, voir alerte 2026-08-03 ; R2 restant, 🧑) |
 | P1.4 | Smoke tests contre staging + correctifs prod-only | P0 | ❌ (après P1.3) |
 | P1.5 | Brancher les yeux : Sentry, alertes, uptime (⛔ W8) | P0 | ❌ 🧑 |
 | P1.6 | Drill de restauration de backup + vérif du cron réel | P0 | ❌ (après P1.3) |
@@ -284,17 +292,16 @@ appliqué au job `full` — effet cliquet, la couverture ne peut plus régresser
 **Acceptation** : un run vert sur `main`, gate de couverture actif, rapport
 nightly lu et ses éventuels findings ouverts en tâches ici (phase 2).
 
-**État au 2026-07-31** : (a) fait — W3 **tranché** (dépôt public, scan
-gitleaks historique complet propre, détail en §2bis/§3) ; (d) **fait** (PR
-#231) : seuils remplacés par couverture réelle mesurée (61,25 % stmt /
-54,53 % branches / 57,67 % fn / 63,01 % lignes) moins ~1 pt de marge —
-lines 62 / statements 60 / functions 56 / branches 53 — les anciens seuils
-(43/41/36/35) ne protégeaient plus rien depuis longtemps. (b)/(c) **encore
-bloqués au 31/07** : les runs `ci.yml`/`nightly.yml` échouent tous en 2-11 s
-sans logs (rejet immédiat par quota) — reste sur le basculement effectif du
-dépôt en public (§2bis checklist), pas sur un arbitrage. Dès la checklist
-cochée : relancer (b)/(c) immédiatement, sans attendre de reset de quota
-(le dépôt public donne des minutes illimitées dès le basculement).
+**État au 2026-08-03** : (a) **fait** — dépôt basculé en public, confirmé
+via l'API GitHub (`"visibility":"public"`) ; (d) **fait** (PR #231) : seuils
+remplacés par couverture réelle mesurée (61,25 % stmt / 54,53 % branches /
+57,67 % fn / 63,01 % lignes) moins ~1 pt de marge — lines 62 / statements 60
+/ functions 56 / branches 53 — les anciens seuils (43/41/36/35) ne
+protégeaient plus rien depuis longtemps. (b) **fait** : `workflow_dispatch`
+complet déclenché directement sur `main` — `fast`/`gitleaks`/`api`/
+`supply-chain`/`full`/`e2e` tous verts. (c) **reste ouvert** : `nightly.yml`
+(semgrep + ZAP + k6 + Lighthouse) pas encore déclenché/lu depuis le
+basculement en public — à faire avant de considérer P1.2 entièrement acquis.
 
 ### P1.3 — Déploiement staging
 
@@ -323,6 +330,31 @@ rien ne garantit que le quota ne se réépuise pas dès qu'une session enchaîne
 de nouveau plusieurs PR — cette reconstitution ponctuelle n'est pas une
 preuve que le problème est résolu durablement, seulement qu'il n'est pas
 bloquant *là, maintenant*.
+
+**⚠️ Alerte 2026-08-03 — vérifier l'URL avant toute chose.** Un test de
+`https://darna-staging.vercel.app` renvoie un contenu qui ne correspond à
+AUCUNE version du code sur `main` (page d'accueil « annuaire d'artisans » /
+« alertes communautaires » — zéro occurrence de ce texte dans `src/` ou
+`messages/`) et `/api/health` répond 404 (`x-matched-path: /404`, confirmé
+même avec un paramètre anti-cache). Deux causes possibles, non tranchées —
+**seul Wassim peut vérifier** (dashboard Vercel ; ce sandbox n'a toujours
+pas d'accès réseau sortant vers `*.vercel.app`, reconfirmé le 2026-08-03 :
+`curl` échoue en `CONNECT tunnel failed, response 403`) :
+1. L'alias de production du projet Vercel `darna-staging` est figé sur un
+   vieux build, pas re-déployé depuis les derniers push de `main` →
+   vérifier l'onglet Deployments, redéployer si besoin.
+2. **`darna-staging.vercel.app` n'est peut-être plus le bon domaine.** Le
+   champ « Website » du dépôt GitHub pointe désormais vers
+   `https://darna-staging-two.vercel.app` (suffixe `-two`, probablement
+   attribué par Vercel parce que `darna-staging.vercel.app` était déjà pris
+   par un autre compte — les domaines `*.vercel.app` sont globalement
+   uniques). Si c'est le cas, le contenu périmé observé n'appartient
+   peut-être même pas au projet Darna. **Tester
+   `darna-staging-two.vercel.app` en priorité.**
+
+Tant que ceci n'est pas tranché : ne pas marquer P1.4 comme faisable, ne pas
+lancer de smoke test / webhook Konnect / vérif cookies contre un déploiement
+dont on n'est pas sûr que ce soit le bon.
 
 > 📖 **GUIDE PAS-À-PAS COMPLET : `docs/INFRASTRUCTURE.md` §7.** Ouvrir ce
 > document dès qu'on attaque cette tâche et le suivre **dans l'ordre, sans
