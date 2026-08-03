@@ -244,7 +244,7 @@ au fonctionnement normal (§0 : première tâche non cochée de la phase 1).
 |---|---|---|---|
 | P1.1 | Rattrapage e2e/API en local (angle mort d'une semaine) | P0 | ✅ PR #230 |
 | P1.2 | CI verte de bout en bout (+ ⛔ W3) | P0 | ✅ (a/b/c/d faits — voir détail sous P1.2 : repo public, run complet niveau 2 vert sur `main`, gate couverture PR #231, `nightly.yml` déclenché et lu) |
-| P1.3 | Déploiement **staging** (⛔ W1) | P0 | ❌ (palier 1+2 en ligne, bon domaine confirmé `darna-staging-two.vercel.app` — R2 et Redis (`/api/health` : `redis:false`) restants, 🧑) |
+| P1.3 | Déploiement **staging** (⛔ W1) | P0 | ❌ (palier 1+2 en ligne, bon domaine confirmé `darna-staging-two.vercel.app`, Redis corrigé (`/api/health` : `ok:true`) — R2 seul restant, 🧑) |
 | P1.4 | Smoke tests contre staging + correctifs prod-only | P0 | ❌ (après P1.3) |
 | P1.5 | Brancher les yeux : Sentry, alertes, uptime (⛔ W8) | P0 | ❌ 🧑 |
 | P1.6 | Drill de restauration de backup + vérif du cron réel | P0 | ❌ (après P1.3) |
@@ -340,11 +340,11 @@ liste blanche — ni Neon ni `*.vercel.app` joignables directement, confirmé
 en testant, reconfirmé le 2026-08-03) : page d'accueil, recherche et
 annonces seedées confirmées visuellement par Wassim à la place ;
 `/api/health` vérifié par Wassim le 2026-08-03 (détail plus bas) — db ok,
-**redis en échec**. Restent **R2** (upload de photos, pas branché — choix
-assumé de Wassim pour l'instant, sans lui tout ce qui existait déjà au
-déploiement fonctionne normalement, seul un nouvel upload via le site
-déployé ne persisterait pas, disque serverless éphémère) **et Redis** (voir
-constat 2026-08-03 plus bas).
+redis en échec puis **corrigé le même jour** (détail plus bas). Seul reste
+**R2** (upload de photos, pas branché — choix assumé de Wassim pour
+l'instant, sans lui tout ce qui existait déjà au déploiement fonctionne
+normalement, seul un nouvel upload via le site déployé ne persisterait pas,
+disque serverless éphémère).
 
 **Mergée (31/07)**, après résolution du conflit avec PR #264 sur
 `vercel.json` (voir note juste en dessous). Le quota GitHub Actions s'est
@@ -376,22 +376,30 @@ générique) :
 ```
 
 `db: true` — Postgres/Neon opérationnel. `mode: "konnect"` — confirme le
-paiement Konnect sandbox actif, cohérent avec le palier 2. **`redis: false`
-est un nouveau problème à corriger** : `getRedis()` (`src/lib/redis.ts`) ne
-renvoie un client non-null que si `REDIS_URL` est définie sur Vercel — la
-variable est donc bien posée, mais le `.ping()` échoue, ce qui fait répondre
-`/api/health` en `503` (`src/app/api/health/route.ts`). Pistes à vérifier
-côté Wassim (dashboard Upstash + variables d'env Vercel du projet
-`darna-staging`) : `REDIS_URL` mal copiée/expirée, base Upstash suspendue
-(inactivité sur le free tier), ou région Upstash injoignable depuis la
-région de déploiement Vercel. Dégradation déjà couverte par P5.3
-(rate limiting retombe en mono-instance, pas un blocage total du site), mais
-à corriger avant de considérer le palier 2 complet.
+paiement Konnect sandbox actif, cohérent avec le palier 2. `redis: false`
+au moment de ce constat : `getRedis()` (`src/lib/redis.ts`) ne renvoie un
+client non-null que si `REDIS_URL` est définie sur Vercel — la variable
+était donc bien posée, mais le `.ping()` échouait, ce qui faisait répondre
+`/api/health` en `503` (`src/app/api/health/route.ts`).
 
-Le bon domaine étant confirmé, le reste du smoke test (page d'accueil,
-recherche, webhook Konnect, cookies) peut démarrer sur
-`darna-staging-two.vercel.app` — seul le point Redis reste à corriger avant
-de clore P1.3 entièrement.
+**✅ Corrigé (2026-08-03)** : cause identifiée par Wassim — `REDIS_URL`
+utilisait le schéma `redis://` (sans TLS) au lieu de `rediss://` (TLS),
+alors qu'`ioredis` n'active le chiffrement que si l'URL commence par
+`rediss://` et qu'Upstash exige TLS sur le port TCP 6379. Corrigé en
+recopiant la valeur exacte fournie par Upstash (onglet Connect → TCP,
+`rediss://default:…@in-mutt-153979.upstash.io:6379`) dans les variables
+d'environnement Vercel du projet `darna-staging`, suivi d'un redéploiement.
+Reconfirmé sur `darna-staging-two.vercel.app/api/health` :
+
+```json
+{"ok":true,"db":true,"redis":true,"mode":"konnect"}
+```
+
+Tous les indicateurs sont au vert. Seul **R2** (upload de photos, jamais
+branché) reste ouvert avant de considérer le palier 2 intégralement
+complet — reste 🧑 (comptes Cloudflare, §P1.3 guide `docs/INFRASTRUCTURE.md`
+§7 étape 8). Le smoke test (page d'accueil, recherche, webhook Konnect,
+cookies) peut démarrer sur `darna-staging-two.vercel.app`.
 
 > 📖 **GUIDE PAS-À-PAS COMPLET : `docs/INFRASTRUCTURE.md` §7.** Ouvrir ce
 > document dès qu'on attaque cette tâche et le suivre **dans l'ordre, sans
