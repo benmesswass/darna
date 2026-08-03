@@ -244,7 +244,7 @@ au fonctionnement normal (§0 : première tâche non cochée de la phase 1).
 |---|---|---|---|
 | P1.1 | Rattrapage e2e/API en local (angle mort d'une semaine) | P0 | ✅ PR #230 |
 | P1.2 | CI verte de bout en bout (+ ⛔ W3) | P0 | ❌ (a/b/d faits — repo public + run complet niveau 2 100 % vert sur `main`, PR #231 ; c reste : rapport `nightly.yml` pas encore lu) |
-| P1.3 | Déploiement **staging** (⛔ W1) | P0 | ❌ (palier 1+2 en ligne, PR #261 mergée, CI débloquée — mais URL de staging à vérifier avant toute chose, voir alerte 2026-08-03 ; R2 restant, 🧑) |
+| P1.3 | Déploiement **staging** (⛔ W1) | P0 | ❌ (palier 1+2 en ligne, bon domaine confirmé `darna-staging-two.vercel.app` — R2 et Redis (`/api/health` : `redis:false`) restants, 🧑) |
 | P1.4 | Smoke tests contre staging + correctifs prod-only | P0 | ❌ (après P1.3) |
 | P1.5 | Brancher les yeux : Sentry, alertes, uptime (⛔ W8) | P0 | ❌ 🧑 |
 | P1.6 | Drill de restauration de backup + vérif du cron réel | P0 | ❌ (après P1.3) |
@@ -311,12 +311,14 @@ seedée, Upstash Redis, Resend, `CRON_SECRET` + cron externe (cron-job.org)
 branché sur `/api/jobs/tick`, Konnect sandbox. Vérification `/api/health`
 non faisable **depuis le sandbox Claude** (réseau sortant restreint à une
 liste blanche — ni Neon ni `*.vercel.app` joignables directement, confirmé
-en testant ; à refaire depuis un poste avec accès normal) : page d'accueil,
-recherche et annonces seedées confirmées visuellement par Wassim à la place.
-Seul reste **R2** (upload de photos) — pas branché, choix assumé de Wassim
-pour l'instant : sans lui tout ce qui existait déjà au déploiement fonctionne
-normalement, seul un nouvel upload via le site déployé ne persisterait pas
-(disque serverless éphémère).
+en testant, reconfirmé le 2026-08-03) : page d'accueil, recherche et
+annonces seedées confirmées visuellement par Wassim à la place ;
+`/api/health` vérifié par Wassim le 2026-08-03 (détail plus bas) — db ok,
+**redis en échec**. Restent **R2** (upload de photos, pas branché — choix
+assumé de Wassim pour l'instant, sans lui tout ce qui existait déjà au
+déploiement fonctionne normalement, seul un nouvel upload via le site
+déployé ne persisterait pas, disque serverless éphémère) **et Redis** (voir
+constat 2026-08-03 plus bas).
 
 **Mergée (31/07)**, après résolution du conflit avec PR #264 sur
 `vercel.json` (voir note juste en dessous). Le quota GitHub Actions s'est
@@ -331,30 +333,39 @@ de nouveau plusieurs PR — cette reconstitution ponctuelle n'est pas une
 preuve que le problème est résolu durablement, seulement qu'il n'est pas
 bloquant *là, maintenant*.
 
-**⚠️ Alerte 2026-08-03 — vérifier l'URL avant toute chose.** Un test de
-`https://darna-staging.vercel.app` renvoie un contenu qui ne correspond à
-AUCUNE version du code sur `main` (page d'accueil « annuaire d'artisans » /
-« alertes communautaires » — zéro occurrence de ce texte dans `src/` ou
-`messages/`) et `/api/health` répond 404 (`x-matched-path: /404`, confirmé
-même avec un paramètre anti-cache). Deux causes possibles, non tranchées —
-**seul Wassim peut vérifier** (dashboard Vercel ; ce sandbox n'a toujours
-pas d'accès réseau sortant vers `*.vercel.app`, reconfirmé le 2026-08-03 :
-`curl` échoue en `CONNECT tunnel failed, response 403`) :
-1. L'alias de production du projet Vercel `darna-staging` est figé sur un
-   vieux build, pas re-déployé depuis les derniers push de `main` →
-   vérifier l'onglet Deployments, redéployer si besoin.
-2. **`darna-staging.vercel.app` n'est peut-être plus le bon domaine.** Le
-   champ « Website » du dépôt GitHub pointe désormais vers
-   `https://darna-staging-two.vercel.app` (suffixe `-two`, probablement
-   attribué par Vercel parce que `darna-staging.vercel.app` était déjà pris
-   par un autre compte — les domaines `*.vercel.app` sont globalement
-   uniques). Si c'est le cas, le contenu périmé observé n'appartient
-   peut-être même pas au projet Darna. **Tester
-   `darna-staging-two.vercel.app` en priorité.**
+**✅ Alerte 2026-08-03 résolue — bon domaine identifié, nouveau problème
+Redis trouvé.** Confirmé par Wassim depuis son navigateur :
+`https://darna-staging.vercel.app` sert un **tout autre projet**
+(« Demander l'accès à Darna » — annuaire de voisinage/co-mods, numéro de
+villa, validation par un « co-mod » — sans rapport avec le code de ce dépôt
+malgré le nom identique). **Le bon domaine est
+`https://darna-staging-two.vercel.app`** (confirmé via le dashboard Vercel :
+déploiement du commit `af424ca` — le merge de la PR #273 —, statut
+**Ready**, environnement **Production**, domaine associé). `/api/health` sur
+ce domaine répond correctement (endpoint réel de ce dépôt, plus une 404
+générique) :
 
-Tant que ceci n'est pas tranché : ne pas marquer P1.4 comme faisable, ne pas
-lancer de smoke test / webhook Konnect / vérif cookies contre un déploiement
-dont on n'est pas sûr que ce soit le bon.
+```json
+{"ok":false,"db":true,"redis":false,"mode":"konnect"}
+```
+
+`db: true` — Postgres/Neon opérationnel. `mode: "konnect"` — confirme le
+paiement Konnect sandbox actif, cohérent avec le palier 2. **`redis: false`
+est un nouveau problème à corriger** : `getRedis()` (`src/lib/redis.ts`) ne
+renvoie un client non-null que si `REDIS_URL` est définie sur Vercel — la
+variable est donc bien posée, mais le `.ping()` échoue, ce qui fait répondre
+`/api/health` en `503` (`src/app/api/health/route.ts`). Pistes à vérifier
+côté Wassim (dashboard Upstash + variables d'env Vercel du projet
+`darna-staging`) : `REDIS_URL` mal copiée/expirée, base Upstash suspendue
+(inactivité sur le free tier), ou région Upstash injoignable depuis la
+région de déploiement Vercel. Dégradation déjà couverte par P5.3
+(rate limiting retombe en mono-instance, pas un blocage total du site), mais
+à corriger avant de considérer le palier 2 complet.
+
+Le bon domaine étant confirmé, le reste du smoke test (page d'accueil,
+recherche, webhook Konnect, cookies) peut démarrer sur
+`darna-staging-two.vercel.app` — seul le point Redis reste à corriger avant
+de clore P1.3 entièrement.
 
 > 📖 **GUIDE PAS-À-PAS COMPLET : `docs/INFRASTRUCTURE.md` §7.** Ouvrir ce
 > document dès qu'on attaque cette tâche et le suivre **dans l'ordre, sans
