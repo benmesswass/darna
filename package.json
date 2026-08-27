@@ -68,6 +68,7 @@
   "overrides": {
     "sharp": "^0.35.0",
     "postcss": "^8.5.10",
-    "@sentry/core": "^10.70.0"
+    "@sentry/core": "^10.70.0",
+    "deepmerge-ts": "^8.0.0"
   }
 }
