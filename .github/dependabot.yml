@@ -8,6 +8,14 @@ updates:
     groups:
       minor-and-patch:
         update-types: ["minor", "patch"]
+    ignore:
+      # eslint-config-next@15.5.x (jusqu'à la dernière patch publiée, 15.5.24)
+      # exige eslint@^7||^8||^9 — le support d'ESLint 10 n'existe que dans
+      # eslint-config-next@16.x, publié avec Next.js 16. Bump majeur
+      # prématuré tant que Darna reste sur Next 15 (PR #251, fermée).
+      # Retirer cette exclusion le jour où la migration Next 16 est décidée.
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
