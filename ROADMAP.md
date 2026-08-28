@@ -515,7 +515,7 @@ rejouer la checklist de release (§Annexe B).
 | P2.8 | Turnstile sur les formulaires publics restants (contact, wakil) | P1 | ✅ PR #238 |
 | P2.9 | Fuzzing des entrées de server actions (payloads excessifs/imbriqués) | P2 | ✅ PR #239 |
 | P2.10 | Couverture ≥ 85 % sur les modules critiques | P1 | ✅ PR #240+#241+#242 (périmètre nommé — global 80 % non atteint, voir note) |
-| P2.11 | Triage du premier rapport ZAP baseline réel (`nightly.yml`) | P2 | ❌ (informatif, non bloquant — voir note) |
+| P2.11 | Triage du premier rapport ZAP baseline réel (`nightly.yml`) | P2 | ✅ PR #(à venir) — 2 réels documentés (correctif disproportionné), 2 faux positifs confirmés, 4 informatifs |
 
 ### P2.1 — Secret scanning
 Job CI `gitleaks` (action officielle) sur push + PR, et hook local optionnel.
@@ -811,34 +811,67 @@ prolongement de P2.10.
 Premier run réel de `nightly.yml` depuis le passage du dépôt en public (run
 `30802235639`, cf. P1.2) : ZAP baseline scan, 382 URLs, **59 PASS, 0 FAIL,
 8 catégories WARN-NEW** (`fail_action: false` — jamais bloquant par design,
-seuils pas encore calibrés, cf. commentaire du job). Triage rapide, aucune
-action immédiate décidée ici :
+seuils pas encore calibrés, cf. commentaire du job).
 
-- **CSP `style-src unsafe-inline` [10055]** — probable candidat réel à
-  durcir un jour (nonce déjà en place pour `script-src` via
-  `src/middleware.ts`, pas pour les styles). Pas trivial : dépend de si le
-  CSS inline vient de Tailwind/Next ou de composants — à investiguer avant
-  de toucher `middleware.ts`.
-- **Cross-Origin-Embedder-Policy manquant [90004]** — durcissement
-  possible (`next.config.ts`), risque de casser des ressources tierces
-  sans `Cross-Origin-Resource-Policy` correspondant — à tester avant
-  d'activer.
-- **Absence de tokens anti-CSRF [10202]** — flaggé sur des pages 100 % en
-  lecture seule (`/annonce/[slug]`, `/combien-gagner`, `/devenir-wakil`),
-  sans formulaire POST natif dessus ; CSRF sur les mutations réelles
-  (server actions) déjà couvert par P2.3/SameSite. Probable faux positif
-  de la règle ZAP générique — à confirmer, pas à corriger en l'état.
+**✅ Triage terminé (2026-08-05)** — chaque point vérifié dans le code réel,
+pas supposé :
+
+- **CSP `style-src unsafe-inline` [10055]** — **réel, mais correctif hors de
+  proportion pour l'instant.** `grep style={{` trouve **18 fichiers** qui
+  s'appuient sur l'attribut `style` inline de React pour des valeurs
+  dynamiques (couleurs calculées, délais d'animation, tailles —
+  `HomeHero.tsx`, `AnimatedGrid.tsx`, `BookingPanel.tsx`…). Un nonce CSP ne
+  couvre **que** les éléments `<style>`/`<link>` (`style-src-elem`) —
+  **aucun navigateur ne supporte de nonce sur l'attribut `style=""` lui-même**
+  (`style-src-attr`), donc retirer `unsafe-inline` casserait ces 18 fichiers
+  sans alternative CSP. Le vrai correctif est un refactor (CSS custom
+  properties ou classes utilitaires à la place de `style={{…}}`), pas une
+  ligne de `middleware.ts` — hors périmètre de ce triage. Risque résiduel
+  faible : une injection de style seule (sans exécution de script, déjà
+  bloqué par `script-src`) a un impact limité (défacement visuel au pire).
+  Accepté en l'état, item de dette technique à ouvrir séparément si priorité
+  un jour (pas fait ici : pas de faux ticket vide).
+- **Cross-Origin-Embedder-Policy manquant [90004]** — **réel, décision : ne
+  pas l'ajouter.** Vérifié dans `src/middleware.ts` : la carte (`img-src
+  https://*.tile.openstreetmap.org`) charge des tuiles cross-origin sans
+  header `Cross-Origin-Resource-Policy` (serveur OSM standard, hors contrôle
+  Darna) ; le widget Turnstile (`challenges.cloudflare.com`, quand
+  `CAPTCHA_MODE=turnstile`) est une iframe cross-origin. `COEP: require-corp`
+  casserait la carte (**« c'est *la carte* »**, `CLAUDE.md`) et potentiellement
+  Turnstile. Darna n'utilise ni `SharedArrayBuffer` ni aucune fonctionnalité
+  nécessitant l'isolation cross-origin que COEP est censé activer — bénéfice
+  nul, risque de régression réel sur une fonctionnalité cœur. Ne pas
+  appliquer une recommandation générique sans lien avec un besoin du produit.
+- **Absence de tokens anti-CSRF [10202]** — **confirmé faux positif.**
+  Vérifié par lecture directe : `/annonce/[slug]` et `/combien-gagner`
+  n'ont **aucun** `<form>` dans leur arbre de rendu (`grep <form` : 0
+  résultat). `/devenir-wakil` a un formulaire (`WakilForm.tsx`) mais
+  `<form action={action}>` appelle une **Server Action** Next.js — protégée
+  nativement par la vérification d'Origin/Host du framework, indépendamment
+  de tout token visible dans le HTML. La règle passive ZAP ne reconnaît que
+  le motif classique `<form><input type=hidden></form>` et ne sait pas
+  détecter ce mécanisme — faux positif générique, déjà couvert par
+  SameSite+Server Actions (P2.3/P2.4).
 - **XSS potentiel via attribut contrôlable [10031]**, sur `/sejours?ville=…`
-  et `/devenir-wakil` — à vérifier que la valeur reflétée est bien encodée
-  (cohérent avec P2.3, mais sur un vecteur différent : attribut HTML plutôt
-  que contenu stocké).
+  et `/devenir-wakil` — **confirmé faux positif.** `params.ville` arrive dans
+  `<CityAutocomplete defaultValue={params.ville ?? ""}>`
+  (`src/app/sejours/page.tsx:149`) — un prop JSX standard, rendu par React
+  qui échappe automatiquement toute valeur passée à un attribut contrôlé
+  (`value`/`defaultValue` sur un `<input>` sont des propriétés DOM, pas de
+  la concaténation de chaîne HTML) ; `grep dangerouslySetInnerHTML` dans
+  `CityAutocomplete.tsx` : aucun résultat. `/devenir-wakil` ne lit même
+  aucun `searchParams` — rien de contrôlable par l'utilisateur n'atteint un
+  attribut sur cette page. Le seul point d'échappement autorisé du projet
+  (`JsonLd.tsx`, `CLAUDE.md`) n'est concerné par aucune de ces deux pages.
 - **Non-Storable Content [10049]**, **Modern Web Application [10109]**,
   **Authentication/Session Response Identified [10111]/[10112]** —
   informatifs, pas des vulnérabilités (ZAP documente le comportement
   observé, aucune action attendue).
 
-**Acceptation** : chaque point ci-dessus confirmé réel ou classé faux
-positif, avec correctif ou justification écrite.
+**Acceptation** : les 8 catégories WARN sont toutes triées — 2 réelles
+(documentées, correctif disproportionné/contre-productif pour l'instant,
+pas un oubli), 2 faux positifs confirmés par lecture de code (pas supposés),
+4 informatives. Rien à corriger dans cette tâche ; aucun code modifié.
 
 ---
 
