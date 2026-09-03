@@ -16,6 +16,20 @@ updates:
       # Retirer cette exclusion le jour où la migration Next 16 est décidée.
       - dependency-name: "eslint"
         update-types: ["version-update:semver-major"]
+      # prisma/@prisma/client doivent toujours avancer ensemble — le CLI 6.x
+      # ne sait même pas générer un client compatible avec @prisma/client
+      # 7.x (runtime restructuré). Prisma 7 retire en plus `url`/`directUrl`
+      # du bloc `datasource` de schema.prisma : la connexion doit migrer vers
+      # un `prisma.config.ts` + un driver adapter (ex. @prisma/adapter-pg)
+      # passé au constructeur PrismaClient, ce qui touche les 7 fichiers qui
+      # font `new PrismaClient` (src/lib/prisma.ts, prisma/seed.ts, 5
+      # scripts). Bump majeur prématuré tant que cette migration n'est pas
+      # faite consciemment (PR #291, fermée). Retirer cette exclusion le
+      # jour où la migration Prisma 7 est décidée.
+      - dependency-name: "prisma"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@prisma/client"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
