@@ -21,7 +21,7 @@
     "report:e2e": "node scripts/e2e-report.mjs"
   },
   "dependencies": {
-    "@prisma/client": "^6.19.3",
+    "@prisma/client": "^7.10.0",
     "@sentry/nextjs": "^10.70.0",
     "aws4fetch": "^1.0.20",
     "bcryptjs": "^3.0.3",
