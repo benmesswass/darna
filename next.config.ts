@@ -24,6 +24,24 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // `sharp` (validation/ré-encodage des photos uploadées, src/lib/storage.ts,
+  // P2.7) a un binaire natif : sans ce flag, Next.js tente de le bundler dans
+  // le code serveur au lieu de le require() nativement au runtime, ce qui
+  // casse le chargement du binaire linux-x64 sur Vercel ("Could not load the
+  // sharp module using the linux-x64 runtime" — constaté le 2026-08-03 sur
+  // tout upload de photo réel sur le staging déployé).
+  serverExternalPackages: ["sharp"],
+  // `serverExternalPackages` seul n'a pas suffi (constaté le 2026-08-03,
+  // même erreur après ce flag) : Vercel utilise un traceur de fichiers séparé
+  // (@vercel/nft) pour décider quels fichiers de node_modules copier dans
+  // chaque fonction serverless déployée. `sharp` charge son binaire natif de
+  // façon dynamique en interne (selon la plateforme) — l'analyse statique du
+  // traceur ne le détecte pas, donc le binaire linux-x64 n'est jamais copié
+  // dans le déploiement même s'il est bien installé pendant le build. On le
+  // force explicitement ici pour toutes les routes/server actions.
+  outputFileTracingIncludes: {
+    "/**/*": ["./node_modules/sharp/**/*", "./node_modules/@img/**/*"],
+  },
   experimental: {
     serverActions: {
       // Upload de photos d'annonces : 8 photos max, compressées côté client

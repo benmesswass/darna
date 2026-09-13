@@ -456,6 +456,23 @@ W6 débloqué, upload d'image vers R2, e-mail Resend réellement reçu.
 **Acceptation** : rapport détaillé + captures ; chaque écart corrigé ou
 ouvert en tâche ici.
 
+**Premier correctif prod-only trouvé (2026-08-03)** : en branchant R2 (palier
+2) et en testant un vrai upload de photo sur `darna-staging-two.vercel.app`,
+la création d'annonce échouait en 500 — `Error: Failed to load external
+module sharp: Could not load the "sharp" module using the linux-x64
+runtime`. Cause : `sharp` (validation/ré-encodage des photos, P2.7) a un
+binaire natif — bug indépendant du driver de stockage (aurait cassé pareil
+en mode `local`), jamais détecté avant faute d'un vrai upload testé sur un
+déploiement Vercel. **Deux causes superposées, deux correctifs** dans
+`next.config.ts` : (1) `serverExternalPackages: ["sharp"]` (empêche Next.js
+de bundler `sharp` dans le code serveur) — **insuffisant seul**, même
+erreur persistante après ce premier correctif ; (2)
+`outputFileTracingIncludes` forçant l'inclusion de `node_modules/sharp` et
+`node_modules/@img` dans le traçage de fichiers Vercel (`@vercel/nft`), qui
+ne détecte pas le chargement dynamique du binaire natif par analyse
+statique et ne le copiait donc jamais dans la fonction serverless déployée.
+Validation en cours (PR #276).
+
 ### P1.5 — Brancher les yeux 🧑 (W8)
 
 Le code est livré (`/api/health`, Sentry câblé, `notifyObservability`). Il
